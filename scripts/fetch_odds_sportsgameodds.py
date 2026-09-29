@@ -5,9 +5,12 @@ odds_theoddsapi.json ("YYYY-MM-DD|AWAY|HOME") so build_site.py can merge both
 odds sources onto the same game card.
 
 Requires env var SPORTSGAMEODDS_API_KEY (set as a GitHub Actions repo secret
--- never written to a file or committed). Auth uses the X-Api-Key header,
-never a URL query param, so the key never lands in a log line or a request
-that gets cached/materialized anywhere.
+-- never written to a file or committed). Auth uses the `apiKey` query
+parameter (confirmed working against a real key/response; the X-Api-Key
+header this script used previously returned 403 Forbidden for this key).
+The key is never printed: fetch_json() only logs the exception object on
+failure, never the request URL, so it can't leak into the public Actions
+run log even though it's embedded in the URL for the request itself.
 
 IMPORTANT -- read before trusting this blindly:
 SportsGameOdds' public docs confirm the oddID pattern
@@ -30,7 +33,7 @@ import urllib.request
 import urllib.error
 
 API_KEY = os.environ.get('SPORTSGAMEODDS_API_KEY', '').strip()
-BASE = 'https://api.sportsgameodds.com/v2/events/'
+BASE = 'https://api.sportsgameodds.com/v2/events'
 
 ABBREV_MAP = {'TBL': 'TB', 'MTL': 'MON', 'NJD': 'NJ', 'SJS': 'SJ', 'LAK': 'LA'}
 
@@ -70,8 +73,8 @@ def main():
         json.dump({}, open('odds_sportsgameodds.json', 'w'))
         return
 
-    url = BASE + '?leagueID=NHL&oddsAvailable=true&limit=50'
-    data = fetch_json(url, headers={'X-Api-Key': API_KEY})
+    url = BASE + f'?apiKey={API_KEY}&leagueID=NHL&oddsAvailable=true&limit=50'
+    data = fetch_json(url, headers={})
     if not data:
         json.dump({}, open('odds_sportsgameodds.json', 'w'))
         return
