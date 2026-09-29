@@ -74,7 +74,7 @@ def main():
         return
 
     url = BASE + f'?apiKey={API_KEY}&leagueID=NHL&oddsAvailable=true&limit=50'
-    data = fetch_json(url, headers={})
+    data = fetch_json(url, headers={'User-Agent': 'rtyb-fetch/1.0'})
     if not data:
         json.dump({}, open('odds_sportsgameodds.json', 'w'))
         return
