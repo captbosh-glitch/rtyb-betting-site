@@ -36,12 +36,30 @@ jobs:
       - name: Fetch NHL schedule and scores
         run: python3 scripts/fetch_schedule.py
 
+      - name: Decide whether this run also fetches odds
+        id: gate
+        run: |
+          # Odds cost API quota (both providers' free tiers are limited);
+          # scores/schedule don't (the NHL API is free and unlimited). So
+          # scores refresh every 10 minutes, but odds only refresh once an
+          # hour -- specifically on the run landing in the first 10 minutes
+          # after the hour. Force it with workflow_dispatch when you want an
+          # odds refresh on demand.
+          minute=$(date -u +%M)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$minute" -lt 10 ]; then
+            echo "fetch_odds=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "fetch_odds=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Fetch 1P moneyline / totals odds (The Odds API)
+        if: steps.gate.outputs.fetch_odds == 'true'
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: python3 scripts/fetch_odds_theoddsapi.py
 
       - name: Fetch 1P BTTS odds (SportsGameOdds)
+        if: steps.gate.outputs.fetch_odds == 'true'
         env:
           SPORTSGAMEODDS_API_KEY: ${{ secrets.SPORTSGAMEODDS_API_KEY }}
         run: python3 scripts/fetch_odds_sportsgameodds.py
