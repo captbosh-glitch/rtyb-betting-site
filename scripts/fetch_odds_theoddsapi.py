@@ -9,7 +9,16 @@ written to a file or committed). The Odds API does NOT offer a BTTS market
 for hockey at all (soccer only) -- that gap is filled by
 fetch_odds_sportsgameodds.py instead.
 
-If the key is missing or the request fails, this script writes an empty
+IMPORTANT: period-scoped markets like h2h_p1/totals_p1 are NOT available
+through the bulk GET /sports/{sport}/odds endpoint (that returns HTTP 422 --
+confirmed against a live run). They're only available per-event through
+GET /sports/{sport}/events/{eventId}/odds. So this fetches the event list
+first (1 request), then one additional request per upcoming event. That's
+more expensive quota-wise than a single bulk call -- see the cadence
+throttling in the workflow (odds are only fetched once/hour, not every
+10 minutes, specifically because of this).
+
+If the key is missing or a request fails, this script writes an empty
 result rather than raising, so the site still builds (with odds cells
 showing "--") instead of the whole pipeline breaking.
 """
@@ -20,7 +29,9 @@ import urllib.request
 import urllib.error
 
 API_KEY = os.environ.get('ODDS_API_KEY', '').strip()
-BASE = 'https://api.the-odds-api.com/v4/sports/icehockey_nhl/odds'
+SPORT = 'icehockey_nhl'
+EVENTS_URL = f'https://api.the-odds-api.com/v4/sports/{SPORT}/events'
+EVENT_ODDS_URL = f'https://api.the-odds-api.com/v4/sports/{SPORT}/events/{{event_id}}/odds'
 
 ABBREV_MAP = {'TBL': 'TB', 'MTL': 'MON', 'NJD': 'NJ', 'SJS': 'SJ', 'LAK': 'LA'}
 TEAM_NAME_TO_ABBREV = {
@@ -37,6 +48,11 @@ TEAM_NAME_TO_ABBREV = {
     'Vegas Golden Knights': 'VGK', 'Washington Capitals': 'WSH', 'Winnipeg Jets': 'WPG',
 }
 
+# Safety cap on per-event odds requests in a single run, so a scheduling
+# accident (e.g. the hourly gate misfiring) can't blow through your whole
+# monthly quota in one run. Raise this only once you know your plan's limits.
+MAX_EVENT_REQUESTS = 20
+
 
 def team_abbrev(name):
     return TEAM_NAME_TO_ABBREV.get(name, name[:3].upper())
@@ -48,7 +64,13 @@ def fetch_json(url):
         with urllib.request.urlopen(req, timeout=20) as resp:
             return json.loads(resp.read().decode('utf-8'))
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
-        print(f"WARN: The Odds API request failed: {e}", file=sys.stderr)
+        body = ''
+        if isinstance(e, urllib.error.HTTPError):
+            try:
+                body = e.read().decode('utf-8')[:300]
+            except Exception:
+                pass
+        print(f"WARN: The Odds API request failed: {e} {body}", file=sys.stderr)
         return None
 
 
@@ -58,28 +80,33 @@ def main():
         json.dump({}, open('odds_theoddsapi.json', 'w'))
         return
 
-    params = (
-        f'?apiKey={API_KEY}'
-        '&regions=us'
-        '&markets=h2h_p1,totals_p1'
-        '&oddsFormat=american'
-        '&dateFormat=iso'
-    )
-    data = fetch_json(BASE + params)
-    if not data:
+    events = fetch_json(f'{EVENTS_URL}?apiKey={API_KEY}&dateFormat=iso')
+    if not events:
         json.dump({}, open('odds_theoddsapi.json', 'w'))
         return
 
     out = {}
-    for event in data:
+    for event in events[:MAX_EVENT_REQUESTS]:
+        event_id = event.get('id')
         away = team_abbrev(event.get('away_team', ''))
         home = team_abbrev(event.get('home_team', ''))
         commence = event.get('commence_time', '')
         date_str = commence[:10] if commence else ''
         key = f'{date_str}|{away}|{home}'
 
+        params = (
+            f'?apiKey={API_KEY}'
+            '&regions=us'
+            '&markets=h2h_p1,totals_p1'
+            '&oddsFormat=american'
+            '&dateFormat=iso'
+        )
+        data = fetch_json(EVENT_ODDS_URL.format(event_id=event_id) + params)
+        if not data:
+            continue
+
         entry = {'ml': {}, 'totals': {}}
-        for book in event.get('bookmakers', []):
+        for book in data.get('bookmakers', []):
             for market in book.get('markets', []):
                 mkey = market.get('key')
                 if mkey == 'h2h_p1':
@@ -95,16 +122,16 @@ def main():
                         entry['totals'].setdefault(line_key, {})
                         if side not in entry['totals'][line_key]:
                             entry['totals'][line_key][side] = outcome.get('price')
-            # first bookmaker with data wins per event -- good enough for a
-            # single reference price; revisit if consensus/median is wanted later
             if entry['ml'] or entry['totals']:
-                break
+                break  # first bookmaker with data is enough for a reference price
 
-        out[key] = entry
+        if entry['ml'] or entry['totals']:
+            out[key] = entry
 
     with open('odds_theoddsapi.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, separators=(',', ':'))
-    print(f"wrote odds_theoddsapi.json: {len(out)} events")
+    print(f"wrote odds_theoddsapi.json: {len(out)} events "
+          f"(checked {min(len(events), MAX_EVENT_REQUESTS)} of {len(events)} upcoming)")
 
 
 if __name__ == '__main__':

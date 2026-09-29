@@ -50,12 +50,25 @@ static site via GitHub Pages.
 
 4. **Run the workflow once manually** to seed everything — Actions tab →
    "Refresh RTYB data and publish" → Run workflow. After that it runs itself
-   every 10 minutes.
+   every 10 minutes for schedule/scores. Odds only refresh once an hour (see
+   below) — a manual "Run workflow" always fetches odds too, regardless of
+   the clock.
 
 Your live URL will be `https://<your-username>.github.io/<repo-name>/`.
 
 ## Notes / known gaps
 
+- **Odds refresh once an hour, not every 10 minutes.** Schedule/scores are
+  free and unlimited (the NHL API needs no key), but both odds providers'
+  free tiers have a limited request quota, and The Odds API's period-scoped
+  markets (`h2h_p1`/`totals_p1`) require one request per game per fetch (see
+  `fetch_odds_theoddsapi.py`'s docstring) rather than one bulk request — so
+  fetching them every 10 minutes would burn through a month's quota in
+  hours. The workflow gates the two odds-fetch steps to only run on the run
+  landing in the first 10 minutes after the hour; a manual "Run workflow"
+  always fetches odds regardless. Tune the gate in `refresh.yml` (the
+  "Decide whether this run also fetches odds" step) once you know your
+  actual plan limits.
 - **BTTS has no price from The Odds API** — they simply don't offer that
   market for hockey (soccer only). SportsGameOdds is the source for that one
   cell specifically; the season hit-rate context next to it is always live
