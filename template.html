@@ -1,0 +1,1400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="RTYB — Run to Your Bets: NHL 1st-period betting stats and trends.">
+</head>
+<body>
+<title>RTYB</title>
+<style>
+  :root {
+    --bg: #0B0F14;
+    --panel: #121820;
+    --panel-2: #1A222C;
+    --panel-3: #212B37;
+    --border: #263140;
+    --border-soft: #1D2733;
+    --text: #EAEEF3;
+    --text-muted: #8B96A5;
+    --text-faint: #5C6B7A;
+    --accent: #34D5FF;
+    --accent-dim: #1C6B85;
+    --good: #33D17A;
+    --good-dim: #17462C;
+    --bad: #FF4D6A;
+    --bad-dim: #4A1620;
+    --neutral-chip: #2A3542;
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --bg: #F3F5F8;
+    --panel: #FFFFFF;
+    --panel-2: #F7F9FB;
+    --panel-3: #EDF1F5;
+    --border: #DCE2E9;
+    --border-soft: #E7EBEF;
+    --text: #12181F;
+    --text-muted: #5B6674;
+    --accent: #0B93B5;
+    --accent-dim: #DFF4FA;
+    --good: #158A4B;
+    --good-dim: #E3F6EB;
+    --bad: #D42B49;
+    --bad-dim: #FCE7EA;
+    --neutral-chip: #EEF1F5;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #F3F5F8;
+      --panel: #FFFFFF;
+      --panel-2: #F7F9FB;
+      --panel-3: #EDF1F5;
+      --border: #DCE2E9;
+      --border-soft: #E7EBEF;
+      --text: #12181F;
+      --text-muted: #5B6674;
+      --accent: #0B93B5;
+      --accent-dim: #DFF4FA;
+      --good: #158A4B;
+      --good-dim: #E3F6EB;
+      --bad: #D42B49;
+      --bad-dim: #FCE7EA;
+      --neutral-chip: #EEF1F5;
+      color-scheme: light;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding-inline: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, .display {
+    font-family: 'Barlow Condensed', 'Source Sans 3', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    text-wrap: balance;
+    margin: 0;
+  }
+  .mono, .num, table td.num, table th.num {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  a { color: var(--accent); }
+  button { font-family: inherit; }
+
+  /* ---------- Header ---------- */
+  header.top {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 40;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .top-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .brand .mark {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 1.7rem;
+    letter-spacing: 0.03em;
+    color: var(--text);
+  }
+  .brand .mark span { color: var(--accent); }
+  .brand .tag {
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-family: 'Source Sans 3', sans-serif;
+    display: none;
+  }
+  @media (min-width: 640px) { .brand .tag { display: block; } }
+
+  nav.leagues {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex: 1;
+  }
+  nav.leagues::-webkit-scrollbar { display: none; }
+  .league-btn {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.92rem;
+    padding: 7px 12px;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .league-btn[aria-current="true"] {
+    background: var(--panel-2);
+    border-color: var(--border);
+    color: var(--text);
+  }
+  .league-btn .soon {
+    font-size: 0.56rem;
+    font-family: 'Source Sans 3', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--neutral-chip);
+    color: var(--text-muted);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .league-btn:disabled { cursor: default; opacity: 0.55; }
+
+  .theme-toggle {
+    flex-shrink: 0;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem;
+  }
+  .theme-toggle:hover { color: var(--text); }
+
+  /* ---------- Trends to Watch ---------- */
+  .trends-section { margin-top: 26px; }
+  .trends-head h2 { font-size: 1.15rem; margin-bottom: 3px; }
+  .trends-head p { color: var(--text-muted); font-size: 0.84rem; max-width: 62ch; }
+  .trend-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .trend-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--panel);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    padding: 11px 13px;
+  }
+  .trend-row.hidden-extra { display: none; }
+  .trend-color-bar { width: 5px; align-self: stretch; border-radius: 3px; flex-shrink: 0; min-height: 34px; }
+  .trend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .trend-dot.good { background: var(--good); }
+  .trend-dot.bad { background: var(--bad); }
+  .trend-copy { min-width: 0; }
+  .trend-copy .team-name { font-weight: 700; font-size: 0.86rem; }
+  .trend-copy .trend-text { font-size: 0.84rem; color: var(--text-muted); margin-top: 1px; }
+  .trend-show-all {
+    margin-top: 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .trend-show-all:hover { background: var(--panel-3); }
+
+  /* ---------- Main layout ---------- */
+  main { max-width: 1180px; margin: 0 auto; padding: 24px 20px 80px; }
+
+  .page-head { margin-bottom: 18px; }
+  .page-head h1 { font-size: clamp(1.6rem, 4vw, 2.1rem); }
+  .page-head p { color: var(--text-muted); font-size: 0.92rem; margin-top: 4px; max-width: 62ch; }
+
+  /* ---------- Date bar ---------- */
+  .date-bar {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-bottom: 16px; position: relative;
+  }
+  .date-nav {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--text); font-size: 1.1rem; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .date-nav:hover { background: var(--panel-3); }
+  .date-label-wrap { position: relative; display: flex; align-items: center; gap: 6px; }
+  .date-label {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.05rem;
+    letter-spacing: 0.02em; min-width: 132px; text-align: center;
+  }
+  .date-cal-btn {
+    width: 30px; height: 30px; border-radius: 7px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--text-muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .date-cal-btn:hover { color: var(--text); background: var(--panel-3); }
+  .date-today-btn {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-muted); font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 6px 10px; border-radius: 7px; cursor: pointer;
+  }
+  .date-today-btn:hover { color: var(--text); border-color: var(--accent); }
+  .cal-popover {
+    position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px; width: 260px; box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    z-index: 40;
+  }
+  .cal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; font-weight: 700; font-size: 0.85rem;
+  }
+  .cal-head button { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; padding: 2px 8px; }
+  .cal-head button:hover { color: var(--text); }
+  .cal-dow {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    font-size: 0.65rem; color: var(--text-muted); text-align: center; margin-bottom: 4px;
+  }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-day {
+    position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; font-size: 0.78rem; cursor: pointer; background: none; border: none; color: var(--text);
+  }
+  .cal-day:hover { background: var(--panel-2); }
+  .cal-day.outside { color: var(--text-faint); }
+  .cal-day.selected { background: var(--accent); color: var(--bg); font-weight: 700; }
+  .cal-day.today:not(.selected) { border: 1px solid var(--accent); }
+  .cal-day .dot { position: absolute; bottom: 3px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+  .cal-day.selected .dot { background: var(--bg); }
+  .cal-legend { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.68rem; color: var(--text-muted); }
+  .cal-legend .cal-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); display: inline-block; }
+
+  .no-games-note {
+    font-size: 0.82rem; color: var(--text-muted); background: var(--panel-2);
+    border: 1px solid var(--border-soft); border-radius: 8px;
+    padding: 8px 13px; margin-bottom: 14px;
+  }
+
+  /* ---------- Games list ---------- */
+  .daily-summary {
+    background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 16px;
+  }
+  .daily-summary h3 { font-size: 0.95rem; margin-bottom: 10px; }
+  .ds-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-top: 1px solid var(--border-soft); font-size: 0.85rem; }
+  .ds-row:first-of-type { border-top: none; }
+  .ds-label { color: var(--text-muted); }
+  .ds-right { display: flex; align-items: center; gap: 10px; }
+  .ds-record { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .ds-pct { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding: 2px 7px; border-radius: 5px; }
+  .ds-pct.good { background: var(--good-dim); color: var(--good); }
+  .ds-pct.bad { background: var(--bad-dim); color: var(--bad); }
+  .ds-pct.mid { background: var(--neutral-chip); color: var(--text-muted); }
+
+  .games-list { display: flex; flex-direction: column; gap: 12px; }
+  .game-card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px 16px; }
+  .game-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+  .game-matchup { display: flex; align-items: center; gap: 8px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.05rem; }
+  .game-matchup .gm-team { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .game-matchup .gm-team:hover { color: var(--accent); }
+  .game-color-bar { width: 4px; height: 18px; border-radius: 2px; display: inline-block; }
+  .game-time { font-size: 0.78rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .game-final-score { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.95rem; }
+  .odds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px; }
+  .odds-cell { background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 8px 10px; }
+  .odds-cell .oc-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; }
+  .odds-cell .oc-row { display: flex; align-items: center; justify-content: space-between; margin-top: 3px; font-size: 0.82rem; }
+  .odds-cell .oc-price { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .odds-cell .oc-hist { color: var(--text-faint); font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; }
+  .market-result-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .market-pill {
+    font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .market-pill.win { background: var(--good-dim); color: var(--good); }
+  .market-pill.lose { background: var(--bad-dim); color: var(--bad); }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    background: var(--panel);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+  }
+  .control-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .control-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-right: 4px;
+    font-weight: 600;
+  }
+  .seg-btn {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 11px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .seg-btn[aria-pressed="true"] {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--text);
+  }
+  :root:not([data-theme="light"]) .seg-btn[aria-pressed="true"] { color: var(--accent); }
+  .search-box {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    width: 150px;
+  }
+  .search-box::placeholder { color: var(--text-muted); }
+
+  /* ---------- Table ---------- */
+  .table-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 640px; }
+  thead th {
+    text-align: left;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    font-weight: 700;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel-2);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  thead th.num, td.num { text-align: right; }
+  thead th:hover { color: var(--text); }
+  thead th .arrow { opacity: 0.5; margin-left: 3px; font-size: 0.6rem; }
+  tbody tr {
+    border-bottom: 1px solid var(--border-soft);
+    cursor: pointer;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--panel-2); }
+  td { padding: 10px 14px; font-size: 0.87rem; white-space: nowrap; }
+  td.team-cell { display: flex; align-items: center; gap: 9px; font-weight: 600; }
+  .team-dot {
+    width: 8px; height: 26px; border-radius: 3px;
+    background: var(--neutral-chip);
+    flex-shrink: 0;
+  }
+  .pct-cell { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .pct-bar {
+    width: 60px; height: 6px; border-radius: 3px;
+    background: var(--panel-3);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .pct-bar > span { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+  .pct-num { width: 42px; text-align: right; }
+  .rec-cell { color: var(--text-muted); }
+  .rec-cell b { color: var(--text); }
+
+  /* ---------- Detail drawer ---------- */
+  .scrim {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    opacity: 0; pointer-events: none;
+    transition: opacity .18s ease;
+    z-index: 50;
+  }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: min(480px, 100vw);
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    transform: translateX(100%);
+    transition: transform .22s ease;
+    z-index: 51;
+    display: flex;
+    flex-direction: column;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border-soft);
+    flex-shrink: 0;
+  }
+  .drawer-head h2 { font-size: 1.4rem; }
+  .drawer-title-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .drawer-team-badge {
+    width: 34px; height: 34px; border-radius: 9px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 0.95rem;
+  }
+  .drawer-close {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    width: 30px; height: 30px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .drawer-body { overflow-y: auto; padding: 16px 18px 32px; flex: 1; }
+
+  .stat-row { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+  .stat-tile {
+    flex: 1;
+    min-width: 84px;
+    background: var(--panel-2);
+    border: 1px solid var(--border-soft);
+    border-radius: 9px;
+    padding: 10px 12px;
+  }
+  .stat-tile .lbl { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 700; }
+  .stat-tile .val { font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 600; margin-top: 3px; font-variant-numeric: tabular-nums; }
+
+  .drawer-section-title {
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-muted); font-weight: 700; margin: 18px 0 8px;
+  }
+  .split-table { width: 100%; min-width: 380px; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 6px; }
+  .split-table th { text-align: right; color: var(--text-muted); font-weight: 600; padding: 5px 6px; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .split-table th:first-child, .split-table td:first-child { text-align: left; }
+  .split-table td { text-align: right; padding: 6px 6px; font-family: 'JetBrains Mono', monospace; border-top: 1px solid var(--border-soft); }
+
+  .trend-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: 999px;
+    font-size: 0.78rem; font-weight: 600;
+    background: var(--good-dim); color: var(--good);
+    margin-bottom: 4px;
+  }
+  .trend-badge.bad { background: var(--bad-dim); color: var(--bad); }
+
+  .gamelog-scroll { overflow-x: auto; }
+  .gamelog { width: 100%; min-width: 420px; border-collapse: collapse; font-size: 0.78rem; }
+  .gamelog th { text-align: left; color: var(--text-muted); font-weight: 600; padding: 6px 6px; border-bottom: 1px solid var(--border); font-size: 0.65rem; text-transform: uppercase; }
+  .gamelog td { padding: 7px 6px; border-bottom: 1px solid var(--border-soft); }
+  .gamelog td.num { font-family: 'JetBrains Mono', monospace; text-align: center; }
+  .result-pill {
+    display: inline-block; width: 20px; height: 20px; border-radius: 5px;
+    text-align: center; line-height: 20px; font-weight: 700; font-size: 0.68rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .result-pill.W { background: var(--good-dim); color: var(--good); }
+  .result-pill.L { background: var(--bad-dim); color: var(--bad); }
+  .result-pill.T { background: var(--neutral-chip); color: var(--text-muted); }
+  .btts-badge {
+    display: inline-block; width: 20px; height: 20px; border-radius: 5px;
+    text-align: center; line-height: 20px; font-weight: 700; font-size: 0.72rem;
+  }
+  .btts-badge.yes { background: var(--good-dim); color: var(--good); }
+  .btts-badge.no { background: var(--bad-dim); color: var(--bad); }
+
+  footer {
+    max-width: 1180px; margin: 30px auto 0; padding: 18px 20px 40px;
+    color: var(--text-faint); font-size: 0.76rem; border-top: 1px solid var(--border-soft);
+  }
+  .empty-state { padding: 40px 20px; text-align: center; color: var(--text-muted); }
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap">
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <div class="mark">RTY<span>B</span></div>
+      <div class="tag">Run to Your Bets</div>
+    </div>
+    <nav class="leagues" id="leagueNav">
+      <button class="league-btn" aria-current="true" data-league="NHL">NHL</button>
+      <button class="league-btn" disabled data-league="NBA">NBA <span class="soon">Soon</span></button>
+      <button class="league-btn" disabled data-league="WNBA">WNBA <span class="soon">Soon</span></button>
+      <button class="league-btn" disabled data-league="MLB">MLB <span class="soon">Soon</span></button>
+      <button class="league-btn" disabled data-league="NFL">NFL <span class="soon">Soon</span></button>
+      <button class="league-btn" disabled data-league="NCAAF">NCAAF <span class="soon">Soon</span></button>
+      <button class="league-btn" disabled data-league="NCAAB">NCAAB <span class="soon">Soon</span></button>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
+  </div>
+</header>
+
+<main>
+  <div class="page-head">
+    <h1>NHL — 1st Period Markets</h1>
+    <p>Historical 1st-period results by team for the 2025&ndash;26 season. Pick a market, split by home/away, and tap any team for the full trend and game log.</p>
+  </div>
+
+  <div class="date-bar">
+    <button class="date-nav" id="datePrev" aria-label="Previous day">&lsaquo;</button>
+    <div class="date-label-wrap">
+      <span class="date-label" id="dateLabel">Today</span>
+      <button class="date-cal-btn" id="dateCalBtn" aria-label="Pick a date" aria-haspopup="true">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      </button>
+      <button class="date-today-btn" id="dateTodayBtn" type="button">Today</button>
+    </div>
+    <button class="date-nav" id="dateNext" aria-label="Next day">&rsaquo;</button>
+    <div class="cal-popover" id="calPopover" hidden>
+      <div class="cal-head">
+        <button type="button" id="calPrevMonth" aria-label="Previous month">&lsaquo;</button>
+        <span id="calMonthLabel"></span>
+        <button type="button" id="calNextMonth" aria-label="Next month">&rsaquo;</button>
+      </div>
+      <div class="cal-dow">
+        <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend"><span class="cal-dot"></span> NHL games that day</div>
+    </div>
+  </div>
+
+  <div class="no-games-note" id="noGamesNote" style="display:none"></div>
+
+  <div id="teamView">
+    <div class="controls">
+      <div class="control-group">
+        <span class="control-label">Market</span>
+        <button class="seg-btn" data-market="win" aria-pressed="true">Winner</button>
+        <button class="seg-btn" data-market="o05">Over 0.5</button>
+        <button class="seg-btn" data-market="o15">Over 1.5</button>
+        <button class="seg-btn" data-market="o25">Over 2.5</button>
+        <button class="seg-btn" data-market="btts">BTTS</button>
+      </div>
+      <div class="control-group">
+        <span class="control-label">Side</span>
+        <button class="seg-btn" data-side="Both" aria-pressed="true">Both</button>
+        <button class="seg-btn" data-side="Home">Home</button>
+        <button class="seg-btn" data-side="Away">Away</button>
+      </div>
+      <div class="control-group">
+        <input class="search-box" id="searchBox" type="text" placeholder="Search team&hellip;">
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table id="leagueTable">
+          <thead>
+            <tr>
+              <th data-sort="name">Team</th>
+              <th class="num" data-sort="gp">GP</th>
+              <th data-sort="rec">Record<span class="arrow"></span></th>
+              <th class="num" data-sort="pct">Hit Rate<span class="arrow">▼</span></th>
+            </tr>
+          </thead>
+          <tbody id="leagueBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="gamesView" style="display:none">
+    <div class="daily-summary" id="dailySummary" style="display:none"></div>
+    <div class="games-list" id="gamesList"></div>
+  </div>
+
+  <section class="trends-section">
+    <div class="trends-head">
+      <h2>Trends to Watch</h2>
+      <p id="trendsSubtitle">League-wide streaks and season rates across every 1st-period market. Once live game dates are wired up, this narrows to tonight&rsquo;s matchups.</p>
+    </div>
+    <div class="trend-list" id="trendList"></div>
+    <button class="trend-show-all" id="trendShowAll" type="button" style="display:none">Show all trends</button>
+  </section>
+</main>
+
+<footer>
+  RTYB &mdash; archived-data preview built from the 2025&ndash;26 season file. Records reflect 1st-period results only; ties (periods ending level) count as pushes on the Winner market. Not affiliated with the NHL.
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div class="drawer-title-row">
+      <span class="drawer-team-badge" id="drawerBadge"></span>
+      <h2 id="drawerTitle">Team</h2>
+    </div>
+    <button class="drawer-close" id="drawerClose" aria-label="Close">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<script id="rtyb-data" type="application/json">__RTYB_DATA_JSON__</script>
+<script>
+(function() {
+  'use strict';
+  var DATA = JSON.parse(document.getElementById('rtyb-data').textContent);
+
+  // ---- team colors ----
+  // True team brand color, one per code. Reused (and re-verified for
+  // contrast here) from the Sports Desk news dashboard's WCAG-checked
+  // NHL palette; Utah Mammoth added since Sports Desk still has it
+  // as the (retired) Arizona Coyotes.
+  var TEAM_TRUE_COLOR = {
+    ANH: '#F47A38', BOS: '#FFB81C', BUF: '#002654', CGY: '#C8102E',
+    CAR: '#CC0000', CHI: '#CF0A2C', COL: '#6F263D', CBJ: '#002654',
+    DAL: '#006847', DET: '#CE1126', EDM: '#FF4C00', FLA: '#C8102E',
+    LA: '#A2AAAD', MIN: '#154734', MON: '#AF1E2D', NSH: '#FFB81C',
+    NJ: '#CE1126', NYI: '#00539B', NYR: '#0038A8', OTT: '#C52032',
+    PHI: '#F74902', PIT: '#FCB514', SJ: '#006D75', SEA: '#355464',
+    STL: '#002F87', TB: '#002868', TOR: '#00205B', UTA: '#6CACE3',
+    VAN: '#00205B', VGK: '#B4975A', WSH: '#C8102E', WPG: '#041E42'
+  };
+
+  function hexToRgb(hex) {
+    var h = hex.replace('#', '');
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+  function rgbToHex(rgb) {
+    return '#' + rgb.map(function(c) {
+      return Math.max(0, Math.min(255, Math.round(c))).toString(16).padStart(2, '0');
+    }).join('').toUpperCase();
+  }
+  function relLuminance(rgb) {
+    var chans = rgb.map(function(c) {
+      c = c / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * chans[0] + 0.7152 * chans[1] + 0.0722 * chans[2];
+  }
+  function contrastRatio(rgb1, rgb2) {
+    var l1 = relLuminance(rgb1), l2 = relLuminance(rgb2);
+    var lighter = Math.max(l1, l2), darker = Math.min(l1, l2);
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+  function mixToward(rgb, target, amount) {
+    return rgb.map(function(c, i) { return c + (target[i] - c) * amount; });
+  }
+  // Blend a color toward a bg-appropriate direction (white on dark bg,
+  // black on light bg) in small steps until it clears the target
+  // contrast ratio against that background, same approach Sports Desk
+  // uses for its WCAG-safe chip colors.
+  function adjustUntilContrast(rgb, bgRgb, target) {
+    if (contrastRatio(rgb, bgRgb) >= target) return rgb;
+    var bgIsDark = relLuminance(bgRgb) < 0.5;
+    var toward = bgIsDark ? [255, 255, 255] : [0, 0, 0];
+    var amount = 0;
+    while (amount < 0.94) {
+      amount += 0.02;
+      var candidate = mixToward(rgb, toward, amount);
+      if (contrastRatio(candidate, bgRgb) >= target) return candidate;
+    }
+    return mixToward(rgb, toward, 0.94);
+  }
+  function bestTextColor(bgRgb) {
+    var white = [255, 255, 255], dark = [10, 14, 19];
+    return contrastRatio(bgRgb, white) >= contrastRatio(bgRgb, dark) ? '#FFFFFF' : '#0A0E13';
+  }
+
+  // Two panel backgrounds this page actually renders team chips on.
+  var PANEL_BG = { dark: [18, 24, 32], light: [255, 255, 255] };
+
+  // Precompute, per theme: a 3:1-safe dot/bar color (WCAG non-text
+  // contrast, since the dot is a graphical indicator, not text) and a
+  // 4.5:1-safe badge (bg = true color, text = best-contrast white/near-black),
+  // for both dark and light themes.
+  var TEAM_COLOR = { dark: {}, light: {} };
+  ['dark', 'light'].forEach(function(theme) {
+    Object.keys(TEAM_TRUE_COLOR).forEach(function(code) {
+      var rgb = hexToRgb(TEAM_TRUE_COLOR[code]);
+      var bg = PANEL_BG[theme];
+      var dot = rgbToHex(adjustUntilContrast(rgb, bg, 3.0));
+      TEAM_COLOR[theme][code] = {
+        dot: dot,
+        badgeBg: TEAM_TRUE_COLOR[code],
+        badgeText: bestTextColor(rgb)
+      };
+    });
+  });
+  function currentTheme() {
+    var attr = document.documentElement.getAttribute('data-theme');
+    if (attr === 'dark' || attr === 'light') return attr;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function teamColor(code) {
+    return TEAM_COLOR[currentTheme()][code] || TEAM_COLOR.dark[code];
+  }
+
+  var MARKETS = {
+    win:  { label: 'Winner',   key: 'w',   desc: '1P Win %' },
+    o05:  { label: 'Over 0.5', key: 'o05', desc: 'Over 0.5 goals' },
+    o15:  { label: 'Over 1.5', key: 'o15', desc: 'Over 1.5 goals' },
+    o25:  { label: 'Over 2.5', key: 'o25', desc: 'Over 2.5 goals' },
+    btts: { label: 'BTTS',     key: 'btts', desc: 'Both teams to score', noTies: true },
+  };
+  var state = { market: 'win', side: 'Both', sortKey: 'pct', sortDir: -1, search: '' };
+
+  // ---- theme ----
+  try {
+    var savedTheme = localStorage.getItem('rtyb-theme');
+    if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+  } catch (e) {}
+  document.getElementById('themeToggle').addEventListener('click', function() {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('rtyb-theme', next); } catch (e) {}
+    renderTable();
+    renderDateView();
+    if (drawer.classList.contains('open') && openDrawerCode) openDrawer(openDrawerCode);
+  });
+
+  // ---- Trends to Watch ----
+  // League-wide trends computed from DATA.streaks / DATA.summary. Deliberately
+  // structured to later take a "teams playing today" filter once a live
+  // schedule feed exists -- for now, since there's no selected date, this
+  // always renders the same "no games today, show league-wide trends" state
+  // the spec calls for as its fallback.
+  var TREND_MARKETS = {
+    o05:  { hitWord: 'Over 0.5',  missWord: 'Under 0.5' },
+    o15:  { hitWord: 'Over 1.5',  missWord: 'Under 1.5' },
+    o25:  { hitWord: 'Over 2.5',  missWord: 'Under 2.5' },
+    btts: { hitWord: 'BTTS',      missWord: 'No BTTS' }
+  };
+  var TREND_MIN_STREAK = 4;
+  var TREND_RATE_MIN_GP = 20;
+  var TREND_RATE_HIGH = 0.75;
+  var TREND_RATE_LOW = 0.25;
+
+  function buildTrends() {
+    var trends = [];
+
+    Object.keys(DATA.streaks).forEach(function(code) {
+      var st = DATA.streaks[code];
+      var name = DATA.summary[code].name;
+
+      // win/loss streaks
+      if (st.wl_streak >= TREND_MIN_STREAK && st.wl_result !== 'T') {
+        var wlGood = st.wl_result === 'W';
+        trends.push({
+          code: code, name: name, good: wlGood,
+          text: (wlGood ? 'Won' : 'Lost') + ' ' + st.wl_streak + ' straight 1st periods',
+          strength: st.wl_streak * 10
+        });
+      }
+
+      // over/under and BTTS streaks
+      Object.keys(TREND_MARKETS).forEach(function(mk) {
+        var streak = st[mk + '_streak'];
+        var result = st[mk + '_result'];
+        if (streak >= TREND_MIN_STREAK) {
+          var isHit = (mk === 'btts') ? result === 'Y' : result === 'O';
+          var meta = TREND_MARKETS[mk];
+          trends.push({
+            code: code, name: name, good: isHit,
+            text: (isHit ? meta.hitWord : meta.missWord) + ' in ' + streak + ' straight',
+            strength: streak * 10
+          });
+        }
+      });
+    });
+
+    Object.keys(DATA.summary).forEach(function(code) {
+      var s = DATA.summary[code];
+      var both = s.splits.Both;
+      if (both.gp < TREND_RATE_MIN_GP) return;
+      Object.keys(TREND_MARKETS).forEach(function(mk) {
+        var hit = both[mk];
+        var pct = hit / both.gp;
+        var meta = TREND_MARKETS[mk];
+        if (pct >= TREND_RATE_HIGH) {
+          trends.push({
+            code: code, name: s.name, good: true,
+            text: meta.hitWord + ' in ' + Math.round(pct * 100) + '% of games this season (' + hit + '/' + both.gp + ')',
+            strength: Math.abs(pct - 0.5) * 200
+          });
+        } else if (pct <= TREND_RATE_LOW) {
+          var missCount = both.gp - hit;
+          var missPct = missCount / both.gp;
+          trends.push({
+            code: code, name: s.name, good: false,
+            text: meta.missWord + ' in ' + Math.round(missPct * 100) + '% of games this season (' + missCount + '/' + both.gp + ')',
+            strength: Math.abs(pct - 0.5) * 200
+          });
+        }
+      });
+    });
+
+    trends.sort(function(a, b) { return b.strength - a.strength; });
+    return trends;
+  }
+
+  var ALL_TRENDS = buildTrends();
+
+  function renderTrends(gamesToday) {
+    var list = document.getElementById('trendList');
+    var showAllBtn = document.getElementById('trendShowAll');
+    var subtitle = document.getElementById('trendsSubtitle');
+    var pool = ALL_TRENDS;
+    if (gamesToday && gamesToday.length) {
+      var todayCodes = {};
+      gamesToday.forEach(function(g) { todayCodes[g.away] = 1; todayCodes[g.home] = 1; });
+      var scoped = ALL_TRENDS.filter(function(t) { return todayCodes[t.code]; });
+      if (scoped.length) {
+        pool = scoped;
+        subtitle.textContent = 'Streaks and season rates for teams playing on the selected date.';
+      } else {
+        subtitle.textContent = 'No standout trends for tonight’s teams — showing league-wide trends instead.';
+      }
+    } else {
+      subtitle.textContent = 'League-wide streaks and season rates across every 1st-period market. Once live game dates are wired up, this narrows to tonight’s matchups.';
+    }
+    if (!pool.length) {
+      list.innerHTML = '<div class="empty-state">No notable trends right now.</div>';
+      showAllBtn.style.display = 'none';
+      return;
+    }
+    var VISIBLE = 6;
+    list.innerHTML = pool.map(function(t, i) {
+      var tc = teamColor(t.code);
+      var extraClass = i >= VISIBLE ? ' hidden-extra' : '';
+      return '<div class="trend-row' + extraClass + '">' +
+        '<span class="trend-color-bar" style="background:' + tc.dot + '"></span>' +
+        '<span class="trend-dot ' + (t.good ? 'good' : 'bad') + '"></span>' +
+        '<div class="trend-copy"><div class="team-name">' + escapeHtml(t.name) + '</div>' +
+        '<div class="trend-text">' + escapeHtml(t.text) + '</div></div>' +
+      '</div>';
+    }).join('');
+    showAllBtn.style.display = pool.length > VISIBLE ? '' : 'none';
+    showAllBtn.textContent = 'Show all trends (' + pool.length + ')';
+    showAllBtn.setAttribute('aria-expanded', 'false');
+  }
+  document.getElementById('trendShowAll').addEventListener('click', function() {
+    document.querySelectorAll('.trend-row.hidden-extra').forEach(function(r) { r.classList.remove('hidden-extra'); });
+    this.style.display = 'none';
+  });
+
+  // ---- controls wiring ----
+  document.querySelectorAll('[data-market]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('[data-market]').forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      state.market = btn.getAttribute('data-market');
+      state.sortKey = 'pct';
+      state.sortDir = -1;
+      document.querySelectorAll('#leagueTable thead th .arrow').forEach(function(a) { a.textContent = ''; });
+      var pctArrow = document.querySelector('#leagueTable thead th[data-sort="pct"] .arrow');
+      if (pctArrow) pctArrow.textContent = '▼';
+      renderTable();
+    });
+  });
+  document.querySelectorAll('[data-side]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('[data-side]').forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      state.side = btn.getAttribute('data-side');
+      renderTable();
+    });
+  });
+  document.getElementById('searchBox').addEventListener('input', function(e) {
+    state.search = e.target.value.trim().toLowerCase();
+    renderTable();
+  });
+  document.querySelectorAll('#leagueTable thead th[data-sort]').forEach(function(th) {
+    th.addEventListener('click', function() {
+      var key = th.getAttribute('data-sort');
+      if (state.sortKey === key) { state.sortDir *= -1; }
+      else { state.sortKey = key; state.sortDir = key === 'name' ? 1 : -1; }
+      document.querySelectorAll('#leagueTable thead th .arrow').forEach(function(a) { a.textContent = ''; });
+      th.querySelector('.arrow').textContent = state.sortDir === 1 ? '▲' : '▼';
+      renderTable();
+    });
+  });
+
+  function teamRows() {
+    return Object.keys(DATA.summary).map(function(code) {
+      var s = DATA.summary[code];
+      var split = s.splits[state.side];
+      var mk = MARKETS[state.market];
+      var hitCount = state.market === 'win' ? split.w : split[mk.key];
+      var denom = split.gp;
+      var pct = denom ? (hitCount / denom) : 0;
+      var rec = state.market === 'win'
+        ? (split.w + '-' + split.l + '-' + split.t)
+        : (hitCount + '-' + (denom - hitCount));
+      return { code: code, name: s.name, gp: denom, rec: rec, pct: pct, hitCount: hitCount };
+    });
+  }
+
+  function renderTable() {
+    var rows = teamRows().filter(function(r) {
+      return !state.search || r.name.toLowerCase().indexOf(state.search) !== -1;
+    });
+    rows.sort(function(a, b) {
+      var v = state.sortKey === 'name' ? a.name.localeCompare(b.name) : (a[state.sortKey] - b[state.sortKey]);
+      return v * state.sortDir;
+    });
+    var tbody = document.getElementById('leagueBody');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">No teams match &ldquo;' + escapeHtml(state.search) + '&rdquo;.</div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(function(r) {
+      var pctDisplay = Math.round(r.pct * 100);
+      var tc = teamColor(r.code);
+      return '<tr data-team="' + r.code + '">' +
+        '<td class="team-cell"><span class="team-dot" style="background:' + tc.dot + '"></span>' + r.name + '</td>' +
+        '<td class="num mono">' + r.gp + '</td>' +
+        '<td class="rec-cell mono"><b>' + r.rec + '</b></td>' +
+        '<td class="num"><div class="pct-cell"><div class="pct-bar"><span style="width:' + pctDisplay + '%"></span></div><span class="pct-num mono">' + pctDisplay + '%</span></div></td>' +
+        '</tr>';
+    }).join('');
+    tbody.querySelectorAll('tr[data-team]').forEach(function(tr) {
+      tr.addEventListener('click', function() { openDrawer(tr.getAttribute('data-team')); });
+    });
+  }
+
+  function escapeHtml(s) {
+    var div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  // ---- drawer ----
+  var scrim = document.getElementById('scrim');
+  var drawer = document.getElementById('drawer');
+  document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+  scrim.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeDrawer(); });
+
+  function closeDrawer() {
+    scrim.classList.remove('open');
+    drawer.classList.remove('open');
+    openDrawerCode = null;
+  }
+
+  var openDrawerCode = null;
+  function openDrawer(code) {
+    openDrawerCode = code;
+    var s = DATA.summary[code];
+    var st = DATA.streaks[code];
+    var log = DATA.gamelog[code].slice(-10).reverse();
+    document.getElementById('drawerTitle').textContent = s.name;
+    var tc = teamColor(code);
+    var badge = document.getElementById('drawerBadge');
+    badge.style.background = tc.badgeBg;
+    badge.style.color = tc.badgeText;
+    badge.textContent = code.length > 3 ? code.slice(0, 3) : code;
+
+    var both = s.splits.Both;
+    var winPct = Math.round((both.w / both.gp) * 100);
+    var o05Pct = Math.round((both.o05 / both.gp) * 100);
+    var bttsPct = Math.round((both.btts / both.gp) * 100);
+
+    var streakHtml = '';
+    if (st.wl_streak >= 2) {
+      var isGood = st.wl_result === 'W';
+      streakHtml += '<div class="trend-badge' + (isGood ? '' : ' bad') + '">' +
+        (isGood ? '▲' : '▼') + ' ' + (st.wl_result === 'W' ? 'Won' : st.wl_result === 'L' ? 'Lost' : 'Drawn') + ' ' + st.wl_streak + ' straight 1P' + (st.wl_streak > 1 ? 's' : '') + '</div>';
+    }
+    if (st.o05_streak >= 3) {
+      var overGood = st.o05_result === 'O';
+      streakHtml += '<div class="trend-badge' + (overGood ? '' : ' bad') + '">' +
+        (overGood ? '▲' : '▼') + ' ' + (overGood ? 'Over' : 'Under') + ' 0.5 in ' + st.o05_streak + ' straight</div>';
+    }
+    if (st.btts_streak >= 3) {
+      var bttsGood = st.btts_result === 'Y';
+      streakHtml += '<div class="trend-badge' + (bttsGood ? '' : ' bad') + '">' +
+        (bttsGood ? '▲' : '▼') + ' ' + (bttsGood ? 'BTTS' : 'No BTTS') + ' in ' + st.btts_streak + ' straight</div>';
+    }
+    if (!streakHtml) streakHtml = '<span style="color:var(--text-muted);font-size:0.82rem;">No notable streak right now.</span>';
+
+    function splitRow(label, sp) {
+      return '<tr><td>' + label + '</td><td class="num">' + sp.gp + '</td><td class="num">' + sp.w + '-' + sp.l + '-' + sp.t + '</td>' +
+        '<td class="num">' + sp.o05 + '/' + sp.gp + '</td><td class="num">' + sp.o15 + '/' + sp.gp + '</td><td class="num">' + sp.o25 + '/' + sp.gp + '</td>' +
+        '<td class="num">' + sp.btts + '/' + sp.gp + '</td></tr>';
+    }
+
+    var logRows = log.map(function(g) {
+      var wl = g.p1t > g.p1o ? 'W' : g.p1t < g.p1o ? 'L' : 'T';
+      var finalStr = g.ft + '-' + g.fo + (g.ot ? ' ' + g.ot : '');
+      return '<tr>' +
+        '<td class="mono">' + g.date.slice(5) + '</td>' +
+        '<td>' + (g.side === 'Away' ? '@ ' : 'vs ') + g.opp + '</td>' +
+        '<td class="num"><span class="result-pill ' + wl + '">' + wl + '</span></td>' +
+        '<td class="num mono">' + g.p1t + '-' + g.p1o + '</td>' +
+        '<td class="num mono">' + finalStr + '</td>' +
+        '<td class="num"><span class="btts-badge ' + (g.btts ? 'yes' : 'no') + '">' + (g.btts ? '✓' : '✗') + '</span></td>' +
+        '</tr>';
+    }).join('');
+
+    document.getElementById('drawerBody').innerHTML =
+      '<div class="stat-row">' +
+        '<div class="stat-tile"><div class="lbl">1P Record</div><div class="val">' + both.w + '-' + both.l + '-' + both.t + '</div></div>' +
+        '<div class="stat-tile"><div class="lbl">1P Win %</div><div class="val">' + winPct + '%</div></div>' +
+        '<div class="stat-tile"><div class="lbl">Over 0.5 %</div><div class="val">' + o05Pct + '%</div></div>' +
+        '<div class="stat-tile"><div class="lbl">BTTS %</div><div class="val">' + bttsPct + '%</div></div>' +
+      '</div>' +
+      '<div class="drawer-section-title">Current Trends</div>' +
+      streakHtml +
+      '<div class="drawer-section-title">Home / Away Splits</div>' +
+      '<div class="gamelog-scroll"><table class="split-table"><tr><th style="text-align:left">Side</th><th>GP</th><th>W-L-T</th><th>O 0.5</th><th>O 1.5</th><th>O 2.5</th><th>BTTS</th></tr>' +
+        splitRow('Both', s.splits.Both) + splitRow('Home', s.splits.Home) + splitRow('Away', s.splits.Away) +
+      '</table></div>' +
+      '<div class="drawer-section-title">Last 10 Games &mdash; 1P Result</div>' +
+      '<div class="gamelog-scroll"><table class="gamelog"><tr><th>Date</th><th>Opp</th><th>1P</th><th>Score</th><th>Final</th><th>BTTS</th></tr>' + logRows + '</table></div>';
+
+    scrim.classList.add('open');
+    drawer.classList.add('open');
+  }
+
+  // ---- Date / Games view ----
+  var SCHEDULE = DATA.schedule || { gameCounts: {}, games: {} };
+  var currentGamesToday = null;
+
+  function todayET() {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  }
+  function parseDateStr(s) {
+    var p = s.split('-').map(Number);
+    return new Date(Date.UTC(p[0], p[1] - 1, p[2]));
+  }
+  function fmtDateStr(d) { return d.toISOString().slice(0, 10); }
+  function addDays(dateStr, n) {
+    var d = parseDateStr(dateStr);
+    d.setUTCDate(d.getUTCDate() + n);
+    return fmtDateStr(d);
+  }
+  var DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  function dateLabelText(dateStr) {
+    var d = parseDateStr(dateStr);
+    return DAY_NAMES[d.getUTCDay()] + ' ' + (d.getUTCMonth() + 1) + '/' + d.getUTCDate();
+  }
+  function fmtGameTime(iso) {
+    try {
+      return new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }).format(new Date(iso)) + ' ET';
+    } catch (e) { return ''; }
+  }
+
+  var dateState = { selectedDate: todayET() };
+
+  function scheduleStateFor(dateStr) {
+    var count = SCHEDULE.gameCounts[dateStr];
+    if (count === undefined) return { state: 'unknown' };
+    if (count === 0) return { state: 'none' };
+    var g = SCHEDULE.games[dateStr];
+    if (!g || !g.length) return { state: 'known-no-detail', count: count };
+    return { state: 'games', games: g };
+  }
+
+  function marketRate(code, splitKey, marketKey) {
+    var sp = DATA.summary[code] && DATA.summary[code].splits[splitKey];
+    if (!sp || !sp.gp) return null;
+    var hit = marketKey === 'win' ? sp.w : sp[marketKey];
+    return Math.round((hit / sp.gp) * 100);
+  }
+
+  function computeDailySummary(games) {
+    var finals = games.filter(function(g) { return g.state === 'FINAL'; });
+    if (!finals.length) return null;
+    function tally(pickFn) {
+      var w = 0, l = 0, t = 0;
+      finals.forEach(function(g) {
+        var r = pickFn(g);
+        if (r === 'W') w++; else if (r === 'L') l++; else t++;
+      });
+      return { w: w, l: l, t: t };
+    }
+    var rows = [];
+    rows.push({ label: 'Home Teams', rec: tally(function(g) {
+      return g.homeP1 > g.awayP1 ? 'W' : g.homeP1 < g.awayP1 ? 'L' : 'T';
+    }) });
+    [['Over 0.5', 0], ['Over 1.5', 1], ['Over 2.5', 2]].forEach(function(pair) {
+      rows.push({ label: pair[0], rec: tally(function(g) {
+        return (g.awayP1 + g.homeP1) > pair[1] ? 'W' : 'L';
+      }), noPush: true });
+    });
+    rows.push({ label: 'BTTS', rec: tally(function(g) {
+      return (g.awayP1 >= 1 && g.homeP1 >= 1) ? 'W' : 'L';
+    }), noPush: true });
+
+    // Favorites: only over games that actually have a saved 1P moneyline for
+    // both sides (closing odds snapshotted by the backend at fetch time).
+    // A game with no odds is omitted from this line entirely, per spec.
+    var favGames = finals.filter(function(g) {
+      return g.odds && g.odds.ml && g.odds.ml[g.away] != null && g.odds.ml[g.home] != null;
+    });
+    if (favGames.length) {
+      var fw = 0, fl = 0, ft = 0;
+      favGames.forEach(function(g) {
+        var favTeam = g.odds.ml[g.away] < g.odds.ml[g.home] ? g.away : g.home;
+        var favWon = favTeam === g.away ? (g.awayP1 > g.homeP1) : (g.homeP1 > g.awayP1);
+        var push = g.awayP1 === g.homeP1;
+        if (push) ft++; else if (favWon) fw++; else fl++;
+      });
+      rows.push({ label: 'Favorites', rec: { w: fw, l: fl, t: ft } });
+    }
+    return rows;
+  }
+
+  function renderDailySummary(dateStr, games) {
+    var el = document.getElementById('dailySummary');
+    var rows = computeDailySummary(games);
+    if (!rows) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    var hasFavorites = rows.some(function(r) { return r.label === 'Favorites'; });
+    el.innerHTML = '<h3>' + escapeHtml(dateLabelText(dateStr)) + ' &mdash; Daily Results</h3>' +
+      rows.map(function(r) {
+        var total = r.rec.w + r.rec.l + r.rec.t;
+        var pct = total ? Math.round((r.rec.w / total) * 100) : 0;
+        var pctClass = pct >= 60 ? 'good' : pct <= 40 ? 'bad' : 'mid';
+        var recStr = r.noPush ? (r.rec.w + '-' + r.rec.l) : (r.rec.w + '-' + r.rec.l + (r.rec.t ? '-' + r.rec.t : ''));
+        return '<div class="ds-row"><span class="ds-label">' + r.label + '</span>' +
+          '<span class="ds-right"><span class="ds-record">' + recStr + '</span>' +
+          '<span class="ds-pct ' + pctClass + '">' + pct + '%</span></span></div>';
+      }).join('') +
+      (hasFavorites ? '' : '<div style="font-size:0.72rem;color:var(--text-faint);margin-top:8px;">Favorites line needs saved 1P odds for these games &mdash; not shown until that\'s available.</div>');
+  }
+
+  function fmtAmerican(price) {
+    if (price === null || price === undefined || price === '') return '&mdash;';
+    var n = Number(price);
+    if (isNaN(n)) return '&mdash;';
+    return (n > 0 ? '+' : '') + n;
+  }
+
+  function oddsCell(label, priceText, histText) {
+    return '<div class="odds-cell"><div class="oc-label">' + label + '</div>' +
+      '<div class="oc-row"><span class="oc-price">' + priceText + '</span><span class="oc-hist">' + histText + '</span></div></div>';
+  }
+
+  function renderGameCard(g) {
+    var awayName = DATA.summary[g.away] ? DATA.summary[g.away].name : g.away;
+    var homeName = DATA.summary[g.home] ? DATA.summary[g.home].name : g.home;
+    var awayColor = teamColor(g.away), homeColor = teamColor(g.home);
+    var isFinal = g.state === 'FINAL';
+
+    var head = '<div class="game-card-head">' +
+      '<div class="game-matchup">' +
+        '<span class="gm-team" data-team="' + g.away + '"><span class="game-color-bar" style="background:' + awayColor.dot + '"></span>' + escapeHtml(awayName) + '</span>' +
+        '<span style="color:var(--text-faint);font-weight:400;">@</span>' +
+        '<span class="gm-team" data-team="' + g.home + '"><span class="game-color-bar" style="background:' + homeColor.dot + '"></span>' + escapeHtml(homeName) + '</span>' +
+      '</div>' +
+      (isFinal
+        ? '<div class="game-final-score">' + g.awayFinal + '-' + g.homeFinal + (g.ot ? ' ' + g.ot : '') + '</div>'
+        : '<div class="game-time">' + fmtGameTime(g.startTimeUTC) + '</div>') +
+    '</div>';
+
+    var odds = g.odds || {};
+    var mlAway = fmtAmerican(odds.ml && odds.ml[g.away]);
+    var mlHome = fmtAmerican(odds.ml && odds.ml[g.home]);
+    var mlPrice = (odds.ml ? (mlAway + ' / ' + mlHome) : '&mdash;');
+    var mlHist = (marketRate(g.away, 'Away', 'win') ?? '&mdash;') + '% / ' + (marketRate(g.home, 'Home', 'win') ?? '&mdash;') + '%';
+
+    function totalsPrice(line) {
+      var t = odds.totals && odds.totals[line];
+      if (!t) return '&mdash;';
+      return fmtAmerican(t.over) + ' / ' + fmtAmerican(t.under);
+    }
+    var bttsPrice = (odds.btts_yes != null) ? fmtAmerican(odds.btts_yes) : '&mdash;';
+
+    var oddsGrid = '<div class="odds-grid">' +
+      oddsCell('1P Moneyline', mlPrice, mlHist) +
+      oddsCell('1P Over 0.5', totalsPrice('0.5'), (marketRate(g.away, 'Both', 'o05')) + '% / ' + (marketRate(g.home, 'Both', 'o05')) + '%') +
+      oddsCell('1P Over 1.5', totalsPrice('1.5'), (marketRate(g.away, 'Both', 'o15')) + '% / ' + (marketRate(g.home, 'Both', 'o15')) + '%') +
+      oddsCell('1P Over 2.5', totalsPrice('2.5'), (marketRate(g.away, 'Both', 'o25')) + '% / ' + (marketRate(g.home, 'Both', 'o25')) + '%') +
+      oddsCell('1P BTTS', bttsPrice, (marketRate(g.away, 'Both', 'btts')) + '% / ' + (marketRate(g.home, 'Both', 'btts')) + '%') +
+    '</div>';
+
+    var resultsRow = '';
+    if (isFinal) {
+      var p1wl = g.homeP1 > g.awayP1 ? 'L' : g.homeP1 < g.awayP1 ? 'W' : 'T'; // away perspective unused; show home result
+      var homeWon = g.homeP1 > g.awayP1;
+      var awayWon = g.awayP1 > g.homeP1;
+      var total = g.awayP1 + g.homeP1;
+      var btts = g.awayP1 >= 1 && g.homeP1 >= 1;
+      resultsRow = '<div class="market-result-row">' +
+        '<span class="market-pill ' + (homeWon ? 'win' : awayWon ? 'lose' : '') + '">1P: ' + g.awayP1 + '-' + g.homeP1 + (homeWon ? ' HOME W' : awayWon ? ' AWAY W' : ' PUSH') + '</span>' +
+        '<span class="market-pill ' + (total > 0 ? 'win' : 'lose') + '">O0.5 ' + (total > 0 ? 'HIT' : 'MISS') + '</span>' +
+        '<span class="market-pill ' + (total > 1 ? 'win' : 'lose') + '">O1.5 ' + (total > 1 ? 'HIT' : 'MISS') + '</span>' +
+        '<span class="market-pill ' + (total > 2 ? 'win' : 'lose') + '">O2.5 ' + (total > 2 ? 'HIT' : 'MISS') + '</span>' +
+        '<span class="market-pill ' + (btts ? 'win' : 'lose') + '">BTTS ' + (btts ? 'HIT' : 'MISS') + '</span>' +
+      '</div>';
+    }
+
+    return '<div class="game-card">' + head + oddsGrid + resultsRow + '</div>';
+  }
+
+  function renderGamesList(dateStr, games) {
+    renderDailySummary(dateStr, games);
+    var list = document.getElementById('gamesList');
+    list.innerHTML = games.map(renderGameCard).join('');
+    list.querySelectorAll('.gm-team').forEach(function(el) {
+      el.addEventListener('click', function() { openDrawer(el.getAttribute('data-team')); });
+    });
+  }
+
+  function renderDateView() {
+    var dateStr = dateState.selectedDate;
+    document.getElementById('dateLabel').textContent = dateLabelText(dateStr);
+    document.getElementById('dateTodayBtn').style.display = (dateStr === todayET()) ? 'none' : '';
+
+    var info = scheduleStateFor(dateStr);
+    var teamViewEl = document.getElementById('teamView');
+    var gamesViewEl = document.getElementById('gamesView');
+    var note = document.getElementById('noGamesNote');
+
+    if (info.state === 'games') {
+      teamViewEl.style.display = 'none';
+      gamesViewEl.style.display = '';
+      note.style.display = 'none';
+      currentGamesToday = info.games;
+      renderGamesList(dateStr, info.games);
+    } else {
+      gamesViewEl.style.display = 'none';
+      teamViewEl.style.display = '';
+      currentGamesToday = null;
+      note.style.display = '';
+      if (info.state === 'none') {
+        note.textContent = 'No games on this date. Showing season trends.';
+      } else if (info.state === 'known-no-detail') {
+        note.textContent = info.count + ' NHL game' + (info.count === 1 ? '' : 's') + ' on this date, but full matchup detail isn’t loaded in this preview yet. Showing season trends.';
+      } else {
+        note.textContent = 'Schedule data isn’t loaded for this date yet. Showing season trends.';
+      }
+    }
+    renderTrends(currentGamesToday);
+    renderCalendar();
+  }
+
+  document.getElementById('datePrev').addEventListener('click', function() {
+    dateState.selectedDate = addDays(dateState.selectedDate, -1);
+    renderDateView();
+  });
+  document.getElementById('dateNext').addEventListener('click', function() {
+    dateState.selectedDate = addDays(dateState.selectedDate, 1);
+    renderDateView();
+  });
+  document.getElementById('dateTodayBtn').addEventListener('click', function() {
+    dateState.selectedDate = todayET();
+    renderDateView();
+  });
+
+  // ---- calendar popover ----
+  var calState = { monthDate: parseDateStr(dateState.selectedDate) };
+  var calPopover = document.getElementById('calPopover');
+  document.getElementById('dateCalBtn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    var opening = calPopover.hasAttribute('hidden');
+    if (opening) {
+      calState.monthDate = parseDateStr(dateState.selectedDate);
+      renderCalendar();
+      calPopover.removeAttribute('hidden');
+    } else {
+      calPopover.setAttribute('hidden', '');
+    }
+  });
+  document.addEventListener('click', function(e) {
+    if (!calPopover.hasAttribute('hidden') && !calPopover.contains(e.target) && e.target.id !== 'dateCalBtn') {
+      calPopover.setAttribute('hidden', '');
+    }
+  });
+  document.getElementById('calPrevMonth').addEventListener('click', function(e) {
+    e.stopPropagation();
+    calState.monthDate.setUTCMonth(calState.monthDate.getUTCMonth() - 1);
+    renderCalendar();
+  });
+  document.getElementById('calNextMonth').addEventListener('click', function(e) {
+    e.stopPropagation();
+    calState.monthDate.setUTCMonth(calState.monthDate.getUTCMonth() + 1);
+    renderCalendar();
+  });
+
+  var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function renderCalendar() {
+    var m = calState.monthDate;
+    var year = m.getUTCFullYear(), month = m.getUTCMonth();
+    document.getElementById('calMonthLabel').textContent = MONTH_NAMES[month] + ' ' + year;
+    var firstOfMonth = new Date(Date.UTC(year, month, 1));
+    var startDow = firstOfMonth.getUTCDay();
+    var daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    var daysInPrevMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    var todayStr = todayET();
+    var cells = [];
+    for (var i = 0; i < startDow; i++) {
+      cells.push({ day: daysInPrevMonth - startDow + 1 + i, outside: true });
+    }
+    for (var d = 1; d <= daysInMonth; d++) {
+      cells.push({ day: d, outside: false, dateStr: fmtDateStr(new Date(Date.UTC(year, month, d))) });
+    }
+    while (cells.length % 7 !== 0) {
+      cells.push({ day: cells.length - (startDow + daysInMonth) + 1, outside: true });
+    }
+    var grid = document.getElementById('calGrid');
+    grid.innerHTML = cells.map(function(c) {
+      if (c.outside) return '<button type="button" class="cal-day outside" disabled>' + c.day + '</button>';
+      var hasGames = (SCHEDULE.gameCounts[c.dateStr] || 0) > 0;
+      var cls = 'cal-day';
+      if (c.dateStr === dateState.selectedDate) cls += ' selected';
+      if (c.dateStr === todayStr) cls += ' today';
+      return '<button type="button" class="' + cls + '" data-date="' + c.dateStr + '">' + c.day + (hasGames ? '<span class="dot"></span>' : '') + '</button>';
+    }).join('');
+    grid.querySelectorAll('.cal-day:not(.outside)').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        dateState.selectedDate = btn.getAttribute('data-date');
+        calPopover.setAttribute('hidden', '');
+        renderDateView();
+      });
+    });
+  }
+
+  renderTable();
+  renderDateView();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+schedule_fresh.json
+odds_theoddsapi.json
+odds_sportsgameodds.json
