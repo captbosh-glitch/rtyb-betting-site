@@ -14,6 +14,17 @@ a huge fetch. Widen the window later if needed.
 Team abbreviations are remapped to match the archived historical dataset's
 codes (see ABBREV_MAP) so schedule games join cleanly against the season
 stats already baked into base_data.json.
+
+IMPORTANT -- confirmed against a live run's debug output: the per-day
+objects inside a /v1/score/{date} response's "gameWeek" array only carry
+{date, dayAbbrev, numberOfGames} -- a count, nothing else. There is no
+"games" key nested in there (an earlier version of this script assumed
+there was, which silently produced correct game *counts* but an always-empty
+games *list* for every date). The actual full game objects for the
+requested date live in a top-level "games" key on the response itself.
+"gameWeek" is just a 7-day calendar strip of counts for navigation, not a
+week's worth of full game detail -- so this now fetches one request per
+date in the window rather than one per week.
 """
 import json
 import sys
@@ -65,73 +76,59 @@ def main():
 
     game_counts = {}
     games_by_date = {}
-    debug_logged = False
 
-    # api-web.nhle.com's /v1/score/{date} response covers a whole gameWeek
-    # (7 days starting at {date}), so we only need to hit it roughly once
-    # per week of the window rather than once per day.
-    seen_weeks = set()
+    # One request per date -- see the docstring note above on why the
+    # earlier one-request-per-week optimization didn't actually work (the
+    # gameWeek entries are count-only; full game detail is only on the
+    # response for the specifically-requested date).
     for d in dates:
-        week_anchor = d
-        if week_anchor in seen_weeks:
-            continue
-
         data = fetch_json(f'https://api-web.nhle.com/v1/score/{d}')
         if not data:
             continue
 
+        raw_games = data.get('games', [])
+
+        # Prefer the authoritative numberOfGames from this date's own entry
+        # in the gameWeek strip when present; fall back to the games list
+        # length (e.g. if that entry is missing for some reason).
+        count = len(raw_games)
         for day in data.get('gameWeek', []):
-            date_str = day.get('date')
-            if date_str not in dates:
-                continue
-            seen_weeks.add(date_str)
-            game_counts[date_str] = day.get('numberOfGames', len(day.get('games', [])))
+            if day.get('date') == d:
+                count = day.get('numberOfGames', count)
+                break
+        game_counts[d] = count
 
-            day_games = []
-            for g in day.get('games', []):
-                away = rt(g.get('awayTeam', {}).get('abbrev', '?'))
-                home = rt(g.get('homeTeam', {}).get('abbrev', '?'))
-                state = g.get('gameState', 'FUT')
-                entry = {
-                    'id': g.get('id'),
-                    'away': away,
-                    'home': home,
-                    'startTimeUTC': g.get('startTimeUTC'),
-                    'state': state,
-                }
-                if state in ('FINAL', 'OFF', 'LIVE', 'CRIT'):
-                    away_final = g.get('awayTeam', {}).get('score')
-                    home_final = g.get('homeTeam', {}).get('score')
-                    entry['awayFinal'] = away_final
-                    entry['homeFinal'] = home_final
-                    # OT/SO tag if present in the periodDescriptor-ish fields NHL exposes
-                    ot = ''
-                    if g.get('gameOutcome', {}).get('lastPeriodType') in ('OT', 'SO'):
-                        ot = g['gameOutcome']['lastPeriodType']
-                    entry['ot'] = ot
-                    # Pull the goals[] breakdown, if present in this payload, for 1P score
-                    goals = g.get('goals')
-                    if goals is not None:
-                        away_p1, home_p1 = first_period_score(goals)
-                        entry['awayP1'] = away_p1
-                        entry['homeP1'] = home_p1
-                day_games.append(entry)
+        day_games = []
+        for g in raw_games:
+            away = rt(g.get('awayTeam', {}).get('abbrev', '?'))
+            home = rt(g.get('homeTeam', {}).get('abbrev', '?'))
+            state = g.get('gameState', 'FUT')
+            entry = {
+                'id': g.get('id'),
+                'away': away,
+                'home': home,
+                'startTimeUTC': g.get('startTimeUTC'),
+                'state': state,
+            }
+            if state in ('FINAL', 'OFF', 'LIVE', 'CRIT'):
+                away_final = g.get('awayTeam', {}).get('score')
+                home_final = g.get('homeTeam', {}).get('score')
+                entry['awayFinal'] = away_final
+                entry['homeFinal'] = home_final
+                # OT/SO tag if present in the periodDescriptor-ish fields NHL exposes
+                ot = ''
+                if g.get('gameOutcome', {}).get('lastPeriodType') in ('OT', 'SO'):
+                    ot = g['gameOutcome']['lastPeriodType']
+                entry['ot'] = ot
+                # Pull the goals[] breakdown, if present in this payload, for 1P score
+                goals = g.get('goals')
+                if goals is not None:
+                    away_p1, home_p1 = first_period_score(goals)
+                    entry['awayP1'] = away_p1
+                    entry['homeP1'] = home_p1
+            day_games.append(entry)
 
-            expected = game_counts[date_str]
-            if expected and not day_games and not debug_logged:
-                # The count came through but no game entries did -- log the
-                # raw shape of this one day object so we can see exactly what
-                # key names the API is actually using right now, instead of
-                # guessing. Only once, so a real run's log isn't flooded.
-                print(f"DEBUG: {date_str} reports {expected} games but the "
-                      f"'games' list came back empty. Raw day object keys: "
-                      f"{sorted(day.keys())}", file=sys.stderr)
-                sample = day.get('games')
-                print(f"DEBUG: day['games'] raw value (truncated): "
-                      f"{json.dumps(sample)[:1500]}", file=sys.stderr)
-                debug_logged = True
-
-            games_by_date[date_str] = day_games
+        games_by_date[d] = day_games
 
     # Some completed games' /v1/score/{date} payload doesn't include a full
     # goals[] breakdown -- backfill 1P scores for those via the per-game
