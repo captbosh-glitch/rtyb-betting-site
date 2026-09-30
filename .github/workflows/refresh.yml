@@ -74,10 +74,24 @@ jobs:
           git add index.html schedule_data.json
           if git diff --cached --quiet; then
             echo "No changes, skipping commit."
-          else
-            git commit -m "Auto-refresh data $(date -u +'%Y-%m-%d %H:%M UTC')"
-            git push
+            exit 0
           fi
+          git commit -m "Auto-refresh data $(date -u +'%Y-%m-%d %H:%M UTC')"
+
+          # Someone pushing locally at the same moment (e.g. a manual file
+          # update) can land on the remote between this commit and the push
+          # below, which would otherwise fail with a plain rejection. Retry a
+          # few times, rebasing onto whatever's newly on the remote each
+          # time, instead of just failing the whole run.
+          for attempt in 1 2 3 4 5; do
+            if git push; then
+              break
+            fi
+            echo "Push rejected (attempt $attempt) -- rebasing onto latest remote and retrying..."
+            git fetch origin main
+            git rebase origin/main
+            sleep 3
+          done
           # Pages is set to "Deploy from a branch" (main / root) in repo
           # settings -- see README -- so pushing index.html here is what
           # actually publishes it. No separate deploy step needed.
