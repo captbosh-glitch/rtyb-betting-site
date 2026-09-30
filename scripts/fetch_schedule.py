@@ -65,6 +65,7 @@ def main():
 
     game_counts = {}
     games_by_date = {}
+    debug_logged = False
 
     # api-web.nhle.com's /v1/score/{date} response covers a whole gameWeek
     # (7 days starting at {date}), so we only need to hit it roughly once
@@ -115,6 +116,21 @@ def main():
                         entry['awayP1'] = away_p1
                         entry['homeP1'] = home_p1
                 day_games.append(entry)
+
+            expected = game_counts[date_str]
+            if expected and not day_games and not debug_logged:
+                # The count came through but no game entries did -- log the
+                # raw shape of this one day object so we can see exactly what
+                # key names the API is actually using right now, instead of
+                # guessing. Only once, so a real run's log isn't flooded.
+                print(f"DEBUG: {date_str} reports {expected} games but the "
+                      f"'games' list came back empty. Raw day object keys: "
+                      f"{sorted(day.keys())}", file=sys.stderr)
+                sample = day.get('games')
+                print(f"DEBUG: day['games'] raw value (truncated): "
+                      f"{json.dumps(sample)[:1500]}", file=sys.stderr)
+                debug_logged = True
+
             games_by_date[date_str] = day_games
 
     # Some completed games' /v1/score/{date} payload doesn't include a full
