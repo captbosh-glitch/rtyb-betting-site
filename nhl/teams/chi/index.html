@@ -1,0 +1,1916 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="RTYB — Run to Your Bets: NHL 1st-period betting stats and trends.">
+</head>
+<body data-team-code="CHI">
+<title>RTYB — Chicago Blackhawks</title>
+<style>
+  :root {
+    --bg: #0B0F14;
+    --panel: #121820;
+    --panel-2: #1A222C;
+    --panel-3: #212B37;
+    --border: #263140;
+    --border-soft: #1D2733;
+    --text: #EAEEF3;
+    --text-muted: #8B96A5;
+    --text-faint: #5C6B7A;
+    --accent: #34D5FF;
+    --accent-dim: #1C6B85;
+    --good: #33D17A;
+    --good-dim: #17462C;
+    --bad: #FF4D6A;
+    --bad-dim: #4A1620;
+    --neutral-chip: #2A3542;
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --bg: #F3F5F8;
+    --panel: #FFFFFF;
+    --panel-2: #F7F9FB;
+    --panel-3: #EDF1F5;
+    --border: #DCE2E9;
+    --border-soft: #E7EBEF;
+    --text: #12181F;
+    --text-muted: #5B6674;
+    --accent: #0B93B5;
+    --accent-dim: #DFF4FA;
+    --good: #158A4B;
+    --good-dim: #E3F6EB;
+    --bad: #D42B49;
+    --bad-dim: #FCE7EA;
+    --neutral-chip: #EEF1F5;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #F3F5F8;
+      --panel: #FFFFFF;
+      --panel-2: #F7F9FB;
+      --panel-3: #EDF1F5;
+      --border: #DCE2E9;
+      --border-soft: #E7EBEF;
+      --text: #12181F;
+      --text-muted: #5B6674;
+      --accent: #0B93B5;
+      --accent-dim: #DFF4FA;
+      --good: #158A4B;
+      --good-dim: #E3F6EB;
+      --bad: #D42B49;
+      --bad-dim: #FCE7EA;
+      --neutral-chip: #EEF1F5;
+      color-scheme: light;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding-inline: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, .display {
+    font-family: 'Barlow Condensed', 'Source Sans 3', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    text-wrap: balance;
+    margin: 0;
+  }
+  .mono, .num, table td.num, table th.num {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  a { color: var(--accent); }
+  button { font-family: inherit; }
+
+  /* ---------- Header ---------- */
+  header.top {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 40;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .top-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  .brand .mark {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 1.7rem;
+    letter-spacing: 0.03em;
+    color: var(--text);
+  }
+  .brand .mark span { color: var(--accent); }
+  .brand .tag {
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-family: 'Source Sans 3', sans-serif;
+    display: none;
+  }
+  @media (min-width: 640px) { .brand .tag { display: block; } }
+
+  /* ---------- Main nav ---------- */
+  .main-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .main-nav::-webkit-scrollbar { display: none; }
+  .nav-link {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.92rem;
+    padding: 7px 12px;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .nav-link:hover { color: var(--text); }
+  .nav-link[aria-current="page"] {
+    background: var(--panel-2);
+    border-color: var(--border);
+    color: var(--text);
+  }
+  .nav-caret { font-size: 0.6em; }
+  .nav-dropdown { position: relative; flex-shrink: 0; }
+  .nav-dropdown-btn { background: none; }
+  .nav-dropdown-menu {
+    position: absolute; top: calc(100% + 6px); left: 0;
+    min-width: 190px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 6px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    display: none; flex-direction: column; gap: 1px;
+    z-index: 45;
+  }
+  .nav-dropdown-menu.open { display: flex; }
+  .nav-dropdown-menu--teams { max-height: 360px; overflow-y: auto; }
+  .nav-dropdown-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; border-radius: 7px;
+    color: var(--text); font-size: 0.86rem; text-decoration: none;
+    font-family: 'Source Sans 3', sans-serif;
+    white-space: nowrap;
+  }
+  .nav-dropdown-item:hover { background: var(--panel-2); }
+  .nav-dropdown-item--all { color: var(--accent); font-weight: 600; border-top: 1px solid var(--border-soft); margin-top: 4px; padding-top: 9px; }
+  .nav-team-swatch { width: 5px; height: 16px; border-radius: 3px; flex-shrink: 0; }
+
+  .hamburger {
+    display: none;
+    flex-shrink: 0;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    width: 34px; height: 34px; border-radius: 8px;
+    cursor: pointer;
+    flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  }
+  .hamburger span { width: 16px; height: 2px; background: var(--text); border-radius: 1px; }
+
+  @media (max-width: 860px) {
+    .main-nav {
+      position: absolute; top: 100%; left: 0; right: 0;
+      flex-direction: column; align-items: stretch;
+      background: var(--panel); border-bottom: 1px solid var(--border-soft);
+      padding: 8px 12px 12px;
+      display: none;
+      overflow: visible;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+    }
+    .main-nav.open { display: flex; }
+    .nav-link, .nav-dropdown-btn { justify-content: space-between; width: 100%; }
+    .nav-dropdown-menu { position: static; box-shadow: none; margin-left: 8px; width: calc(100% - 8px); }
+    .hamburger { display: flex; }
+  }
+
+  /* ---------- Yesterday's results strip ---------- */
+  .yesterday-strip {
+    background: var(--panel); border: 1px solid var(--border-soft); border-radius: 10px;
+    padding: 10px 14px; margin-bottom: 16px; cursor: pointer;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+  }
+  .yesterday-strip:hover { border-color: var(--accent); }
+  .ys-title { font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 0.64rem; letter-spacing: 0.06em; flex-basis: 100%; }
+  .ys-item { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; }
+  .ys-item .ys-label { color: var(--text-muted); }
+  .ys-item .ys-rec { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .ys-item .ys-pct { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; padding: 1px 6px; border-radius: 5px; }
+  .ys-item .ys-pct.good { background: var(--good-dim); color: var(--good); }
+  .ys-item .ys-pct.bad { background: var(--bad-dim); color: var(--bad); }
+
+  /* ---------- No games / next game day ---------- */
+  .no-games-body { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .next-gameday-btn {
+    background: var(--accent-dim); border: 1px solid var(--accent); color: var(--text);
+    font-size: 0.76rem; font-weight: 700; padding: 5px 11px; border-radius: 6px; cursor: pointer;
+  }
+  :root:not([data-theme="light"]) .next-gameday-btn { color: var(--accent); }
+
+  /* ---------- Hottest Trends link (Games page) ---------- */
+  .hottest-trends-link { margin-top: 14px; text-align: center; }
+  .hottest-trends-link a { font-size: 0.86rem; font-weight: 600; text-decoration: none; }
+  .hottest-trends-link a:hover { text-decoration: underline; }
+
+  /* ---------- Team logos (light/dark SVG, w/ circle+abbrev fallback) ---------- */
+  .team-logo-wrap {
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0; line-height: 0;
+  }
+  .team-logo-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .team-logo-fallback {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: 100%; border-radius: 50%; color: #fff; font-weight: 700;
+    font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.02em; line-height: 1;
+  }
+  .nav-team-logo-wrap { margin-right: 2px; }
+  .team-tile-logo { align-self: center; margin-bottom: 2px; }
+
+  /* ---------- Game card final w/ 1P score ---------- */
+  .game-final-wrap { text-align: right; }
+  .game-final-score { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+  .game-p1-score { font-size: 0.68rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+  .theme-toggle {
+    flex-shrink: 0;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem;
+  }
+  .theme-toggle:hover { color: var(--text); }
+
+  /* ---------- Trends to Watch ---------- */
+  .trends-section { margin-top: 26px; }
+  .trends-head h2 { font-size: 1.15rem; margin-bottom: 3px; }
+  .trends-head p { color: var(--text-muted); font-size: 0.84rem; max-width: 62ch; }
+  .trend-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .trend-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--panel);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    padding: 11px 13px;
+  }
+  .trend-row.hidden-extra { display: none; }
+  .trend-color-bar { width: 5px; align-self: stretch; border-radius: 3px; flex-shrink: 0; min-height: 34px; }
+  .trend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .trend-dot.good { background: var(--good); }
+  .trend-dot.bad { background: var(--bad); }
+  .trend-copy { min-width: 0; }
+  .trend-copy .team-name { font-weight: 700; font-size: 0.86rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .trend-copy .trend-text { font-size: 0.84rem; color: var(--text-muted); margin-top: 1px; }
+  .trend-show-all {
+    margin-top: 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .trend-show-all:hover { background: var(--panel-3); }
+
+  /* ---------- Main layout ---------- */
+  main { max-width: 1180px; margin: 0 auto; padding: 24px 20px 80px; }
+
+  .page-head { margin-bottom: 18px; }
+  .page-head h1 { font-size: clamp(1.6rem, 4vw, 2.1rem); }
+  .page-head p { color: var(--text-muted); font-size: 0.92rem; margin-top: 4px; max-width: 62ch; }
+
+  /* ---------- Date bar ---------- */
+  .date-bar {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-bottom: 16px; position: relative;
+  }
+  .date-nav {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--text); font-size: 1.1rem; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .date-nav:hover { background: var(--panel-3); }
+  .date-label-wrap { position: relative; display: flex; align-items: center; gap: 6px; }
+  .date-label {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.05rem;
+    letter-spacing: 0.02em; min-width: 132px; text-align: center;
+  }
+  .date-cal-btn {
+    width: 30px; height: 30px; border-radius: 7px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--text-muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .date-cal-btn:hover { color: var(--text); background: var(--panel-3); }
+  .date-today-btn {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-muted); font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 6px 10px; border-radius: 7px; cursor: pointer;
+  }
+  .date-today-btn:hover { color: var(--text); border-color: var(--accent); }
+  .cal-popover {
+    position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px; width: 260px; box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    z-index: 40;
+  }
+  .cal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; font-weight: 700; font-size: 0.85rem;
+  }
+  .cal-head button { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; padding: 2px 8px; }
+  .cal-head button:hover { color: var(--text); }
+  .cal-dow {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    font-size: 0.65rem; color: var(--text-muted); text-align: center; margin-bottom: 4px;
+  }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-day {
+    position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; font-size: 0.78rem; cursor: pointer; background: none; border: none; color: var(--text);
+  }
+  .cal-day:hover { background: var(--panel-2); }
+  .cal-day.outside { color: var(--text-faint); }
+  .cal-day.selected { background: var(--accent); color: var(--bg); font-weight: 700; }
+  .cal-day.today:not(.selected) { border: 1px solid var(--accent); }
+  .cal-day .dot { position: absolute; bottom: 3px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+  .cal-day.selected .dot { background: var(--bg); }
+  .cal-legend { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.68rem; color: var(--text-muted); }
+  .cal-legend .cal-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); display: inline-block; }
+
+  .no-games-note {
+    font-size: 0.82rem; color: var(--text-muted); background: var(--panel-2);
+    border: 1px solid var(--border-soft); border-radius: 8px;
+    padding: 8px 13px; margin-bottom: 14px;
+  }
+
+  /* ---------- Games list ---------- */
+  .daily-summary {
+    background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 16px;
+  }
+  .daily-summary h3 { font-size: 0.95rem; margin-bottom: 10px; }
+  .ds-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-top: 1px solid var(--border-soft); font-size: 0.85rem; }
+  .ds-row:first-of-type { border-top: none; }
+  .ds-label { color: var(--text-muted); }
+  .ds-right { display: flex; align-items: center; gap: 10px; }
+  .ds-record { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .ds-pct { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding: 2px 7px; border-radius: 5px; }
+  .ds-pct.good { background: var(--good-dim); color: var(--good); }
+  .ds-pct.bad { background: var(--bad-dim); color: var(--bad); }
+  .ds-pct.mid { background: var(--neutral-chip); color: var(--text-muted); }
+
+  .games-list { display: flex; flex-direction: column; gap: 12px; }
+  .game-card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px 16px; }
+  .game-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+  .game-matchup { display: flex; align-items: center; gap: 8px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.05rem; }
+  .game-matchup .gm-team { display: flex; align-items: center; gap: 6px; cursor: pointer; color: inherit; text-decoration: none; }
+  .game-matchup .gm-team:hover { color: var(--accent); }
+  .game-color-bar { width: 4px; height: 18px; border-radius: 2px; display: inline-block; }
+  .game-time { font-size: 0.78rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .game-final-score { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.95rem; }
+  .odds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px; }
+  .odds-cell { background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 8px 10px; }
+  .odds-cell .oc-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; }
+  .odds-cell .oc-row { display: flex; align-items: center; justify-content: space-between; margin-top: 3px; font-size: 0.82rem; }
+  .odds-cell .oc-price { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .odds-cell .oc-hist { color: var(--text-faint); font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; }
+  .market-result-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .market-pill {
+    font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .market-pill.win { background: var(--good-dim); color: var(--good); }
+  .market-pill.lose { background: var(--bad-dim); color: var(--bad); }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    background: var(--panel);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+  }
+  .control-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .control-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-right: 4px;
+    font-weight: 600;
+  }
+  .seg-btn {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 11px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .seg-btn[aria-pressed="true"] {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--text);
+  }
+  :root:not([data-theme="light"]) .seg-btn[aria-pressed="true"] { color: var(--accent); }
+  .search-box {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    width: 150px;
+  }
+  .search-box::placeholder { color: var(--text-muted); }
+
+  /* ---------- Table ---------- */
+  .table-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 640px; }
+  thead th {
+    text-align: left;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    font-weight: 700;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel-2);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  thead th.num, td.num { text-align: right; }
+  thead th:hover { color: var(--text); }
+  thead th .arrow { opacity: 0.5; margin-left: 3px; font-size: 0.6rem; }
+  tbody tr {
+    border-bottom: 1px solid var(--border-soft);
+    cursor: pointer;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--panel-2); }
+  td { padding: 10px 14px; font-size: 0.87rem; white-space: nowrap; }
+  td.team-cell { display: flex; align-items: center; gap: 9px; font-weight: 600; }
+  .team-dot {
+    width: 8px; height: 26px; border-radius: 3px;
+    background: var(--neutral-chip);
+    flex-shrink: 0;
+  }
+  .pct-cell { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .pct-bar {
+    width: 60px; height: 6px; border-radius: 3px;
+    background: var(--panel-3);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .pct-bar > span { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+  .pct-num { width: 42px; text-align: right; }
+  .rec-cell { color: var(--text-muted); }
+  .rec-cell b { color: var(--text); }
+
+  /* ---------- Detail drawer ---------- */
+  .scrim {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    opacity: 0; pointer-events: none;
+    transition: opacity .18s ease;
+    z-index: 50;
+  }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: min(480px, 100vw);
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    transform: translateX(100%);
+    transition: transform .22s ease;
+    z-index: 51;
+    display: flex;
+    flex-direction: column;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border-soft);
+    flex-shrink: 0;
+  }
+  .drawer-head h2 { font-size: 1.4rem; }
+  .drawer-title-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .drawer-team-badge {
+    width: 34px; height: 34px; border-radius: 9px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 0.95rem;
+  }
+  .drawer-close {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    width: 30px; height: 30px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .drawer-body { overflow-y: auto; padding: 16px 18px 32px; flex: 1; }
+
+  .stat-row { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+  .stat-tile {
+    flex: 1;
+    min-width: 84px;
+    background: var(--panel-2);
+    border: 1px solid var(--border-soft);
+    border-radius: 9px;
+    padding: 10px 12px;
+  }
+  .stat-tile .lbl { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 700; }
+  .stat-tile .val { font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 600; margin-top: 3px; font-variant-numeric: tabular-nums; }
+
+  .drawer-section-title {
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-muted); font-weight: 700; margin: 18px 0 8px;
+  }
+  .split-table { width: 100%; min-width: 380px; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 6px; }
+  .split-table th { text-align: right; color: var(--text-muted); font-weight: 600; padding: 5px 6px; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .split-table th:first-child, .split-table td:first-child { text-align: left; }
+  .split-table td { text-align: right; padding: 6px 6px; font-family: 'JetBrains Mono', monospace; border-top: 1px solid var(--border-soft); }
+
+  .trend-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: 999px;
+    font-size: 0.78rem; font-weight: 600;
+    background: var(--good-dim); color: var(--good);
+    margin-bottom: 4px;
+  }
+  .trend-badge.bad { background: var(--bad-dim); color: var(--bad); }
+
+  .gamelog-scroll { overflow-x: auto; }
+  .gamelog { width: 100%; min-width: 420px; border-collapse: collapse; font-size: 0.78rem; }
+  .gamelog th { text-align: left; color: var(--text-muted); font-weight: 600; padding: 6px 6px; border-bottom: 1px solid var(--border); font-size: 0.65rem; text-transform: uppercase; }
+  .gamelog td { padding: 7px 6px; border-bottom: 1px solid var(--border-soft); }
+  .gamelog td.num { font-family: 'JetBrains Mono', monospace; text-align: center; }
+  .result-pill {
+    display: inline-block; width: 20px; height: 20px; border-radius: 5px;
+    text-align: center; line-height: 20px; font-weight: 700; font-size: 0.68rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .result-pill.W { background: var(--good-dim); color: var(--good); }
+  .result-pill.L { background: var(--bad-dim); color: var(--bad); }
+  .result-pill.T { background: var(--neutral-chip); color: var(--text-muted); }
+  .btts-badge {
+    display: inline-block; width: 20px; height: 20px; border-radius: 5px;
+    text-align: center; line-height: 20px; font-weight: 700; font-size: 0.72rem;
+  }
+  .btts-badge.yes { background: var(--good-dim); color: var(--good); }
+  .btts-badge.no { background: var(--bad-dim); color: var(--bad); }
+
+  /* ---------- Trends page ---------- */
+  .trend-row .team-name a { color: inherit; text-decoration: none; }
+  .trend-row .team-name a:hover { color: var(--accent); }
+  .trend-matchup { font-size: 0.76rem; color: var(--text-faint); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+  .trend-row.matchup-card { border-color: var(--accent-dim); }
+  .trend-row.matchup-card .trend-copy .team-name { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .trend-matchup-badge {
+    font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    background: var(--accent-dim); color: var(--accent); padding: 2px 7px; border-radius: 5px;
+  }
+  :root:not([data-theme="light"]) .trend-matchup-badge { color: var(--accent); }
+
+  /* ---------- Teams index page ---------- */
+  .division-group { margin-bottom: 26px; }
+  .division-title { font-size: 1rem; color: var(--text-muted); margin-bottom: 10px; }
+  .team-tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .team-tile {
+    display: flex; flex-direction: column; gap: 4px;
+    background: var(--panel); border: 1px solid var(--border-soft); border-radius: 10px;
+    padding: 12px 14px; text-decoration: none; color: var(--text);
+  }
+  .team-tile:hover { border-color: var(--accent); }
+  .team-tile-bar { width: 100%; height: 4px; border-radius: 2px; margin-bottom: 4px; }
+  .team-tile-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem; }
+  .team-tile-stats { font-size: 0.76rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* ---------- Team detail page ---------- */
+  .team-page-head { margin-bottom: 16px; }
+  .team-page-head h1 { font-size: clamp(1.5rem, 4vw, 2rem); }
+
+  footer {
+    max-width: 1180px; margin: 30px auto 0; padding: 18px 20px 40px;
+    color: var(--text-faint); font-size: 0.76rem; border-top: 1px solid var(--border-soft);
+  }
+  .empty-state { padding: 40px 20px; text-align: center; color: var(--text-muted); }
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap">
+
+<header class="top">
+  <div class="top-inner">
+    <a class="brand" href="/nhl/games/" aria-label="RTYB home">
+      <div class="mark">RTY<span>B</span></div>
+      <div class="tag">Run to Your Bets</div>
+    </a>
+
+    <nav class="main-nav" id="mainNav">
+      <div class="nav-dropdown" id="sportDropdown">
+        <button type="button" class="nav-link nav-dropdown-btn" id="sportBtn" aria-haspopup="true" aria-expanded="false">
+          NHL <span class="nav-caret">&#9662;</span>
+        </button>
+        <div class="nav-dropdown-menu" id="sportMenu">
+          <a class="nav-dropdown-item" href="/nhl/games/">NHL</a>
+        </div>
+      </div>
+      <a class="nav-link" href="/nhl/games/" >Games</a>
+      <a class="nav-link" href="/nhl/hit-rates/" >Hit Rates</a>
+      <a class="nav-link" href="/nhl/trends/" >Hottest Trends</a>
+      <div class="nav-dropdown" id="teamsDropdown">
+        <button type="button" class="nav-link nav-dropdown-btn" id="teamsBtn" aria-haspopup="true" aria-expanded="false" aria-current="page">
+          Teams <span class="nav-caret">&#9662;</span>
+        </button>
+        <div class="nav-dropdown-menu nav-dropdown-menu--teams" id="teamsMenu"><a class="nav-dropdown-item" href="/nhl/teams/anh/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="ANH" src="/assets/logos/ANH_light.svg" width="20" height="20" alt="Anaheim Ducks logo" onerror="window.rtybLogoFallback(this,'ANH',20)"></span><span class="nav-team-swatch" style="background:#F47A38"></span>Anaheim Ducks</a><a class="nav-dropdown-item" href="/nhl/teams/bos/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="BOS" src="/assets/logos/BOS_light.svg" width="20" height="20" alt="Boston Bruins logo" onerror="window.rtybLogoFallback(this,'BOS',20)"></span><span class="nav-team-swatch" style="background:#FFB81C"></span>Boston Bruins</a><a class="nav-dropdown-item" href="/nhl/teams/buf/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="BUF" src="/assets/logos/BUF_light.svg" width="20" height="20" alt="Buffalo Sabres logo" onerror="window.rtybLogoFallback(this,'BUF',20)"></span><span class="nav-team-swatch" style="background:#002654"></span>Buffalo Sabres</a><a class="nav-dropdown-item" href="/nhl/teams/cgy/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="CGY" src="/assets/logos/CGY_light.svg" width="20" height="20" alt="Calgary Flames logo" onerror="window.rtybLogoFallback(this,'CGY',20)"></span><span class="nav-team-swatch" style="background:#C8102E"></span>Calgary Flames</a><a class="nav-dropdown-item" href="/nhl/teams/car/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="CAR" src="/assets/logos/CAR_light.svg" width="20" height="20" alt="Carolina Hurricanes logo" onerror="window.rtybLogoFallback(this,'CAR',20)"></span><span class="nav-team-swatch" style="background:#CC0000"></span>Carolina Hurricanes</a><a class="nav-dropdown-item" href="/nhl/teams/chi/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="CHI" src="/assets/logos/CHI_light.svg" width="20" height="20" alt="Chicago Blackhawks logo" onerror="window.rtybLogoFallback(this,'CHI',20)"></span><span class="nav-team-swatch" style="background:#CF0A2C"></span>Chicago Blackhawks</a><a class="nav-dropdown-item" href="/nhl/teams/col/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="COL" src="/assets/logos/COL_light.svg" width="20" height="20" alt="Colorado Avalanche logo" onerror="window.rtybLogoFallback(this,'COL',20)"></span><span class="nav-team-swatch" style="background:#6F263D"></span>Colorado Avalanche</a><a class="nav-dropdown-item" href="/nhl/teams/cbj/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="CBJ" src="/assets/logos/CBJ_light.svg" width="20" height="20" alt="Columbus Blue Jackets logo" onerror="window.rtybLogoFallback(this,'CBJ',20)"></span><span class="nav-team-swatch" style="background:#002654"></span>Columbus Blue Jackets</a><a class="nav-dropdown-item" href="/nhl/teams/dal/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="DAL" src="/assets/logos/DAL_light.svg" width="20" height="20" alt="Dallas Stars logo" onerror="window.rtybLogoFallback(this,'DAL',20)"></span><span class="nav-team-swatch" style="background:#006847"></span>Dallas Stars</a><a class="nav-dropdown-item" href="/nhl/teams/det/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="DET" src="/assets/logos/DET_light.svg" width="20" height="20" alt="Detroit Red Wings logo" onerror="window.rtybLogoFallback(this,'DET',20)"></span><span class="nav-team-swatch" style="background:#CE1126"></span>Detroit Red Wings</a><a class="nav-dropdown-item" href="/nhl/teams/edm/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="EDM" src="/assets/logos/EDM_light.svg" width="20" height="20" alt="Edmonton Oilers logo" onerror="window.rtybLogoFallback(this,'EDM',20)"></span><span class="nav-team-swatch" style="background:#FF4C00"></span>Edmonton Oilers</a><a class="nav-dropdown-item" href="/nhl/teams/fla/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="FLA" src="/assets/logos/FLA_light.svg" width="20" height="20" alt="Florida Panthers logo" onerror="window.rtybLogoFallback(this,'FLA',20)"></span><span class="nav-team-swatch" style="background:#C8102E"></span>Florida Panthers</a><a class="nav-dropdown-item" href="/nhl/teams/la/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="LA" src="/assets/logos/LA_light.svg" width="20" height="20" alt="Los Angeles Kings logo" onerror="window.rtybLogoFallback(this,'LA',20)"></span><span class="nav-team-swatch" style="background:#A2AAAD"></span>Los Angeles Kings</a><a class="nav-dropdown-item" href="/nhl/teams/min/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="MIN" src="/assets/logos/MIN_light.svg" width="20" height="20" alt="Minnesota Wild logo" onerror="window.rtybLogoFallback(this,'MIN',20)"></span><span class="nav-team-swatch" style="background:#154734"></span>Minnesota Wild</a><a class="nav-dropdown-item" href="/nhl/teams/mon/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="MON" src="/assets/logos/MON_light.svg" width="20" height="20" alt="Montreal Canadiens logo" onerror="window.rtybLogoFallback(this,'MON',20)"></span><span class="nav-team-swatch" style="background:#AF1E2D"></span>Montreal Canadiens</a><a class="nav-dropdown-item" href="/nhl/teams/nsh/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="NSH" src="/assets/logos/NSH_light.svg" width="20" height="20" alt="Nashville Predators logo" onerror="window.rtybLogoFallback(this,'NSH',20)"></span><span class="nav-team-swatch" style="background:#FFB81C"></span>Nashville Predators</a><a class="nav-dropdown-item" href="/nhl/teams/nj/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="NJ" src="/assets/logos/NJ_light.svg" width="20" height="20" alt="New Jersey Devils logo" onerror="window.rtybLogoFallback(this,'NJ',20)"></span><span class="nav-team-swatch" style="background:#CE1126"></span>New Jersey Devils</a><a class="nav-dropdown-item" href="/nhl/teams/nyi/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="NYI" src="/assets/logos/NYI_light.svg" width="20" height="20" alt="New York Islanders logo" onerror="window.rtybLogoFallback(this,'NYI',20)"></span><span class="nav-team-swatch" style="background:#00539B"></span>New York Islanders</a><a class="nav-dropdown-item" href="/nhl/teams/nyr/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="NYR" src="/assets/logos/NYR_light.svg" width="20" height="20" alt="New York Rangers logo" onerror="window.rtybLogoFallback(this,'NYR',20)"></span><span class="nav-team-swatch" style="background:#0038A8"></span>New York Rangers</a><a class="nav-dropdown-item" href="/nhl/teams/ott/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="OTT" src="/assets/logos/OTT_light.svg" width="20" height="20" alt="Ottawa Senators logo" onerror="window.rtybLogoFallback(this,'OTT',20)"></span><span class="nav-team-swatch" style="background:#C52032"></span>Ottawa Senators</a><a class="nav-dropdown-item" href="/nhl/teams/phi/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="PHI" src="/assets/logos/PHI_light.svg" width="20" height="20" alt="Philadelphia Flyers logo" onerror="window.rtybLogoFallback(this,'PHI',20)"></span><span class="nav-team-swatch" style="background:#F74902"></span>Philadelphia Flyers</a><a class="nav-dropdown-item" href="/nhl/teams/pit/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="PIT" src="/assets/logos/PIT_light.svg" width="20" height="20" alt="Pittsburgh Penguins logo" onerror="window.rtybLogoFallback(this,'PIT',20)"></span><span class="nav-team-swatch" style="background:#FCB514"></span>Pittsburgh Penguins</a><a class="nav-dropdown-item" href="/nhl/teams/sj/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="SJ" src="/assets/logos/SJ_light.svg" width="20" height="20" alt="San Jose Sharks logo" onerror="window.rtybLogoFallback(this,'SJ',20)"></span><span class="nav-team-swatch" style="background:#006D75"></span>San Jose Sharks</a><a class="nav-dropdown-item" href="/nhl/teams/sea/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="SEA" src="/assets/logos/SEA_light.svg" width="20" height="20" alt="Seattle Kraken logo" onerror="window.rtybLogoFallback(this,'SEA',20)"></span><span class="nav-team-swatch" style="background:#355464"></span>Seattle Kraken</a><a class="nav-dropdown-item" href="/nhl/teams/stl/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="STL" src="/assets/logos/STL_light.svg" width="20" height="20" alt="St. Louis Blues logo" onerror="window.rtybLogoFallback(this,'STL',20)"></span><span class="nav-team-swatch" style="background:#002F87"></span>St. Louis Blues</a><a class="nav-dropdown-item" href="/nhl/teams/tb/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="TB" src="/assets/logos/TB_light.svg" width="20" height="20" alt="Tampa Bay Lightning logo" onerror="window.rtybLogoFallback(this,'TB',20)"></span><span class="nav-team-swatch" style="background:#002868"></span>Tampa Bay Lightning</a><a class="nav-dropdown-item" href="/nhl/teams/tor/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="TOR" src="/assets/logos/TOR_light.svg" width="20" height="20" alt="Toronto Maple Leafs logo" onerror="window.rtybLogoFallback(this,'TOR',20)"></span><span class="nav-team-swatch" style="background:#00205B"></span>Toronto Maple Leafs</a><a class="nav-dropdown-item" href="/nhl/teams/uta/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="UTA" src="/assets/logos/UTA_light.svg" width="20" height="20" alt="Utah Mammoth logo" onerror="window.rtybLogoFallback(this,'UTA',20)"></span><span class="nav-team-swatch" style="background:#6CACE3"></span>Utah Mammoth</a><a class="nav-dropdown-item" href="/nhl/teams/van/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="VAN" src="/assets/logos/VAN_light.svg" width="20" height="20" alt="Vancouver Canucks logo" onerror="window.rtybLogoFallback(this,'VAN',20)"></span><span class="nav-team-swatch" style="background:#00205B"></span>Vancouver Canucks</a><a class="nav-dropdown-item" href="/nhl/teams/vgk/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="VGK" src="/assets/logos/VGK_light.svg" width="20" height="20" alt="Vegas Golden Knights logo" onerror="window.rtybLogoFallback(this,'VGK',20)"></span><span class="nav-team-swatch" style="background:#B4975A"></span>Vegas Golden Knights</a><a class="nav-dropdown-item" href="/nhl/teams/wsh/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="WSH" src="/assets/logos/WSH_light.svg" width="20" height="20" alt="Washington Capitals logo" onerror="window.rtybLogoFallback(this,'WSH',20)"></span><span class="nav-team-swatch" style="background:#C8102E"></span>Washington Capitals</a><a class="nav-dropdown-item" href="/nhl/teams/wpg/"><span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px"><img class="nav-team-logo" data-code="WPG" src="/assets/logos/WPG_light.svg" width="20" height="20" alt="Winnipeg Jets logo" onerror="window.rtybLogoFallback(this,'WPG',20)"></span><span class="nav-team-swatch" style="background:#041E42"></span>Winnipeg Jets</a><a class="nav-dropdown-item nav-dropdown-item--all" href="/nhl/teams/">All Teams &rarr;</a></div>
+      </div>
+    </nav>
+
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    <button class="hamburger" id="hamburgerBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="page-head">
+    <h1>Chicago Blackhawks</h1>
+    <p>1st-period Moneyline, Over-Under 1.5, and BTTS rates, home/away splits, last 10 games, and current trends for the Chicago Blackhawks.</p>
+  </div>
+
+  <div class="no-games-note" id="rtybLoadNote">Loading data&hellip;</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+  <div class="team-page-head" id="teamPageHead"></div>
+  <div id="teamNextGame"></div>
+  <div class="drawer-section-title">Season Markets</div>
+  <div class="stat-row" id="teamMarketTiles"></div>
+  <div class="drawer-section-title">Home / Away Splits</div>
+  <div class="gamelog-scroll"><table class="split-table" id="teamSplitsTable"></table></div>
+  <div class="drawer-section-title">Current Trends</div>
+  <div id="teamTrendsBadges"></div>
+  <div class="drawer-section-title">Last 10 Games &mdash; 1P Result</div>
+  <div class="gamelog-scroll"><table class="gamelog" id="teamGamelogTable"></table></div>
+  
+</main>
+
+<footer>
+  RTYB &mdash; archived-data preview built from the 2025&ndash;26 season file. Records reflect 1st-period results only; ties (periods ending level) count as pushes on the Winner market. Not affiliated with the NHL.
+</footer>
+
+<script>
+(function() {
+  'use strict';
+
+  // True team brand color, one per code. Reused (and re-verified for
+  // contrast here) from the Sports Desk news dashboard's WCAG-checked
+  // NHL palette; Utah Mammoth added since Sports Desk still has it
+  // as the (retired) Arizona Coyotes.
+  //
+  // Defined at top level (outside rtybInit below) -- along with
+  // window.rtybLogoFallback right after it -- because logo <img> tags
+  // rendered statically at build time (e.g. the nav team dropdown) are
+  // already in the DOM and can fire their onerror handler before the
+  // nhl/data.json fetch resolves; both need to exist immediately, not
+  // only once real data has arrived.
+  var TEAM_TRUE_COLOR = {
+    ANH: '#F47A38', BOS: '#FFB81C', BUF: '#002654', CGY: '#C8102E',
+    CAR: '#CC0000', CHI: '#CF0A2C', COL: '#6F263D', CBJ: '#002654',
+    DAL: '#006847', DET: '#CE1126', EDM: '#FF4C00', FLA: '#C8102E',
+    LA: '#A2AAAD', MIN: '#154734', MON: '#AF1E2D', NSH: '#FFB81C',
+    NJ: '#CE1126', NYI: '#00539B', NYR: '#0038A8', OTT: '#C52032',
+    PHI: '#F74902', PIT: '#FCB514', SJ: '#006D75', SEA: '#355464',
+    STL: '#002F87', TB: '#002868', TOR: '#00205B', UTA: '#6CACE3',
+    VAN: '#00205B', VGK: '#B4975A', WSH: '#C8102E', WPG: '#041E42'
+  };
+
+  // ---- Team logos (cached SVGs, light/dark per theme, w/ circle fallback) ----
+  // Reusable across all 7 render sites (nav dropdown, game cards, hit-rates
+  // table, trends cards, teams grid, team page header) so the fallback
+  // behaves identically everywhere a logo image fails to load.
+  window.rtybLogoFallback = function(imgEl, code, size) {
+    if (!imgEl || imgEl.getAttribute('data-fallen')) return;
+    imgEl.setAttribute('data-fallen', '1');
+    var color = TEAM_TRUE_COLOR[code] || '#8B96A5';
+    var span = document.createElement('span');
+    span.className = 'team-logo-fallback';
+    span.style.background = color;
+    span.style.fontSize = Math.max(9, Math.round(size * 0.34)) + 'px';
+    span.textContent = code;
+    if (imgEl.parentNode) imgEl.parentNode.replaceChild(span, imgEl);
+  };
+
+  // Everything else that depends on the season data lives inside
+  // rtybInit(DATA), called once the shared nhl/data.json blob has been
+  // fetched (see the fetch call at the bottom of this file).
+  function rtybInit(DATA) {
+
+  // ---- team colors ----
+  function hexToRgb(hex) {
+    var h = hex.replace('#', '');
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+  function rgbToHex(rgb) {
+    return '#' + rgb.map(function(c) {
+      return Math.max(0, Math.min(255, Math.round(c))).toString(16).padStart(2, '0');
+    }).join('').toUpperCase();
+  }
+  function relLuminance(rgb) {
+    var chans = rgb.map(function(c) {
+      c = c / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * chans[0] + 0.7152 * chans[1] + 0.0722 * chans[2];
+  }
+  function contrastRatio(rgb1, rgb2) {
+    var l1 = relLuminance(rgb1), l2 = relLuminance(rgb2);
+    var lighter = Math.max(l1, l2), darker = Math.min(l1, l2);
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+  function mixToward(rgb, target, amount) {
+    return rgb.map(function(c, i) { return c + (target[i] - c) * amount; });
+  }
+  // Blend a color toward a bg-appropriate direction (white on dark bg,
+  // black on light bg) in small steps until it clears the target
+  // contrast ratio against that background, same approach Sports Desk
+  // uses for its WCAG-safe chip colors.
+  function adjustUntilContrast(rgb, bgRgb, target) {
+    if (contrastRatio(rgb, bgRgb) >= target) return rgb;
+    var bgIsDark = relLuminance(bgRgb) < 0.5;
+    var toward = bgIsDark ? [255, 255, 255] : [0, 0, 0];
+    var amount = 0;
+    while (amount < 0.94) {
+      amount += 0.02;
+      var candidate = mixToward(rgb, toward, amount);
+      if (contrastRatio(candidate, bgRgb) >= target) return candidate;
+    }
+    return mixToward(rgb, toward, 0.94);
+  }
+  function bestTextColor(bgRgb) {
+    var white = [255, 255, 255], dark = [10, 14, 19];
+    return contrastRatio(bgRgb, white) >= contrastRatio(bgRgb, dark) ? '#FFFFFF' : '#0A0E13';
+  }
+
+  // Two panel backgrounds this page actually renders team chips on.
+  var PANEL_BG = { dark: [18, 24, 32], light: [255, 255, 255] };
+
+  // Precompute, per theme: a 3:1-safe dot/bar color (WCAG non-text
+  // contrast, since the dot is a graphical indicator, not text) and a
+  // 4.5:1-safe badge (bg = true color, text = best-contrast white/near-black),
+  // for both dark and light themes.
+  var TEAM_COLOR = { dark: {}, light: {} };
+  ['dark', 'light'].forEach(function(theme) {
+    Object.keys(TEAM_TRUE_COLOR).forEach(function(code) {
+      var rgb = hexToRgb(TEAM_TRUE_COLOR[code]);
+      var bg = PANEL_BG[theme];
+      var dot = rgbToHex(adjustUntilContrast(rgb, bg, 3.0));
+      TEAM_COLOR[theme][code] = {
+        dot: dot,
+        badgeBg: TEAM_TRUE_COLOR[code],
+        badgeText: bestTextColor(rgb)
+      };
+    });
+  });
+  function currentTheme() {
+    var attr = document.documentElement.getAttribute('data-theme');
+    if (attr === 'dark' || attr === 'light') return attr;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function teamColor(code) {
+    return TEAM_COLOR[currentTheme()][code] || TEAM_COLOR.dark[code];
+  }
+
+  function escapeAttr(s) {
+    return escapeHtml(s).replace(/"/g, '&quot;');
+  }
+  function teamLogoHtml(code, size, opts) {
+    opts = opts || {};
+    var info = DATA.summary[code];
+    var name = info ? info.name : code;
+    var variant = currentTheme() === 'dark' ? 'dark' : 'light';
+    var lazyAttr = opts.lazy ? ' loading="lazy"' : '';
+    return '<span class="team-logo-wrap' + (opts.cls ? ' ' + opts.cls : '') + '" style="width:' + size + 'px;height:' + size + 'px">' +
+      '<img src="/assets/logos/' + code + '_' + variant + '.svg" width="' + size + '" height="' + size + '"' +
+      ' alt="' + escapeAttr(name) + ' logo"' + lazyAttr +
+      ' onerror="window.rtybLogoFallback(this,\'' + code + '\',' + size + ')">' +
+      '</span>';
+  }
+  function updateNavTeamLogos() {
+    var variant = currentTheme() === 'dark' ? 'dark' : 'light';
+    document.querySelectorAll('.nav-team-logo[data-code]').forEach(function(img) {
+      if (img.getAttribute('data-fallen')) return;
+      img.src = '/assets/logos/' + img.getAttribute('data-code') + '_' + variant + '.svg';
+    });
+  }
+
+  var MARKETS = {
+    win:  { label: 'Winner',   key: 'w',   desc: '1P Win %' },
+    o05:  { label: 'Over 0.5', key: 'o05', desc: 'Over 0.5 goals' },
+    o15:  { label: 'Over 1.5', key: 'o15', desc: 'Over 1.5 goals' },
+    o25:  { label: 'Over 2.5', key: 'o25', desc: 'Over 2.5 goals' },
+    btts: { label: 'BTTS',     key: 'btts', desc: 'Both teams to score', noTies: true },
+  };
+  var state = { market: 'win', side: 'Both', sortKey: 'pct', sortDir: -1, search: '' };
+
+  // ---- theme ----
+  try {
+    var savedTheme = localStorage.getItem('rtyb-theme');
+    if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+  } catch (e) {}
+  updateNavTeamLogos();
+  document.getElementById('themeToggle').addEventListener('click', function() {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('rtyb-theme', next); } catch (e) {}
+    updateNavTeamLogos();
+    if (document.getElementById('leagueBody')) renderTable();
+    if (document.getElementById('gamesView')) renderDateView();
+    if (document.getElementById('trendsGrid')) renderTrendsPage();
+    if (document.getElementById('teamsGrid')) renderTeamsGrid(teamsSearchBoxEl ? teamsSearchBoxEl.value : '');
+    if (document.body.getAttribute('data-team-code')) renderTeamPage();
+  });
+
+  // ---- nav (sport / teams dropdowns + mobile hamburger) ----
+  (function() {
+    function wireDropdown(btnId, menuId) {
+      var btn = document.getElementById(btnId);
+      var menu = document.getElementById(menuId);
+      if (!btn || !menu) return;
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var opening = !menu.classList.contains('open');
+        document.querySelectorAll('.nav-dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
+        document.querySelectorAll('.nav-dropdown-btn').forEach(function(b) { b.setAttribute('aria-expanded', 'false'); });
+        if (opening) { menu.classList.add('open'); btn.setAttribute('aria-expanded', 'true'); }
+      });
+    }
+    wireDropdown('sportBtn', 'sportMenu');
+    wireDropdown('teamsBtn', 'teamsMenu');
+    document.addEventListener('click', function(e) {
+      document.querySelectorAll('.nav-dropdown-menu.open').forEach(function(m) {
+        if (!m.contains(e.target)) m.classList.remove('open');
+      });
+      document.querySelectorAll('.nav-dropdown-btn').forEach(function(b) { b.setAttribute('aria-expanded', 'false'); });
+    });
+    var hamburger = document.getElementById('hamburgerBtn');
+    var mainNav = document.getElementById('mainNav');
+    if (hamburger && mainNav) {
+      hamburger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var opening = !mainNav.classList.contains('open');
+        mainNav.classList.toggle('open', opening);
+        hamburger.setAttribute('aria-expanded', opening ? 'true' : 'false');
+      });
+    }
+  })();
+
+  // ---- Trends to Watch ----
+  // League-wide trends computed from DATA.streaks / DATA.summary. Deliberately
+  // structured to later take a "teams playing today" filter once a live
+  // schedule feed exists -- for now, since there's no selected date, this
+  // always renders the same "no games today, show league-wide trends" state
+  // the spec calls for as its fallback.
+  var TREND_MARKETS = {
+    o05:  { hitWord: 'Over 0.5',  missWord: 'Under 0.5' },
+    o15:  { hitWord: 'Over 1.5',  missWord: 'Under 1.5' },
+    o25:  { hitWord: 'Over 2.5',  missWord: 'Under 2.5' },
+    btts: { hitWord: 'BTTS',      missWord: 'No BTTS' }
+  };
+  var TREND_MIN_STREAK = 4;
+  var TREND_RATE_MIN_GP = 20;
+  var TREND_RATE_HIGH = 0.75;
+  var TREND_RATE_LOW = 0.25;
+
+  function buildTrends() {
+    var trends = [];
+
+    Object.keys(DATA.streaks).forEach(function(code) {
+      var st = DATA.streaks[code];
+      var name = DATA.summary[code].name;
+
+      // win/loss streaks
+      if (st.wl_streak >= TREND_MIN_STREAK && st.wl_result !== 'T') {
+        var wlGood = st.wl_result === 'W';
+        trends.push({
+          code: code, name: name, good: wlGood,
+          text: (wlGood ? 'Won' : 'Lost') + ' ' + st.wl_streak + ' straight 1st periods',
+          strength: st.wl_streak * 10
+        });
+      }
+
+      // over/under and BTTS streaks
+      Object.keys(TREND_MARKETS).forEach(function(mk) {
+        var streak = st[mk + '_streak'];
+        var result = st[mk + '_result'];
+        if (streak >= TREND_MIN_STREAK) {
+          var isHit = (mk === 'btts') ? result === 'Y' : result === 'O';
+          var meta = TREND_MARKETS[mk];
+          trends.push({
+            code: code, name: name, good: isHit,
+            text: (isHit ? meta.hitWord : meta.missWord) + ' in ' + streak + ' straight',
+            strength: streak * 10
+          });
+        }
+      });
+    });
+
+    Object.keys(DATA.summary).forEach(function(code) {
+      var s = DATA.summary[code];
+      var both = s.splits.Both;
+      if (both.gp < TREND_RATE_MIN_GP) return;
+      Object.keys(TREND_MARKETS).forEach(function(mk) {
+        var hit = both[mk];
+        var pct = hit / both.gp;
+        var meta = TREND_MARKETS[mk];
+        if (pct >= TREND_RATE_HIGH) {
+          trends.push({
+            code: code, name: s.name, good: true,
+            text: meta.hitWord + ' in ' + Math.round(pct * 100) + '% of games this season (' + hit + '/' + both.gp + ')',
+            strength: Math.abs(pct - 0.5) * 200
+          });
+        } else if (pct <= TREND_RATE_LOW) {
+          var missCount = both.gp - hit;
+          var missPct = missCount / both.gp;
+          trends.push({
+            code: code, name: s.name, good: false,
+            text: meta.missWord + ' in ' + Math.round(missPct * 100) + '% of games this season (' + missCount + '/' + both.gp + ')',
+            strength: Math.abs(pct - 0.5) * 200
+          });
+        }
+      });
+    });
+
+    trends.sort(function(a, b) { return b.strength - a.strength; });
+    return trends;
+  }
+
+  var ALL_TRENDS = buildTrends();
+
+  function renderTrends(gamesToday) {
+    var list = document.getElementById('trendList');
+    var showAllBtn = document.getElementById('trendShowAll');
+    var subtitle = document.getElementById('trendsSubtitle');
+    var pool = ALL_TRENDS;
+    if (gamesToday && gamesToday.length) {
+      var todayCodes = {};
+      gamesToday.forEach(function(g) { todayCodes[g.away] = 1; todayCodes[g.home] = 1; });
+      var scoped = ALL_TRENDS.filter(function(t) { return todayCodes[t.code]; });
+      if (scoped.length) {
+        pool = scoped;
+        subtitle.textContent = 'Streaks and season rates for teams playing on the selected date.';
+      } else {
+        subtitle.textContent = 'No standout trends for tonight’s teams — showing league-wide trends instead.';
+      }
+    } else {
+      subtitle.textContent = 'League-wide streaks and season rates across every 1st-period market. Once live game dates are wired up, this narrows to tonight’s matchups.';
+    }
+    if (!pool.length) {
+      list.innerHTML = '<div class="empty-state">No notable trends right now.</div>';
+      showAllBtn.style.display = 'none';
+      return;
+    }
+    var VISIBLE = 6;
+    list.innerHTML = pool.map(function(t, i) {
+      var tc = teamColor(t.code);
+      var extraClass = i >= VISIBLE ? ' hidden-extra' : '';
+      return '<div class="trend-row' + extraClass + '">' +
+        '<span class="trend-color-bar" style="background:' + tc.dot + '"></span>' +
+        '<span class="trend-dot ' + (t.good ? 'good' : 'bad') + '"></span>' +
+        '<div class="trend-copy"><div class="team-name">' + escapeHtml(t.name) + '</div>' +
+        '<div class="trend-text">' + escapeHtml(t.text) + '</div></div>' +
+      '</div>';
+    }).join('');
+    showAllBtn.style.display = pool.length > VISIBLE ? '' : 'none';
+    showAllBtn.textContent = 'Show all trends (' + pool.length + ')';
+    showAllBtn.setAttribute('aria-expanded', 'false');
+  }
+  var trendShowAllBtn = document.getElementById('trendShowAll');
+  if (trendShowAllBtn) trendShowAllBtn.addEventListener('click', function() {
+    document.querySelectorAll('.trend-row.hidden-extra').forEach(function(r) { r.classList.remove('hidden-extra'); });
+    this.style.display = 'none';
+  });
+
+  // ---- controls wiring ----
+  document.querySelectorAll('[data-market]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('[data-market]').forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      state.market = btn.getAttribute('data-market');
+      state.sortKey = 'pct';
+      state.sortDir = -1;
+      document.querySelectorAll('#leagueTable thead th .arrow').forEach(function(a) { a.textContent = ''; });
+      var pctArrow = document.querySelector('#leagueTable thead th[data-sort="pct"] .arrow');
+      if (pctArrow) pctArrow.textContent = '▼';
+      renderTable();
+    });
+  });
+  document.querySelectorAll('[data-side]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('[data-side]').forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      state.side = btn.getAttribute('data-side');
+      renderTable();
+    });
+  });
+  var searchBoxEl = document.getElementById('searchBox');
+  if (searchBoxEl) searchBoxEl.addEventListener('input', function(e) {
+    state.search = e.target.value.trim().toLowerCase();
+    renderTable();
+  });
+  document.querySelectorAll('#leagueTable thead th[data-sort]').forEach(function(th) {
+    th.addEventListener('click', function() {
+      var key = th.getAttribute('data-sort');
+      if (state.sortKey === key) { state.sortDir *= -1; }
+      else { state.sortKey = key; state.sortDir = key === 'name' ? 1 : -1; }
+      document.querySelectorAll('#leagueTable thead th .arrow').forEach(function(a) { a.textContent = ''; });
+      th.querySelector('.arrow').textContent = state.sortDir === 1 ? '▲' : '▼';
+      renderTable();
+    });
+  });
+
+  function teamRows() {
+    return Object.keys(DATA.summary).map(function(code) {
+      var s = DATA.summary[code];
+      var split = s.splits[state.side];
+      var mk = MARKETS[state.market];
+      var hitCount = state.market === 'win' ? split.w : split[mk.key];
+      var denom = split.gp;
+      var pct = denom ? (hitCount / denom) : 0;
+      var rec = state.market === 'win'
+        ? (split.w + '-' + split.l + '-' + split.t)
+        : (hitCount + '-' + (denom - hitCount));
+      return { code: code, name: s.name, gp: denom, rec: rec, pct: pct, hitCount: hitCount };
+    });
+  }
+
+  function renderTable() {
+    var tbodyCheck = document.getElementById('leagueBody');
+    if (!tbodyCheck) return;
+    var rows = teamRows().filter(function(r) {
+      return !state.search || r.name.toLowerCase().indexOf(state.search) !== -1;
+    });
+    rows.sort(function(a, b) {
+      var v = state.sortKey === 'name' ? a.name.localeCompare(b.name) : (a[state.sortKey] - b[state.sortKey]);
+      return v * state.sortDir;
+    });
+    var tbody = document.getElementById('leagueBody');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">No teams match &ldquo;' + escapeHtml(state.search) + '&rdquo;.</div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(function(r) {
+      var pctDisplay = Math.round(r.pct * 100);
+      var tc = teamColor(r.code);
+      return '<tr data-team="' + r.code + '">' +
+        '<td class="team-cell">' + teamLogoHtml(r.code, 24, {lazy: true}) + '<span class="team-dot" style="background:' + tc.dot + '"></span>' + r.name + '</td>' +
+        '<td class="num mono">' + r.gp + '</td>' +
+        '<td class="rec-cell mono"><b>' + r.rec + '</b></td>' +
+        '<td class="num"><div class="pct-cell"><div class="pct-bar"><span style="width:' + pctDisplay + '%"></span></div><span class="pct-num mono">' + pctDisplay + '%</span></div></td>' +
+        '</tr>';
+    }).join('');
+    tbody.querySelectorAll('tr[data-team]').forEach(function(tr) {
+      tr.addEventListener('click', function() {
+        window.location.href = '/nhl/teams/' + tr.getAttribute('data-team').toLowerCase() + '/';
+      });
+    });
+  }
+
+  function escapeHtml(s) {
+    var div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  // ---- Date / Games view ----
+  var SCHEDULE = DATA.schedule || { gameCounts: {}, games: {} };
+  var currentGamesToday = null;
+
+  function todayET() {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  }
+  function parseDateStr(s) {
+    var p = s.split('-').map(Number);
+    return new Date(Date.UTC(p[0], p[1] - 1, p[2]));
+  }
+  function fmtDateStr(d) { return d.toISOString().slice(0, 10); }
+  function addDays(dateStr, n) {
+    var d = parseDateStr(dateStr);
+    d.setUTCDate(d.getUTCDate() + n);
+    return fmtDateStr(d);
+  }
+  var DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  function dateLabelText(dateStr) {
+    var d = parseDateStr(dateStr);
+    return DAY_NAMES[d.getUTCDay()] + ' ' + (d.getUTCMonth() + 1) + '/' + d.getUTCDate();
+  }
+  function fmtGameTime(iso) {
+    try {
+      return new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }).format(new Date(iso)) + ' ET';
+    } catch (e) { return ''; }
+  }
+
+  // Selected date is reflected in the URL as ?date=YYYY-MM-DD so any day can
+  // be linked to directly; omitted (or invalid) means "today".
+  function getDateFromURL() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var d = params.get('date');
+      if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    } catch (e) {}
+    return todayET();
+  }
+  function setDateInURL(dateStr, replace) {
+    try {
+      var url = new URL(window.location.href);
+      if (dateStr === todayET()) url.searchParams.delete('date');
+      else url.searchParams.set('date', dateStr);
+      var method = replace ? 'replaceState' : 'pushState';
+      window.history[method]({ date: dateStr }, '', url.pathname + url.search);
+    } catch (e) {}
+  }
+  function goToDate(dateStr) {
+    dateState.selectedDate = dateStr;
+    setDateInURL(dateStr);
+    renderDateView();
+  }
+
+  var dateState = { selectedDate: getDateFromURL() };
+
+  function scheduleStateFor(dateStr) {
+    var count = SCHEDULE.gameCounts[dateStr];
+    if (count === undefined) return { state: 'unknown' };
+    if (count === 0) return { state: 'none' };
+    var g = SCHEDULE.games[dateStr];
+    if (!g || !g.length) return { state: 'known-no-detail', count: count };
+    return { state: 'games', games: g };
+  }
+
+  // Most recent date strictly before dateStr that has full games detail AND
+  // at least one FINAL game (i.e. computeDailySummary can produce a result).
+  function mostRecentGameDayBefore(dateStr) {
+    var dates = Object.keys(SCHEDULE.games || {}).filter(function(d) { return d < dateStr; }).sort();
+    for (var i = dates.length - 1; i >= 0; i--) {
+      var games = SCHEDULE.games[dates[i]];
+      if (games && games.length && computeDailySummary(games)) return dates[i];
+    }
+    return null;
+  }
+  // Nearest date strictly after dateStr known to have at least one game
+  // scheduled (per gameCounts, whether or not full detail is loaded).
+  function nextGameDayAfter(dateStr) {
+    var dates = Object.keys(SCHEDULE.gameCounts || {}).filter(function(d) {
+      return d > dateStr && SCHEDULE.gameCounts[d] > 0;
+    }).sort();
+    return dates.length ? dates[0] : null;
+  }
+
+  function marketRate(code, splitKey, marketKey) {
+    var sp = DATA.summary[code] && DATA.summary[code].splits[splitKey];
+    if (!sp || !sp.gp) return null;
+    var hit = marketKey === 'win' ? sp.w : sp[marketKey];
+    return Math.round((hit / sp.gp) * 100);
+  }
+
+  function computeDailySummary(games) {
+    var finals = games.filter(function(g) { return g.state === 'FINAL'; });
+    if (!finals.length) return null;
+    function tally(pickFn) {
+      var w = 0, l = 0, t = 0;
+      finals.forEach(function(g) {
+        var r = pickFn(g);
+        if (r === 'W') w++; else if (r === 'L') l++; else t++;
+      });
+      return { w: w, l: l, t: t };
+    }
+    var rows = [];
+
+    // Moneyline: only over games that actually have a saved moneyline price
+    // for both sides (closing odds snapshotted by the backend at fetch
+    // time). A game with no odds is omitted from this line entirely.
+    var mlGames = finals.filter(function(g) {
+      return g.odds && g.odds.ml && g.odds.ml[g.away] != null && g.odds.ml[g.home] != null;
+    });
+    if (mlGames.length) {
+      var fw = 0, fl = 0, ft = 0;
+      mlGames.forEach(function(g) {
+        var favTeam = g.odds.ml[g.away] < g.odds.ml[g.home] ? g.away : g.home;
+        var favWon = favTeam === g.away ? (g.awayP1 > g.homeP1) : (g.homeP1 > g.awayP1);
+        var push = g.awayP1 === g.homeP1;
+        if (push) ft++; else if (favWon) fw++; else fl++;
+      });
+      rows.push({ label: 'Moneyline', rec: { w: fw, l: fl, t: ft } });
+    }
+
+    rows.push({ label: 'Over-Under 1.5', rec: tally(function(g) {
+      return (g.awayP1 + g.homeP1) > 1 ? 'W' : 'L';
+    }), noPush: true });
+
+    rows.push({ label: 'BTTS', rec: tally(function(g) {
+      return (g.awayP1 >= 1 && g.homeP1 >= 1) ? 'W' : 'L';
+    }), noPush: true });
+
+    return rows;
+  }
+
+  function renderDailySummary(dateStr, games) {
+    var el = document.getElementById('dailySummary');
+    var rows = computeDailySummary(games);
+    if (!rows) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    var hasMoneyline = rows.some(function(r) { return r.label === 'Moneyline'; });
+    el.innerHTML = '<h3>' + escapeHtml(dateLabelText(dateStr)) + ' &mdash; Daily Results</h3>' +
+      rows.map(function(r) {
+        var total = r.rec.w + r.rec.l + r.rec.t;
+        var pct = total ? Math.round((r.rec.w / total) * 100) : 0;
+        var pctClass = pct >= 60 ? 'good' : pct <= 40 ? 'bad' : 'mid';
+        var recStr = r.noPush ? (r.rec.w + '-' + r.rec.l) : (r.rec.w + '-' + r.rec.l + (r.rec.t ? '-' + r.rec.t : ''));
+        return '<div class="ds-row"><span class="ds-label">' + r.label + '</span>' +
+          '<span class="ds-right"><span class="ds-record">' + recStr + '</span>' +
+          '<span class="ds-pct ' + pctClass + '">' + pct + '%</span></span></div>';
+      }).join('') +
+      (hasMoneyline ? '' : '<div style="font-size:0.72rem;color:var(--text-faint);margin-top:8px;">Moneyline needs saved odds for these games &mdash; not shown until that\'s available.</div>');
+  }
+
+  function fmtAmerican(price) {
+    if (price === null || price === undefined || price === '') return '&mdash;';
+    var n = Number(price);
+    if (isNaN(n)) return '&mdash;';
+    return (n > 0 ? '+' : '') + n;
+  }
+
+  function oddsCell(label, priceText, histText) {
+    return '<div class="odds-cell"><div class="oc-label">' + label + '</div>' +
+      '<div class="oc-row"><span class="oc-price">' + priceText + '</span><span class="oc-hist">' + histText + '</span></div></div>';
+  }
+
+  function renderGameCard(g) {
+    var awayName = DATA.summary[g.away] ? DATA.summary[g.away].name : g.away;
+    var homeName = DATA.summary[g.home] ? DATA.summary[g.home].name : g.home;
+    var awayColor = teamColor(g.away), homeColor = teamColor(g.home);
+    var isFinal = g.state === 'FINAL';
+
+    // Team page URL slug: the team's DATA code, lowercased (e.g. "TOR" ->
+    // "/nhl/teams/tor/"). Phase 2's Teams pages should match this scheme
+    // exactly.
+    var head = '<div class="game-card-head">' +
+      '<div class="game-matchup">' +
+        '<a class="gm-team" href="/nhl/teams/' + g.away.toLowerCase() + '/">' + teamLogoHtml(g.away, 32) + '<span class="game-color-bar" style="background:' + awayColor.dot + '"></span>' + escapeHtml(awayName) + '</a>' +
+        '<span style="color:var(--text-faint);font-weight:400;">@</span>' +
+        '<a class="gm-team" href="/nhl/teams/' + g.home.toLowerCase() + '/">' + teamLogoHtml(g.home, 32) + '<span class="game-color-bar" style="background:' + homeColor.dot + '"></span>' + escapeHtml(homeName) + '</a>' +
+      '</div>' +
+      (isFinal
+        ? '<div class="game-final-wrap"><div class="game-final-score">' + teamLogoHtml(g.away, 20) + '<span>' + g.awayFinal + '-' + g.homeFinal + (g.ot ? ' ' + g.ot : '') + '</span>' + teamLogoHtml(g.home, 20) + '</div>' +
+          '<div class="game-p1-score">1P ' + g.awayP1 + '-' + g.homeP1 + '</div></div>'
+        : '<div class="game-time">' + fmtGameTime(g.startTimeUTC) + '</div>') +
+    '</div>';
+
+    var odds = g.odds || {};
+    var mlAway = fmtAmerican(odds.ml && odds.ml[g.away]);
+    var mlHome = fmtAmerican(odds.ml && odds.ml[g.home]);
+    var mlPrice = (odds.ml ? (mlAway + ' / ' + mlHome) : '&mdash;');
+    var mlHist = (marketRate(g.away, 'Away', 'win') ?? '&mdash;') + '% / ' + (marketRate(g.home, 'Home', 'win') ?? '&mdash;') + '%';
+
+    function totalsPrice(line) {
+      var t = odds.totals && odds.totals[line];
+      if (!t) return '&mdash;';
+      return fmtAmerican(t.over) + ' / ' + fmtAmerican(t.under);
+    }
+    var bttsPrice = (odds.btts_yes != null) ? fmtAmerican(odds.btts_yes) : '&mdash;';
+
+    var oddsGrid = '<div class="odds-grid">' +
+      oddsCell('Moneyline', mlPrice, mlHist) +
+      oddsCell('Over-Under 1.5', totalsPrice('1.5'), (marketRate(g.away, 'Both', 'o15')) + '% / ' + (marketRate(g.home, 'Both', 'o15')) + '%') +
+      oddsCell('BTTS', bttsPrice, (marketRate(g.away, 'Both', 'btts')) + '% / ' + (marketRate(g.home, 'Both', 'btts')) + '%') +
+    '</div>';
+
+    var resultsRow = '';
+    if (isFinal) {
+      var homeWon = g.homeP1 > g.awayP1;
+      var awayWon = g.awayP1 > g.homeP1;
+      var total = g.awayP1 + g.homeP1;
+      var btts = g.awayP1 >= 1 && g.homeP1 >= 1;
+      resultsRow = '<div class="market-result-row">' +
+        '<span class="market-pill ' + (homeWon ? 'win' : awayWon ? 'lose' : '') + '">Moneyline ' + (homeWon ? 'HOME W' : awayWon ? 'AWAY W' : 'PUSH') + '</span>' +
+        '<span class="market-pill ' + (total > 1 ? 'win' : 'lose') + '">Over-Under 1.5 ' + (total > 1 ? 'HIT' : 'MISS') + '</span>' +
+        '<span class="market-pill ' + (btts ? 'win' : 'lose') + '">BTTS ' + (btts ? 'HIT' : 'MISS') + '</span>' +
+      '</div>';
+    }
+
+    return '<div class="game-card">' + head + oddsGrid + resultsRow + '</div>';
+  }
+
+  function renderGamesList(dateStr, games) {
+    renderDailySummary(dateStr, games);
+    var list = document.getElementById('gamesList');
+    list.innerHTML = games.map(renderGameCard).join('');
+  }
+
+  function renderYesterdayStrip() {
+    var el = document.getElementById('yesterdayStrip');
+    if (!el) return;
+    if (dateState.selectedDate !== todayET()) { el.style.display = 'none'; el.onclick = null; return; }
+    var yDate = mostRecentGameDayBefore(dateState.selectedDate);
+    if (!yDate) { el.style.display = 'none'; el.onclick = null; return; }
+    var rows = computeDailySummary(SCHEDULE.games[yDate]);
+    if (!rows) { el.style.display = 'none'; el.onclick = null; return; }
+    el.style.display = '';
+    el.innerHTML = '<span class="ys-title">' + escapeHtml(dateLabelText(yDate)) + ' &mdash; Results</span>' +
+      rows.map(function(r) {
+        var total = r.rec.w + r.rec.l + r.rec.t;
+        var pct = total ? Math.round((r.rec.w / total) * 100) : 0;
+        var pctClass = pct >= 50 ? 'good' : 'bad';
+        var recStr = r.noPush ? (r.rec.w + '-' + r.rec.l) : (r.rec.w + '-' + r.rec.l + (r.rec.t ? '-' + r.rec.t : ''));
+        return '<span class="ys-item"><span class="ys-label">' + escapeHtml(r.label) + '</span>' +
+          '<span class="ys-rec">' + recStr + '</span>' +
+          '<span class="ys-pct ' + pctClass + '">' + pct + '%</span></span>';
+      }).join('');
+    el.onclick = function() { goToDate(yDate); };
+  }
+
+  function renderDateView() {
+    var gamesViewEl = document.getElementById('gamesView');
+    if (!gamesViewEl) return; // not the Games page
+    var dateStr = dateState.selectedDate;
+    document.getElementById('dateLabel').textContent = dateLabelText(dateStr);
+    document.getElementById('dateTodayBtn').style.display = (dateStr === todayET()) ? 'none' : '';
+
+    var info = scheduleStateFor(dateStr);
+    var note = document.getElementById('noGamesNote');
+
+    if (info.state === 'games') {
+      gamesViewEl.style.display = '';
+      note.style.display = 'none';
+      note.innerHTML = '';
+      currentGamesToday = info.games;
+      renderGamesList(dateStr, info.games);
+    } else {
+      gamesViewEl.style.display = 'none';
+      currentGamesToday = null;
+      note.style.display = '';
+      if (info.state === 'none') {
+        var nextDate = nextGameDayAfter(dateStr);
+        note.innerHTML = '<div class="no-games-body">No NHL games on this date.' +
+          (nextDate ? ' <button type="button" class="next-gameday-btn" id="nextGameDayBtn">Next game day &rsaquo;</button>' : '') +
+          '</div>';
+        var nextBtn = document.getElementById('nextGameDayBtn');
+        if (nextBtn) nextBtn.addEventListener('click', function() { goToDate(nextDate); });
+      } else if (info.state === 'known-no-detail') {
+        note.innerHTML = '<div class="no-games-body">' + info.count + ' NHL game' + (info.count === 1 ? '' : 's') +
+          ' scheduled, but full matchup detail isn’t loaded for this date.</div>';
+      } else {
+        note.innerHTML = '<div class="no-games-body">Schedule data isn’t loaded for this date yet.</div>';
+      }
+    }
+    renderYesterdayStrip();
+    renderTrends(currentGamesToday);
+    renderCalendar();
+    var trendsLink = document.getElementById('hottestTrendsLink');
+    if (trendsLink) trendsLink.href = (dateStr === todayET()) ? '/nhl/trends/' : ('/nhl/trends/?date=' + dateStr);
+  }
+
+  var datePrevBtn = document.getElementById('datePrev');
+  if (datePrevBtn) datePrevBtn.addEventListener('click', function() {
+    goToDate(addDays(dateState.selectedDate, -1));
+  });
+  var dateNextBtn = document.getElementById('dateNext');
+  if (dateNextBtn) dateNextBtn.addEventListener('click', function() {
+    goToDate(addDays(dateState.selectedDate, 1));
+  });
+  var dateTodayBtnEl = document.getElementById('dateTodayBtn');
+  if (dateTodayBtnEl) dateTodayBtnEl.addEventListener('click', function() {
+    goToDate(todayET());
+  });
+  window.addEventListener('popstate', function() {
+    dateState.selectedDate = getDateFromURL();
+    renderDateView();
+  });
+
+  // ---- calendar popover ----
+  var calState = { monthDate: parseDateStr(dateState.selectedDate) };
+  var calPopover = document.getElementById('calPopover');
+  var dateCalBtn = document.getElementById('dateCalBtn');
+  if (dateCalBtn && calPopover) dateCalBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var opening = calPopover.hasAttribute('hidden');
+    if (opening) {
+      calState.monthDate = parseDateStr(dateState.selectedDate);
+      renderCalendar();
+      calPopover.removeAttribute('hidden');
+    } else {
+      calPopover.setAttribute('hidden', '');
+    }
+  });
+  document.addEventListener('click', function(e) {
+    if (!calPopover) return;
+    if (!calPopover.hasAttribute('hidden') && !calPopover.contains(e.target) && e.target.id !== 'dateCalBtn') {
+      calPopover.setAttribute('hidden', '');
+    }
+  });
+  var calPrevMonthBtn = document.getElementById('calPrevMonth');
+  if (calPrevMonthBtn) calPrevMonthBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    calState.monthDate.setUTCMonth(calState.monthDate.getUTCMonth() - 1);
+    renderCalendar();
+  });
+  var calNextMonthBtn = document.getElementById('calNextMonth');
+  if (calNextMonthBtn) calNextMonthBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    calState.monthDate.setUTCMonth(calState.monthDate.getUTCMonth() + 1);
+    renderCalendar();
+  });
+
+  var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function renderCalendar() {
+    var grid = document.getElementById('calGrid');
+    if (!grid) return;
+    var m = calState.monthDate;
+    var year = m.getUTCFullYear(), month = m.getUTCMonth();
+    document.getElementById('calMonthLabel').textContent = MONTH_NAMES[month] + ' ' + year;
+    var firstOfMonth = new Date(Date.UTC(year, month, 1));
+    var startDow = firstOfMonth.getUTCDay();
+    var daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    var daysInPrevMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    var todayStr = todayET();
+    var cells = [];
+    for (var i = 0; i < startDow; i++) {
+      cells.push({ day: daysInPrevMonth - startDow + 1 + i, outside: true });
+    }
+    for (var d = 1; d <= daysInMonth; d++) {
+      cells.push({ day: d, outside: false, dateStr: fmtDateStr(new Date(Date.UTC(year, month, d))) });
+    }
+    while (cells.length % 7 !== 0) {
+      cells.push({ day: cells.length - (startDow + daysInMonth) + 1, outside: true });
+    }
+    grid.innerHTML = cells.map(function(c) {
+      if (c.outside) return '<button type="button" class="cal-day outside" disabled>' + c.day + '</button>';
+      var hasGames = (SCHEDULE.gameCounts[c.dateStr] || 0) > 0;
+      var cls = 'cal-day';
+      if (c.dateStr === dateState.selectedDate) cls += ' selected';
+      if (c.dateStr === todayStr) cls += ' today';
+      return '<button type="button" class="' + cls + '" data-date="' + c.dateStr + '">' + c.day + (hasGames ? '<span class="dot"></span>' : '') + '</button>';
+    }).join('');
+    grid.querySelectorAll('.cal-day:not(.outside)').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (calPopover) calPopover.setAttribute('hidden', '');
+        goToDate(btn.getAttribute('data-date'));
+      });
+    });
+  }
+
+  // ---- Hottest Trends page ----
+  // Restricted to the site's current 3-market convention: Winner (moneyline),
+  // Over-Under 1.5, BTTS. Streaks come straight from DATA.streaks (baked from
+  // real chronological per-team results in DATA.gamelog at data-prep time) --
+  // no fabricated streak lengths. Season-rate cards are a real-data fallback
+  // for teams/markets with no active 4+ streak.
+  var TREND3_WORDS = {
+    win:  { hit: 'Won',       miss: 'Lost',      streakKey: 'wl',   rateKey: 'w' },
+    o15:  { hit: 'Over 1.5',  miss: 'Under 1.5', streakKey: 'o15',  rateKey: 'o15' },
+    btts: { hit: 'BTTS',      miss: 'No BTTS',   streakKey: 'btts', rateKey: 'btts' }
+  };
+  var TREND3_MIN_STREAK = 4;
+  var TREND3_RATE_MIN_GP = 20;
+  var TREND3_RATE_HIGH = 0.75;
+  var TREND3_RATE_LOW = 0.25;
+  var TREND3_MATCHUP_THRESHOLD = 0.60;
+
+  function marketRateFrac(code, marketKey) {
+    var sp = DATA.summary[code] && DATA.summary[code].splits.Both;
+    if (!sp || !sp.gp) return null;
+    var hit = marketKey === 'win' ? sp.w : sp[marketKey];
+    return hit / sp.gp;
+  }
+
+  function buildTrend3Cards() {
+    var cards = [];
+    Object.keys(DATA.streaks).forEach(function(code) {
+      if (!DATA.summary[code]) return;
+      var st = DATA.streaks[code];
+      var name = DATA.summary[code].name;
+
+      if (st.wl_streak >= TREND3_MIN_STREAK && st.wl_result !== 'T') {
+        var wlGood = st.wl_result === 'W';
+        cards.push({
+          code: code, name: name, market: 'win', good: wlGood,
+          text: (wlGood ? 'Won' : 'Lost') + ' ' + st.wl_streak + ' straight 1st periods',
+          strength: st.wl_streak * 10
+        });
+      }
+      ['o15', 'btts'].forEach(function(mk) {
+        var streak = st[mk + '_streak'];
+        var result = st[mk + '_result'];
+        if (streak >= TREND3_MIN_STREAK) {
+          var isHit = (mk === 'btts') ? result === 'Y' : result === 'O';
+          var meta = TREND3_WORDS[mk];
+          cards.push({
+            code: code, name: name, market: mk, good: isHit,
+            text: (isHit ? meta.hit : meta.miss) + ' in ' + streak + ' straight',
+            strength: streak * 10
+          });
+        }
+      });
+    });
+
+    Object.keys(DATA.summary).forEach(function(code) {
+      var s = DATA.summary[code];
+      var both = s.splits.Both;
+      if (both.gp < TREND3_RATE_MIN_GP) return;
+      Object.keys(TREND3_WORDS).forEach(function(mk) {
+        var meta = TREND3_WORDS[mk];
+        var hit = mk === 'win' ? both.w : both[mk];
+        var pct = hit / both.gp;
+        if (pct >= TREND3_RATE_HIGH) {
+          cards.push({
+            code: code, name: s.name, market: mk, good: true,
+            text: meta.hit + ' in ' + Math.round(pct * 100) + '% of games this season (' + hit + '/' + both.gp + ')',
+            strength: Math.abs(pct - 0.5) * 200
+          });
+        } else if (pct <= TREND3_RATE_LOW) {
+          var missCount = both.gp - hit;
+          var missPct = missCount / both.gp;
+          cards.push({
+            code: code, name: s.name, market: mk, good: false,
+            text: meta.miss + ' in ' + Math.round(missPct * 100) + '% of games this season (' + missCount + '/' + both.gp + ')',
+            strength: Math.abs(pct - 0.5) * 200
+          });
+        }
+      });
+    });
+
+    cards.sort(function(a, b) { return b.strength - a.strength; });
+    return cards;
+  }
+
+  var ALL_TREND3_CARDS = document.getElementById('trendsGrid') ? buildTrend3Cards() : [];
+  var trendState = { market: 'all', scope: 'today' };
+
+  function matchupInfoFor(code, gamesToday) {
+    for (var i = 0; i < gamesToday.length; i++) {
+      var g = gamesToday[i];
+      if (g.away !== code && g.home !== code) continue;
+      var isHome = g.home === code;
+      var oppCode = isHome ? g.away : g.home;
+      var oppName = DATA.summary[oppCode] ? DATA.summary[oppCode].name : oppCode;
+      return (isHome ? 'vs ' : '@ ') + (DATA.summary[oppCode] ? oppCode : oppName) + ' &middot; ' + fmtGameTime(g.startTimeUTC);
+    }
+    return null;
+  }
+
+  function renderTrendsPage() {
+    var grid = document.getElementById('trendsGrid');
+    if (!grid) return;
+    var note = document.getElementById('trendsScopeNote');
+    var dateStr = dateState.selectedDate;
+    var gamesToday = (SCHEDULE.games && SCHEDULE.games[dateStr]) || [];
+    var scope = trendState.scope;
+    var autoSwitchedNote = '';
+    if (scope === 'today' && !gamesToday.length) {
+      scope = 'all';
+      autoSwitchedNote = 'No NHL games scheduled for ' + dateLabelText(dateStr) + ' &mdash; showing all teams instead.';
+    }
+
+    var todayCodes = {};
+    gamesToday.forEach(function(g) { todayCodes[g.away] = 1; todayCodes[g.home] = 1; });
+
+    var pool = ALL_TREND3_CARDS.filter(function(t) {
+      if (trendState.market !== 'all' && t.market !== trendState.market) return false;
+      if (scope === 'today' && !todayCodes[t.code]) return false;
+      return true;
+    });
+
+    var matchupCards = [];
+    if (scope === 'today') {
+      gamesToday.forEach(function(g) {
+        if (!DATA.summary[g.away] || !DATA.summary[g.home]) return;
+        Object.keys(TREND3_WORDS).forEach(function(mk) {
+          if (trendState.market !== 'all' && trendState.market !== mk) return;
+          var awayRate = marketRateFrac(g.away, mk);
+          var homeRate = marketRateFrac(g.home, mk);
+          if (awayRate == null || homeRate == null) return;
+          if (awayRate >= TREND3_MATCHUP_THRESHOLD && homeRate >= TREND3_MATCHUP_THRESHOLD) {
+            var meta = TREND3_WORDS[mk];
+            matchupCards.push({
+              code: g.away + '|' + g.home, isMatchup: true, market: mk, good: true,
+              name: DATA.summary[g.away].name + ' & ' + DATA.summary[g.home].name,
+              text: 'Both teams hitting ' + meta.hit + ' in 60%+ of games this season (' +
+                Math.round(awayRate * 100) + '% / ' + Math.round(homeRate * 100) + '%)',
+              matchup: (DATA.summary[g.away].name) + ' @ ' + (DATA.summary[g.home].name) + ' &middot; ' + fmtGameTime(g.startTimeUTC),
+              barCodes: [g.away, g.home],
+              strength: (awayRate + homeRate) * 100
+            });
+          }
+        });
+      });
+    }
+
+    var combined = matchupCards.concat(pool);
+    combined.sort(function(a, b) { return b.strength - a.strength; });
+
+    if (autoSwitchedNote) {
+      note.style.display = '';
+      note.innerHTML = autoSwitchedNote;
+    } else {
+      note.style.display = 'none';
+      note.innerHTML = '';
+    }
+
+    if (!combined.length) {
+      grid.innerHTML = '<div class="empty-state">No notable trends right now.</div>';
+      return;
+    }
+
+    grid.innerHTML = combined.map(function(t) {
+      if (t.isMatchup) {
+        var bar1 = teamColor(t.barCodes[0]).dot, bar2 = teamColor(t.barCodes[1]).dot;
+        return '<div class="trend-row matchup-card">' +
+          '<span class="trend-color-bar" style="background:linear-gradient(' + bar1 + ',' + bar2 + ')"></span>' +
+          '<span class="trend-dot good"></span>' +
+          '<div class="trend-copy">' +
+            '<div class="team-name"><span class="trend-matchup-badge">Matchup Angle</span>' + teamLogoHtml(t.barCodes[0], 28, {lazy: true}) + teamLogoHtml(t.barCodes[1], 28, {lazy: true}) + escapeHtml(t.name) + '</div>' +
+            '<div class="trend-text">' + t.text + '</div>' +
+            '<div class="trend-matchup">' + t.matchup + '</div>' +
+          '</div>' +
+        '</div>';
+      }
+      var tc = teamColor(t.code);
+      var matchup = scope === 'today' ? matchupInfoFor(t.code, gamesToday) : null;
+      return '<div class="trend-row">' +
+        '<span class="trend-color-bar" style="background:' + tc.dot + '"></span>' +
+        '<span class="trend-dot ' + (t.good ? 'good' : 'bad') + '"></span>' +
+        '<div class="trend-copy">' +
+          '<div class="team-name">' + teamLogoHtml(t.code, 28, {lazy: true}) + '<a href="/nhl/teams/' + t.code.toLowerCase() + '/">' + escapeHtml(t.name) + '</a></div>' +
+          '<div class="trend-text">' + escapeHtml(t.text) + '</div>' +
+          (matchup ? '<div class="trend-matchup">' + matchup + '</div>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  document.querySelectorAll('[data-trend-market]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('[data-trend-market]').forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      trendState.market = btn.getAttribute('data-trend-market');
+      renderTrendsPage();
+    });
+  });
+  document.querySelectorAll('[data-trend-scope]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('[data-trend-scope]').forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      trendState.scope = btn.getAttribute('data-trend-scope');
+      renderTrendsPage();
+    });
+  });
+
+  // ---- Teams index page ----
+  var DIVISION_ORDER = ['Atlantic', 'Metropolitan', 'Central', 'Pacific'];
+  function renderTeamsGrid(filterText) {
+    var container = document.getElementById('teamsGrid');
+    if (!container) return;
+    var divisions = DATA.divisions || {};
+    var q = (filterText || '').trim().toLowerCase();
+    var html = '';
+    DIVISION_ORDER.forEach(function(divName) {
+      var codes = (divisions[divName] || []).filter(function(code) {
+        var s = DATA.summary[code];
+        return s && (!q || s.name.toLowerCase().indexOf(q) !== -1);
+      });
+      if (!codes.length) return;
+      html += '<div class="division-group"><h2 class="division-title">' + escapeHtml(divName) + '</h2>' +
+        '<div class="team-tile-grid">' + codes.map(function(code) {
+          var s = DATA.summary[code];
+          var tc = teamColor(code);
+          var both = s.splits.Both;
+          var o15Pct = both.gp ? Math.round((both.o15 / both.gp) * 100) : 0;
+          var bttsPct = both.gp ? Math.round((both.btts / both.gp) * 100) : 0;
+          return '<a class="team-tile" href="/nhl/teams/' + code.toLowerCase() + '/">' +
+            '<span class="team-tile-bar" style="background:' + tc.dot + '"></span>' +
+            teamLogoHtml(code, 56, {lazy: true, cls: 'team-tile-logo'}) +
+            '<span class="team-tile-name">' + escapeHtml(s.name) + '</span>' +
+            '<span class="team-tile-stats">O 1.5 ' + o15Pct + '% &middot; BTTS ' + bttsPct + '%</span>' +
+          '</a>';
+        }).join('') + '</div></div>';
+    });
+    container.innerHTML = html || '<div class="empty-state">No teams match &ldquo;' + escapeHtml(filterText) + '&rdquo;.</div>';
+  }
+  var teamsSearchBoxEl = document.getElementById('teamsSearchBox');
+  if (teamsSearchBoxEl) teamsSearchBoxEl.addEventListener('input', function(e) { renderTeamsGrid(e.target.value); });
+
+  // ---- Team detail page ----
+  function findNextGame(code) {
+    var todayStr = todayET();
+    var dates = Object.keys(SCHEDULE.games || {}).filter(function(d) { return d >= todayStr; }).sort();
+    for (var i = 0; i < dates.length; i++) {
+      var games = SCHEDULE.games[dates[i]] || [];
+      for (var j = 0; j < games.length; j++) {
+        var g = games[j];
+        if ((g.away === code || g.home === code) && g.state !== 'FINAL') {
+          return { date: dates[i], game: g };
+        }
+      }
+    }
+    return null;
+  }
+
+  function renderTeamPage() {
+    var code = document.body.getAttribute('data-team-code');
+    if (!code || !DATA.summary[code]) return;
+    var s = DATA.summary[code];
+    var st = DATA.streaks[code];
+    var log = (DATA.gamelog[code] || []).slice(-10).reverse();
+    var tc = teamColor(code);
+
+    var headEl = document.getElementById('teamPageHead');
+    headEl.innerHTML = '<div style="display:flex;align-items:center;gap:10px;">' +
+      '<span style="width:6px;height:30px;border-radius:3px;background:' + tc.dot + ';display:inline-block;flex-shrink:0;"></span>' +
+      teamLogoHtml(code, 80) +
+      '<h1>' + escapeHtml(s.name) + '</h1></div>';
+
+    var nextGameEl = document.getElementById('teamNextGame');
+    var next = findNextGame(code);
+    if (next) {
+      var g = next.game, dateStr = next.date;
+      var isHome = g.home === code;
+      var oppCode = isHome ? g.away : g.home;
+      var oppName = DATA.summary[oppCode] ? DATA.summary[oppCode].name : oppCode;
+      var odds = g.odds || {};
+      var mlPrice = odds.ml ? (fmtAmerican(odds.ml[g.away]) + ' / ' + fmtAmerican(odds.ml[g.home])) : '&mdash;';
+      var ouPrice = (odds.totals && odds.totals['1.5']) ? (fmtAmerican(odds.totals['1.5'].over) + ' / ' + fmtAmerican(odds.totals['1.5'].under)) : '&mdash;';
+      var bttsPrice = (odds.btts_yes != null) ? fmtAmerican(odds.btts_yes) : '&mdash;';
+      nextGameEl.innerHTML = '<div class="daily-summary"><h3>Next Game</h3>' +
+        '<div class="ds-row"><span class="ds-label">' + (isHome ? 'vs ' : '@ ') + escapeHtml(oppName) + '</span>' +
+          '<span class="ds-right"><a href="/nhl/games/?date=' + dateStr + '">' + escapeHtml(dateLabelText(dateStr)) + ' &middot; ' + fmtGameTime(g.startTimeUTC) + '</a></span></div>' +
+        '<div class="ds-row"><span class="ds-label">Moneyline</span><span class="ds-right mono">' + mlPrice + '</span></div>' +
+        '<div class="ds-row"><span class="ds-label">Over-Under 1.5</span><span class="ds-right mono">' + ouPrice + '</span></div>' +
+        '<div class="ds-row"><span class="ds-label">BTTS</span><span class="ds-right mono">' + bttsPrice + '</span></div>' +
+      '</div>';
+    } else {
+      nextGameEl.innerHTML = '<div class="no-games-note">No upcoming game currently scheduled.</div>';
+    }
+
+    var both = s.splits.Both;
+    var winPct = both.gp ? Math.round((both.w / both.gp) * 100) : 0;
+    var o15Pct = both.gp ? Math.round((both.o15 / both.gp) * 100) : 0;
+    var bttsPct = both.gp ? Math.round((both.btts / both.gp) * 100) : 0;
+    document.getElementById('teamMarketTiles').innerHTML =
+      '<div class="stat-tile"><div class="lbl">Moneyline</div><div class="val">' + winPct + '%</div></div>' +
+      '<div class="stat-tile"><div class="lbl">Over-Under 1.5</div><div class="val">' + o15Pct + '%</div></div>' +
+      '<div class="stat-tile"><div class="lbl">BTTS</div><div class="val">' + bttsPct + '%</div></div>';
+
+    function splitRow(label, sp) {
+      return '<tr><td>' + label + '</td><td class="num">' + sp.gp + '</td><td class="num">' + sp.w + '-' + sp.l + '-' + sp.t + '</td>' +
+        '<td class="num">' + sp.o15 + '/' + sp.gp + '</td><td class="num">' + sp.btts + '/' + sp.gp + '</td></tr>';
+    }
+    document.getElementById('teamSplitsTable').innerHTML =
+      '<tr><th style="text-align:left">Side</th><th>GP</th><th>W-L-T</th><th>O 1.5</th><th>BTTS</th></tr>' +
+      splitRow('Both', s.splits.Both) + splitRow('Home', s.splits.Home) + splitRow('Away', s.splits.Away);
+
+    var streakHtml = '';
+    if (st.wl_streak >= 2) {
+      var isGood = st.wl_result === 'W';
+      streakHtml += '<div class="trend-badge' + (isGood ? '' : ' bad') + '">' +
+        (isGood ? '▲' : '▼') + ' ' + (st.wl_result === 'W' ? 'Won' : st.wl_result === 'L' ? 'Lost' : 'Drawn') + ' ' + st.wl_streak + ' straight 1P' + (st.wl_streak > 1 ? 's' : '') + '</div>';
+    }
+    if (st.o15_streak >= 3) {
+      var overGood = st.o15_result === 'O';
+      streakHtml += '<div class="trend-badge' + (overGood ? '' : ' bad') + '">' +
+        (overGood ? '▲' : '▼') + ' ' + (overGood ? 'Over' : 'Under') + ' 1.5 in ' + st.o15_streak + ' straight</div>';
+    }
+    if (st.btts_streak >= 3) {
+      var bttsGood = st.btts_result === 'Y';
+      streakHtml += '<div class="trend-badge' + (bttsGood ? '' : ' bad') + '">' +
+        (bttsGood ? '▲' : '▼') + ' ' + (bttsGood ? 'BTTS' : 'No BTTS') + ' in ' + st.btts_streak + ' straight</div>';
+    }
+    if (!streakHtml) streakHtml = '<span style="color:var(--text-muted);font-size:0.82rem;">No notable streak right now.</span>';
+    document.getElementById('teamTrendsBadges').innerHTML = streakHtml;
+
+    var logRows = log.map(function(g) {
+      var wl = g.p1t > g.p1o ? 'W' : g.p1t < g.p1o ? 'L' : 'T';
+      var finalStr = g.ft + '-' + g.fo + (g.ot ? ' ' + g.ot : '');
+      return '<tr>' +
+        '<td class="mono">' + g.date.slice(5) + '</td>' +
+        '<td>' + (g.side === 'Away' ? '@ ' : 'vs ') + g.opp + '</td>' +
+        '<td class="num"><span class="result-pill ' + wl + '">' + wl + '</span></td>' +
+        '<td class="num mono">' + g.p1t + '-' + g.p1o + '</td>' +
+        '<td class="num mono">' + finalStr + '</td>' +
+        '<td class="num"><span class="btts-badge ' + (g.btts ? 'yes' : 'no') + '">' + (g.btts ? '✓' : '✗') + '</span></td>' +
+        '</tr>';
+    }).join('');
+    document.getElementById('teamGamelogTable').innerHTML =
+      '<tr><th>Date</th><th>Opp</th><th>1P</th><th>Score</th><th>Final</th><th>BTTS</th></tr>' + logRows;
+  }
+
+  if (document.getElementById('leagueBody')) renderTable();
+  if (document.getElementById('gamesView')) renderDateView();
+  if (document.getElementById('trendsGrid')) renderTrendsPage();
+  if (document.getElementById('teamsGrid')) renderTeamsGrid('');
+  if (document.body.getAttribute('data-team-code')) renderTeamPage();
+
+  } // end rtybInit
+
+  var loadNote = document.getElementById('rtybLoadNote');
+  fetch('/nhl/data.json')
+    .then(function(r) {
+      if (!r.ok) throw new Error('data.json HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(DATA) {
+      if (loadNote) loadNote.style.display = 'none';
+      rtybInit(DATA);
+    })
+    .catch(function(err) {
+      if (loadNote) {
+        loadNote.textContent = 'Couldn’t load site data. Please check your connection and reload the page.';
+        loadNote.style.display = '';
+      }
+    });
+})();
+</script>
+
+</body>
+</html>
