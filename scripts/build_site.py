@@ -136,8 +136,21 @@ def build_teams_menu_html(summary, team_colors):
     # light/dark variant is picked up -- and kept in sync on a theme
     # toggle -- by the shared updateNavTeamLogos() JS helper in
     # template.html, which matches on the .nav-team-logo[data-code] hook
-    # below. A default light-variant src is given so the logo still shows
-    # before that JS runs (e.g. with JS disabled).
+    # below.
+    #
+    # IMPORTANT: this <img> deliberately has NO "src" attribute (only
+    # data-code). If it had one, the browser starts fetching it the instant
+    # the HTML parser creates the tag -- before ANY <script> later in the
+    # document gets a chance to run, no matter how early that script calls
+    # updateNavTeamLogos(). Since this site is hosted as a GitHub Pages
+    # project site under a subpath, a root-relative src baked in here at
+    # build time would be wrong (missing that subpath) and there's no way
+    # for JS to "fix" it before the wrong request has already fired. Every
+    # OTHER part of this site already requires JS anyway (the page is empty
+    # without it -- see the "Loading data..." state), so there's no
+    # meaningful no-JS case to preserve a static src for; JS sets the real,
+    # correctly-prefixed src on first run instead (updateNavTeamLogos(),
+    # called unconditionally at script start, not just on theme toggle).
     teams = sorted(summary.items(), key=lambda kv: kv[1]['name'])
     items = []
     for code, info in teams:
@@ -146,7 +159,7 @@ def build_teams_menu_html(summary, team_colors):
         items.append(
             '<a class="nav-dropdown-item" href="/nhl/teams/{slug}/">'
             '<span class="team-logo-wrap nav-team-logo-wrap" style="width:20px;height:20px">'
-            '<img class="nav-team-logo" data-code="{code}" src="/assets/logos/{code}_light.svg" '
+            '<img class="nav-team-logo" data-code="{code}" '
             'width="20" height="20" alt="{name} logo" '
             'onerror="window.rtybLogoFallback(this,\'{code}\',20)"></span>'
             '<span class="nav-team-swatch" style="background:{color}"></span>{name}</a>'.format(
@@ -172,18 +185,32 @@ def render_page(template, page_key, teams_menu_html, meta=None, team_code=''):
     return out
 
 
+# NOTE: every href/src in this redirect page is deliberately RELATIVE
+# ("nhl/games/", no leading slash) rather than root-relative ("/nhl/games/").
+# This site is hosted as a GitHub Pages *project* site under a subpath (e.g.
+# /rtyb-betting-site/), not at the domain root, so a root-relative link here
+# would resolve to the wrong place entirely (the bare domain root, where
+# nothing is published) -- exactly the "no GitHub Pages site here" 404 this
+# fix addresses. A relative link always resolves against wherever this file
+# itself is actually being served from, so it's correct both here (local
+# testing at the domain root) and in production (served under the repo's
+# subpath) with no runtime detection needed. Every OTHER page in the site is
+# nested one level under /nhl/, where a small JS snippet at the top of
+# template.html's <script> block detects the real subpath at runtime instead
+# (see SITE_ROOT there) -- this file is the one exception, since it sits at
+# the true site root with no "/nhl/" segment in its own URL to detect from.
 ROOT_REDIRECT_HTML = """<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="refresh" content="0; url=/nhl/games/">
-<link rel="canonical" href="/nhl/games/">
+<meta http-equiv="refresh" content="0; url=nhl/games/">
+<link rel="canonical" href="nhl/games/">
 <title>RTYB</title>
-<script>location.replace('/nhl/games/');</script>
+<script>location.replace('nhl/games/');</script>
 </head>
 <body>
-<p>Redirecting to <a href="/nhl/games/">/nhl/games/</a>&hellip;</p>
+<p>Redirecting to <a href="nhl/games/">nhl/games/</a>&hellip;</p>
 </body>
 </html>
 """
@@ -295,9 +322,12 @@ def main():
     # balloon each page to ~550-575KB and the whole site to ~20MB, and the
     # auto-refresh workflow re-commits it every 10 minutes). Every page's
     # client JS fetches this same file at load time instead. It's referenced
-    # by every page via the absolute path /nhl/data.json (nav links already
-    # use absolute /nhl/... paths throughout the site, so this reuses that
-    # same convention instead of computing a per-page relative depth).
+    # by every page as "/nhl/data.json" -- like every other internal link in
+    # this file, that's root-relative, not a true relative path, since this
+    # is a shared file stamped onto pages at different folder depths. It
+    # works because template.html's client JS detects the real GitHub Pages
+    # project-site subpath at runtime (SITE_ROOT) and prefixes it before
+    # fetching -- see the comment at the top of that file's <script> block.
     with open(os.path.join(nhl_dir, 'data.json'), 'w', encoding='utf-8') as f:
         f.write(data_json)
 

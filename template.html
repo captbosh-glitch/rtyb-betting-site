@@ -849,6 +849,34 @@
 (function() {
   'use strict';
 
+  // This site is hosted as a GitHub Pages *project* site, served under a
+  // subpath (e.g. /rtyb-betting-site/), never at the domain root -- but
+  // every internal link/asset path in this file is written root-relative
+  // ("/nhl/...", "/assets/logos/...") for simplicity. SITE_ROOT is that
+  // missing subpath prefix, detected at runtime from the current URL
+  // rather than hardcoded, so the exact same file also works unmodified
+  // when served from a plain local dev server at the domain root (no
+  // "/nhl/" anchor found -> SITE_ROOT is just '').
+  var SITE_ROOT = (function() {
+    var i = location.pathname.indexOf('/nhl/');
+    return i >= 0 ? location.pathname.slice(0, i) : '';
+  })();
+
+  // Anything already sitting in the DOM at this point (the nav bar, Teams
+  // dropdown, and other markup stamped in at build time) was written with
+  // root-relative hrefs/srcs -- patch those once, here. Anything rendered
+  // dynamically by JS AFTER this point (game cards, team tiles, etc.)
+  // prefixes SITE_ROOT directly at render time instead -- see
+  // teamLogoHtml(), renderGameCard(), etc. below.
+  if (SITE_ROOT) {
+    Array.prototype.forEach.call(document.querySelectorAll('a[href^="/nhl/"]'), function(a) {
+      a.setAttribute('href', SITE_ROOT + a.getAttribute('href'));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('img[src^="/assets/logos/"]'), function(img) {
+      img.setAttribute('src', SITE_ROOT + img.getAttribute('src'));
+    });
+  }
+
   // True team brand color, one per code. Reused (and re-verified for
   // contrast here) from the Sports Desk news dashboard's WCAG-checked
   // NHL palette; Utah Mammoth added since Sports Desk still has it
@@ -977,7 +1005,7 @@
     var variant = currentTheme() === 'dark' ? 'dark' : 'light';
     var lazyAttr = opts.lazy ? ' loading="lazy"' : '';
     return '<span class="team-logo-wrap' + (opts.cls ? ' ' + opts.cls : '') + '" style="width:' + size + 'px;height:' + size + 'px">' +
-      '<img src="/assets/logos/' + code + '_' + variant + '.svg" width="' + size + '" height="' + size + '"' +
+      '<img src="' + SITE_ROOT + '/assets/logos/' + code + '_' + variant + '.svg" width="' + size + '" height="' + size + '"' +
       ' alt="' + escapeAttr(name) + ' logo"' + lazyAttr +
       ' onerror="window.rtybLogoFallback(this,\'' + code + '\',' + size + ')">' +
       '</span>';
@@ -986,7 +1014,7 @@
     var variant = currentTheme() === 'dark' ? 'dark' : 'light';
     document.querySelectorAll('.nav-team-logo[data-code]').forEach(function(img) {
       if (img.getAttribute('data-fallen')) return;
-      img.src = '/assets/logos/' + img.getAttribute('data-code') + '_' + variant + '.svg';
+      img.src = SITE_ROOT + '/assets/logos/' + img.getAttribute('data-code') + '_' + variant + '.svg';
     });
   }
 
@@ -1259,7 +1287,7 @@
     }).join('');
     tbody.querySelectorAll('tr[data-team]').forEach(function(tr) {
       tr.addEventListener('click', function() {
-        window.location.href = '/nhl/teams/' + tr.getAttribute('data-team').toLowerCase() + '/';
+        window.location.href = SITE_ROOT + '/nhl/teams/' + tr.getAttribute('data-team').toLowerCase() + '/';
       });
     });
   }
@@ -1443,9 +1471,9 @@
     // exactly.
     var head = '<div class="game-card-head">' +
       '<div class="game-matchup">' +
-        '<a class="gm-team" href="/nhl/teams/' + g.away.toLowerCase() + '/">' + teamLogoHtml(g.away, 32) + '<span class="game-color-bar" style="background:' + awayColor.dot + '"></span>' + escapeHtml(awayName) + '</a>' +
+        '<a class="gm-team" href="' + SITE_ROOT + '/nhl/teams/' + g.away.toLowerCase() + '/">' + teamLogoHtml(g.away, 32) + '<span class="game-color-bar" style="background:' + awayColor.dot + '"></span>' + escapeHtml(awayName) + '</a>' +
         '<span style="color:var(--text-faint);font-weight:400;">@</span>' +
-        '<a class="gm-team" href="/nhl/teams/' + g.home.toLowerCase() + '/">' + teamLogoHtml(g.home, 32) + '<span class="game-color-bar" style="background:' + homeColor.dot + '"></span>' + escapeHtml(homeName) + '</a>' +
+        '<a class="gm-team" href="' + SITE_ROOT + '/nhl/teams/' + g.home.toLowerCase() + '/">' + teamLogoHtml(g.home, 32) + '<span class="game-color-bar" style="background:' + homeColor.dot + '"></span>' + escapeHtml(homeName) + '</a>' +
       '</div>' +
       (isFinal
         ? '<div class="game-final-wrap"><div class="game-final-score">' + teamLogoHtml(g.away, 20) + '<span>' + g.awayFinal + '-' + g.homeFinal + (g.ot ? ' ' + g.ot : '') + '</span>' + teamLogoHtml(g.home, 20) + '</div>' +
@@ -1554,7 +1582,7 @@
     renderTrends(currentGamesToday);
     renderCalendar();
     var trendsLink = document.getElementById('hottestTrendsLink');
-    if (trendsLink) trendsLink.href = (dateStr === todayET()) ? '/nhl/trends/' : ('/nhl/trends/?date=' + dateStr);
+    if (trendsLink) trendsLink.href = SITE_ROOT + ((dateStr === todayET()) ? '/nhl/trends/' : ('/nhl/trends/?date=' + dateStr));
   }
 
   var datePrevBtn = document.getElementById('datePrev');
@@ -1827,7 +1855,7 @@
         '<span class="trend-color-bar" style="background:' + tc.dot + '"></span>' +
         '<span class="trend-dot ' + (t.good ? 'good' : 'bad') + '"></span>' +
         '<div class="trend-copy">' +
-          '<div class="team-name">' + teamLogoHtml(t.code, 28, {lazy: true}) + '<a href="/nhl/teams/' + t.code.toLowerCase() + '/">' + escapeHtml(t.name) + '</a></div>' +
+          '<div class="team-name">' + teamLogoHtml(t.code, 28, {lazy: true}) + '<a href="' + SITE_ROOT + '/nhl/teams/' + t.code.toLowerCase() + '/">' + escapeHtml(t.name) + '</a></div>' +
           '<div class="trend-text">' + escapeHtml(t.text) + '</div>' +
           (matchup ? '<div class="trend-matchup">' + matchup + '</div>' : '') +
         '</div>' +
@@ -1873,7 +1901,7 @@
           var both = s.splits.Both;
           var o15Pct = both.gp ? Math.round((both.o15 / both.gp) * 100) : 0;
           var bttsPct = both.gp ? Math.round((both.btts / both.gp) * 100) : 0;
-          return '<a class="team-tile" href="/nhl/teams/' + code.toLowerCase() + '/">' +
+          return '<a class="team-tile" href="' + SITE_ROOT + '/nhl/teams/' + code.toLowerCase() + '/">' +
             '<span class="team-tile-bar" style="background:' + tc.dot + '"></span>' +
             teamLogoHtml(code, 56, {lazy: true, cls: 'team-tile-logo'}) +
             '<span class="team-tile-name">' + escapeHtml(s.name) + '</span>' +
@@ -1929,7 +1957,7 @@
       var bttsPrice = (odds.btts_yes != null) ? fmtAmerican(odds.btts_yes) : '&mdash;';
       nextGameEl.innerHTML = '<div class="daily-summary"><h3>Next Game</h3>' +
         '<div class="ds-row"><span class="ds-label">' + (isHome ? 'vs ' : '@ ') + escapeHtml(oppName) + '</span>' +
-          '<span class="ds-right"><a href="/nhl/games/?date=' + dateStr + '">' + escapeHtml(dateLabelText(dateStr)) + ' &middot; ' + fmtGameTime(g.startTimeUTC) + '</a></span></div>' +
+          '<span class="ds-right"><a href="' + SITE_ROOT + '/nhl/games/?date=' + dateStr + '">' + escapeHtml(dateLabelText(dateStr)) + ' &middot; ' + fmtGameTime(g.startTimeUTC) + '</a></span></div>' +
         '<div class="ds-row"><span class="ds-label">Moneyline</span><span class="ds-right mono">' + mlPrice + '</span></div>' +
         '<div class="ds-row"><span class="ds-label">Over-Under 1.5</span><span class="ds-right mono">' + ouPrice + '</span></div>' +
         '<div class="ds-row"><span class="ds-label">BTTS</span><span class="ds-right mono">' + bttsPrice + '</span></div>' +
@@ -1999,7 +2027,7 @@
   } // end rtybInit
 
   var loadNote = document.getElementById('rtybLoadNote');
-  fetch('/nhl/data.json')
+  fetch(SITE_ROOT + '/nhl/data.json')
     .then(function(r) {
       if (!r.ok) throw new Error('data.json HTTP ' + r.status);
       return r.json();
