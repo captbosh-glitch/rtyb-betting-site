@@ -36,6 +36,9 @@ jobs:
       - name: Fetch NHL schedule and scores
         run: python3 scripts/fetch_schedule.py
 
+      - name: Fetch team logos (cached, idempotent -- no API key needed)
+        run: python3 scripts/fetch_team_logos.py
+
       - name: Decide whether this run also fetches odds
         id: gate
         run: |
@@ -71,7 +74,7 @@ jobs:
         run: |
           git config user.name "rtyb-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add index.html schedule_data.json
+          git add index.html nhl schedule_data.json assets/logos
           if git diff --cached --quiet; then
             echo "No changes, skipping commit."
             exit 0
