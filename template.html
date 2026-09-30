@@ -1149,34 +1149,32 @@
       return { w: w, l: l, t: t };
     }
     var rows = [];
-    rows.push({ label: 'Home Teams', rec: tally(function(g) {
-      return g.homeP1 > g.awayP1 ? 'W' : g.homeP1 < g.awayP1 ? 'L' : 'T';
-    }) });
-    [['Over 0.5', 0], ['Over 1.5', 1], ['Over 2.5', 2]].forEach(function(pair) {
-      rows.push({ label: pair[0], rec: tally(function(g) {
-        return (g.awayP1 + g.homeP1) > pair[1] ? 'W' : 'L';
-      }), noPush: true });
-    });
-    rows.push({ label: 'BTTS', rec: tally(function(g) {
-      return (g.awayP1 >= 1 && g.homeP1 >= 1) ? 'W' : 'L';
-    }), noPush: true });
 
-    // Favorites: only over games that actually have a saved 1P moneyline for
-    // both sides (closing odds snapshotted by the backend at fetch time).
-    // A game with no odds is omitted from this line entirely, per spec.
-    var favGames = finals.filter(function(g) {
+    // Moneyline: only over games that actually have a saved moneyline price
+    // for both sides (closing odds snapshotted by the backend at fetch
+    // time). A game with no odds is omitted from this line entirely.
+    var mlGames = finals.filter(function(g) {
       return g.odds && g.odds.ml && g.odds.ml[g.away] != null && g.odds.ml[g.home] != null;
     });
-    if (favGames.length) {
+    if (mlGames.length) {
       var fw = 0, fl = 0, ft = 0;
-      favGames.forEach(function(g) {
+      mlGames.forEach(function(g) {
         var favTeam = g.odds.ml[g.away] < g.odds.ml[g.home] ? g.away : g.home;
         var favWon = favTeam === g.away ? (g.awayP1 > g.homeP1) : (g.homeP1 > g.awayP1);
         var push = g.awayP1 === g.homeP1;
         if (push) ft++; else if (favWon) fw++; else fl++;
       });
-      rows.push({ label: 'Favorites', rec: { w: fw, l: fl, t: ft } });
+      rows.push({ label: 'Moneyline', rec: { w: fw, l: fl, t: ft } });
     }
+
+    rows.push({ label: 'Over-Under 1.5', rec: tally(function(g) {
+      return (g.awayP1 + g.homeP1) > 1 ? 'W' : 'L';
+    }), noPush: true });
+
+    rows.push({ label: 'BTTS', rec: tally(function(g) {
+      return (g.awayP1 >= 1 && g.homeP1 >= 1) ? 'W' : 'L';
+    }), noPush: true });
+
     return rows;
   }
 
@@ -1185,7 +1183,7 @@
     var rows = computeDailySummary(games);
     if (!rows) { el.style.display = 'none'; return; }
     el.style.display = '';
-    var hasFavorites = rows.some(function(r) { return r.label === 'Favorites'; });
+    var hasMoneyline = rows.some(function(r) { return r.label === 'Moneyline'; });
     el.innerHTML = '<h3>' + escapeHtml(dateLabelText(dateStr)) + ' &mdash; Daily Results</h3>' +
       rows.map(function(r) {
         var total = r.rec.w + r.rec.l + r.rec.t;
@@ -1196,7 +1194,7 @@
           '<span class="ds-right"><span class="ds-record">' + recStr + '</span>' +
           '<span class="ds-pct ' + pctClass + '">' + pct + '%</span></span></div>';
       }).join('') +
-      (hasFavorites ? '' : '<div style="font-size:0.72rem;color:var(--text-faint);margin-top:8px;">Favorites line needs saved 1P odds for these games &mdash; not shown until that\'s available.</div>');
+      (hasMoneyline ? '' : '<div style="font-size:0.72rem;color:var(--text-faint);margin-top:8px;">Moneyline needs saved odds for these games &mdash; not shown until that\'s available.</div>');
   }
 
   function fmtAmerican(price) {
@@ -1242,11 +1240,9 @@
     var bttsPrice = (odds.btts_yes != null) ? fmtAmerican(odds.btts_yes) : '&mdash;';
 
     var oddsGrid = '<div class="odds-grid">' +
-      oddsCell('1P Moneyline', mlPrice, mlHist) +
-      oddsCell('1P Over 0.5', totalsPrice('0.5'), (marketRate(g.away, 'Both', 'o05')) + '% / ' + (marketRate(g.home, 'Both', 'o05')) + '%') +
-      oddsCell('1P Over 1.5', totalsPrice('1.5'), (marketRate(g.away, 'Both', 'o15')) + '% / ' + (marketRate(g.home, 'Both', 'o15')) + '%') +
-      oddsCell('1P Over 2.5', totalsPrice('2.5'), (marketRate(g.away, 'Both', 'o25')) + '% / ' + (marketRate(g.home, 'Both', 'o25')) + '%') +
-      oddsCell('1P BTTS', bttsPrice, (marketRate(g.away, 'Both', 'btts')) + '% / ' + (marketRate(g.home, 'Both', 'btts')) + '%') +
+      oddsCell('Moneyline', mlPrice, mlHist) +
+      oddsCell('Over-Under 1.5', totalsPrice('1.5'), (marketRate(g.away, 'Both', 'o15')) + '% / ' + (marketRate(g.home, 'Both', 'o15')) + '%') +
+      oddsCell('BTTS', bttsPrice, (marketRate(g.away, 'Both', 'btts')) + '% / ' + (marketRate(g.home, 'Both', 'btts')) + '%') +
     '</div>';
 
     var resultsRow = '';
@@ -1257,10 +1253,8 @@
       var total = g.awayP1 + g.homeP1;
       var btts = g.awayP1 >= 1 && g.homeP1 >= 1;
       resultsRow = '<div class="market-result-row">' +
-        '<span class="market-pill ' + (homeWon ? 'win' : awayWon ? 'lose' : '') + '">1P: ' + g.awayP1 + '-' + g.homeP1 + (homeWon ? ' HOME W' : awayWon ? ' AWAY W' : ' PUSH') + '</span>' +
-        '<span class="market-pill ' + (total > 0 ? 'win' : 'lose') + '">O0.5 ' + (total > 0 ? 'HIT' : 'MISS') + '</span>' +
-        '<span class="market-pill ' + (total > 1 ? 'win' : 'lose') + '">O1.5 ' + (total > 1 ? 'HIT' : 'MISS') + '</span>' +
-        '<span class="market-pill ' + (total > 2 ? 'win' : 'lose') + '">O2.5 ' + (total > 2 ? 'HIT' : 'MISS') + '</span>' +
+        '<span class="market-pill ' + (homeWon ? 'win' : awayWon ? 'lose' : '') + '">Moneyline: ' + g.awayP1 + '-' + g.homeP1 + (homeWon ? ' HOME W' : awayWon ? ' AWAY W' : ' PUSH') + '</span>' +
+        '<span class="market-pill ' + (total > 1 ? 'win' : 'lose') + '">Over-Under 1.5 ' + (total > 1 ? 'HIT' : 'MISS') + '</span>' +
         '<span class="market-pill ' + (btts ? 'win' : 'lose') + '">BTTS ' + (btts ? 'HIT' : 'MISS') + '</span>' +
       '</div>';
     }
