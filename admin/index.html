@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>RTYB — Admin</title>
+<style>
+  :root {
+    --bg: #0B0F14; --panel: #121820; --panel-2: #1A222C; --panel-3: #212B37;
+    --border: #263140; --border-soft: #1D2733; --text: #EAEEF3;
+    --text-muted: #8B96A5; --text-faint: #5C6B7A; --accent: #34D5FF;
+    --good: #33D17A; --good-dim: #17462C; --bad: #FF4D6A; --bad-dim: #4A1620;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #F3F5F8; --panel: #FFFFFF; --panel-2: #F7F9FB; --panel-3: #EDF1F5;
+      --border: #DCE2E9; --border-soft: #E7EBEF; --text: #12181F;
+      --text-muted: #5B6674; --text-faint: #8891A0; --accent: #0B93B5;
+      --good: #158A4B; --good-dim: #E3F6EB; --bad: #D42B49; --bad-dim: #FCE7EA;
+      color-scheme: light;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 24px 16px 80px;
+  }
+  h1, h2 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; margin: 0; }
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.1rem; margin-bottom: 4px; }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .sub { color: var(--text-muted); font-size: 0.85rem; margin: 4px 0 24px; }
+  .card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; }
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  select, input[type=number], input[type=password] {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); padding: 7px 9px; font-size: 0.9rem; font-family: 'JetBrains Mono', monospace;
+    width: 100%;
+  }
+  select { font-family: inherit; width: auto; }
+  table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+  th, td { padding: 8px 6px; text-align: left; font-size: 0.85rem; border-bottom: 1px solid var(--border-soft); }
+  th { color: var(--text-muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  td.matchup { font-weight: 600; white-space: nowrap; }
+  td input { max-width: 90px; }
+  .actions { display: flex; gap: 10px; margin-top: 16px; }
+  button {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.03em; font-size: 0.85rem; border: none; border-radius: 8px;
+    padding: 9px 18px; cursor: pointer;
+  }
+  button.save { background: var(--panel-3); color: var(--text); border: 1px solid var(--border); }
+  button.publish { background: var(--accent); color: #06161C; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .status { font-size: 0.82rem; margin-top: 10px; min-height: 1.2em; }
+  .status.ok { color: var(--good); }
+  .status.err { color: var(--bad); }
+  .gate { max-width: 360px; margin: 80px auto; text-align: center; }
+  .gate input { margin: 14px 0; }
+  .empty { color: var(--text-faint); font-size: 0.85rem; padding: 10px 0; }
+  .note { font-size: 0.75rem; color: var(--text-faint); margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="gate" class="gate" hidden>
+    <h1>RTYB Admin</h1>
+    <p class="sub">Enter the admin password to continue. Nothing is sent anywhere until you do.</p>
+    <input type="password" id="secretInput" placeholder="Admin password" autocomplete="off">
+    <div><button class="publish" id="secretSubmit">Continue</button></div>
+    <p class="status" id="gateStatus"></p>
+  </div>
+
+  <div id="main" hidden>
+    <h1>RTYB — Admin</h1>
+    <p class="sub">Matchups Tool and Results Tool. <a href="#" id="signOut" style="color:var(--text-muted)">Sign out</a></p>
+
+    <div class="card">
+      <div class="row">
+        <label for="dateSelect">Date</label>
+        <select id="dateSelect"></select>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Matchups Tool</h2>
+      <p class="sub" style="margin-bottom:0">Save keeps a draft only. Publish pushes these odds live to that day&rsquo;s Games section.</p>
+      <table id="matchupsTable">
+        <thead><tr>
+          <th>Matchup</th><th>ML Home</th><th>ML Away</th>
+          <th>Total Over</th><th>Total Under</th><th>BTTS Yes</th><th>BTTS No</th>
+        </tr></thead>
+        <tbody id="matchupsBody"></tbody>
+      </table>
+      <div class="actions">
+        <button class="save" id="matchupsSave">Save</button>
+        <button class="publish" id="matchupsPublish">Publish</button>
+      </div>
+      <p class="status" id="matchupsStatus"></p>
+    </div>
+
+    <div class="card">
+      <h2>Results Tool</h2>
+      <p class="sub" style="margin-bottom:0">Score after the 1st period. Publish grades the Moneyline / Over-Under 1.5 / BTTS markets for that day immediately — it doesn&rsquo;t wait for the full game to end.</p>
+      <table id="resultsTable">
+        <thead><tr><th>Matchup</th><th>Away Score</th><th>Home Score</th></tr></thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+      <div class="actions">
+        <button class="save" id="resultsSave">Save</button>
+        <button class="publish" id="resultsPublish">Publish</button>
+      </div>
+      <p class="status" id="resultsStatus"></p>
+    </div>
+
+    <p class="note">Changes take effect on the next site rebuild, usually within a minute or two (the publish commit triggers it automatically). Reload this page after a publish to re-check what went live.</p>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // Set this to your deployed Worker's URL after `wrangler deploy`
+  // (worker/rtyb-admin-worker.js). Looks like
+  // "https://rtyb-admin.<your-subdomain>.workers.dev".
+  var WORKER_URL = "https://rtyb-admin.captbosh-glitch.workers.dev";
+
+  var SECRET_KEY = 'rtybAdminSecret';
+
+  function todayET() {
+    var parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+    var o = {}; parts.forEach(function(p) { o[p.type] = p.value; });
+    return o.year + '-' + o.month + '-' + o.day;
+  }
+
+  function getSecret() { return sessionStorage.getItem(SECRET_KEY) || ''; }
+  function setSecret(v) { sessionStorage.setItem(SECRET_KEY, v); }
+  function clearSecret() { sessionStorage.removeItem(SECRET_KEY); }
+
+  var DATA = null;
+  var matchupsDraft = {};
+  var resultsDraft = {};
+
+  function fetchJson(path, fallback) {
+    return fetch(path).then(function(r) { return r.ok ? r.json() : fallback; }).catch(function() { return fallback; });
+  }
+
+  function loadAll() {
+    return Promise.all([
+      fetchJson('../nhl/data.json', { schedule: { games: {} }, summary: {} }),
+      fetchJson('../data_admin/matchups_draft.json', {}),
+      fetchJson('../data_admin/results_draft.json', {}),
+    ]).then(function(results) {
+      DATA = results[0];
+      matchupsDraft = results[1] || {};
+      resultsDraft = results[2] || {};
+      populateDateSelect();
+    });
+  }
+
+  function populateDateSelect() {
+    var sel = document.getElementById('dateSelect');
+    var dates = Object.keys((DATA.schedule && DATA.schedule.games) || {}).sort();
+    sel.innerHTML = dates.map(function(d) {
+      var count = (DATA.schedule.games[d] || []).length;
+      return '<option value="' + d + '">' + d + ' (' + count + ' game' + (count === 1 ? '' : 's') + ')</option>';
+    }).join('');
+    var today = todayET();
+    if (dates.indexOf(today) !== -1) sel.value = today;
+    else {
+      var next = dates.filter(function(d) { return d >= today; })[0];
+      if (next) sel.value = next;
+    }
+    sel.addEventListener('change', renderDate);
+    renderDate();
+  }
+
+  function teamName(code) {
+    return (DATA.summary && DATA.summary[code]) ? DATA.summary[code].name : code;
+  }
+
+  function numInput(id, value) {
+    return '<input type="number" step="any" id="' + id + '" value="' + (value == null ? '' : value) + '">';
+  }
+
+  function renderDate() {
+    var date = document.getElementById('dateSelect').value;
+    var games = (DATA.schedule.games && DATA.schedule.games[date]) || [];
+    var mDraft = matchupsDraft[date] || {};
+    var rDraft = resultsDraft[date] || {};
+
+    var mBody = document.getElementById('matchupsBody');
+    var rBody = document.getElementById('resultsBody');
+
+    if (!games.length) {
+      mBody.innerHTML = '<tr><td colspan="7" class="empty">No games scheduled this day.</td></tr>';
+      rBody.innerHTML = '<tr><td colspan="3" class="empty">No games scheduled this day.</td></tr>';
+      return;
+    }
+
+    mBody.innerHTML = games.map(function(g, i) {
+      var key = g.away + '|' + g.home;
+      var d = mDraft[key] || {};
+      var live = g.odds || {};
+      var mlHome = d.mlHome != null ? d.mlHome : (live.ml ? live.ml[g.home] : null);
+      var mlAway = d.mlAway != null ? d.mlAway : (live.ml ? live.ml[g.away] : null);
+      var over = d.totalOver != null ? d.totalOver : (live.totals && live.totals['1.5'] ? live.totals['1.5'].over : null);
+      var under = d.totalUnder != null ? d.totalUnder : (live.totals && live.totals['1.5'] ? live.totals['1.5'].under : null);
+      var bYes = d.bttsYes != null ? d.bttsYes : live.btts_yes;
+      var bNo = d.bttsNo != null ? d.bttsNo : live.btts_no;
+      return '<tr data-away="' + g.away + '" data-home="' + g.home + '">' +
+        '<td class="matchup">' + escapeHtml(teamName(g.away)) + ' @ ' + escapeHtml(teamName(g.home)) + '</td>' +
+        '<td>' + numInput('m' + i + '_mlHome', mlHome) + '</td>' +
+        '<td>' + numInput('m' + i + '_mlAway', mlAway) + '</td>' +
+        '<td>' + numInput('m' + i + '_over', over) + '</td>' +
+        '<td>' + numInput('m' + i + '_under', under) + '</td>' +
+        '<td>' + numInput('m' + i + '_bYes', bYes) + '</td>' +
+        '<td>' + numInput('m' + i + '_bNo', bNo) + '</td>' +
+      '</tr>';
+    }).join('');
+
+    rBody.innerHTML = games.map(function(g, i) {
+      var key = g.away + '|' + g.home;
+      var d = rDraft[key] || {};
+      var awayScore = d.awayScore != null ? d.awayScore : g.awayP1;
+      var homeScore = d.homeScore != null ? d.homeScore : g.homeP1;
+      return '<tr data-away="' + g.away + '" data-home="' + g.home + '">' +
+        '<td class="matchup">' + escapeHtml(teamName(g.away)) + ' @ ' + escapeHtml(teamName(g.home)) + '</td>' +
+        '<td>' + numInput('r' + i + '_away', awayScore) + '</td>' +
+        '<td>' + numInput('r' + i + '_home', homeScore) + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function numVal(id) {
+    var el = document.getElementById(id);
+    if (!el || el.value === '') return null;
+    var n = Number(el.value);
+    return isNaN(n) ? null : n;
+  }
+
+  function collectMatchups() {
+    var rows = document.querySelectorAll('#matchupsBody tr[data-away]');
+    return Array.prototype.map.call(rows, function(tr, i) {
+      return {
+        away: tr.getAttribute('data-away'), home: tr.getAttribute('data-home'),
+        mlHome: numVal('m' + i + '_mlHome'), mlAway: numVal('m' + i + '_mlAway'),
+        totalOver: numVal('m' + i + '_over'), totalUnder: numVal('m' + i + '_under'),
+        bttsYes: numVal('m' + i + '_bYes'), bttsNo: numVal('m' + i + '_bNo'),
+      };
+    });
+  }
+
+  function collectResults() {
+    var rows = document.querySelectorAll('#resultsBody tr[data-away]');
+    return Array.prototype.map.call(rows, function(tr, i) {
+      return {
+        away: tr.getAttribute('data-away'), home: tr.getAttribute('data-home'),
+        awayScore: numVal('r' + i + '_away'), homeScore: numVal('r' + i + '_home'),
+      };
+    });
+  }
+
+  function callWorker(path, body, statusEl, btns) {
+    if (!WORKER_URL) {
+      statusEl.className = 'status err';
+      statusEl.textContent = 'WORKER_URL isn\'t set in admin/index.html yet -- deploy the Worker first.';
+      return;
+    }
+    btns.forEach(function(b) { b.disabled = true; });
+    statusEl.className = 'status';
+    statusEl.textContent = 'Saving…';
+    fetch(WORKER_URL + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': getSecret() },
+      body: JSON.stringify(body),
+    }).then(function(r) {
+      if (r.status === 401) {
+        clearSecret();
+        showGate('Session expired -- enter the password again.');
+        throw new Error('unauthorized');
+      }
+      return r.json().then(function(j) { return { ok: r.ok && j.ok, body: j }; });
+    }).then(function(res) {
+      btns.forEach(function(b) { b.disabled = false; });
+      if (res.ok) {
+        statusEl.className = 'status ok';
+        statusEl.textContent = 'Done. It\'ll be live within a minute or two.';
+      } else {
+        statusEl.className = 'status err';
+        statusEl.textContent = 'Failed: ' + (res.body && res.body.error ? res.body.error : 'unknown error');
+      }
+    }).catch(function(e) {
+      btns.forEach(function(b) { b.disabled = false; });
+      if (e.message !== 'unauthorized') {
+        statusEl.className = 'status err';
+        statusEl.textContent = 'Request failed: ' + e.message;
+      }
+    });
+  }
+
+  function wireButtons() {
+    var mSave = document.getElementById('matchupsSave');
+    var mPub = document.getElementById('matchupsPublish');
+    var mStatus = document.getElementById('matchupsStatus');
+    mSave.addEventListener('click', function() {
+      var date = document.getElementById('dateSelect').value;
+      callWorker('/matchups/save', { date: date, matchups: collectMatchups() }, mStatus, [mSave, mPub]);
+    });
+    mPub.addEventListener('click', function() {
+      var date = document.getElementById('dateSelect').value;
+      callWorker('/matchups/publish', { date: date, matchups: collectMatchups() }, mStatus, [mSave, mPub]);
+    });
+
+    var rSave = document.getElementById('resultsSave');
+    var rPub = document.getElementById('resultsPublish');
+    var rStatus = document.getElementById('resultsStatus');
+    rSave.addEventListener('click', function() {
+      var date = document.getElementById('dateSelect').value;
+      callWorker('/results/save', { date: date, results: collectResults() }, rStatus, [rSave, rPub]);
+    });
+    rPub.addEventListener('click', function() {
+      var date = document.getElementById('dateSelect').value;
+      callWorker('/results/publish', { date: date, results: collectResults() }, rStatus, [rSave, rPub]);
+    });
+
+    document.getElementById('signOut').addEventListener('click', function(e) {
+      e.preventDefault();
+      clearSecret();
+      showGate('');
+    });
+  }
+
+  function showGate(msg) {
+    document.getElementById('main').hidden = true;
+    document.getElementById('gate').hidden = false;
+    document.getElementById('gateStatus').textContent = msg || '';
+    document.getElementById('gateStatus').className = msg ? 'status err' : 'status';
+    document.getElementById('secretInput').focus();
+  }
+
+  function showMain() {
+    document.getElementById('gate').hidden = true;
+    document.getElementById('main').hidden = false;
+    loadAll();
+  }
+
+  document.getElementById('secretSubmit').addEventListener('click', function() {
+    var v = document.getElementById('secretInput').value.trim();
+    if (!v) return;
+    setSecret(v);
+    showMain();
+  });
+  document.getElementById('secretInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('secretSubmit').click();
+  });
+
+  wireButtons();
+
+  // This page doesn't verify the password itself (there's no read endpoint
+  // that checks it) -- it's checked the first time you actually Save or
+  // Publish something, by the Worker. Entering it just unlocks the UI
+  // locally; a wrong password simply fails on first use (status 401) and
+  // re-prompts.
+  if (getSecret()) {
+    showMain();
+  } else {
+    showGate('');
+  }
+})();
+</script>
+</body>
+</html>
