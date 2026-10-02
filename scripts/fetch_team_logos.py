@@ -50,7 +50,7 @@ LOGOS_DIR = os.path.join(ROOT, 'assets', 'logos')
 # RTYB site code -> NHL's real abbreviation, for the handful fetch_schedule.py
 # remaps to join against the archived season dataset (see its ABBREV_MAP).
 # Every other team's site code already matches NHL's own abbreviation.
-NHL_ABBREV = {'TB': 'TBL', 'MON': 'MTL', 'NJ': 'NJD', 'SJ': 'SJS', 'LA': 'LAK'}
+NHL_ABBREV = {'TB': 'TBL', 'MON': 'MTL', 'NJ': 'NJD', 'SJ': 'SJS', 'LA': 'LAK', 'ANH': 'ANA'}
 
 LOGO_URL = 'https://assets.nhle.com/logos/nhl/svg/{abbrev}_{variant}.svg'
 VARIANTS = ('light', 'dark')

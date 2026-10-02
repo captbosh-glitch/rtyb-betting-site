@@ -190,7 +190,6 @@
   }
   .nav-dropdown-item:hover { background: var(--panel-2); }
   .nav-dropdown-item--all { color: var(--accent); font-weight: 600; border-top: 1px solid var(--border-soft); margin-top: 4px; padding-top: 9px; }
-  .nav-team-swatch { width: 5px; height: 16px; border-radius: 3px; flex-shrink: 0; }
 
   .hamburger {
     display: none;
@@ -261,10 +260,8 @@
   .nav-team-logo-wrap { margin-right: 2px; }
   .team-tile-logo { align-self: center; margin-bottom: 2px; }
 
-  /* ---------- Game card final w/ 1P score ---------- */
-  .game-final-wrap { text-align: right; }
+  /* ---------- Game card final score ---------- */
   .game-final-score { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
-  .game-p1-score { font-size: 0.68rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
 
   .theme-toggle {
     flex-shrink: 0;
@@ -299,7 +296,6 @@
     padding: 11px 13px;
   }
   .trend-row.hidden-extra { display: none; }
-  .trend-color-bar { width: 5px; align-self: stretch; border-radius: 3px; flex-shrink: 0; min-height: 34px; }
   .trend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
   .trend-dot.good { background: var(--good); }
   .trend-dot.bad { background: var(--bad); }
@@ -408,6 +404,7 @@
   .ds-pct.good { background: var(--good-dim); color: var(--good); }
   .ds-pct.bad { background: var(--bad-dim); color: var(--bad); }
   .ds-pct.mid { background: var(--neutral-chip); color: var(--text-muted); }
+  .ds-empty { color: var(--text-muted); font-size: 0.88rem; padding: 2px 0; }
 
   .games-list { display: flex; flex-direction: column; gap: 12px; }
   .game-card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px 16px; }
@@ -415,22 +412,13 @@
   .game-matchup { display: flex; align-items: center; gap: 8px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.05rem; }
   .game-matchup .gm-team { display: flex; align-items: center; gap: 6px; cursor: pointer; color: inherit; text-decoration: none; }
   .game-matchup .gm-team:hover { color: var(--accent); }
-  .game-color-bar { width: 4px; height: 18px; border-radius: 2px; display: inline-block; }
-  .game-time { font-size: 0.78rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
-  .game-final-score { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.95rem; }
+  .gm-p1 { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.92rem; color: var(--text-muted); }
+  .game-final-score { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
   .odds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px; }
-  .odds-cell { background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 8px 10px; }
-  .odds-cell .oc-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; }
-  .odds-cell .oc-row { display: flex; align-items: center; justify-content: space-between; margin-top: 3px; font-size: 0.82rem; }
-  .odds-cell .oc-price { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
-  .odds-cell .oc-hist { color: var(--text-faint); font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; }
-  .market-result-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-  .market-pill {
-    font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 6px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .market-pill.win { background: var(--good-dim); color: var(--good); }
-  .market-pill.lose { background: var(--bad-dim); color: var(--bad); }
+  .pill { background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 8px 10px; }
+  .pill .pill-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; }
+  .pill .pill-body { margin-top: 3px; font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .pill .pill-body:empty::before { content: '\2014'; color: var(--text-faint); font-weight: 400; }
 
   .controls {
     display: flex;
@@ -514,11 +502,6 @@
   tbody tr:hover { background: var(--panel-2); }
   td { padding: 10px 14px; font-size: 0.87rem; white-space: nowrap; }
   td.team-cell { display: flex; align-items: center; gap: 9px; font-weight: 600; }
-  .team-dot {
-    width: 8px; height: 26px; border-radius: 3px;
-    background: var(--neutral-chip);
-    flex-shrink: 0;
-  }
   .pct-cell { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
   .pct-bar {
     width: 60px; height: 6px; border-radius: 3px;
@@ -654,7 +637,6 @@
     padding: 12px 14px; text-decoration: none; color: var(--text);
   }
   .team-tile:hover { border-color: var(--accent); }
-  .team-tile-bar { width: 100%; height: 4px; border-radius: 2px; margin-bottom: 4px; }
   .team-tile-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem; }
   .team-tile-stats { font-size: 0.76rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
 
@@ -1191,7 +1173,6 @@
       var tc = teamColor(t.code);
       var extraClass = i >= VISIBLE ? ' hidden-extra' : '';
       return '<div class="trend-row' + extraClass + '">' +
-        '<span class="trend-color-bar" style="background:' + tc.dot + '"></span>' +
         '<span class="trend-dot ' + (t.good ? 'good' : 'bad') + '"></span>' +
         '<div class="trend-copy"><div class="team-name">' + escapeHtml(t.name) + '</div>' +
         '<div class="trend-text">' + escapeHtml(t.text) + '</div></div>' +
@@ -1279,7 +1260,7 @@
       var pctDisplay = Math.round(r.pct * 100);
       var tc = teamColor(r.code);
       return '<tr data-team="' + r.code + '">' +
-        '<td class="team-cell">' + teamLogoHtml(r.code, 24, {lazy: true}) + '<span class="team-dot" style="background:' + tc.dot + '"></span>' + r.name + '</td>' +
+        '<td class="team-cell">' + teamLogoHtml(r.code, 24, {lazy: true}) + r.name + '</td>' +
         '<td class="num mono">' + r.gp + '</td>' +
         '<td class="rec-cell mono"><b>' + r.rec + '</b></td>' +
         '<td class="num"><div class="pct-cell"><div class="pct-bar"><span style="width:' + pctDisplay + '%"></span></div><span class="pct-num mono">' + pctDisplay + '%</span></div></td>' +
@@ -1431,11 +1412,23 @@
 
   function renderDailySummary(dateStr, games) {
     var el = document.getElementById('dailySummary');
-    var rows = computeDailySummary(games);
-    if (!rows) { el.style.display = 'none'; return; }
     el.style.display = '';
+    games = games || [];
+    var heading = '<h3>' + escapeHtml(dateLabelText(dateStr)) + ' &mdash; Daily Results</h3>';
+
+    if (!games.length) {
+      el.innerHTML = heading + '<div class="ds-empty">No Games Scheduled</div>';
+      return;
+    }
+
+    var rows = computeDailySummary(games);
+    if (!rows) {
+      el.innerHTML = heading + '<div class="ds-empty">Results pending &mdash; check back once today\'s games are final.</div>';
+      return;
+    }
+
     var hasMoneyline = rows.some(function(r) { return r.label === 'Moneyline'; });
-    el.innerHTML = '<h3>' + escapeHtml(dateLabelText(dateStr)) + ' &mdash; Daily Results</h3>' +
+    el.innerHTML = heading +
       rows.map(function(r) {
         var total = r.rec.w + r.rec.l + r.rec.t;
         var pct = total ? Math.round((r.rec.w / total) * 100) : 0;
@@ -1455,65 +1448,89 @@
     return (n > 0 ? '+' : '') + n;
   }
 
-  function oddsCell(label, priceText, histText) {
-    return '<div class="odds-cell"><div class="oc-label">' + label + '</div>' +
-      '<div class="oc-row"><span class="oc-price">' + priceText + '</span><span class="oc-hist">' + histText + '</span></div></div>';
+  function pill(label, body) {
+    return '<div class="pill"><div class="pill-label">' + label + '</div><div class="pill-body">' + (body || '') + '</div></div>';
+  }
+
+  // ---- FINAL games: pill shows the plain-language result, with the price
+  // that backed it in parentheses when odds were ever published. ----
+  function finalMoneylineBody(g, odds) {
+    if (g.awayP1 === g.homeP1) return 'Tie';
+    var winnerCode = g.awayP1 > g.homeP1 ? g.away : g.home;
+    var winnerName = DATA.summary[winnerCode] ? DATA.summary[winnerCode].name : winnerCode;
+    var hasML = odds.ml && odds.ml[g.away] != null && odds.ml[g.home] != null;
+    return escapeHtml(winnerName) + (hasML ? ' (' + fmtAmerican(odds.ml[winnerCode]) + ')' : '');
+  }
+  function finalTotalsBody(g, odds) {
+    var over = (g.awayP1 + g.homeP1) > 1;
+    var label = over ? 'Over' : 'Under';
+    var t = odds.totals && odds.totals['1.5'];
+    return label + (t ? ' (' + fmtAmerican(over ? t.over : t.under) + ')' : '');
+  }
+  function finalBttsBody(g, odds) {
+    var yes = g.awayP1 >= 1 && g.homeP1 >= 1;
+    var label = yes ? 'Yes' : 'No';
+    var price = yes ? odds.btts_yes : odds.btts_no;
+    return label + (price != null ? ' (' + fmtAmerican(price) + ')' : '');
+  }
+
+  // ---- UPCOMING (today/future, odds already published): two numbers,
+  // no history percentages. ----
+  function upcomingMoneylineBody(g, odds) {
+    if (!odds.ml || odds.ml[g.away] == null || odds.ml[g.home] == null) return '';
+    return escapeHtml(g.away) + ' ' + fmtAmerican(odds.ml[g.away]) + ' / ' + escapeHtml(g.home) + ' ' + fmtAmerican(odds.ml[g.home]);
+  }
+  function upcomingTotalsBody(odds) {
+    var t = odds.totals && odds.totals['1.5'];
+    if (!t) return '';
+    return 'Over ' + fmtAmerican(t.over) + ' / Under ' + fmtAmerican(t.under);
+  }
+  function upcomingBttsBody(odds) {
+    if (odds.btts_yes == null && odds.btts_no == null) return '';
+    return 'Yes ' + fmtAmerican(odds.btts_yes) + ' / No ' + fmtAmerican(odds.btts_no);
   }
 
   function renderGameCard(g) {
     var awayName = DATA.summary[g.away] ? DATA.summary[g.away].name : g.away;
     var homeName = DATA.summary[g.home] ? DATA.summary[g.home].name : g.home;
-    var awayColor = teamColor(g.away), homeColor = teamColor(g.home);
     var isFinal = g.state === 'FINAL';
+    var odds = g.odds || {};
+
+    var p1Away = (g.awayP1 != null) ? ' <span class="gm-p1">' + g.awayP1 + '</span>' : '';
+    var p1Home = (g.homeP1 != null) ? ' <span class="gm-p1">' + g.homeP1 + '</span>' : '';
 
     // Team page URL slug: the team's DATA code, lowercased (e.g. "TOR" ->
     // "/nhl/teams/tor/"). Phase 2's Teams pages should match this scheme
     // exactly.
     var head = '<div class="game-card-head">' +
       '<div class="game-matchup">' +
-        '<a class="gm-team" href="' + SITE_ROOT + '/nhl/teams/' + g.away.toLowerCase() + '/">' + teamLogoHtml(g.away, 32) + '<span class="game-color-bar" style="background:' + awayColor.dot + '"></span>' + escapeHtml(awayName) + '</a>' +
+        '<a class="gm-team" href="' + SITE_ROOT + '/nhl/teams/' + g.away.toLowerCase() + '/">' + teamLogoHtml(g.away, 32) + escapeHtml(awayName) + p1Away + '</a>' +
         '<span style="color:var(--text-faint);font-weight:400;">@</span>' +
-        '<a class="gm-team" href="' + SITE_ROOT + '/nhl/teams/' + g.home.toLowerCase() + '/">' + teamLogoHtml(g.home, 32) + '<span class="game-color-bar" style="background:' + homeColor.dot + '"></span>' + escapeHtml(homeName) + '</a>' +
+        '<a class="gm-team" href="' + SITE_ROOT + '/nhl/teams/' + g.home.toLowerCase() + '/">' + teamLogoHtml(g.home, 32) + escapeHtml(homeName) + p1Home + '</a>' +
       '</div>' +
       (isFinal
-        ? '<div class="game-final-wrap"><div class="game-final-score">' + teamLogoHtml(g.away, 20) + '<span>' + g.awayFinal + '-' + g.homeFinal + (g.ot ? ' ' + g.ot : '') + '</span>' + teamLogoHtml(g.home, 20) + '</div>' +
-          '<div class="game-p1-score">1P ' + g.awayP1 + '-' + g.homeP1 + '</div></div>'
-        : '<div class="game-time">' + fmtGameTime(g.startTimeUTC) + '</div>') +
+        ? '<div class="game-final-score">' + teamLogoHtml(g.away, 20) + '<span>' + g.awayFinal + '-' + g.homeFinal + (g.ot ? ' ' + g.ot : '') + '</span>' + teamLogoHtml(g.home, 20) + '</div>'
+        : '') +
     '</div>';
 
-    var odds = g.odds || {};
-    var mlAway = fmtAmerican(odds.ml && odds.ml[g.away]);
-    var mlHome = fmtAmerican(odds.ml && odds.ml[g.home]);
-    var mlPrice = (odds.ml ? (mlAway + ' / ' + mlHome) : '&mdash;');
-    var mlHist = (marketRate(g.away, 'Away', 'win') ?? '&mdash;') + '% / ' + (marketRate(g.home, 'Home', 'win') ?? '&mdash;') + '%';
-
-    function totalsPrice(line) {
-      var t = odds.totals && odds.totals[line];
-      if (!t) return '&mdash;';
-      return fmtAmerican(t.over) + ' / ' + fmtAmerican(t.under);
+    var mlBody, totalsBody, bttsBody;
+    if (isFinal) {
+      mlBody = finalMoneylineBody(g, odds);
+      totalsBody = finalTotalsBody(g, odds);
+      bttsBody = finalBttsBody(g, odds);
+    } else {
+      mlBody = upcomingMoneylineBody(g, odds);
+      totalsBody = upcomingTotalsBody(odds);
+      bttsBody = upcomingBttsBody(odds);
     }
-    var bttsPrice = (odds.btts_yes != null) ? fmtAmerican(odds.btts_yes) : '&mdash;';
 
     var oddsGrid = '<div class="odds-grid">' +
-      oddsCell('Moneyline', mlPrice, mlHist) +
-      oddsCell('Over-Under 1.5', totalsPrice('1.5'), (marketRate(g.away, 'Both', 'o15')) + '% / ' + (marketRate(g.home, 'Both', 'o15')) + '%') +
-      oddsCell('BTTS', bttsPrice, (marketRate(g.away, 'Both', 'btts')) + '% / ' + (marketRate(g.home, 'Both', 'btts')) + '%') +
+      pill('Moneyline', mlBody) +
+      pill('Over-Under 1.5', totalsBody) +
+      pill('BTTS', bttsBody) +
     '</div>';
 
-    var resultsRow = '';
-    if (isFinal) {
-      var homeWon = g.homeP1 > g.awayP1;
-      var awayWon = g.awayP1 > g.homeP1;
-      var total = g.awayP1 + g.homeP1;
-      var btts = g.awayP1 >= 1 && g.homeP1 >= 1;
-      resultsRow = '<div class="market-result-row">' +
-        '<span class="market-pill ' + (homeWon ? 'win' : awayWon ? 'lose' : '') + '">Moneyline ' + (homeWon ? 'HOME W' : awayWon ? 'AWAY W' : 'PUSH') + '</span>' +
-        '<span class="market-pill ' + (total > 1 ? 'win' : 'lose') + '">Over-Under 1.5 ' + (total > 1 ? 'HIT' : 'MISS') + '</span>' +
-        '<span class="market-pill ' + (btts ? 'win' : 'lose') + '">BTTS ' + (btts ? 'HIT' : 'MISS') + '</span>' +
-      '</div>';
-    }
-
-    return '<div class="game-card">' + head + oddsGrid + resultsRow + '</div>';
+    return '<div class="game-card">' + head + oddsGrid + '</div>';
   }
 
   function renderGamesList(dateStr, games) {
@@ -1554,24 +1571,35 @@
     var info = scheduleStateFor(dateStr);
     var note = document.getElementById('noGamesNote');
 
-    if (info.state === 'games') {
+    if (info.state === 'games' || info.state === 'none') {
+      // Both "has games today" and "zero games today" route through the
+      // normal games view now, so the daily-results summary (including its
+      // own "No Games Scheduled" message) always renders in the same spot,
+      // before the game list -- rather than a separate no-games panel that
+      // hid the summary box entirely.
       gamesViewEl.style.display = '';
-      note.style.display = 'none';
-      note.innerHTML = '';
-      currentGamesToday = info.games;
-      renderGamesList(dateStr, info.games);
+      currentGamesToday = info.state === 'games' ? info.games : [];
+      renderGamesList(dateStr, currentGamesToday);
+      if (info.state === 'none') {
+        var nextDate = nextGameDayAfter(dateStr);
+        if (nextDate) {
+          note.style.display = '';
+          note.innerHTML = '<div class="no-games-body"><button type="button" class="next-gameday-btn" id="nextGameDayBtn">Next game day &rsaquo;</button></div>';
+          var nextBtn = document.getElementById('nextGameDayBtn');
+          if (nextBtn) nextBtn.addEventListener('click', function() { goToDate(nextDate); });
+        } else {
+          note.style.display = 'none';
+          note.innerHTML = '';
+        }
+      } else {
+        note.style.display = 'none';
+        note.innerHTML = '';
+      }
     } else {
       gamesViewEl.style.display = 'none';
       currentGamesToday = null;
       note.style.display = '';
-      if (info.state === 'none') {
-        var nextDate = nextGameDayAfter(dateStr);
-        note.innerHTML = '<div class="no-games-body">No NHL games on this date.' +
-          (nextDate ? ' <button type="button" class="next-gameday-btn" id="nextGameDayBtn">Next game day &rsaquo;</button>' : '') +
-          '</div>';
-        var nextBtn = document.getElementById('nextGameDayBtn');
-        if (nextBtn) nextBtn.addEventListener('click', function() { goToDate(nextDate); });
-      } else if (info.state === 'known-no-detail') {
+      if (info.state === 'known-no-detail') {
         note.innerHTML = '<div class="no-games-body">' + info.count + ' NHL game' + (info.count === 1 ? '' : 's') +
           ' scheduled, but full matchup detail isn’t loaded for this date.</div>';
       } else {
@@ -1838,9 +1866,7 @@
 
     grid.innerHTML = combined.map(function(t) {
       if (t.isMatchup) {
-        var bar1 = teamColor(t.barCodes[0]).dot, bar2 = teamColor(t.barCodes[1]).dot;
         return '<div class="trend-row matchup-card">' +
-          '<span class="trend-color-bar" style="background:linear-gradient(' + bar1 + ',' + bar2 + ')"></span>' +
           '<span class="trend-dot good"></span>' +
           '<div class="trend-copy">' +
             '<div class="team-name"><span class="trend-matchup-badge">Matchup Angle</span>' + teamLogoHtml(t.barCodes[0], 28, {lazy: true}) + teamLogoHtml(t.barCodes[1], 28, {lazy: true}) + escapeHtml(t.name) + '</div>' +
@@ -1849,10 +1875,8 @@
           '</div>' +
         '</div>';
       }
-      var tc = teamColor(t.code);
       var matchup = scope === 'today' ? matchupInfoFor(t.code, gamesToday) : null;
       return '<div class="trend-row">' +
-        '<span class="trend-color-bar" style="background:' + tc.dot + '"></span>' +
         '<span class="trend-dot ' + (t.good ? 'good' : 'bad') + '"></span>' +
         '<div class="trend-copy">' +
           '<div class="team-name">' + teamLogoHtml(t.code, 28, {lazy: true}) + '<a href="' + SITE_ROOT + '/nhl/teams/' + t.code.toLowerCase() + '/">' + escapeHtml(t.name) + '</a></div>' +
@@ -1897,12 +1921,10 @@
       html += '<div class="division-group"><h2 class="division-title">' + escapeHtml(divName) + '</h2>' +
         '<div class="team-tile-grid">' + codes.map(function(code) {
           var s = DATA.summary[code];
-          var tc = teamColor(code);
           var both = s.splits.Both;
           var o15Pct = both.gp ? Math.round((both.o15 / both.gp) * 100) : 0;
           var bttsPct = both.gp ? Math.round((both.btts / both.gp) * 100) : 0;
           return '<a class="team-tile" href="' + SITE_ROOT + '/nhl/teams/' + code.toLowerCase() + '/">' +
-            '<span class="team-tile-bar" style="background:' + tc.dot + '"></span>' +
             teamLogoHtml(code, 56, {lazy: true, cls: 'team-tile-logo'}) +
             '<span class="team-tile-name">' + escapeHtml(s.name) + '</span>' +
             '<span class="team-tile-stats">O 1.5 ' + o15Pct + '% &middot; BTTS ' + bttsPct + '%</span>' +
@@ -1936,11 +1958,9 @@
     var s = DATA.summary[code];
     var st = DATA.streaks[code];
     var log = (DATA.gamelog[code] || []).slice(-10).reverse();
-    var tc = teamColor(code);
 
     var headEl = document.getElementById('teamPageHead');
     headEl.innerHTML = '<div style="display:flex;align-items:center;gap:10px;">' +
-      '<span style="width:6px;height:30px;border-radius:3px;background:' + tc.dot + ';display:inline-block;flex-shrink:0;"></span>' +
       teamLogoHtml(code, 80) +
       '<h1>' + escapeHtml(s.name) + '</h1></div>';
 

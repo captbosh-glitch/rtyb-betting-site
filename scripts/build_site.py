@@ -154,7 +154,6 @@ def build_teams_menu_html(summary, team_colors):
     teams = sorted(summary.items(), key=lambda kv: kv[1]['name'])
     items = []
     for code, info in teams:
-        color = team_colors.get(code, '#8B96A5')
         name = html_lib.escape(info['name'])
         items.append(
             '<a class="nav-dropdown-item" href="/nhl/teams/{slug}/">'
@@ -162,8 +161,8 @@ def build_teams_menu_html(summary, team_colors):
             '<img class="nav-team-logo" data-code="{code}" '
             'width="20" height="20" alt="{name} logo" '
             'onerror="window.rtybLogoFallback(this,\'{code}\',20)"></span>'
-            '<span class="nav-team-swatch" style="background:{color}"></span>{name}</a>'.format(
-                slug=team_slug(code), color=color, name=name, code=code
+            '{name}</a>'.format(
+                slug=team_slug(code), name=name, code=code
             )
         )
     items.append('<a class="nav-dropdown-item nav-dropdown-item--all" href="/nhl/teams/">All Teams &rarr;</a>')
@@ -248,6 +247,8 @@ def main():
             sgo = odds_sgo.get(key)
             if sgo and sgo.get('btts_yes') is not None:
                 odds['btts_yes'] = sgo['btts_yes']
+            if sgo and sgo.get('btts_no') is not None:
+                odds['btts_no'] = sgo['btts_no']
 
             # Carry forward previously-saved odds for a now-completed game if
             # this run's odds fetch didn't return anything fresh for it (the

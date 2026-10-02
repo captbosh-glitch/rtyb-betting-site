@@ -36,7 +36,7 @@ from datetime import datetime, timedelta, timezone
 WINDOW_DAYS_BACK = 10
 WINDOW_DAYS_FWD = 10
 
-ABBREV_MAP = {'TBL': 'TB', 'MTL': 'MON', 'NJD': 'NJ', 'SJS': 'SJ', 'LAK': 'LA'}
+ABBREV_MAP = {'TBL': 'TB', 'MTL': 'MON', 'NJD': 'NJ', 'SJS': 'SJ', 'LAK': 'LA', 'ANA': 'ANH'}
 
 
 def rt(abbrev):
