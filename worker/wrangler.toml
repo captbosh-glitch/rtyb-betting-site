@@ -1,0 +1,7 @@
+name = "rtyb-admin"
+main = "rtyb-admin-worker.js"
+compatibility_date = "2024-09-01"
+
+# Secrets (set these with `wrangler secret put <NAME>`, not here):
+#   GITHUB_TOKEN   fine-grained PAT, Contents:write only, scoped to the rtyb-betting-site repo
+#   ADMIN_SECRET   the password the admin page prompts for before calling this worker

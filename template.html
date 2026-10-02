@@ -1369,8 +1369,19 @@
     return Math.round((hit / sp.gp) * 100);
   }
 
+  // A game counts toward the daily results / a game card's result pills
+  // once its 1st-period score is known -- these are all 1st-period markets
+  // (Moneyline/Over-Under 1.5/BTTS), gradeable as soon as the 1st period
+  // ends, well before the NHL marks the whole game FINAL. That score can
+  // come from the live schedule fetch OR from the Admin Results Tool
+  // (data_admin/results_overrides.json, merged in by build_site.py) --
+  // either way, if we have it, it's final for grading purposes.
+  function hasP1Result(g) {
+    return g.awayP1 != null && g.homeP1 != null;
+  }
+
   function computeDailySummary(games) {
-    var finals = games.filter(function(g) { return g.state === 'FINAL'; });
+    var finals = games.filter(hasP1Result);
     if (!finals.length) return null;
     function tally(pickFn) {
       var w = 0, l = 0, t = 0;
@@ -1493,7 +1504,14 @@
   function renderGameCard(g) {
     var awayName = DATA.summary[g.away] ? DATA.summary[g.away].name : g.away;
     var homeName = DATA.summary[g.home] ? DATA.summary[g.home].name : g.home;
-    var isFinal = g.state === 'FINAL';
+    // Two independent "done" signals: the full game (state === 'FINAL',
+    // controls the final-score block, which is a full-game number) and the
+    // 1st period specifically (hasP1Result, controls the market pills --
+    // these all grade off the 1st period and can be known well before the
+    // game itself ends, especially once the Admin Results Tool publishes
+    // one directly).
+    var isFullGameFinal = g.state === 'FINAL';
+    var isGraded = hasP1Result(g);
     var odds = g.odds || {};
 
     var p1Away = (g.awayP1 != null) ? ' <span class="gm-p1">' + g.awayP1 + '</span>' : '';
@@ -1508,13 +1526,13 @@
         '<span style="color:var(--text-faint);font-weight:400;">@</span>' +
         '<a class="gm-team" href="' + SITE_ROOT + '/nhl/teams/' + g.home.toLowerCase() + '/">' + teamLogoHtml(g.home, 32) + escapeHtml(homeName) + p1Home + '</a>' +
       '</div>' +
-      (isFinal
+      (isFullGameFinal
         ? '<div class="game-final-score">' + teamLogoHtml(g.away, 20) + '<span>' + g.awayFinal + '-' + g.homeFinal + (g.ot ? ' ' + g.ot : '') + '</span>' + teamLogoHtml(g.home, 20) + '</div>'
         : '') +
     '</div>';
 
     var mlBody, totalsBody, bttsBody;
-    if (isFinal) {
+    if (isGraded) {
       mlBody = finalMoneylineBody(g, odds);
       totalsBody = finalTotalsBody(g, odds);
       bttsBody = finalBttsBody(g, odds);

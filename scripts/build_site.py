@@ -215,12 +215,44 @@ ROOT_REDIRECT_HTML = """<!doctype html>
 """
 
 
+def apply_admin_overrides(merged_games, odds_overrides, results_overrides):
+    """Admin-published values (from the Admin page's Matchups Tool / Results
+    Tool, committed by the Cloudflare Worker to data_admin/odds_overrides.json
+    and data_admin/results_overrides.json) always win over whatever the
+    automated odds/schedule fetchers found -- that's the point of publishing
+    them by hand. Keyed the same way as odds_theoddsapi.json/
+    odds_sportsgameodds.json: "date|away|home".
+
+    Results overrides set awayP1/homeP1 directly -- these are 1st-period
+    markets, so a published result is meaningful (and gradeable) the moment
+    the admin enters it, independent of whether the full game has finished
+    in the NHL's own feed yet."""
+    for date_str, games in merged_games.items():
+        for i, g in enumerate(games):
+            key = f'{date_str}|{g["away"]}|{g["home"]}'
+            odds_patch = odds_overrides.get(key)
+            results_patch = results_overrides.get(key)
+            if not odds_patch and not results_patch:
+                continue
+            g = dict(g)
+            if odds_patch:
+                odds = dict(g.get('odds') or {})
+                odds.update(odds_patch)
+                g['odds'] = odds
+            if results_patch:
+                g['awayP1'] = results_patch.get('awayP1')
+                g['homeP1'] = results_patch.get('homeP1')
+            games[i] = g
+
+
 def main():
     base = load('base_data.json', {'summary': {}, 'streaks': {}, 'gamelog': {}})
     fresh_schedule = load('schedule_fresh.json', {'gameCounts': {}, 'games': {}})
     prev_schedule = load('schedule_data.json', {'gameCounts': {}, 'games': {}})
     odds_oddsapi = load('odds_theoddsapi.json', {})
     odds_sgo = load('odds_sportsgameodds.json', {})
+    odds_overrides = load('data_admin/odds_overrides.json', {})
+    results_overrides = load('data_admin/results_overrides.json', {})
 
     prev_games_by_id = {}
     for date_str, games in prev_schedule.get('games', {}).items():
@@ -272,6 +304,11 @@ def main():
         merged_game_counts = prev_schedule.get('gameCounts', {})
     else:
         merged_game_counts = fresh_schedule.get('gameCounts') or prev_schedule.get('gameCounts', {})
+
+    # Applied unconditionally, after either path above, so admin-published
+    # odds/results always take effect -- including on a local/manual build
+    # with no fresh schedule fetch.
+    apply_admin_overrides(merged_games, odds_overrides, results_overrides)
 
     merged_schedule = {
         'gameCounts': merged_game_counts,

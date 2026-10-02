@@ -130,7 +130,7 @@
   // Set this to your deployed Worker's URL after `wrangler deploy`
   // (worker/rtyb-admin-worker.js). Looks like
   // "https://rtyb-admin.<your-subdomain>.workers.dev".
-  var WORKER_URL = "https://rtyb-admin.captbosh-glitch.workers.dev";
+  var WORKER_URL = "";
 
   var SECRET_KEY = 'rtybAdminSecret';
 
@@ -274,7 +274,10 @@
     });
   }
 
-  function callWorker(path, body, statusEl, btns) {
+  // doingLabel/doneMsg let Save and Publish report accurately -- Save never
+  // touches the live site, so it should never say "live" (this used to be
+  // one hardcoded message for both, which was misleading on Save).
+  function callWorker(path, body, statusEl, btns, doingLabel, doneMsg) {
     if (!WORKER_URL) {
       statusEl.className = 'status err';
       statusEl.textContent = 'WORKER_URL isn\'t set in admin/index.html yet -- deploy the Worker first.';
@@ -282,7 +285,7 @@
     }
     btns.forEach(function(b) { b.disabled = true; });
     statusEl.className = 'status';
-    statusEl.textContent = 'Saving…';
+    statusEl.textContent = doingLabel + '…';
     fetch(WORKER_URL + path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': getSecret() },
@@ -298,7 +301,7 @@
       btns.forEach(function(b) { b.disabled = false; });
       if (res.ok) {
         statusEl.className = 'status ok';
-        statusEl.textContent = 'Done. It\'ll be live within a minute or two.';
+        statusEl.textContent = doneMsg;
       } else {
         statusEl.className = 'status err';
         statusEl.textContent = 'Failed: ' + (res.body && res.body.error ? res.body.error : 'unknown error');
@@ -312,17 +315,20 @@
     });
   }
 
+  var SAVED_MSG = 'Draft saved. Nothing on the live site changed.';
+  var PUBLISHED_MSG = 'Published. It\'ll be live within a minute or two.';
+
   function wireButtons() {
     var mSave = document.getElementById('matchupsSave');
     var mPub = document.getElementById('matchupsPublish');
     var mStatus = document.getElementById('matchupsStatus');
     mSave.addEventListener('click', function() {
       var date = document.getElementById('dateSelect').value;
-      callWorker('/matchups/save', { date: date, matchups: collectMatchups() }, mStatus, [mSave, mPub]);
+      callWorker('/matchups/save', { date: date, matchups: collectMatchups() }, mStatus, [mSave, mPub], 'Saving', SAVED_MSG);
     });
     mPub.addEventListener('click', function() {
       var date = document.getElementById('dateSelect').value;
-      callWorker('/matchups/publish', { date: date, matchups: collectMatchups() }, mStatus, [mSave, mPub]);
+      callWorker('/matchups/publish', { date: date, matchups: collectMatchups() }, mStatus, [mSave, mPub], 'Publishing', PUBLISHED_MSG);
     });
 
     var rSave = document.getElementById('resultsSave');
@@ -330,11 +336,11 @@
     var rStatus = document.getElementById('resultsStatus');
     rSave.addEventListener('click', function() {
       var date = document.getElementById('dateSelect').value;
-      callWorker('/results/save', { date: date, results: collectResults() }, rStatus, [rSave, rPub]);
+      callWorker('/results/save', { date: date, results: collectResults() }, rStatus, [rSave, rPub], 'Saving', SAVED_MSG);
     });
     rPub.addEventListener('click', function() {
       var date = document.getElementById('dateSelect').value;
-      callWorker('/results/publish', { date: date, results: collectResults() }, rStatus, [rSave, rPub]);
+      callWorker('/results/publish', { date: date, results: collectResults() }, rStatus, [rSave, rPub], 'Publishing', PUBLISHED_MSG);
     });
 
     document.getElementById('signOut').addEventListener('click', function(e) {
