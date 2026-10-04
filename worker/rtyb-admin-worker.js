@@ -18,14 +18,18 @@
  * Deploy:
  *   cd worker
  *   npm install -g wrangler      # if you don't have it
- *   wrangler secret put GITHUB_TOKEN     # fine-grained PAT, "Contents: write" only, scoped to this repo
- *   wrangler secret put ADMIN_SECRET     # the password the admin page prompts for
+ *   wrangler secret put GITHUB_TOKEN      # fine-grained PAT, "Contents: write" only, scoped to this repo
+ *   wrangler secret put ADMIN_SECRET      # the password the admin page prompts for
+ *   wrangler secret put ANTHROPIC_API_KEY # only needed for the "Parse Odds Data with AI" field -- console.anthropic.com
  *   wrangler deploy
  * Then put the deployed URL into admin/index.html's WORKER_URL constant.
  *
  * Endpoints (all POST, all require header "X-Admin-Secret"):
  *   /matchups/save     body: {date, matchups: [{away,home,mlAway,mlHome,totalOver,totalUnder,bttsYes,bttsNo}, ...]}
  *   /matchups/publish   same body -- also writes data_admin/odds_overrides.json
+ *   /matchups/parse      body: {date, text, games: [{away,home,awayName,homeName}, ...]} -- asks an LLM to pull
+ *                         the six fields per matchup out of free-form pasted text; does NOT write anything,
+ *                         just returns {ok, matchups} for the page to drop into the form
  *   /results/save       body: {date, results: [{away,home,awayScore,homeScore}, ...]}
  *   /results/publish    same body -- also writes data_admin/results_overrides.json
  */
@@ -202,6 +206,93 @@ async function publishResults(env, body) {
   });
 }
 
+function validateParse(body) {
+  if (!body || typeof body.date !== "string" || typeof body.text !== "string" || !Array.isArray(body.games)) {
+    return "expected {date, text, games: []}";
+  }
+  if (!body.text.trim()) return "text is empty";
+  for (const g of body.games) {
+    if (!g || typeof g.away !== "string" || typeof g.home !== "string") return "each game needs away/home codes";
+  }
+  return null;
+}
+
+// Asks Claude to pull the six odds fields per matchup out of whatever text
+// was pasted in (a Google Sheets block, a picks message, anything). Doesn't
+// touch the repo -- just returns parsed values for the admin page to drop
+// into the Matchups Tool inputs, which are reviewed and Saved like any
+// manual edit.
+async function parseMatchupsWithAI(env, body) {
+  if (!env.ANTHROPIC_API_KEY) {
+    return { ok: false, status: 501, detail: "ANTHROPIC_API_KEY isn't set as a Worker secret yet -- wrangler secret put ANTHROPIC_API_KEY" };
+  }
+
+  const gameList = body.games
+    .map((g) => `- away="${g.away}" (${g.awayName || g.away}), home="${g.home}" (${g.homeName || g.home})`)
+    .join("\n");
+
+  const prompt = `You extract 1st-period NHL betting odds from pasted text (it may be a spreadsheet dump, a picks/Discord message, or anything else) and match each game to one of the known matchups below.
+
+Known matchups for ${body.date} (use these exact "away"/"home" codes in your output, don't invent new ones):
+${gameList}
+
+Pasted text:
+"""
+${body.text}
+"""
+
+For each matchup you can find odds for, extract:
+- mlAway, mlHome: moneyline odds for the away/home team (e.g. -120, 135)
+- totalOver, totalUnder: 1st-period Over/Under 1.5 goals odds
+- bttsYes, bttsNo: Both Teams To Score odds
+
+Rules:
+- Only include a field if you actually found a number for it in the text -- use null, never guess or invent a value.
+- Only include matchups from the known list above that you found data for. Skip matchups you can't find.
+- Odds are plain numbers (no + sign in your output; negative numbers keep their -).
+- Respond with ONLY a JSON object, no other text, no markdown fences, in this exact shape:
+{"matchups": [{"away": "...", "home": "...", "mlAway": -120, "mlHome": 135, "totalOver": -130, "totalUnder": 100, "bttsYes": 155, "bttsNo": -205}]}`;
+
+  let resp;
+  try {
+    resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-5",
+        max_tokens: 2000,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+  } catch (e) {
+    return { ok: false, status: 502, detail: `Anthropic API request failed: ${e.message}` };
+  }
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    return { ok: false, status: resp.status, detail: `Anthropic API: ${text.slice(0, 300)}` };
+  }
+
+  const data = await resp.json();
+  const raw = (data.content && data.content[0] && data.content[0].text) || "";
+  let parsed;
+  try {
+    // Strip accidental markdown fences just in case, then parse.
+    const cleaned = raw.trim().replace(/^```(json)?/i, "").replace(/```$/, "").trim();
+    parsed = JSON.parse(cleaned);
+  } catch (e) {
+    return { ok: false, status: 502, detail: `Couldn't parse the AI's response as JSON: ${raw.slice(0, 200)}` };
+  }
+  if (!parsed || !Array.isArray(parsed.matchups)) {
+    return { ok: false, status: 502, detail: "AI response didn't contain a matchups array" };
+  }
+  return { ok: true, matchups: parsed.matchups };
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
@@ -237,6 +328,13 @@ export default {
         if (err) return json({ ok: false, error: err }, 400);
         result = await publishMatchups(env, body);
         break;
+      }
+      case "/matchups/parse": {
+        const err = validateParse(body);
+        if (err) return json({ ok: false, error: err }, 400);
+        const parseResult = await parseMatchupsWithAI(env, body);
+        if (parseResult.ok) return json({ ok: true, matchups: parseResult.matchups });
+        return json({ ok: false, error: parseResult.detail || "Parse failed", status: parseResult.status }, 502);
       }
       case "/results/save": {
         const err = validateResults(body);

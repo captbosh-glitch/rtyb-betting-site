@@ -36,18 +36,27 @@
   .card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; }
   .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
-  select, input[type=number], input[type=password] {
+  select, input[type=number], input[type=password], input[type=text], textarea {
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px;
     color: var(--text); padding: 7px 9px; font-size: 0.9rem; font-family: 'JetBrains Mono', monospace;
     width: 100%;
   }
+  textarea { resize: vertical; min-height: 110px; }
   select { font-family: inherit; width: auto; }
+  /* Remove the number-input spin arrows -- odds are typed, not stepped. */
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type=number] { -moz-appearance: textfield; }
   table { width: 100%; border-collapse: collapse; margin-top: 14px; }
   th, td { padding: 8px 6px; text-align: left; font-size: 0.85rem; border-bottom: 1px solid var(--border-soft); }
   th { color: var(--text-muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
   td.matchup { font-weight: 600; white-space: nowrap; }
   td input { max-width: 90px; }
-  .actions { display: flex; gap: 10px; margin-top: 16px; }
+  td .locked-val { display: inline-block; min-width: 50px; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; padding: 7px 0; }
+  .actions { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
   button {
     font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.03em; font-size: 0.85rem; border: none; border-radius: 8px;
@@ -63,6 +72,7 @@
   .gate input { margin: 14px 0; }
   .empty { color: var(--text-faint); font-size: 0.85rem; padding: 10px 0; }
   .note { font-size: 0.75rem; color: var(--text-faint); margin-top: 6px; }
+  a.note-link { font-size: 0.78rem; color: var(--text-muted); margin-left: auto; }
 </style>
 </head>
 <body>
@@ -89,36 +99,47 @@
 
     <div class="card">
       <h2>Matchups Tool</h2>
-      <p class="sub" style="margin-bottom:0">Save keeps a draft only. Publish pushes these odds live to that day&rsquo;s Games section.</p>
+      <p class="sub" style="margin-bottom:0">Save pushes these odds live to that day&rsquo;s Games section immediately. No number means the odds are read as +; a leading &ndash; is kept as &ndash;.</p>
       <table id="matchupsTable">
         <thead><tr>
-          <th>Matchup</th><th>ML Home</th><th>ML Away</th>
+          <th>Matchup</th><th>ML Away</th><th>ML Home</th>
           <th>Total Over</th><th>Total Under</th><th>BTTS Yes</th><th>BTTS No</th>
         </tr></thead>
         <tbody id="matchupsBody"></tbody>
       </table>
       <div class="actions">
-        <button class="save" id="matchupsSave">Save</button>
-        <button class="publish" id="matchupsPublish">Publish</button>
+        <button class="publish" id="matchupsSave">Save</button>
+        <button class="save" id="matchupsEdit" hidden>Edit</button>
       </div>
       <p class="status" id="matchupsStatus"></p>
     </div>
 
     <div class="card">
       <h2>Results Tool</h2>
-      <p class="sub" style="margin-bottom:0">Score after the 1st period. Publish grades the Moneyline / Over-Under 1.5 / BTTS markets for that day immediately — it doesn&rsquo;t wait for the full game to end.</p>
+      <p class="sub" style="margin-bottom:0">Score after the 1st period. Save grades the Moneyline / Over-Under 1.5 / BTTS markets for that day immediately — it doesn&rsquo;t wait for the full game to end.</p>
       <table id="resultsTable">
         <thead><tr><th>Matchup</th><th>Away Score</th><th>Home Score</th></tr></thead>
         <tbody id="resultsBody"></tbody>
       </table>
       <div class="actions">
-        <button class="save" id="resultsSave">Save</button>
-        <button class="publish" id="resultsPublish">Publish</button>
+        <button class="publish" id="resultsSave">Save</button>
+        <button class="save" id="resultsEdit" hidden>Edit</button>
       </div>
       <p class="status" id="resultsStatus"></p>
     </div>
 
-    <p class="note">Changes take effect on the next site rebuild, usually within a minute or two (the publish commit triggers it automatically). Reload this page after a publish to re-check what went live.</p>
+    <div class="card">
+      <h2>Parse Odds Data with AI</h2>
+      <p class="sub" style="margin-bottom:0">Paste odds for this date &mdash; a Google Sheets block, a picks message, anything with the six numbers per matchup &mdash; and AI will fill in the Matchups Tool fields above. Review before hitting Save; nothing here touches the live site by itself.</p>
+      <textarea id="parseInput" placeholder="Paste odds data here..."></textarea>
+      <div class="actions">
+        <button class="publish" id="parseBtn">Parse with AI</button>
+        <a href="#matchupsTable" class="note-link">or enter manually</a>
+      </div>
+      <p class="status" id="parseStatus"></p>
+    </div>
+
+    <p class="note">Changes take effect on the next site rebuild, usually within a minute or two (the Save commit triggers it automatically). Reload this page after saving to re-check what went live.</p>
   </div>
 
 </div>
@@ -134,6 +155,10 @@
 
   var SECRET_KEY = 'rtybAdminSecret';
 
+  // Games before this date don't show up in the date dropdown at all --
+  // there's nothing to manage for them any more.
+  var EARLIEST_DATE = '2026-09-29';
+
   function todayET() {
     var parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
     var o = {}; parts.forEach(function(p) { o[p.type] = p.value; });
@@ -147,6 +172,13 @@
   var DATA = null;
   var matchupsDraft = {};
   var resultsDraft = {};
+
+  // Whichever table was last Saved stays "locked" (read-only, signed odds)
+  // until Edit is clicked, for *this date*. Switching dates resets both --
+  // each date's lock state is tracked separately so flipping back and forth
+  // doesn't lose it.
+  var matchupsLocked = {};
+  var resultsLocked = {};
 
   function fetchJson(path, fallback) {
     return fetch(path).then(function(r) { return r.ok ? r.json() : fallback; }).catch(function() { return fallback; });
@@ -167,7 +199,9 @@
 
   function populateDateSelect() {
     var sel = document.getElementById('dateSelect');
-    var dates = Object.keys((DATA.schedule && DATA.schedule.games) || {}).sort();
+    var dates = Object.keys((DATA.schedule && DATA.schedule.games) || {})
+      .filter(function(d) { return d >= EARLIEST_DATE; })
+      .sort();
     sel.innerHTML = dates.map(function(d) {
       var count = (DATA.schedule.games[d] || []).length;
       return '<option value="' + d + '">' + d + ' (' + count + ' game' + (count === 1 ? '' : 's') + ')</option>';
@@ -190,11 +224,21 @@
     return '<input type="number" step="any" id="' + id + '" value="' + (value == null ? '' : value) + '">';
   }
 
+  // No sign typed = treated as +; a leading - is kept as-is. This is purely
+  // a display thing -- the underlying value saved is always the plain
+  // number (positive or negative); only the locked, post-Save view shows
+  // the explicit sign, since a <input type=number> can't display a literal
+  // "+" prefix itself.
+  function signed(n) {
+    if (n == null || n === '') return '';
+    var num = Number(n);
+    if (isNaN(num)) return String(n);
+    return (num > 0 ? '+' : '') + num;
+  }
+
   function renderDate() {
     var date = document.getElementById('dateSelect').value;
     var games = (DATA.schedule.games && DATA.schedule.games[date]) || [];
-    var mDraft = matchupsDraft[date] || {};
-    var rDraft = resultsDraft[date] || {};
 
     var mBody = document.getElementById('matchupsBody');
     var rBody = document.getElementById('resultsBody');
@@ -202,41 +246,88 @@
     if (!games.length) {
       mBody.innerHTML = '<tr><td colspan="7" class="empty">No games scheduled this day.</td></tr>';
       rBody.innerHTML = '<tr><td colspan="3" class="empty">No games scheduled this day.</td></tr>';
+      setLockUI('matchups', false);
+      setLockUI('results', false);
       return;
     }
 
+    renderMatchupsBody(date, games);
+    renderResultsBody(date, games);
+    setLockUI('matchups', !!matchupsLocked[date]);
+    setLockUI('results', !!resultsLocked[date]);
+  }
+
+  function matchupFieldValues(date, g) {
+    var mDraft = matchupsDraft[date] || {};
+    var key = g.away + '|' + g.home;
+    var d = mDraft[key] || {};
+    var live = g.odds || {};
+    return {
+      mlHome: d.mlHome != null ? d.mlHome : (live.ml ? live.ml[g.home] : null),
+      mlAway: d.mlAway != null ? d.mlAway : (live.ml ? live.ml[g.away] : null),
+      over: d.totalOver != null ? d.totalOver : (live.totals && live.totals['1.5'] ? live.totals['1.5'].over : null),
+      under: d.totalUnder != null ? d.totalUnder : (live.totals && live.totals['1.5'] ? live.totals['1.5'].under : null),
+      bYes: d.bttsYes != null ? d.bttsYes : live.btts_yes,
+      bNo: d.bttsNo != null ? d.bttsNo : live.btts_no,
+    };
+  }
+
+  function renderMatchupsBody(date, games) {
+    var mBody = document.getElementById('matchupsBody');
+    var locked = !!matchupsLocked[date];
     mBody.innerHTML = games.map(function(g, i) {
-      var key = g.away + '|' + g.home;
-      var d = mDraft[key] || {};
-      var live = g.odds || {};
-      var mlHome = d.mlHome != null ? d.mlHome : (live.ml ? live.ml[g.home] : null);
-      var mlAway = d.mlAway != null ? d.mlAway : (live.ml ? live.ml[g.away] : null);
-      var over = d.totalOver != null ? d.totalOver : (live.totals && live.totals['1.5'] ? live.totals['1.5'].over : null);
-      var under = d.totalUnder != null ? d.totalUnder : (live.totals && live.totals['1.5'] ? live.totals['1.5'].under : null);
-      var bYes = d.bttsYes != null ? d.bttsYes : live.btts_yes;
-      var bNo = d.bttsNo != null ? d.bttsNo : live.btts_no;
+      var v = matchupFieldValues(date, g);
+      var cells;
+      if (locked) {
+        cells = [v.mlAway, v.mlHome, v.over, v.under, v.bYes, v.bNo].map(function(val) {
+          return '<td><span class="locked-val">' + escapeHtml(signed(val)) + '</span></td>';
+        }).join('');
+      } else {
+        cells =
+          '<td>' + numInput('m' + i + '_mlAway', v.mlAway) + '</td>' +
+          '<td>' + numInput('m' + i + '_mlHome', v.mlHome) + '</td>' +
+          '<td>' + numInput('m' + i + '_over', v.over) + '</td>' +
+          '<td>' + numInput('m' + i + '_under', v.under) + '</td>' +
+          '<td>' + numInput('m' + i + '_bYes', v.bYes) + '</td>' +
+          '<td>' + numInput('m' + i + '_bNo', v.bNo) + '</td>';
+      }
       return '<tr data-away="' + g.away + '" data-home="' + g.home + '">' +
         '<td class="matchup">' + escapeHtml(teamName(g.away)) + ' @ ' + escapeHtml(teamName(g.home)) + '</td>' +
-        '<td>' + numInput('m' + i + '_mlHome', mlHome) + '</td>' +
-        '<td>' + numInput('m' + i + '_mlAway', mlAway) + '</td>' +
-        '<td>' + numInput('m' + i + '_over', over) + '</td>' +
-        '<td>' + numInput('m' + i + '_under', under) + '</td>' +
-        '<td>' + numInput('m' + i + '_bYes', bYes) + '</td>' +
-        '<td>' + numInput('m' + i + '_bNo', bNo) + '</td>' +
+        cells +
       '</tr>';
     }).join('');
+  }
 
+  function renderResultsBody(date, games) {
+    var rBody = document.getElementById('resultsBody');
+    var locked = !!resultsLocked[date];
+    var rDraft = resultsDraft[date] || {};
     rBody.innerHTML = games.map(function(g, i) {
       var key = g.away + '|' + g.home;
       var d = rDraft[key] || {};
       var awayScore = d.awayScore != null ? d.awayScore : g.awayP1;
       var homeScore = d.homeScore != null ? d.homeScore : g.homeP1;
+      var cells;
+      if (locked) {
+        cells = [awayScore, homeScore].map(function(val) {
+          return '<td><span class="locked-val">' + escapeHtml(val == null ? '' : String(val)) + '</span></td>';
+        }).join('');
+      } else {
+        cells = '<td>' + numInput('r' + i + '_away', awayScore) + '</td>' +
+          '<td>' + numInput('r' + i + '_home', homeScore) + '</td>';
+      }
       return '<tr data-away="' + g.away + '" data-home="' + g.home + '">' +
         '<td class="matchup">' + escapeHtml(teamName(g.away)) + ' @ ' + escapeHtml(teamName(g.home)) + '</td>' +
-        '<td>' + numInput('r' + i + '_away', awayScore) + '</td>' +
-        '<td>' + numInput('r' + i + '_home', homeScore) + '</td>' +
+        cells +
       '</tr>';
     }).join('');
+  }
+
+  function setLockUI(which, locked) {
+    var saveBtn = document.getElementById(which + 'Save');
+    var editBtn = document.getElementById(which + 'Edit');
+    saveBtn.hidden = locked;
+    editBtn.hidden = !locked;
   }
 
   function escapeHtml(s) {
@@ -274,19 +365,16 @@
     });
   }
 
-  // doingLabel/doneMsg let Save and Publish report accurately -- Save never
-  // touches the live site, so it should never say "live" (this used to be
-  // one hardcoded message for both, which was misleading on Save).
-  function callWorker(path, body, statusEl, btns, doingLabel, doneMsg) {
+  function callWorker(path, body, statusEl, btn, doingLabel, doneMsg) {
     if (!WORKER_URL) {
       statusEl.className = 'status err';
       statusEl.textContent = 'WORKER_URL isn\'t set in admin/index.html yet -- deploy the Worker first.';
-      return;
+      return Promise.reject(new Error('no worker url'));
     }
-    btns.forEach(function(b) { b.disabled = true; });
+    btn.disabled = true;
     statusEl.className = 'status';
     statusEl.textContent = doingLabel + '…';
-    fetch(WORKER_URL + path, {
+    return fetch(WORKER_URL + path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': getSecret() },
       body: JSON.stringify(body),
@@ -298,49 +386,62 @@
       }
       return r.json().then(function(j) { return { ok: r.ok && j.ok, body: j }; });
     }).then(function(res) {
-      btns.forEach(function(b) { b.disabled = false; });
+      btn.disabled = false;
       if (res.ok) {
         statusEl.className = 'status ok';
         statusEl.textContent = doneMsg;
-      } else {
-        statusEl.className = 'status err';
-        statusEl.textContent = 'Failed: ' + (res.body && res.body.error ? res.body.error : 'unknown error');
+        return res;
       }
+      statusEl.className = 'status err';
+      statusEl.textContent = 'Failed: ' + (res.body && res.body.error ? res.body.error : 'unknown error');
+      throw new Error('failed');
     }).catch(function(e) {
-      btns.forEach(function(b) { b.disabled = false; });
-      if (e.message !== 'unauthorized') {
+      btn.disabled = false;
+      if (e.message !== 'unauthorized' && e.message !== 'failed') {
         statusEl.className = 'status err';
         statusEl.textContent = 'Request failed: ' + e.message;
       }
+      throw e;
     });
   }
 
-  var SAVED_MSG = 'Draft saved. Nothing on the live site changed.';
-  var PUBLISHED_MSG = 'Published. It\'ll be live within a minute or two.';
+  var SAVED_MSG = 'Saved. It\'ll be live within a minute or two.';
 
   function wireButtons() {
     var mSave = document.getElementById('matchupsSave');
-    var mPub = document.getElementById('matchupsPublish');
+    var mEdit = document.getElementById('matchupsEdit');
     var mStatus = document.getElementById('matchupsStatus');
     mSave.addEventListener('click', function() {
       var date = document.getElementById('dateSelect').value;
-      callWorker('/matchups/save', { date: date, matchups: collectMatchups() }, mStatus, [mSave, mPub], 'Saving', SAVED_MSG);
+      callWorker('/matchups/publish', { date: date, matchups: collectMatchups() }, mStatus, mSave, 'Saving', SAVED_MSG)
+        .then(function() {
+          matchupsLocked[date] = true;
+          renderDate();
+        });
     });
-    mPub.addEventListener('click', function() {
+    mEdit.addEventListener('click', function() {
       var date = document.getElementById('dateSelect').value;
-      callWorker('/matchups/publish', { date: date, matchups: collectMatchups() }, mStatus, [mSave, mPub], 'Publishing', PUBLISHED_MSG);
+      matchupsLocked[date] = false;
+      mStatus.textContent = '';
+      renderDate();
     });
 
     var rSave = document.getElementById('resultsSave');
-    var rPub = document.getElementById('resultsPublish');
+    var rEdit = document.getElementById('resultsEdit');
     var rStatus = document.getElementById('resultsStatus');
     rSave.addEventListener('click', function() {
       var date = document.getElementById('dateSelect').value;
-      callWorker('/results/save', { date: date, results: collectResults() }, rStatus, [rSave, rPub], 'Saving', SAVED_MSG);
+      callWorker('/results/publish', { date: date, results: collectResults() }, rStatus, rSave, 'Saving', SAVED_MSG)
+        .then(function() {
+          resultsLocked[date] = true;
+          renderDate();
+        });
     });
-    rPub.addEventListener('click', function() {
+    rEdit.addEventListener('click', function() {
       var date = document.getElementById('dateSelect').value;
-      callWorker('/results/publish', { date: date, results: collectResults() }, rStatus, [rSave, rPub], 'Publishing', PUBLISHED_MSG);
+      resultsLocked[date] = false;
+      rStatus.textContent = '';
+      renderDate();
     });
 
     document.getElementById('signOut').addEventListener('click', function(e) {
@@ -348,6 +449,63 @@
       clearSecret();
       showGate('');
     });
+
+    document.getElementById('parseBtn').addEventListener('click', onParseClick);
+  }
+
+  function onParseClick() {
+    var date = document.getElementById('dateSelect').value;
+    var text = document.getElementById('parseInput').value.trim();
+    var status = document.getElementById('parseStatus');
+    if (!text) {
+      status.className = 'status err';
+      status.textContent = 'Paste some odds data first.';
+      return;
+    }
+    var games = (DATA.schedule.games && DATA.schedule.games[date]) || [];
+    if (!games.length) {
+      status.className = 'status err';
+      status.textContent = 'No games scheduled this date to match against.';
+      return;
+    }
+    var btn = document.getElementById('parseBtn');
+    var payload = {
+      date: date,
+      text: text,
+      games: games.map(function(g) { return { away: g.away, home: g.home, awayName: teamName(g.away), homeName: teamName(g.home) }; }),
+    };
+    callWorker('/matchups/parse', payload, status, btn, 'Parsing', 'Parsed — review the fields below, then Save.')
+      .then(function(res) {
+        var parsed = (res.body && res.body.matchups) || [];
+        if (!parsed.length) {
+          status.className = 'status err';
+          status.textContent = 'AI didn\'t return any matchups for this date -- check the pasted text or enter manually.';
+          return;
+        }
+        // Make sure this date's tables are editable so the parsed values show up in the inputs.
+        matchupsLocked[date] = false;
+        renderDate();
+        parsed.forEach(function(m) {
+          var row = document.querySelector('#matchupsBody tr[data-away="' + m.away + '"][data-home="' + m.home + '"]');
+          if (!row) return;
+          var rows = Array.prototype.slice.call(document.querySelectorAll('#matchupsBody tr[data-away]'));
+          var i = rows.indexOf(row);
+          if (i === -1) return;
+          setNumIfPresent('m' + i + '_mlAway', m.mlAway);
+          setNumIfPresent('m' + i + '_mlHome', m.mlHome);
+          setNumIfPresent('m' + i + '_over', m.totalOver);
+          setNumIfPresent('m' + i + '_under', m.totalUnder);
+          setNumIfPresent('m' + i + '_bYes', m.bttsYes);
+          setNumIfPresent('m' + i + '_bNo', m.bttsNo);
+        });
+      })
+      .catch(function() { /* status already shows the error */ });
+  }
+
+  function setNumIfPresent(id, val) {
+    if (val == null) return;
+    var el = document.getElementById(id);
+    if (el) el.value = val;
   }
 
   function showGate(msg) {
@@ -377,10 +535,9 @@
   wireButtons();
 
   // This page doesn't verify the password itself (there's no read endpoint
-  // that checks it) -- it's checked the first time you actually Save or
-  // Publish something, by the Worker. Entering it just unlocks the UI
-  // locally; a wrong password simply fails on first use (status 401) and
-  // re-prompts.
+  // that checks it) -- it's checked the first time you actually Save
+  // something, by the Worker. Entering it just unlocks the UI locally; a
+  // wrong password simply fails on first use (status 401) and re-prompts.
   if (getSecret()) {
     showMain();
   } else {

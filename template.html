@@ -241,10 +241,6 @@
   }
   :root:not([data-theme="light"]) .next-gameday-btn { color: var(--accent); }
 
-  /* ---------- Hottest Trends link (Games page) ---------- */
-  .hottest-trends-link { margin-top: 14px; text-align: center; }
-  .hottest-trends-link a { font-size: 0.86rem; font-weight: 600; text-decoration: none; }
-  .hottest-trends-link a:hover { text-decoration: underline; }
 
   /* ---------- Team logos (light/dark SVG, w/ circle+abbrev fallback) ---------- */
   .team-logo-wrap {
@@ -671,14 +667,9 @@
         </div>
       </div>
       <a class="nav-link" href="/nhl/games/" __NAV_GAMES_CURRENT__>Games</a>
-      <a class="nav-link" href="/nhl/hit-rates/" __NAV_HITRATES_CURRENT__>Hit Rates</a>
-      <a class="nav-link" href="/nhl/trends/" __NAV_TRENDS_CURRENT__>Hottest Trends</a>
-      <div class="nav-dropdown" id="teamsDropdown">
-        <button type="button" class="nav-link nav-dropdown-btn" id="teamsBtn" aria-haspopup="true" aria-expanded="false" __NAV_TEAMS_CURRENT__>
-          Teams <span class="nav-caret">&#9662;</span>
-        </button>
-        <div class="nav-dropdown-menu nav-dropdown-menu--teams" id="teamsMenu">__TEAMS_MENU_ITEMS__</div>
-      </div>
+      <a class="nav-link" href="/nhl/1st-period-stats/" __NAV_HITRATES_CURRENT__>Stats</a>
+      <a class="nav-link" href="/nhl/trends/" __NAV_TRENDS_CURRENT__>Trends</a>
+      <a class="nav-link" href="/nhl/teams/" __NAV_TEAMS_CURRENT__>Teams</a>
     </nav>
 
     <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
@@ -728,7 +719,6 @@
   <div id="gamesView">
     <div class="daily-summary" id="dailySummary" style="display:none"></div>
     <div class="games-list" id="gamesList"></div>
-    <div class="hottest-trends-link"><a href="/nhl/trends/" id="hottestTrendsLink">Hottest Trends &rarr;</a></div>
   </div>
 
   <section class="trends-section">
@@ -1044,7 +1034,6 @@
       });
     }
     wireDropdown('sportBtn', 'sportMenu');
-    wireDropdown('teamsBtn', 'teamsMenu');
     document.addEventListener('click', function(e) {
       document.querySelectorAll('.nav-dropdown-menu.open').forEach(function(m) {
         if (!m.contains(e.target)) m.classList.remove('open');
@@ -1627,8 +1616,6 @@
     renderYesterdayStrip();
     renderTrends(currentGamesToday);
     renderCalendar();
-    var trendsLink = document.getElementById('hottestTrendsLink');
-    if (trendsLink) trendsLink.href = SITE_ROOT + ((dateStr === todayET()) ? '/nhl/trends/' : ('/nhl/trends/?date=' + dateStr));
   }
 
   var datePrevBtn = document.getElementById('datePrev');
@@ -1720,7 +1707,7 @@
     });
   }
 
-  // ---- Hottest Trends page ----
+  // ---- Trends to Watch page (/nhl/trends/) ----
   // Restricted to the site's current 3-market convention: Winner (moneyline),
   // Over-Under 1.5, BTTS. Streaks come straight from DATA.streaks (baked from
   // real chronological per-team results in DATA.gamelog at data-prep time) --
@@ -1939,13 +1926,9 @@
       html += '<div class="division-group"><h2 class="division-title">' + escapeHtml(divName) + '</h2>' +
         '<div class="team-tile-grid">' + codes.map(function(code) {
           var s = DATA.summary[code];
-          var both = s.splits.Both;
-          var o15Pct = both.gp ? Math.round((both.o15 / both.gp) * 100) : 0;
-          var bttsPct = both.gp ? Math.round((both.btts / both.gp) * 100) : 0;
           return '<a class="team-tile" href="' + SITE_ROOT + '/nhl/teams/' + code.toLowerCase() + '/">' +
             teamLogoHtml(code, 56, {lazy: true, cls: 'team-tile-logo'}) +
             '<span class="team-tile-name">' + escapeHtml(s.name) + '</span>' +
-            '<span class="team-tile-stats">O 1.5 ' + o15Pct + '% &middot; BTTS ' + bttsPct + '%</span>' +
           '</a>';
         }).join('') + '</div></div>';
     });

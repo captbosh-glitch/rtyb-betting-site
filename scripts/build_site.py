@@ -32,7 +32,8 @@ root" compatible):
                               page's client JS, instead of being inlined
                               into each page individually.
   nhl/games/index.html     -- the Games page (landing page)
-  nhl/hit-rates/index.html -- the Hit Rates page (formerly "Standings")
+  nhl/1st-period-stats/index.html -- the Stats page (formerly "Hit Rates"/"Standings")
+  nhl/hit-rates/index.html -- redirect stub to nhl/1st-period-stats/ (old URL)
   schedule_data.json       -- OVERWRITTEN with the merged result, so the next
                               run's "previous" read carries forward saved odds
 
@@ -60,14 +61,14 @@ PAGE_META = {
                   'Pick a date above to see that day’s card.'),
     },
     'hitrates': {
-        'title': 'RTYB — Hit Rates',
-        'h1': 'NHL — Hit Rates',
+        'title': 'RTYB — Stats',
+        'h1': 'NHL — Stats',
         'desc': ('Historical 1st-period results by team for the 2025–26 season. '
                   'Pick a market, split by home/away, and tap any team for the full trend and game log.'),
     },
     'trends': {
-        'title': 'RTYB — Hottest Trends',
-        'h1': 'NHL — Hottest Trends',
+        'title': 'RTYB — Trends to Watch',
+        'h1': 'NHL — Trends to Watch',
         'desc': ('Active streaks and extreme season rates across Moneyline, Over-Under 1.5, and BTTS. '
                   'Scoped to tonight’s teams by default.'),
     },
@@ -215,6 +216,30 @@ ROOT_REDIRECT_HTML = """<!doctype html>
 """
 
 
+def redirect_page_html(relative_target):
+    """A tiny redirect stub for a URL that moved -- e.g. the old
+    /nhl/hit-rates/ now living at /nhl/1st-period-stats/. `relative_target`
+    is relative to the redirect page's own folder (both pages sit one level
+    under /nhl/, so a sibling rename is just "../new-slug/"), which keeps
+    this correct under GitHub Pages' project-site subpath with no runtime
+    detection needed, same reasoning as ROOT_REDIRECT_HTML above."""
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="0; url={relative_target}">
+<link rel="canonical" href="{relative_target}">
+<title>RTYB</title>
+<script>location.replace('{relative_target}');</script>
+</head>
+<body>
+<p>This page moved. Redirecting to <a href="{relative_target}">{relative_target}</a>&hellip;</p>
+</body>
+</html>
+"""
+
+
 def apply_admin_overrides(merged_games, odds_overrides, results_overrides):
     """Admin-published values (from the Admin page's Matchups Tool / Results
     Tool, committed by the Cloudflare Worker to data_admin/odds_overrides.json
@@ -346,12 +371,14 @@ def main():
 
     nhl_dir = os.path.join(ROOT, 'nhl')
     games_dir = os.path.join(ROOT, 'nhl', 'games')
-    hitrates_dir = os.path.join(ROOT, 'nhl', 'hit-rates')
+    hitrates_dir = os.path.join(ROOT, 'nhl', '1st-period-stats')
+    hitrates_old_dir = os.path.join(ROOT, 'nhl', 'hit-rates')  # old URL -- kept as a redirect stub, see below
     trends_dir = os.path.join(ROOT, 'nhl', 'trends')
     teams_dir = os.path.join(ROOT, 'nhl', 'teams')
     os.makedirs(nhl_dir, exist_ok=True)
     os.makedirs(games_dir, exist_ok=True)
     os.makedirs(hitrates_dir, exist_ok=True)
+    os.makedirs(hitrates_old_dir, exist_ok=True)
     os.makedirs(trends_dir, exist_ok=True)
     os.makedirs(teams_dir, exist_ok=True)
 
@@ -373,6 +400,8 @@ def main():
         f.write(games_html)
     with open(os.path.join(hitrates_dir, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(hitrates_html)
+    with open(os.path.join(hitrates_old_dir, 'index.html'), 'w', encoding='utf-8') as f:
+        f.write(redirect_page_html('../1st-period-stats/'))
     with open(os.path.join(trends_dir, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(trends_html)
     with open(os.path.join(teams_dir, 'index.html'), 'w', encoding='utf-8') as f:
@@ -393,7 +422,8 @@ def main():
 
     print(f"wrote index.html (redirect), nhl/data.json ({len(data_json)} bytes), "
           f"nhl/games/index.html ({len(games_html)} bytes), "
-          f"nhl/hit-rates/index.html ({len(hitrates_html)} bytes), "
+          f"nhl/1st-period-stats/index.html ({len(hitrates_html)} bytes), "
+          f"nhl/hit-rates/index.html (redirect stub), "
           f"nhl/trends/index.html ({len(trends_html)} bytes), "
           f"nhl/teams/index.html ({len(teamsindex_html)} bytes), "
           f"{len(full_data.get('summary', {}))} nhl/teams/<slug>/index.html pages ({team_bytes} bytes total), "
