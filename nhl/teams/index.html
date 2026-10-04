@@ -1873,7 +1873,7 @@
       var games = SCHEDULE.games[dates[i]] || [];
       for (var j = 0; j < games.length; j++) {
         var g = games[j];
-        if ((g.away === code || g.home === code) && g.state !== 'FINAL') {
+        if ((g.away === code || g.home === code) && !isGameOver(g)) {
           return { date: dates[i], game: g };
         }
       }
