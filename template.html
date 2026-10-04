@@ -25,6 +25,10 @@
     --bad: #FF4D6A;
     --bad-dim: #4A1620;
     --neutral-chip: #2A3542;
+    --warn: #F5C542;
+    --warn-dim: #463A12;
+    --trend: #B79CFF;
+    --trend-dim: #2A2147;
     color-scheme: dark;
   }
   :root[data-theme="light"] {
@@ -43,6 +47,10 @@
     --bad: #D42B49;
     --bad-dim: #FCE7EA;
     --neutral-chip: #EEF1F5;
+    --warn: #8F6400;
+    --warn-dim: #FBF1D3;
+    --trend: #6B46C8;
+    --trend-dim: #F1ECFD;
     color-scheme: light;
   }
   @media (prefers-color-scheme: light) {
@@ -62,6 +70,10 @@
       --bad: #D42B49;
       --bad-dim: #FCE7EA;
       --neutral-chip: #EEF1F5;
+      --warn: #8F6400;
+      --warn-dim: #FBF1D3;
+      --trend: #6B46C8;
+      --trend-dim: #F1ECFD;
       color-scheme: light;
     }
   }
@@ -232,6 +244,7 @@
   .ys-item .ys-pct { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; padding: 1px 6px; border-radius: 5px; }
   .ys-item .ys-pct.good { background: var(--good-dim); color: var(--good); }
   .ys-item .ys-pct.bad { background: var(--bad-dim); color: var(--bad); }
+  .ys-item .ys-pct.warn { background: var(--warn-dim); color: var(--warn); }
 
   /* ---------- No games / next game day ---------- */
   .no-games-body { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -399,22 +412,46 @@
   .ds-pct { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding: 2px 7px; border-radius: 5px; }
   .ds-pct.good { background: var(--good-dim); color: var(--good); }
   .ds-pct.bad { background: var(--bad-dim); color: var(--bad); }
-  .ds-pct.mid { background: var(--neutral-chip); color: var(--text-muted); }
+  .ds-pct.warn { background: var(--warn-dim); color: var(--warn); }
   .ds-empty { color: var(--text-muted); font-size: 0.88rem; padding: 2px 0; }
 
   .games-list { display: flex; flex-direction: column; gap: 12px; }
   .game-card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px 16px; }
+  .gm-time { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
   .game-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
   .game-matchup { display: flex; align-items: center; gap: 8px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.05rem; }
   .game-matchup .gm-team { display: flex; align-items: center; gap: 6px; cursor: pointer; color: inherit; text-decoration: none; }
   .game-matchup .gm-team:hover { color: var(--accent); }
   .gm-p1 { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.92rem; color: var(--text-muted); }
   .game-final-score { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
-  .odds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px; }
-  .pill { background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 8px 10px; }
-  .pill .pill-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; }
-  .pill .pill-body { margin-top: 3px; font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  /* All three market pills always share one row; on narrow screens a pill's
+     two halves (e.g. "NYR -100" / "DET -120") wrap inside the pill instead
+     of the pills wrapping onto new rows. */
+  .odds-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+  .pill { background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 7px 9px; display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+  .pill .pill-label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; flex-shrink: 0; }
+  .pill .pill-body { font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; font-weight: 600; display: flex; flex-wrap: wrap; gap: 0 8px; min-width: 0; }
+  .pill .pill-body .pb { white-space: nowrap; }
   .pill .pill-body:empty::before { content: '\2014'; color: var(--text-faint); font-weight: 400; }
+  @media (max-width: 520px) {
+    .odds-grid { gap: 6px; }
+    .pill { flex-direction: column; gap: 2px; padding: 6px 7px; }
+    .pill .pill-body { font-size: 0.72rem; }
+  }
+
+  /* Per-matchup "Trends to Watch (N)" dropdown */
+  .gm-trends { margin-top: 10px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--trend-dim); }
+  .gm-trends summary {
+    cursor: pointer; list-style: none; padding: 7px 10px;
+    font-size: 0.78rem; font-weight: 700; color: var(--trend);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .gm-trends summary::-webkit-details-marker { display: none; }
+  .gm-trends summary::after { content: '\25BE'; margin-left: auto; transition: transform 0.15s; }
+  .gm-trends[open] summary::after { transform: rotate(180deg); }
+  .gm-trends ul { list-style: none; padding: 0 10px 8px; margin: 0; }
+  .gm-trends li { font-size: 0.8rem; color: var(--text); padding: 3px 0; display: flex; gap: 6px; }
+  .gm-trends li::before { content: '\2013'; color: var(--trend); flex-shrink: 0; }
 
   .controls {
     display: flex;
@@ -721,10 +758,10 @@
     <div class="games-list" id="gamesList"></div>
   </div>
 
-  <section class="trends-section">
+  <section class="trends-section" id="trendsSection">
     <div class="trends-head">
       <h2>Trends to Watch</h2>
-      <p id="trendsSubtitle">League-wide streaks and season rates across every 1st-period market. Once live game dates are wired up, this narrows to tonight&rsquo;s matchups.</p>
+      <p id="trendsSubtitle">Streaks and season rates for the teams playing on the selected date.</p>
     </div>
     <div class="trend-list" id="trendList"></div>
     <button class="trend-show-all" id="trendShowAll" type="button" style="display:none">Show all trends</button>
@@ -1053,24 +1090,26 @@
   })();
 
   // ---- Trends to Watch ----
-  // League-wide trends computed from DATA.streaks / DATA.summary. Deliberately
-  // structured to later take a "teams playing today" filter once a live
-  // schedule feed exists -- for now, since there's no selected date, this
-  // always renders the same "no games today, show league-wide trends" state
-  // the spec calls for as its fallback.
+  // Streaks and extreme season rates from DATA.streaks / DATA.summary,
+  // restricted to the site's 3-market convention (Moneyline, Over-Under 1.5,
+  // BTTS). Each trend carries a short `text` for the section's cards and a
+  // full `sentence` ("New York Rangers have gone Over 1.5 in 6 straight") for
+  // the per-matchup dropdown on each game card.
   var TREND_MARKETS = {
-    o05:  { hitWord: 'Over 0.5',  missWord: 'Under 0.5' },
     o15:  { hitWord: 'Over 1.5',  missWord: 'Under 1.5' },
-    o25:  { hitWord: 'Over 2.5',  missWord: 'Under 2.5' },
-    btts: { hitWord: 'BTTS',      missWord: 'No BTTS' }
+    btts: { hitWord: 'BTTS Yes',  missWord: 'BTTS No' }
   };
   var TREND_MIN_STREAK = 4;
   var TREND_RATE_MIN_GP = 20;
   var TREND_RATE_HIGH = 0.75;
   var TREND_RATE_LOW = 0.25;
+  var TRENDS_VISIBLE = 5;
 
   function buildTrends() {
     var trends = [];
+    function add(code, name, good, text, verb, strength) {
+      trends.push({ code: code, name: name, good: good, text: text, sentence: name + ' ' + verb + ' ' + text.replace(/^(Won|Lost|Over|Under)\b/, function(w) { return w.toLowerCase(); }), strength: strength });
+    }
 
     Object.keys(DATA.streaks).forEach(function(code) {
       var st = DATA.streaks[code];
@@ -1079,11 +1118,7 @@
       // win/loss streaks
       if (st.wl_streak >= TREND_MIN_STREAK && st.wl_result !== 'T') {
         var wlGood = st.wl_result === 'W';
-        trends.push({
-          code: code, name: name, good: wlGood,
-          text: (wlGood ? 'Won' : 'Lost') + ' ' + st.wl_streak + ' straight 1st periods',
-          strength: st.wl_streak * 10
-        });
+        add(code, name, wlGood, (wlGood ? 'Won' : 'Lost') + ' ' + st.wl_streak + ' straight 1st periods', 'have', st.wl_streak * 10);
       }
 
       // over/under and BTTS streaks
@@ -1093,11 +1128,7 @@
         if (streak >= TREND_MIN_STREAK) {
           var isHit = (mk === 'btts') ? result === 'Y' : result === 'O';
           var meta = TREND_MARKETS[mk];
-          trends.push({
-            code: code, name: name, good: isHit,
-            text: (isHit ? meta.hitWord : meta.missWord) + ' in ' + streak + ' straight',
-            strength: streak * 10
-          });
+          add(code, name, isHit, (isHit ? meta.hitWord : meta.missWord) + ' in ' + streak + ' straight', 'have gone', streak * 10);
         }
       });
     });
@@ -1111,19 +1142,11 @@
         var pct = hit / both.gp;
         var meta = TREND_MARKETS[mk];
         if (pct >= TREND_RATE_HIGH) {
-          trends.push({
-            code: code, name: s.name, good: true,
-            text: meta.hitWord + ' in ' + Math.round(pct * 100) + '% of games this season (' + hit + '/' + both.gp + ')',
-            strength: Math.abs(pct - 0.5) * 200
-          });
+          add(code, s.name, true, meta.hitWord + ' in ' + Math.round(pct * 100) + '% of games this season (' + hit + '/' + both.gp + ')', 'have gone', Math.abs(pct - 0.5) * 200);
         } else if (pct <= TREND_RATE_LOW) {
           var missCount = both.gp - hit;
           var missPct = missCount / both.gp;
-          trends.push({
-            code: code, name: s.name, good: false,
-            text: meta.missWord + ' in ' + Math.round(missPct * 100) + '% of games this season (' + missCount + '/' + both.gp + ')',
-            strength: Math.abs(pct - 0.5) * 200
-          });
+          add(code, s.name, false, meta.missWord + ' in ' + Math.round(missPct * 100) + '% of games this season (' + missCount + '/' + both.gp + ')', 'have gone', Math.abs(pct - 0.5) * 200);
         }
       });
     });
@@ -1134,6 +1157,12 @@
 
   var ALL_TRENDS = buildTrends();
 
+  function trendsForGame(g) {
+    return ALL_TRENDS.filter(function(t) { return t.code === g.away || t.code === g.home; });
+  }
+
+  // On a date with games, only those teams' trends are shown -- never a
+  // league-wide fallback. League-wide only appears on a date with no games.
   function renderTrends(gamesToday) {
     var list = document.getElementById('trendList');
     var showAllBtn = document.getElementById('trendShowAll');
@@ -1142,32 +1171,25 @@
     if (gamesToday && gamesToday.length) {
       var todayCodes = {};
       gamesToday.forEach(function(g) { todayCodes[g.away] = 1; todayCodes[g.home] = 1; });
-      var scoped = ALL_TRENDS.filter(function(t) { return todayCodes[t.code]; });
-      if (scoped.length) {
-        pool = scoped;
-        subtitle.textContent = 'Streaks and season rates for teams playing on the selected date.';
-      } else {
-        subtitle.textContent = 'No standout trends for tonight’s teams — showing league-wide trends instead.';
-      }
+      pool = ALL_TRENDS.filter(function(t) { return todayCodes[t.code]; });
+      subtitle.textContent = 'Streaks and season rates for the teams playing on the selected date.';
     } else {
-      subtitle.textContent = 'League-wide streaks and season rates across every 1st-period market. Once live game dates are wired up, this narrows to tonight’s matchups.';
+      subtitle.textContent = 'No games on the selected date — showing league-wide streaks and season rates.';
     }
     if (!pool.length) {
-      list.innerHTML = '<div class="empty-state">No notable trends right now.</div>';
+      list.innerHTML = '<div class="empty-state">No notable trends for these teams right now.</div>';
       showAllBtn.style.display = 'none';
       return;
     }
-    var VISIBLE = 6;
     list.innerHTML = pool.map(function(t, i) {
-      var tc = teamColor(t.code);
-      var extraClass = i >= VISIBLE ? ' hidden-extra' : '';
+      var extraClass = i >= TRENDS_VISIBLE ? ' hidden-extra' : '';
       return '<div class="trend-row' + extraClass + '">' +
         '<span class="trend-dot ' + (t.good ? 'good' : 'bad') + '"></span>' +
         '<div class="trend-copy"><div class="team-name">' + escapeHtml(t.name) + '</div>' +
         '<div class="trend-text">' + escapeHtml(t.text) + '</div></div>' +
       '</div>';
     }).join('');
-    showAllBtn.style.display = pool.length > VISIBLE ? '' : 'none';
+    showAllBtn.style.display = pool.length > TRENDS_VISIBLE ? '' : 'none';
     showAllBtn.textContent = 'Show all trends (' + pool.length + ')';
     showAllBtn.setAttribute('aria-expanded', 'false');
   }
@@ -1369,181 +1391,194 @@
     return g.awayP1 != null && g.homeP1 != null;
   }
 
+  function oddsNum(v) {
+    if (v === null || v === undefined || v === '') return null;
+    var n = Number(v);
+    return isNaN(n) ? null : n;
+  }
+  function isGameOver(g) { return g.state === 'FINAL' || g.state === 'OFF'; }
+
+  // Daily results, each row a head-to-head of two sides graded off the 1st
+  // period: Home-Away (who won the period), Favorites-Underdogs (moneyline
+  // favorite vs. dog -- only games with saved prices for both sides),
+  // Total 1.5 (Over-Under) and BTTS (Yes-No). `a` is always the side whose
+  // win shows green (home, favorite, over, yes); ties are counted separately
+  // and left out of the percentage.
   function computeDailySummary(games) {
     var finals = games.filter(hasP1Result);
     if (!finals.length) return null;
-    function tally(pickFn) {
-      var w = 0, l = 0, t = 0;
-      finals.forEach(function(g) {
-        var r = pickFn(g);
-        if (r === 'W') w++; else if (r === 'L') l++; else t++;
-      });
-      return { w: w, l: l, t: t };
-    }
     var rows = [];
 
-    // Moneyline: only over games that actually have a saved moneyline price
-    // for both sides (closing odds snapshotted by the backend at fetch
-    // time). A game with no odds is omitted from this line entirely.
-    var mlGames = finals.filter(function(g) {
-      return g.odds && g.odds.ml && g.odds.ml[g.away] != null && g.odds.ml[g.home] != null;
+    var ha = { a: 0, b: 0, t: 0 };
+    finals.forEach(function(g) {
+      if (g.homeP1 > g.awayP1) ha.a++; else if (g.awayP1 > g.homeP1) ha.b++; else ha.t++;
     });
-    if (mlGames.length) {
-      var fw = 0, fl = 0, ft = 0;
-      mlGames.forEach(function(g) {
-        var favTeam = g.odds.ml[g.away] < g.odds.ml[g.home] ? g.away : g.home;
-        var favWon = favTeam === g.away ? (g.awayP1 > g.homeP1) : (g.homeP1 > g.awayP1);
-        var push = g.awayP1 === g.homeP1;
-        if (push) ft++; else if (favWon) fw++; else fl++;
-      });
-      rows.push({ label: 'Moneyline', rec: { w: fw, l: fl, t: ft } });
-    }
+    rows.push({ label: 'Home-Away', rec: ha });
 
-    rows.push({ label: 'Over-Under 1.5', rec: tally(function(g) {
-      return (g.awayP1 + g.homeP1) > 1 ? 'W' : 'L';
-    }), noPush: true });
+    var fd = { a: 0, b: 0, t: 0 }, fdGames = 0;
+    finals.forEach(function(g) {
+      var ml = g.odds && g.odds.ml;
+      var pa = ml ? oddsNum(ml[g.away]) : null, ph = ml ? oddsNum(ml[g.home]) : null;
+      if (pa === null || ph === null || pa === ph) return;
+      fdGames++;
+      var favIsHome = ph < pa;
+      var favP1 = favIsHome ? g.homeP1 : g.awayP1, dogP1 = favIsHome ? g.awayP1 : g.homeP1;
+      if (favP1 > dogP1) fd.a++; else if (dogP1 > favP1) fd.b++; else fd.t++;
+    });
+    if (fdGames) rows.push({ label: 'Favorites-Underdogs', rec: fd });
 
-    rows.push({ label: 'BTTS', rec: tally(function(g) {
-      return (g.awayP1 >= 1 && g.homeP1 >= 1) ? 'W' : 'L';
-    }), noPush: true });
+    var ou = { a: 0, b: 0, t: 0 };
+    finals.forEach(function(g) { if (g.awayP1 + g.homeP1 > 1) ou.a++; else ou.b++; });
+    rows.push({ label: 'Total 1.5', rec: ou });
+
+    var bt = { a: 0, b: 0, t: 0 };
+    finals.forEach(function(g) { if (g.awayP1 >= 1 && g.homeP1 >= 1) bt.a++; else bt.b++; });
+    rows.push({ label: 'BTTS', rec: bt });
 
     return rows;
   }
 
+  function summaryRowView(r) {
+    var decided = r.rec.a + r.rec.b;
+    var pct = decided ? Math.round((r.rec.a / decided) * 100) : 50;
+    return {
+      rec: r.rec.a + '-' + r.rec.b + (r.rec.t ? '-' + r.rec.t : ''),
+      pct: pct,
+      cls: pct > 50 ? 'good' : pct < 50 ? 'bad' : 'warn'
+    };
+  }
+
   function renderDailySummary(dateStr, games) {
     var el = document.getElementById('dailySummary');
-    el.style.display = '';
     games = games || [];
-    var heading = '<h3>' + escapeHtml(dateLabelText(dateStr)) + ' &mdash; Daily Results</h3>';
+    var heading = '<h3>' + escapeHtml(dateLabelText(dateStr)) + ' &ndash; Results</h3>';
 
     if (!games.length) {
+      el.style.display = '';
       el.innerHTML = heading + '<div class="ds-empty">No Games Scheduled</div>';
       return;
     }
 
+    // Today and future dates: results only once every game is graded.
+    // Past dates: whatever was graded.
+    var isPast = dateStr < todayET();
     var rows = computeDailySummary(games);
-    if (!rows) {
-      el.innerHTML = heading + '<div class="ds-empty">Results pending &mdash; check back once today\'s games are final.</div>';
+    if (!rows || (!isPast && !games.every(hasP1Result))) {
+      el.style.display = 'none';
+      el.innerHTML = '';
       return;
     }
 
-    var hasMoneyline = rows.some(function(r) { return r.label === 'Moneyline'; });
+    el.style.display = '';
     el.innerHTML = heading +
       rows.map(function(r) {
-        var total = r.rec.w + r.rec.l + r.rec.t;
-        var pct = total ? Math.round((r.rec.w / total) * 100) : 0;
-        var pctClass = pct >= 60 ? 'good' : pct <= 40 ? 'bad' : 'mid';
-        var recStr = r.noPush ? (r.rec.w + '-' + r.rec.l) : (r.rec.w + '-' + r.rec.l + (r.rec.t ? '-' + r.rec.t : ''));
+        var v = summaryRowView(r);
         return '<div class="ds-row"><span class="ds-label">' + r.label + '</span>' +
-          '<span class="ds-right"><span class="ds-record">' + recStr + '</span>' +
-          '<span class="ds-pct ' + pctClass + '">' + pct + '%</span></span></div>';
-      }).join('') +
-      (hasMoneyline ? '' : '<div style="font-size:0.72rem;color:var(--text-faint);margin-top:8px;">Moneyline needs saved odds for these games &mdash; not shown until that\'s available.</div>');
+          '<span class="ds-right"><span class="ds-record">' + v.rec + '</span>' +
+          '<span class="ds-pct ' + v.cls + '">' + v.pct + '%</span></span></div>';
+      }).join('');
   }
 
   function fmtAmerican(price) {
-    if (price === null || price === undefined || price === '') return '&mdash;';
-    var n = Number(price);
-    if (isNaN(n)) return '&mdash;';
+    var n = oddsNum(price);
+    if (n === null) return '&mdash;';
     return (n > 0 ? '+' : '') + n;
   }
 
-  function pill(label, body) {
-    return '<div class="pill"><div class="pill-label">' + label + '</div><div class="pill-body">' + (body || '') + '</div></div>';
+  function pill(label, parts) {
+    var body = (parts || []).map(function(p) { return '<span class="pb">' + p + '</span>'; }).join('');
+    return '<div class="pill"><div class="pill-label">' + label + '</div><div class="pill-body">' + body + '</div></div>';
   }
 
-  // ---- FINAL games: pill shows the plain-language result, with the price
-  // that backed it in parentheses when odds were ever published. ----
-  function finalMoneylineBody(g, odds) {
-    if (g.awayP1 === g.homeP1) return 'Tie';
+  // ---- Graded games: the winning side with the price that backed it. ----
+  function finalMoneylineParts(g, odds) {
+    if (g.awayP1 === g.homeP1) return ['Tie'];
     var winnerCode = g.awayP1 > g.homeP1 ? g.away : g.home;
-    var winnerName = DATA.summary[winnerCode] ? DATA.summary[winnerCode].name : winnerCode;
-    var hasML = odds.ml && odds.ml[g.away] != null && odds.ml[g.home] != null;
-    return escapeHtml(winnerName) + (hasML ? ' (' + fmtAmerican(odds.ml[winnerCode]) + ')' : '');
+    var price = odds.ml ? oddsNum(odds.ml[winnerCode]) : null;
+    return [escapeHtml(winnerCode) + (price !== null ? ' ' + fmtAmerican(price) : '')];
   }
-  function finalTotalsBody(g, odds) {
+  function finalTotalsParts(g, odds) {
     var over = (g.awayP1 + g.homeP1) > 1;
-    var label = over ? 'Over' : 'Under';
     var t = odds.totals && odds.totals['1.5'];
-    return label + (t ? ' (' + fmtAmerican(over ? t.over : t.under) + ')' : '');
+    var price = t ? oddsNum(over ? t.over : t.under) : null;
+    return [(over ? 'Over' : 'Under') + (price !== null ? ' ' + fmtAmerican(price) : '')];
   }
-  function finalBttsBody(g, odds) {
+  function finalBttsParts(g, odds) {
     var yes = g.awayP1 >= 1 && g.homeP1 >= 1;
-    var label = yes ? 'Yes' : 'No';
-    var price = yes ? odds.btts_yes : odds.btts_no;
-    return label + (price != null ? ' (' + fmtAmerican(price) + ')' : '');
+    var price = oddsNum(yes ? odds.btts_yes : odds.btts_no);
+    return [(yes ? 'Yes' : 'No') + (price !== null ? ' ' + fmtAmerican(price) : '')];
   }
 
-  // ---- UPCOMING (today/future, odds already published): two numbers,
-  // no history percentages. ----
-  function upcomingMoneylineBody(g, odds) {
-    if (!odds.ml || odds.ml[g.away] == null || odds.ml[g.home] == null) return '';
-    return escapeHtml(g.away) + ' ' + fmtAmerican(odds.ml[g.away]) + ' / ' + escapeHtml(g.home) + ' ' + fmtAmerican(odds.ml[g.home]);
+  // ---- Upcoming games: both sides' prices. ----
+  function upcomingMoneylineParts(g, odds) {
+    if (!odds.ml || oddsNum(odds.ml[g.away]) === null || oddsNum(odds.ml[g.home]) === null) return [];
+    return [escapeHtml(g.away) + ' ' + fmtAmerican(odds.ml[g.away]), escapeHtml(g.home) + ' ' + fmtAmerican(odds.ml[g.home])];
   }
-  function upcomingTotalsBody(odds) {
+  function upcomingTotalsParts(odds) {
     var t = odds.totals && odds.totals['1.5'];
-    if (!t) return '';
-    return 'Over ' + fmtAmerican(t.over) + ' / Under ' + fmtAmerican(t.under);
+    if (!t) return [];
+    return ['O ' + fmtAmerican(t.over), 'U ' + fmtAmerican(t.under)];
   }
-  function upcomingBttsBody(odds) {
-    if (odds.btts_yes == null && odds.btts_no == null) return '';
-    return 'Yes ' + fmtAmerican(odds.btts_yes) + ' / No ' + fmtAmerican(odds.btts_no);
+  function upcomingBttsParts(odds) {
+    if (oddsNum(odds.btts_yes) === null && oddsNum(odds.btts_no) === null) return [];
+    return ['Y ' + fmtAmerican(odds.btts_yes), 'N ' + fmtAmerican(odds.btts_no)];
   }
 
-  function renderGameCard(g) {
+  function renderGameCard(g, showTrends) {
     var awayName = DATA.summary[g.away] ? DATA.summary[g.away].name : g.away;
     var homeName = DATA.summary[g.home] ? DATA.summary[g.home].name : g.home;
-    // Two independent "done" signals: the full game (state === 'FINAL',
-    // controls the final-score block, which is a full-game number) and the
-    // 1st period specifically (hasP1Result, controls the market pills --
-    // these all grade off the 1st period and can be known well before the
-    // game itself ends, especially once the Admin Results Tool publishes
-    // one directly).
-    var isFullGameFinal = g.state === 'FINAL';
+    // Two independent "done" signals: the full game (FINAL/OFF, controls
+    // the final-score block, which is a full-game number) and the 1st
+    // period specifically (hasP1Result, controls the market pills -- these
+    // all grade off the 1st period and can be known well before the game
+    // itself ends, especially once the Admin Results Tool publishes one
+    // directly).
+    var isFullGameFinal = isGameOver(g);
     var isGraded = hasP1Result(g);
     var odds = g.odds || {};
 
     var p1Away = (g.awayP1 != null) ? ' <span class="gm-p1">' + g.awayP1 + '</span>' : '';
     var p1Home = (g.homeP1 != null) ? ' <span class="gm-p1">' + g.homeP1 + '</span>' : '';
 
+    var timeLine = (!isFullGameFinal && g.startTimeUTC) ? '<div class="gm-time">' + escapeHtml(fmtGameTime(g.startTimeUTC)) + '</div>' : '';
+
     // Team page URL slug: the team's DATA code, lowercased (e.g. "TOR" ->
-    // "/nhl/teams/tor/"). Phase 2's Teams pages should match this scheme
-    // exactly.
+    // "/nhl/teams/tor/").
     var head = '<div class="game-card-head">' +
       '<div class="game-matchup">' +
         '<a class="gm-team" href="' + SITE_ROOT + '/nhl/teams/' + g.away.toLowerCase() + '/">' + teamLogoHtml(g.away, 32) + escapeHtml(awayName) + p1Away + '</a>' +
         '<span style="color:var(--text-faint);font-weight:400;">@</span>' +
         '<a class="gm-team" href="' + SITE_ROOT + '/nhl/teams/' + g.home.toLowerCase() + '/">' + teamLogoHtml(g.home, 32) + escapeHtml(homeName) + p1Home + '</a>' +
       '</div>' +
-      (isFullGameFinal
+      (isFullGameFinal && g.awayFinal != null
         ? '<div class="game-final-score">' + teamLogoHtml(g.away, 20) + '<span>' + g.awayFinal + '-' + g.homeFinal + (g.ot ? ' ' + g.ot : '') + '</span>' + teamLogoHtml(g.home, 20) + '</div>'
         : '') +
     '</div>';
 
-    var mlBody, totalsBody, bttsBody;
-    if (isGraded) {
-      mlBody = finalMoneylineBody(g, odds);
-      totalsBody = finalTotalsBody(g, odds);
-      bttsBody = finalBttsBody(g, odds);
-    } else {
-      mlBody = upcomingMoneylineBody(g, odds);
-      totalsBody = upcomingTotalsBody(odds);
-      bttsBody = upcomingBttsBody(odds);
-    }
-
     var oddsGrid = '<div class="odds-grid">' +
-      pill('Moneyline', mlBody) +
-      pill('Over-Under 1.5', totalsBody) +
-      pill('BTTS', bttsBody) +
+      pill('ML', isGraded ? finalMoneylineParts(g, odds) : upcomingMoneylineParts(g, odds)) +
+      pill('OU', isGraded ? finalTotalsParts(g, odds) : upcomingTotalsParts(odds)) +
+      pill('BTTS', isGraded ? finalBttsParts(g, odds) : upcomingBttsParts(odds)) +
     '</div>';
 
-    return '<div class="game-card">' + head + oddsGrid + '</div>';
+    var trendsBlock = '';
+    if (showTrends) {
+      var gt = trendsForGame(g);
+      if (gt.length) {
+        trendsBlock = '<details class="gm-trends"><summary>Trends to Watch (' + gt.length + ')</summary><ul>' +
+          gt.map(function(t) { return '<li>' + escapeHtml(t.sentence) + '</li>'; }).join('') +
+        '</ul></details>';
+      }
+    }
+
+    return '<div class="game-card">' + timeLine + head + oddsGrid + trendsBlock + '</div>';
   }
 
   function renderGamesList(dateStr, games) {
     renderDailySummary(dateStr, games);
+    var showTrends = dateStr >= todayET();
     var list = document.getElementById('gamesList');
-    list.innerHTML = games.map(renderGameCard).join('');
+    list.innerHTML = games.map(function(g) { return renderGameCard(g, showTrends); }).join('');
   }
 
   function renderYesterdayStrip() {
@@ -1555,15 +1590,12 @@
     var rows = computeDailySummary(SCHEDULE.games[yDate]);
     if (!rows) { el.style.display = 'none'; el.onclick = null; return; }
     el.style.display = '';
-    el.innerHTML = '<span class="ys-title">' + escapeHtml(dateLabelText(yDate)) + ' &mdash; Results</span>' +
+    el.innerHTML = '<span class="ys-title">' + escapeHtml(dateLabelText(yDate)) + ' &ndash; Results</span>' +
       rows.map(function(r) {
-        var total = r.rec.w + r.rec.l + r.rec.t;
-        var pct = total ? Math.round((r.rec.w / total) * 100) : 0;
-        var pctClass = pct >= 50 ? 'good' : 'bad';
-        var recStr = r.noPush ? (r.rec.w + '-' + r.rec.l) : (r.rec.w + '-' + r.rec.l + (r.rec.t ? '-' + r.rec.t : ''));
+        var v = summaryRowView(r);
         return '<span class="ys-item"><span class="ys-label">' + escapeHtml(r.label) + '</span>' +
-          '<span class="ys-rec">' + recStr + '</span>' +
-          '<span class="ys-pct ' + pctClass + '">' + pct + '%</span></span>';
+          '<span class="ys-rec">' + v.rec + '</span>' +
+          '<span class="ys-pct ' + v.cls + '">' + v.pct + '%</span></span>';
       }).join('');
     el.onclick = function() { goToDate(yDate); };
   }
@@ -1614,7 +1646,11 @@
       }
     }
     renderYesterdayStrip();
-    renderTrends(currentGamesToday);
+    // Trends to Watch never shows on past days.
+    var trendsSection = document.getElementById('trendsSection');
+    var isPastDate = dateStr < todayET();
+    if (trendsSection) trendsSection.style.display = isPastDate ? 'none' : '';
+    if (!isPastDate) renderTrends(currentGamesToday);
     renderCalendar();
   }
 
