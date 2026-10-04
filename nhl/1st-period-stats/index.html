@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="RTYB — Run to Your Bets: NHL 1st-period betting stats and trends.">
 </head>
-<body data-team-code="PHI">
-<title>RTYB — Philadelphia Flyers</title>
+<body data-team-code="">
+<title>RTYB — Stats</title>
 <style>
   :root {
     --bg: #0B0F14;
@@ -667,9 +667,9 @@
         </div>
       </div>
       <a class="nav-link" href="/nhl/games/" >Games</a>
-      <a class="nav-link" href="/nhl/1st-period-stats/" >Stats</a>
+      <a class="nav-link" href="/nhl/1st-period-stats/" aria-current="page">Stats</a>
       <a class="nav-link" href="/nhl/trends/" >Trends</a>
-      <a class="nav-link" href="/nhl/teams/" aria-current="page">Teams</a>
+      <a class="nav-link" href="/nhl/teams/" >Teams</a>
     </nav>
 
     <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
@@ -681,8 +681,8 @@
 
 <main>
   <div class="page-head">
-    <h1>Philadelphia Flyers</h1>
-    <p>1st-period Moneyline, Over-Under 1.5, and BTTS rates, home/away splits, last 10 games, and current trends for the Philadelphia Flyers.</p>
+    <h1>NHL — Stats</h1>
+    <p>Historical 1st-period results by team for the 2025–26 season. Pick a market, split by home/away, and tap any team for the full trend and game log.</p>
   </div>
 
   <div class="no-games-note" id="rtybLoadNote">Loading data&hellip;</div>
@@ -690,22 +690,49 @@
   
 
   
+  <div id="teamView">
+    <div class="controls">
+      <div class="control-group">
+        <span class="control-label">Market</span>
+        <button class="seg-btn" data-market="win" aria-pressed="true">Winner</button>
+        <button class="seg-btn" data-market="o05">Over 0.5</button>
+        <button class="seg-btn" data-market="o15">Over 1.5</button>
+        <button class="seg-btn" data-market="o25">Over 2.5</button>
+        <button class="seg-btn" data-market="btts">BTTS</button>
+      </div>
+      <div class="control-group">
+        <span class="control-label">Side</span>
+        <button class="seg-btn" data-side="Both" aria-pressed="true">Both</button>
+        <button class="seg-btn" data-side="Home">Home</button>
+        <button class="seg-btn" data-side="Away">Away</button>
+      </div>
+      <div class="control-group">
+        <input class="search-box" id="searchBox" type="text" placeholder="Search team&hellip;">
+      </div>
+    </div>
 
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table id="leagueTable">
+          <thead>
+            <tr>
+              <th data-sort="name">Team</th>
+              <th class="num" data-sort="gp">GP</th>
+              <th data-sort="rec">Record<span class="arrow"></span></th>
+              <th class="num" data-sort="pct">Hit Rate<span class="arrow">▼</span></th>
+            </tr>
+          </thead>
+          <tbody id="leagueBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
   
 
   
 
   
-  <div class="team-page-head" id="teamPageHead"></div>
-  <div id="teamNextGame"></div>
-  <div class="drawer-section-title">Season Markets</div>
-  <div class="stat-row" id="teamMarketTiles"></div>
-  <div class="drawer-section-title">Home / Away Splits</div>
-  <div class="gamelog-scroll"><table class="split-table" id="teamSplitsTable"></table></div>
-  <div class="drawer-section-title">Current Trends</div>
-  <div id="teamTrendsBadges"></div>
-  <div class="drawer-section-title">Last 10 Games &mdash; 1P Result</div>
-  <div class="gamelog-scroll"><table class="gamelog" id="teamGamelogTable"></table></div>
+
   
 </main>
 
