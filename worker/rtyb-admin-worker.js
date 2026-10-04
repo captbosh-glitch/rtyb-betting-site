@@ -261,10 +261,17 @@ Rules:
         "Content-Type": "application/json",
         "x-api-key": env.ANTHROPIC_API_KEY,
         "anthropic-version": "2023-06-01",
+        // If a safety classifier declines the request, retry it server-side
+        // on Anthropic's recommended fallback model instead of failing.
+        "anthropic-beta": "server-side-fallback-2026-07-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-5",
-        max_tokens: 2000,
+        model: "claude-sonnet-5-5",
+        // Room for the model's thinking plus the JSON answer; a simple
+        // extraction like this doesn't need deep reasoning, so effort is low.
+        max_tokens: 16000,
+        output_config: { effort: "low" },
+        fallbacks: "default",
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -278,7 +285,17 @@ Rules:
   }
 
   const data = await resp.json();
-  const raw = (data.content && data.content[0] && data.content[0].text) || "";
+  if (data.stop_reason === "refusal") {
+    return { ok: false, status: 502, detail: "The AI declined to parse this text -- try trimming it to just the odds, or enter them manually" };
+  }
+  if (data.stop_reason === "max_tokens") {
+    return { ok: false, status: 502, detail: "The AI's response was cut off -- try pasting fewer games at once" };
+  }
+  // The response can start with thinking blocks; the answer is in the text block(s).
+  const raw = (data.content || [])
+    .filter((b) => b.type === "text")
+    .map((b) => b.text)
+    .join("");
   let parsed;
   try {
     // Strip accidental markdown fences just in case, then parse.
