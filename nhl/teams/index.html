@@ -1657,6 +1657,7 @@
   var TREND3_RATE_HIGH = 0.75;
   var TREND3_RATE_LOW = 0.25;
   var TREND3_MATCHUP_THRESHOLD = 0.60;
+  var TREND3_MATCHUP_MIN_GP = 5; // both teams need this many games before a Matchup Angle shows
 
   function marketRateFrac(code, marketKey) {
     var sp = DATA.summary[code] && DATA.summary[code].splits.Both;
@@ -1766,6 +1767,7 @@
     if (scope === 'today') {
       gamesToday.forEach(function(g) {
         if (!DATA.summary[g.away] || !DATA.summary[g.home]) return;
+        if (DATA.summary[g.away].splits.Both.gp < TREND3_MATCHUP_MIN_GP || DATA.summary[g.home].splits.Both.gp < TREND3_MATCHUP_MIN_GP) return;
         Object.keys(TREND3_WORDS).forEach(function(mk) {
           if (trendState.market !== 'all' && trendState.market !== mk) return;
           var awayRate = marketRateFrac(g.away, mk);
