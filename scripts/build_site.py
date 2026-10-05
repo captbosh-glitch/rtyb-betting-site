@@ -3,9 +3,12 @@ Merge everything into the final embedded data blob and write the site's
 generated pages.
 
 Inputs (all relative to repo root, where this runs from in CI):
-  base_data.json          -- static: summary / streaks / gamelog (season stats,
-                              baked once from the archived season file; not
-                              refetched every run)
+  base_data.json          -- static: team names (from the archived 2025-26
+                              season file). Its old season stats are no longer
+                              published -- summary / streaks / gamelog are
+                              rebuilt every run from this season's graded
+                              games (SEASON_START onward), see
+                              build_season_stats().
   schedule_fresh.json      -- freshly fetched this run by fetch_schedule.py
   schedule_data.json      -- the PREVIOUSLY COMMITTED schedule (if any) --
                               read here (not overwritten by fetch_schedule.py)
@@ -63,7 +66,7 @@ PAGE_META = {
     'hitrates': {
         'title': 'RTYB — Stats',
         'h1': 'NHL — Stats',
-        'desc': ('Historical 1st-period results by team for the 2025–26 season. '
+        'desc': ('1st-period results by team for the 2026–27 regular season (since Sept. 29). '
                   'Pick a market, split by home/away, and tap any team for the full trend and game log.'),
     },
     'trends': {
@@ -75,7 +78,7 @@ PAGE_META = {
     'teamsindex': {
         'title': 'RTYB — Teams',
         'h1': 'NHL — Teams',
-        'desc': 'Every NHL team, grouped by division, with season Over-Under 1.5 and BTTS rates.',
+        'desc': 'Every NHL team, grouped by division.',
     },
 }
 
@@ -88,6 +91,89 @@ TEAM_DIVISIONS = {
     'Central': ['CHI', 'COL', 'DAL', 'MIN', 'NSH', 'STL', 'UTA', 'WPG'],
     'Pacific': ['ANH', 'CGY', 'EDM', 'LA', 'SJ', 'SEA', 'VAN', 'VGK'],
 }
+
+
+# First day of the 2026-27 regular season. Stats, trends, team pages and
+# the Games-page calendar only cover games from this date on -- anything
+# earlier is preseason.
+SEASON_START = '2026-09-29'
+
+# Short opponent names for team-page game logs (same style the archived
+# season file used).
+TEAM_CITY = {
+    'ANH': 'Anaheim', 'BOS': 'Boston', 'BUF': 'Buffalo', 'CGY': 'Calgary',
+    'CAR': 'Carolina', 'CHI': 'Chicago', 'COL': 'Colorado', 'CBJ': 'Columbus',
+    'DAL': 'Dallas', 'DET': 'Detroit', 'EDM': 'Edmonton', 'FLA': 'Florida',
+    'LA': 'Los Angeles', 'MIN': 'Minnesota', 'MON': 'Montreal', 'NSH': 'Nashville',
+    'NJ': 'New Jersey', 'NYI': 'NY Islanders', 'NYR': 'NY Rangers', 'OTT': 'Ottawa',
+    'PHI': 'Philadelphia', 'PIT': 'Pittsburgh', 'SJ': 'San Jose', 'SEA': 'Seattle',
+    'STL': 'St. Louis', 'TB': 'Tampa Bay', 'TOR': 'Toronto', 'UTA': 'Utah',
+    'VAN': 'Vancouver', 'VGK': 'Vegas', 'WSH': 'Washington', 'WPG': 'Winnipeg',
+}
+
+
+def build_season_stats(merged_games, team_names):
+    """summary / streaks / gamelog for every team, from this season's games
+    (SEASON_START onward) that have a 1st-period score -- same shapes the
+    archived base_data.json used, so the client JS reads them unchanged."""
+    def empty_split():
+        return {'gp': 0, 'w': 0, 'l': 0, 't': 0, 'o05': 0, 'o15': 0, 'o25': 0, 'btts': 0}
+
+    summary = {code: {'name': name, 'splits': {'Both': empty_split(), 'Home': empty_split(), 'Away': empty_split()}}
+               for code, name in team_names.items()}
+    gamelog = {code: [] for code in team_names}
+
+    for date_str in sorted(d for d in merged_games if d >= SEASON_START):
+        games = sorted(merged_games[date_str], key=lambda g: g.get('startTimeUTC') or '')
+        for g in games:
+            if g.get('awayP1') is None or g.get('homeP1') is None:
+                continue
+            total = g['awayP1'] + g['homeP1']
+            btts = g['awayP1'] >= 1 and g['homeP1'] >= 1
+            for side, code, opp in (('Away', g['away'], g['home']), ('Home', g['home'], g['away'])):
+                if code not in summary:
+                    continue
+                p1t, p1o = (g['awayP1'], g['homeP1']) if side == 'Away' else (g['homeP1'], g['awayP1'])
+                ft, fo = (g.get('awayFinal'), g.get('homeFinal')) if side == 'Away' else (g.get('homeFinal'), g.get('awayFinal'))
+                for split in (summary[code]['splits']['Both'], summary[code]['splits'][side]):
+                    split['gp'] += 1
+                    split['w' if p1t > p1o else 'l' if p1t < p1o else 't'] += 1
+                    split['o05'] += total > 0
+                    split['o15'] += total > 1
+                    split['o25'] += total > 2
+                    split['btts'] += btts
+                ml = (g.get('odds') or {}).get('ml') or {}
+                gamelog[code].append({
+                    'date': date_str, 'side': side, 'opp': TEAM_CITY.get(opp, opp),
+                    'p1t': p1t, 'p1o': p1o, 'ft': ft, 'fo': fo, 'ot': g.get('ot') or '',
+                    'ml': ml.get(code), 'btts': btts,
+                })
+
+    def streak(log, result_fn):
+        if not log:
+            return None, 0
+        last = result_fn(log[-1])
+        n = 0
+        for e in reversed(log):
+            if result_fn(e) != last:
+                break
+            n += 1
+        return last, n
+
+    streaks = {}
+    for code, log in gamelog.items():
+        st = {}
+        for key, fn in (
+            ('wl', lambda e: 'W' if e['p1t'] > e['p1o'] else 'L' if e['p1t'] < e['p1o'] else 'T'),
+            ('o05', lambda e: 'O' if e['p1t'] + e['p1o'] > 0 else 'U'),
+            ('o15', lambda e: 'O' if e['p1t'] + e['p1o'] > 1 else 'U'),
+            ('o25', lambda e: 'O' if e['p1t'] + e['p1o'] > 2 else 'U'),
+            ('btts', lambda e: 'Y' if e['btts'] else 'N'),
+        ):
+            st[key + '_result'], st[key + '_streak'] = streak(log, fn)
+        streaks[code] = st
+
+    return summary, streaks, gamelog
 
 
 def team_page_meta(code, name):
@@ -346,8 +432,16 @@ def main():
     with open(os.path.join(ROOT, 'schedule_data.json'), 'w', encoding='utf-8') as f:
         json.dump(merged_schedule, f, separators=(',', ':'))
 
-    full_data = dict(base)
-    full_data['schedule'] = merged_schedule
+    team_names = {code: info['name'] for code, info in base.get('summary', {}).items()}
+    summary, streaks, gamelog = build_season_stats(merged_games, team_names)
+    full_data = {'summary': summary, 'streaks': streaks, 'gamelog': gamelog}
+    # The site only sees this season (schedule_data.json above keeps
+    # everything, so saved odds carry forward regardless).
+    full_data['schedule'] = {
+        'gameCounts': {d: n for d, n in merged_game_counts.items() if d >= SEASON_START},
+        'games': {d: gs for d, gs in merged_games.items() if d >= SEASON_START},
+    }
+    full_data['seasonStart'] = SEASON_START
     # Restrict divisions to teams actually present in base_data.json's summary
     # (keeps the Teams page grid in sync if a team code ever changes).
     known_codes = set(base.get('summary', {}).keys())
