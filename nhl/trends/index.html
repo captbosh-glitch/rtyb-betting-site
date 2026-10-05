@@ -343,6 +343,7 @@
     display: flex; align-items: center; justify-content: center;
   }
   .date-nav:hover { background: var(--panel-3); }
+  .date-nav:disabled { opacity: 0.35; cursor: default; background: var(--panel-2); }
   .date-label-wrap { position: relative; display: flex; align-items: center; gap: 6px; }
   .date-label {
     font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.05rem;
@@ -753,7 +754,7 @@
 </main>
 
 <footer>
-  RTYB &mdash; archived-data preview built from the 2025&ndash;26 season file. Records reflect 1st-period results only; ties (periods ending level) count as pushes on the Winner market. Not affiliated with the NHL.
+  RTYB &mdash; 2026&ndash;27 regular season, games from Sept. 29 on. Records reflect 1st-period results only; ties (periods ending level) count as pushes on the Winner market. Not affiliated with the NHL.
 </footer>
 
 <script>
@@ -1002,7 +1003,7 @@
     btts: { hitWord: 'BTTS Yes',  missWord: 'BTTS No' }
   };
   var TREND_MIN_STREAK = 4;
-  var TREND_RATE_MIN_GP = 20;
+  var TREND_RATE_MIN_GP = 4;
   var TREND_RATE_HIGH = 0.75;
   var TREND_RATE_LOW = 0.25;
   var TRENDS_VISIBLE = 5;
@@ -1194,6 +1195,9 @@
 
   // ---- Date / Games view ----
   var SCHEDULE = DATA.schedule || { gameCounts: {}, games: {} };
+  // Nothing before the regular season's first day is shown or reachable.
+  var SEASON_START = DATA.seasonStart || '';
+  function clampToSeason(dateStr) { return (SEASON_START && dateStr < SEASON_START) ? SEASON_START : dateStr; }
   var currentGamesToday = null;
 
   function todayET() {
@@ -1226,7 +1230,7 @@
     try {
       var params = new URLSearchParams(window.location.search);
       var d = params.get('date');
-      if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+      if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) return clampToSeason(d);
     } catch (e) {}
     return todayET();
   }
@@ -1240,6 +1244,7 @@
     } catch (e) {}
   }
   function goToDate(dateStr) {
+    dateStr = clampToSeason(dateStr);
     dateState.selectedDate = dateStr;
     setDateInURL(dateStr);
     renderDateView();
@@ -1508,6 +1513,7 @@
     var dateStr = dateState.selectedDate;
     document.getElementById('dateLabel').textContent = dateLabelText(dateStr);
     document.getElementById('dateTodayBtn').style.display = (dateStr === todayET()) ? 'none' : '';
+    document.getElementById('datePrev').disabled = !!SEASON_START && dateStr <= SEASON_START;
 
     var info = scheduleStateFor(dateStr);
     var note = document.getElementById('noGamesNote');
@@ -1630,7 +1636,7 @@
       cells.push({ day: cells.length - (startDow + daysInMonth) + 1, outside: true });
     }
     grid.innerHTML = cells.map(function(c) {
-      if (c.outside) return '<button type="button" class="cal-day outside" disabled>' + c.day + '</button>';
+      if (c.outside || (SEASON_START && c.dateStr < SEASON_START)) return '<button type="button" class="cal-day outside" disabled>' + c.day + '</button>';
       var hasGames = (SCHEDULE.gameCounts[c.dateStr] || 0) > 0;
       var cls = 'cal-day';
       if (c.dateStr === dateState.selectedDate) cls += ' selected';
@@ -1657,7 +1663,7 @@
     btts: { hit: 'BTTS',      miss: 'No BTTS',   streakKey: 'btts', rateKey: 'btts' }
   };
   var TREND3_MIN_STREAK = 4;
-  var TREND3_RATE_MIN_GP = 20;
+  var TREND3_RATE_MIN_GP = 4;
   var TREND3_RATE_HIGH = 0.75;
   var TREND3_RATE_LOW = 0.25;
   var TREND3_MATCHUP_THRESHOLD = 0.60;
@@ -1963,7 +1969,7 @@
 
     var logRows = log.map(function(g) {
       var wl = g.p1t > g.p1o ? 'W' : g.p1t < g.p1o ? 'L' : 'T';
-      var finalStr = g.ft + '-' + g.fo + (g.ot ? ' ' + g.ot : '');
+      var finalStr = (g.ft != null && g.fo != null) ? (g.ft + '-' + g.fo + (g.ot ? ' ' + g.ot : '')) : '&mdash;';
       return '<tr>' +
         '<td class="mono">' + g.date.slice(5) + '</td>' +
         '<td>' + (g.side === 'Away' ? '@ ' : 'vs ') + g.opp + '</td>' +
