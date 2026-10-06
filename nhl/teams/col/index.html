@@ -442,6 +442,11 @@
   .odds-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
   .pill { background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 7px 9px; display: flex; align-items: baseline; gap: 6px; min-width: 0; }
   .pill .pill-label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; flex-shrink: 0; }
+  /* Light mode: market labels (ML / OU / BTTS) in the logo's blue. */
+  :root[data-theme="light"] .pill .pill-label { color: var(--accent); }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .pill .pill-label { color: var(--accent); }
+  }
   .pill .pill-body { font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; font-weight: 600; display: flex; flex-wrap: wrap; gap: 0 8px; min-width: 0; }
   .pill .pill-body .pb { white-space: nowrap; }
   .pill .pill-body:empty::before { content: '\2014'; color: var(--text-faint); font-weight: 400; }
