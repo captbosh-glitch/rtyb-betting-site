@@ -415,6 +415,17 @@
   .ds-pct.bad { background: var(--bad-dim); color: var(--bad); }
   .ds-pct.warn { background: var(--warn-dim); color: var(--warn); }
   .ds-empty { color: var(--text-muted); font-size: 0.88rem; padding: 2px 0; }
+  /* Fixed-width Record / Win % / Units columns so values line up. */
+  .ds-col-rec { width: 58px; text-align: right; }
+  .ds-col-pct { width: 50px; text-align: right; }
+  .ds-col-units { width: 74px; text-align: right; }
+  .ds-row.ds-head { padding: 0 0 4px; }
+  .ds-row.ds-head .ds-right > span {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 0.66rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted);
+  }
+  .ds-row.ds-head + .ds-row { border-top: 1px solid var(--border-soft); }
+  .ys-item .u-pill { font-size: 0.7rem; padding: 1px 6px; }
 
   .games-list { display: flex; flex-direction: column; gap: 12px; }
   .game-card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px 16px; }
@@ -648,6 +659,104 @@
   }
   .btts-badge.yes { background: var(--good-dim); color: var(--good); }
   .btts-badge.no { background: var(--bad-dim); color: var(--bad); }
+  .btts-badge.tie { background: var(--neutral-chip); color: var(--text-muted); }
+
+  /* ---------- Units (1u = $100 flat risk) ---------- */
+  /* 5-step shading: >= +3u strong green, >0 light green, 0 gray,
+     <0 light red, <= -3u strong red. Muted tints, same-hue text. */
+  .u-pill {
+    display: inline-block; font-family: 'JetBrains Mono', monospace; font-weight: 600;
+    font-size: 0.76rem; padding: 2px 7px; border-radius: 5px; white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .u-pos2 { background: color-mix(in srgb, var(--good) 34%, transparent); color: var(--good); }
+  .u-pos1 { background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good); }
+  .u-zero { background: var(--neutral-chip); color: var(--text-muted); }
+  .u-neg1 { background: color-mix(in srgb, var(--bad) 16%, transparent); color: var(--bad); }
+  .u-neg2 { background: color-mix(in srgb, var(--bad) 34%, transparent); color: var(--bad); }
+  .u-none { color: var(--text-faint); }
+
+  /* Circled-i tooltip: hover on desktop, tap on mobile (.open). */
+  .info-tip {
+    position: relative; display: inline-flex; align-items: center; justify-content: center;
+    width: 14px; height: 14px; border-radius: 50%; border: 1px solid currentColor;
+    background: none; color: var(--text-muted); font: italic 700 9px/1 Georgia, serif;
+    cursor: pointer; padding: 0; margin-left: 4px; vertical-align: middle;
+    text-transform: none; letter-spacing: 0;
+  }
+  .info-tip:hover, .info-tip.open { color: var(--accent); }
+  .info-tip .tip-bubble {
+    display: none; position: absolute; z-index: 60; top: calc(100% + 6px); right: -8px;
+    width: 250px; padding: 9px 11px; border-radius: 8px;
+    background: var(--panel-3); border: 1px solid var(--border); color: var(--text);
+    font: 400 0.76rem/1.4 'Source Sans 3', -apple-system, sans-serif; text-align: left;
+    white-space: normal; box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  }
+  .info-tip:hover .tip-bubble, .info-tip.open .tip-bubble { display: block; }
+  .info-tip.tip-left .tip-bubble { right: auto; left: -8px; }
+
+  /* ---------- Segmented toggles (Record | Units, All | Home | Away) ---------- */
+  .seg-toggle { display: inline-flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+  .seg-toggle .seg-btn { padding: 4px 10px; font-size: 0.74rem; }
+  .adv-link { background: none; border: none; color: var(--accent); font-size: 0.76rem; font-weight: 600; cursor: pointer; padding: 4px 6px; }
+
+  /* ---------- Season Results card (Stats page) ---------- */
+  .season-card {
+    background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 16px;
+  }
+  .season-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .season-card-head h3 { font-size: 0.95rem; }
+  .season-card-head .sc-right { display: flex; align-items: center; gap: 10px; }
+  .season-card-head .sc-gp { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-muted); }
+  .season-card .seg-toggle { margin-bottom: 0; }
+  .sc-week { font-size: 0.74rem; color: var(--text-muted); margin: -6px 0 10px; }
+  .sc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 720px) { .sc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .sc-block { background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 9px; padding: 10px 11px; min-width: 0; }
+  .sc-block h4 { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 700; margin-bottom: 6px; }
+  .sc-line { display: flex; justify-content: space-between; gap: 6px; font-size: 0.82rem; padding: 2px 0; }
+  .sc-line .sc-val { font-family: 'JetBrains Mono', monospace; font-weight: 600; white-space: nowrap; }
+  .sc-line .sc-val small { color: var(--text-muted); font-weight: 400; }
+  .sc-units { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-soft); font-size: 0.72rem; color: var(--text-muted); align-items: center; }
+  .sc-units span.sc-u { display: inline-flex; align-items: center; gap: 4px; }
+  .sc-flag { margin-top: 6px; font-size: 0.7rem; color: var(--warn); }
+
+  /* ---------- Team page: Season Markets cards tinted by units ---------- */
+  .stat-tile .val .u-inline { font-size: 0.85rem; margin-left: 8px; }
+  .stat-tile.t-good { background: color-mix(in srgb, var(--good) 16%, transparent); border-color: var(--good); }
+  .stat-tile.t-warn { background: color-mix(in srgb, var(--warn) 16%, transparent); border-color: var(--warn); }
+  .stat-tile.t-bad  { background: color-mix(in srgb, var(--bad) 16%, transparent);  border-color: var(--bad); }
+  .stat-tile.t-good .val { color: var(--good); }
+  .stat-tile.t-warn .val { color: var(--warn); }
+  .stat-tile.t-bad .val  { color: var(--bad); }
+  .stat-tile.t-none .val { color: var(--text-muted); }
+
+  /* ---------- Team page: Last 10 games ---------- */
+  .l10-summary { font-size: 0.78rem; color: var(--text-muted); margin: 2px 0 8px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+  .l10-summary b { color: var(--text); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .gamelog.l10 { min-width: 0; table-layout: fixed; }
+  .gamelog.l10 th, .gamelog.l10 td { padding: 7px 3px; text-align: center; }
+  .gamelog.l10 th:nth-child(2), .gamelog.l10 td:nth-child(2) { text-align: left; }
+  .gamelog.l10 .opp-cell { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+  .gamelog.l10 td { white-space: nowrap; }
+  .gamelog.l10 td:nth-child(2) { padding-left: 6px; }
+  @media (max-width: 420px) { .gamelog.l10 { font-size: 0.72rem; } }
+
+  /* Phones: Stats table and splits fit the screen (Units column visible). */
+  @media (max-width: 600px) {
+    #leagueTable { min-width: 0; }
+    #leagueTable th, #leagueTable td { padding: 9px 6px; font-size: 0.78rem; }
+    #leagueTable th { font-size: 0.6rem; letter-spacing: 0.04em; }
+    #leagueTable td.team-cell { white-space: normal; gap: 6px; }
+    #leagueTable .pct-bar { display: none; }
+    #leagueTable .pct-num { width: auto; }
+    #leagueTable .u-pill { font-size: 0.7rem; padding: 2px 5px; }
+    .split-table { min-width: 0; font-size: 0.74rem; }
+    .split-table th, .split-table td { padding: 6px 4px; }
+    .split-table .u-pill { font-size: 0.68rem; padding: 2px 4px; }
+    .stat-tile .val .u-inline { display: block; margin: 2px 0 0; }
+  }
 
   /* ---------- Trends page ---------- */
   .trend-row .team-name a { color: inherit; text-decoration: none; }
@@ -720,7 +829,7 @@
 <main>
   <div class="page-head">
     <h1>Utah Mammoth</h1>
-    <p>1st-period Moneyline, Over-Under 1.5, and BTTS rates, home/away splits, last 10 games, and current trends for the Utah Mammoth.</p>
+    <p>1st-period Moneyline, Over 1.5, and BTTS records and units, home/away splits, last 10 games, and current trends for the Utah Mammoth.</p>
   </div>
 
   <div class="no-games-note" id="rtybLoadNote">Loading data&hellip;</div>
@@ -736,19 +845,29 @@
   
   <div class="team-page-head" id="teamPageHead"></div>
   <div id="teamNextGame"></div>
-  <div class="drawer-section-title">Season Markets</div>
+  <div class="drawer-section-title">Season Markets<span class="units-tip-slot" data-tip-align="left"></span></div>
   <div class="stat-row" id="teamMarketTiles"></div>
   <div class="drawer-section-title">Home / Away Splits</div>
+  <div class="seg-toggle" id="splitsModeToggle">
+    <button class="seg-btn" data-splits-mode="record" aria-pressed="true">Record</button>
+    <button class="seg-btn" data-splits-mode="units" aria-pressed="false">Units</button>
+  </div>
   <div class="gamelog-scroll"><table class="split-table" id="teamSplitsTable"></table></div>
   <div class="drawer-section-title">Current Trends</div>
   <div id="teamTrendsBadges"></div>
   <div class="drawer-section-title">Last 10 Games &mdash; 1P Result</div>
-  <div class="gamelog-scroll"><table class="gamelog" id="teamGamelogTable"></table></div>
+  <div class="seg-toggle" id="l10SideToggle">
+    <button class="seg-btn" data-l10-side="all" aria-pressed="true">All</button>
+    <button class="seg-btn" data-l10-side="Home" aria-pressed="false">Home</button>
+    <button class="seg-btn" data-l10-side="Away" aria-pressed="false">Away</button>
+  </div>
+  <div class="l10-summary" id="teamL10Summary"></div>
+  <table class="gamelog l10" id="teamGamelogTable"></table>
   
 </main>
 
 <footer>
-  RTYB &mdash; 2026&ndash;27 regular season, games from Sept. 29 on. Records reflect 1st-period results only; ties (periods ending level) count as pushes on the Winner market. Not affiliated with the NHL.
+  RTYB &mdash; 2026&ndash;27 regular season, games from Sept. 29 on. Records reflect 1st-period results only; ties (periods ending level) count as pushes on the Moneyline market. Not affiliated with the NHL.
 </footer>
 
 <script>
@@ -925,13 +1044,64 @@
   }
 
   var MARKETS = {
-    win:  { label: 'Winner',   key: 'w',   desc: '1P Win %' },
+    win:  { label: 'Moneyline', key: 'w',  desc: '1P Win %' },
     o05:  { label: 'Over 0.5', key: 'o05', desc: 'Over 0.5 goals' },
     o15:  { label: 'Over 1.5', key: 'o15', desc: 'Over 1.5 goals' },
     o25:  { label: 'Over 2.5', key: 'o25', desc: 'Over 2.5 goals' },
     btts: { label: 'BTTS',     key: 'btts', desc: 'Both teams to score', noTies: true },
   };
-  var state = { market: 'win', side: 'Both', sortKey: 'pct', sortDir: -1, search: '' };
+  var state = { market: 'win', side: 'Both', sortKey: 'units', sortDir: -1, search: '' };
+  var UNIT_MARKETS = { win: 1, o15: 1, btts: 1 }; // Over 0.5 / 2.5 are record-only (no odds yet)
+
+  // ---- Units: every bet risks 1u ($100), 1st-period markets ----
+  // Win at negative odds: 100/|odds|; at positive odds: odds/100; even
+  // odds +1.00u. Loss -1.00u, tie/push 0. Sum unrounded, round the total.
+  var UNITS_TIP = '1 unit = $100. Profit or loss from betting $100 on every game in the category at the listed odds. Losses = -1 unit. Ties are pushes (0). Example: +2.06u = +$206.';
+  function winUnits(price) {
+    var n = oddsNum(price);
+    if (n === null || n === 0) return null;
+    return n < 0 ? 100 / Math.abs(n) : n / 100;
+  }
+  // result: 'W' | 'L' | 'T'. null = a win with no saved price (left out of the sum).
+  function betUnits(result, price) {
+    if (result === 'L') return -1;
+    if (result === 'T') return 0;
+    return winUnits(price);
+  }
+  function roundUnits(u) {
+    var r = Math.round(u * 100) / 100;
+    return r === 0 ? 0 : r; // no "-0.00u"
+  }
+  function fmtUnits(u) {
+    var r = roundUnits(u);
+    return (r > 0 ? '+' : r < 0 ? '-' : '') + Math.abs(r).toFixed(2) + 'u';
+  }
+  function unitsClass(u) {
+    var r = roundUnits(u);
+    return r >= 3 ? 'u-pos2' : r > 0 ? 'u-pos1' : r === 0 ? 'u-zero' : r > -3 ? 'u-neg1' : 'u-neg2';
+  }
+  function unitsPill(u) {
+    if (u === null || u === undefined) return '<span class="u-pill u-none">&mdash;</span>';
+    return '<span class="u-pill ' + unitsClass(u) + '">' + fmtUnits(u) + '</span>';
+  }
+  function unitsTipHtml(alignLeft) {
+    return '<button type="button" class="info-tip' + (alignLeft ? ' tip-left' : '') + '" aria-label="About units">i' +
+      '<span class="tip-bubble" role="tooltip">' + UNITS_TIP + '</span></button>';
+  }
+  document.querySelectorAll('.units-tip-slot').forEach(function(slot) {
+    slot.innerHTML = unitsTipHtml(slot.getAttribute('data-tip-align') === 'left');
+  });
+  // Tap/click toggles a tooltip (mobile); captured so a tip inside a
+  // sortable table header doesn't also sort the column.
+  document.addEventListener('click', function(e) {
+    var tip = e.target.closest ? e.target.closest('.info-tip') : null;
+    document.querySelectorAll('.info-tip.open').forEach(function(t) { if (t !== tip) t.classList.remove('open'); });
+    if (tip) {
+      e.stopPropagation();
+      e.preventDefault();
+      tip.classList.toggle('open');
+    }
+  }, true);
 
   // ---- theme ----
   try {
@@ -1097,18 +1267,32 @@
   });
 
   // ---- controls wiring ----
-  document.querySelectorAll('[data-market]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('[data-market]').forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
-      btn.setAttribute('aria-pressed', 'true');
-      state.market = btn.getAttribute('data-market');
-      state.sortKey = 'pct';
-      state.sortDir = -1;
-      document.querySelectorAll('#leagueTable thead th .arrow').forEach(function(a) { a.textContent = ''; });
-      var pctArrow = document.querySelector('#leagueTable thead th[data-sort="pct"] .arrow');
-      if (pctArrow) pctArrow.textContent = '▼';
-      renderTable();
+  function setSortArrows() {
+    document.querySelectorAll('#leagueTable thead th .arrow').forEach(function(a) { a.textContent = ''; });
+    var th = document.querySelector('#leagueTable thead th[data-sort="' + state.sortKey + '"] .arrow');
+    if (th) th.textContent = state.sortDir === 1 ? '▲' : '▼';
+  }
+  function selectMarket(market) {
+    document.querySelectorAll('[data-market]').forEach(function(b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-market') === market ? 'true' : 'false');
     });
+    state.market = market;
+    // Record-only markets have no units to sort by.
+    state.sortKey = UNIT_MARKETS[market] ? 'units' : 'pct';
+    state.sortDir = -1;
+    setSortArrows();
+    renderTable();
+  }
+  document.querySelectorAll('[data-market]').forEach(function(btn) {
+    btn.addEventListener('click', function() { selectMarket(btn.getAttribute('data-market')); });
+  });
+  var advToggleBtn = document.getElementById('advToggle');
+  if (advToggleBtn) advToggleBtn.addEventListener('click', function() {
+    var opening = advToggleBtn.getAttribute('aria-expanded') !== 'true';
+    advToggleBtn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+    advToggleBtn.textContent = opening ? 'Hide advanced' : 'Advanced';
+    document.querySelectorAll('.adv-market').forEach(function(b) { b.hidden = !opening; });
+    if (!opening && !UNIT_MARKETS[state.market]) selectMarket('win');
   });
   document.querySelectorAll('[data-side]').forEach(function(btn) {
     btn.addEventListener('click', function() {
@@ -1128,50 +1312,77 @@
       var key = th.getAttribute('data-sort');
       if (state.sortKey === key) { state.sortDir *= -1; }
       else { state.sortKey = key; state.sortDir = key === 'name' ? 1 : -1; }
-      document.querySelectorAll('#leagueTable thead th .arrow').forEach(function(a) { a.textContent = ''; });
-      th.querySelector('.arrow').textContent = state.sortDir === 1 ? '▲' : '▼';
+      setSortArrows();
       renderTable();
     });
   });
 
+  // One team's results in one market from its game log. side: 'Both' (All),
+  // 'Home' or 'Away'. W/L/T is from the bettor's side: Moneyline = this
+  // team, Over markets = the Over, BTTS = Yes.
+  function teamMarketAgg(log, side, market) {
+    var r = { gp: 0, w: 0, l: 0, t: 0, units: UNIT_MARKETS[market] ? 0 : null };
+    log.forEach(function(e) {
+      if (side !== 'Both' && e.side !== side) return;
+      var total = e.p1t + e.p1o, res, price;
+      if (market === 'win') { res = e.p1t > e.p1o ? 'W' : e.p1t < e.p1o ? 'L' : 'T'; price = e.ml; }
+      else if (market === 'o15') { res = total > 1 ? 'W' : 'L'; price = e.overPrice; }
+      else if (market === 'btts') { res = e.btts ? 'W' : 'L'; price = e.bttsYesPrice; }
+      else if (market === 'o05') res = total > 0 ? 'W' : 'L';
+      else res = total > 2 ? 'W' : 'L';
+      r.gp++;
+      if (res === 'W') r.w++; else if (res === 'L') r.l++; else r.t++;
+      if (r.units !== null) {
+        var u = betUnits(res, price);
+        if (u !== null) r.units += u;
+      }
+    });
+    var decided = r.w + r.l;
+    r.pct = decided ? r.w / decided : null; // win % excludes ties
+    r.rec = market === 'win' ? (r.w + '-' + r.l + '-' + r.t) : (r.w + '-' + r.l);
+    return r;
+  }
+
   function teamRows() {
     return Object.keys(DATA.summary).map(function(code) {
-      var s = DATA.summary[code];
-      var split = s.splits[state.side];
-      var mk = MARKETS[state.market];
-      var hitCount = state.market === 'win' ? split.w : split[mk.key];
-      var denom = split.gp;
-      var pct = denom ? (hitCount / denom) : 0;
-      var rec = state.market === 'win'
-        ? (split.w + '-' + split.l + '-' + split.t)
-        : (hitCount + '-' + (denom - hitCount));
-      return { code: code, name: s.name, gp: denom, rec: rec, pct: pct, hitCount: hitCount };
+      var r = teamMarketAgg(DATA.gamelog[code] || [], state.side, state.market);
+      r.code = code;
+      r.name = DATA.summary[code].name;
+      r.wins = r.w;
+      return r;
     });
   }
 
   function renderTable() {
-    var tbodyCheck = document.getElementById('leagueBody');
-    if (!tbodyCheck) return;
+    var tbody = document.getElementById('leagueBody');
+    if (!tbody) return;
     var rows = teamRows().filter(function(r) {
       return !state.search || r.name.toLowerCase().indexOf(state.search) !== -1;
     });
+    function sortVal(r) {
+      var v = r[state.sortKey];
+      return (v === null || v === undefined) ? -Infinity : v;
+    }
     rows.sort(function(a, b) {
-      var v = state.sortKey === 'name' ? a.name.localeCompare(b.name) : (a[state.sortKey] - b[state.sortKey]);
-      return v * state.sortDir;
+      if (state.sortKey === 'name') return a.name.localeCompare(b.name) * state.sortDir;
+      var va = sortVal(a), vb = sortVal(b);
+      if (va === vb) return a.name.localeCompare(b.name);
+      if (va === -Infinity) return 1;
+      if (vb === -Infinity) return -1;
+      return (va - vb) * state.sortDir;
     });
-    var tbody = document.getElementById('leagueBody');
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">No teams match &ldquo;' + escapeHtml(state.search) + '&rdquo;.</div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No teams match &ldquo;' + escapeHtml(state.search) + '&rdquo;.</div></td></tr>';
       return;
     }
     tbody.innerHTML = rows.map(function(r) {
-      var pctDisplay = Math.round(r.pct * 100);
-      var tc = teamColor(r.code);
+      var pctDisplay = r.pct === null ? null : Math.round(r.pct * 100);
       return '<tr data-team="' + r.code + '">' +
-        '<td class="team-cell">' + teamLogoHtml(r.code, 24, {lazy: true}) + r.name + '</td>' +
+        '<td class="team-cell">' + teamLogoHtml(r.code, 24, {lazy: true}) + escapeHtml(r.name) + '</td>' +
         '<td class="num mono">' + r.gp + '</td>' +
         '<td class="rec-cell mono"><b>' + r.rec + '</b></td>' +
-        '<td class="num"><div class="pct-cell"><div class="pct-bar"><span style="width:' + pctDisplay + '%"></span></div><span class="pct-num mono">' + pctDisplay + '%</span></div></td>' +
+        '<td class="num"><div class="pct-cell"><div class="pct-bar"><span style="width:' + (pctDisplay || 0) + '%"></span></div><span class="pct-num mono">' + (pctDisplay === null ? '&mdash;' : pctDisplay + '%') + '</span></div></td>' +
+        '<td class="num">' + unitsPill(r.units) + '</td>' +
         '</tr>';
     }).join('');
     tbody.querySelectorAll('tr[data-team]').forEach(function(tr) {
@@ -1299,53 +1510,46 @@
   }
   function isGameOver(g) { return g.state === 'FINAL' || g.state === 'OFF'; }
 
-  // Daily results, each row a head-to-head of two sides graded off the 1st
-  // period: Home-Away (who won the period), Favorites-Underdogs (moneyline
-  // favorite vs. dog -- only games with saved prices for both sides),
-  // Total 1.5 (Over-Under) and BTTS (Yes-No). `a` is always the side whose
-  // win shows green (home, favorite, over, yes); ties are counted separately
-  // and left out of the percentage.
+  // Daily results: one row per tracked side, graded off the 1st period --
+  // Home (the home team's moneyline), Favorites (the moneyline favorite;
+  // only games with saved prices for both sides), Over 1.5 and BTTS Yes.
+  // Units = $100 on that side every game at its listed price.
   function computeDailySummary(games) {
     var finals = games.filter(hasP1Result);
     if (!finals.length) return null;
-    var rows = [];
-
-    var ha = { a: 0, b: 0, t: 0 };
+    function row(label, hasTies) { return { label: label, w: 0, l: 0, t: 0, units: 0, hasTies: hasTies }; }
+    function add(r, res, price) {
+      if (res === 'W') r.w++; else if (res === 'L') r.l++; else r.t++;
+      var u = betUnits(res, price);
+      if (u !== null) r.units += u;
+    }
+    var home = row('Home', true), fav = row('Favorites', true), over = row('Over 1.5', false), btts = row('BTTS Yes', false);
+    var favGames = 0;
     finals.forEach(function(g) {
-      if (g.homeP1 > g.awayP1) ha.a++; else if (g.awayP1 > g.homeP1) ha.b++; else ha.t++;
+      var odds = g.odds || {}, ml = odds.ml || {};
+      add(home, g.homeP1 > g.awayP1 ? 'W' : g.homeP1 < g.awayP1 ? 'L' : 'T', ml[g.home]);
+      var pa = oddsNum(ml[g.away]), ph = oddsNum(ml[g.home]);
+      if (pa !== null && ph !== null && pa !== ph) {
+        favGames++;
+        var favHome = ph < pa;
+        var fP1 = favHome ? g.homeP1 : g.awayP1, dP1 = favHome ? g.awayP1 : g.homeP1;
+        add(fav, fP1 > dP1 ? 'W' : fP1 < dP1 ? 'L' : 'T', favHome ? ph : pa);
+      }
+      var t = (odds.totals && odds.totals['1.5']) || {};
+      add(over, g.awayP1 + g.homeP1 > 1 ? 'W' : 'L', t.over);
+      add(btts, (g.awayP1 >= 1 && g.homeP1 >= 1) ? 'W' : 'L', odds.btts_yes);
     });
-    rows.push({ label: 'Home-Away', rec: ha });
-
-    var fd = { a: 0, b: 0, t: 0 }, fdGames = 0;
-    finals.forEach(function(g) {
-      var ml = g.odds && g.odds.ml;
-      var pa = ml ? oddsNum(ml[g.away]) : null, ph = ml ? oddsNum(ml[g.home]) : null;
-      if (pa === null || ph === null || pa === ph) return;
-      fdGames++;
-      var favIsHome = ph < pa;
-      var favP1 = favIsHome ? g.homeP1 : g.awayP1, dogP1 = favIsHome ? g.awayP1 : g.homeP1;
-      if (favP1 > dogP1) fd.a++; else if (dogP1 > favP1) fd.b++; else fd.t++;
-    });
-    if (fdGames) rows.push({ label: 'Favorites-Underdogs', rec: fd });
-
-    var ou = { a: 0, b: 0, t: 0 };
-    finals.forEach(function(g) { if (g.awayP1 + g.homeP1 > 1) ou.a++; else ou.b++; });
-    rows.push({ label: 'Total 1.5', rec: ou });
-
-    var bt = { a: 0, b: 0, t: 0 };
-    finals.forEach(function(g) { if (g.awayP1 >= 1 && g.homeP1 >= 1) bt.a++; else bt.b++; });
-    rows.push({ label: 'BTTS', rec: bt });
-
-    return rows;
+    return favGames ? [home, fav, over, btts] : [home, over, btts];
   }
 
   function summaryRowView(r) {
-    var decided = r.rec.a + r.rec.b;
-    var pct = decided ? Math.round((r.rec.a / decided) * 100) : 50;
+    var decided = r.w + r.l;
+    var pct = decided ? Math.round((r.w / decided) * 100) : null; // ties excluded
     return {
-      rec: r.rec.a + '-' + r.rec.b + (r.rec.t ? '-' + r.rec.t : ''),
-      pct: pct,
-      cls: pct > 50 ? 'good' : pct < 50 ? 'bad' : 'warn'
+      rec: r.w + '-' + r.l + (r.hasTies ? '-' + r.t : ''),
+      pct: pct === null ? '&mdash;' : pct + '%',
+      cls: pct === null || pct === 50 ? 'warn' : pct > 50 ? 'good' : 'bad',
+      units: unitsPill(r.units)
     };
   }
 
@@ -1372,12 +1576,120 @@
 
     el.style.display = '';
     el.innerHTML = heading +
+      '<div class="ds-row ds-head"><span class="ds-label"></span><span class="ds-right">' +
+        '<span class="ds-col-rec">Record</span><span class="ds-col-pct">Win %</span>' +
+        '<span class="ds-col-units">Units' + unitsTipHtml() + '</span></span></div>' +
       rows.map(function(r) {
         var v = summaryRowView(r);
         return '<div class="ds-row"><span class="ds-label">' + r.label + '</span>' +
-          '<span class="ds-right"><span class="ds-record">' + v.rec + '</span>' +
-          '<span class="ds-pct ' + v.cls + '">' + v.pct + '%</span></span></div>';
+          '<span class="ds-right"><span class="ds-col-rec ds-record">' + v.rec + '</span>' +
+          '<span class="ds-col-pct"><span class="ds-pct ' + v.cls + '">' + v.pct + '</span></span>' +
+          '<span class="ds-col-units">' + v.units + '</span></span></div>';
       }).join('');
+  }
+
+  // ---- Season Results card (Stats page) ----
+  // Every graded game since SEASON_START, split four ways. Each block's
+  // counts include ties, so its percentages sum to 100% of GP; units are
+  // $100 on each side every game (ties push).
+  function computeSeasonBlocks(games) {
+    var ha = { home: 0, away: 0, tie: 0, uHome: 0, uAway: 0 };
+    var fd = { fav: 0, dog: 0, tie: 0, uFav: 0, uDog: 0 };
+    var ou = { over: 0, under: 0, uOver: 0, uUnder: 0 };
+    var yn = { yes: 0, no: 0, uYes: 0, uNo: 0 };
+    function w(price) { var u = winUnits(price); return u === null ? 0 : u; }
+    games.forEach(function(g) {
+      var odds = g.odds || {}, ml = odds.ml || {};
+      if (g.homeP1 > g.awayP1) { ha.home++; ha.uHome += w(ml[g.home]); ha.uAway -= 1; }
+      else if (g.awayP1 > g.homeP1) { ha.away++; ha.uAway += w(ml[g.away]); ha.uHome -= 1; }
+      else ha.tie++;
+
+      var pa = oddsNum(ml[g.away]), ph = oddsNum(ml[g.home]);
+      if (pa !== null && ph !== null && pa !== ph) {
+        var favHome = ph < pa;
+        var fP1 = favHome ? g.homeP1 : g.awayP1, dP1 = favHome ? g.awayP1 : g.homeP1;
+        var fPrice = favHome ? ph : pa, dPrice = favHome ? pa : ph;
+        if (fP1 > dP1) { fd.fav++; fd.uFav += w(fPrice); fd.uDog -= 1; }
+        else if (dP1 > fP1) { fd.dog++; fd.uDog += w(dPrice); fd.uFav -= 1; }
+        else fd.tie++;
+      }
+
+      var t = (odds.totals && odds.totals['1.5']) || {};
+      if (g.awayP1 + g.homeP1 > 1) { ou.over++; ou.uOver += w(t.over); ou.uUnder -= 1; }
+      else { ou.under++; ou.uUnder += w(t.under); ou.uOver -= 1; }
+
+      if (g.awayP1 >= 1 && g.homeP1 >= 1) { yn.yes++; yn.uYes += w(odds.btts_yes); yn.uNo -= 1; }
+      else { yn.no++; yn.uNo += w(odds.btts_no); yn.uYes -= 1; }
+    });
+    return { gp: games.length, ha: ha, fd: fd, ou: ou, yn: yn };
+  }
+
+  var MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function shortDate(dateStr) { var d = parseDateStr(dateStr); return MONTH_ABBR[d.getUTCMonth()] + ' ' + d.getUTCDate(); }
+  function mondayOf(dateStr) { var d = parseDateStr(dateStr); return addDays(dateStr, -((d.getUTCDay() + 6) % 7)); }
+  // Weeks run Monday-Sunday; Week 1 is the season's opening (partial) week.
+  function seasonWeek(dateStr) {
+    var startMon = mondayOf(SEASON_START), mon = mondayOf(dateStr);
+    var n = Math.round((parseDateStr(mon) - parseDateStr(startMon)) / (7 * 86400000)) + 1;
+    var from = mon < SEASON_START ? SEASON_START : mon;
+    return { n: n, from: from, to: addDays(mon, 6) };
+  }
+  function gradedGamesBetween(from, to) {
+    var out = [];
+    Object.keys(SCHEDULE.games || {}).sort().forEach(function(d) {
+      if (d < from || d > to) return;
+      (SCHEDULE.games[d] || []).forEach(function(g) { if (hasP1Result(g)) out.push(g); });
+    });
+    return out;
+  }
+
+  var seasonCardMode = 'season';
+  function renderSeasonResults() {
+    var el = document.getElementById('seasonResults');
+    if (!el) return;
+    var games, weekLine = '';
+    if (seasonCardMode === 'week') {
+      var wk = seasonWeek(todayET() < SEASON_START ? SEASON_START : todayET());
+      games = gradedGamesBetween(wk.from, wk.to);
+      weekLine = '<div class="sc-week">Week ' + wk.n + ' (' + shortDate(wk.from) + ' &ndash; ' + shortDate(wk.to) + ')</div>';
+    } else {
+      games = gradedGamesBetween(SEASON_START || '0000-00-00', '9999-12-31');
+    }
+    var b = computeSeasonBlocks(games);
+    function line(label, n) {
+      var pct = b.gp ? Math.round((n / b.gp) * 100) + '%' : '&mdash;';
+      return '<div class="sc-line"><span>' + label + '</span><span class="sc-val">' + n + ' <small>(' + pct + ')</small></span></div>';
+    }
+    function uLine(pairs) {
+      return '<div class="sc-units">' + pairs.map(function(p) {
+        return '<span class="sc-u">' + p[0] + ' ' + unitsPill(b.gp ? p[1] : 0) + '</span>';
+      }).join('') + '</div>';
+    }
+    function block(title, lines, units) {
+      var sum = lines.reduce(function(acc, l) { return acc + l[1]; }, 0);
+      var flag = sum !== b.gp ? '<div class="sc-flag">&#9888; Adds up to ' + sum + ' of ' + b.gp + ' GP (games with missing or even odds)</div>' : '';
+      return '<div class="sc-block"><h4>' + title + '</h4>' +
+        lines.map(function(l) { return line(l[0], l[1]); }).join('') + uLine(units) + flag + '</div>';
+    }
+    el.innerHTML =
+      '<div class="season-card-head"><h3>Season Results</h3><div class="sc-right">' +
+        '<div class="seg-toggle" role="group" aria-label="Season or this week">' +
+          '<button class="seg-btn" data-sc-mode="season" aria-pressed="' + (seasonCardMode === 'season') + '">Season</button>' +
+          '<button class="seg-btn" data-sc-mode="week" aria-pressed="' + (seasonCardMode === 'week') + '">This Week</button>' +
+        '</div><span class="sc-gp">' + b.gp + ' GP</span>' + unitsTipHtml() + '</div></div>' +
+      weekLine +
+      '<div class="sc-grid">' +
+        block('Moneyline (H/A)', [['Home', b.ha.home], ['Away', b.ha.away], ['Tie', b.ha.tie]], [['Home', b.ha.uHome], ['Away', b.ha.uAway]]) +
+        block('Moneyline (F/D)', [['Favorite', b.fd.fav], ['Underdog', b.fd.dog], ['Tie', b.fd.tie]], [['Fav', b.fd.uFav], ['Dog', b.fd.uDog]]) +
+        block('Over 1.5 (O/U)', [['Over', b.ou.over], ['Under', b.ou.under]], [['Over', b.ou.uOver], ['Under', b.ou.uUnder]]) +
+        block('BTTS (Y/N)', [['Yes', b.yn.yes], ['No', b.yn.no]], [['Yes', b.yn.uYes], ['No', b.yn.uNo]]) +
+      '</div>';
+    el.querySelectorAll('[data-sc-mode]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        seasonCardMode = btn.getAttribute('data-sc-mode');
+        renderSeasonResults();
+      });
+    });
   }
 
   function fmtAmerican(price) {
@@ -1496,7 +1808,7 @@
         var v = summaryRowView(r);
         return '<span class="ys-item"><span class="ys-label">' + escapeHtml(r.label) + '</span>' +
           '<span class="ys-rec">' + v.rec + '</span>' +
-          '<span class="ys-pct ' + v.cls + '">' + v.pct + '%</span></span>';
+          '<span class="ys-pct ' + v.cls + '">' + v.pct + '</span>' + v.units + '</span>';
       }).join('');
     el.onclick = function() { goToDate(yDate); };
   }
@@ -1898,7 +2210,6 @@
     if (!code || !DATA.summary[code]) return;
     var s = DATA.summary[code];
     var st = DATA.streaks[code];
-    var log = (DATA.gamelog[code] || []).slice(-10).reverse();
 
     var headEl = document.getElementById('teamPageHead');
     headEl.innerHTML = '<div style="display:flex;align-items:center;gap:10px;">' +
@@ -1920,29 +2231,54 @@
         '<div class="ds-row"><span class="ds-label">' + (isHome ? 'vs ' : '@ ') + escapeHtml(oppName) + '</span>' +
           '<span class="ds-right"><a href="' + SITE_ROOT + '/nhl/games/?date=' + dateStr + '">' + escapeHtml(dateLabelText(dateStr)) + ' &middot; ' + fmtGameTime(g.startTimeUTC) + '</a></span></div>' +
         '<div class="ds-row"><span class="ds-label">Moneyline</span><span class="ds-right mono">' + mlPrice + '</span></div>' +
-        '<div class="ds-row"><span class="ds-label">Over-Under 1.5</span><span class="ds-right mono">' + ouPrice + '</span></div>' +
+        '<div class="ds-row"><span class="ds-label">Over 1.5</span><span class="ds-right mono">' + ouPrice + '</span></div>' +
         '<div class="ds-row"><span class="ds-label">BTTS</span><span class="ds-right mono">' + bttsPrice + '</span></div>' +
       '</div>';
     } else {
       nextGameEl.innerHTML = '<div class="no-games-note">No upcoming game currently scheduled.</div>';
     }
 
-    var both = s.splits.Both;
-    var winPct = both.gp ? Math.round((both.w / both.gp) * 100) : 0;
-    var o15Pct = both.gp ? Math.round((both.o15 / both.gp) * 100) : 0;
-    var bttsPct = both.gp ? Math.round((both.btts / both.gp) * 100) : 0;
-    document.getElementById('teamMarketTiles').innerHTML =
-      '<div class="stat-tile"><div class="lbl">Moneyline</div><div class="val">' + winPct + '%</div></div>' +
-      '<div class="stat-tile"><div class="lbl">Over-Under 1.5</div><div class="val">' + o15Pct + '%</div></div>' +
-      '<div class="stat-tile"><div class="lbl">BTTS</div><div class="val">' + bttsPct + '%</div></div>';
+    var fullLog = DATA.gamelog[code] || [];
 
-    function splitRow(label, sp) {
-      return '<tr><td>' + label + '</td><td class="num">' + sp.gp + '</td><td class="num">' + sp.w + '-' + sp.l + '-' + sp.t + '</td>' +
-        '<td class="num">' + sp.o15 + '/' + sp.gp + '</td><td class="num">' + sp.btts + '/' + sp.gp + '</td></tr>';
+    // Season Markets: win % and units per market, tinted by units --
+    // green > +0.25u, yellow -0.25u to +0.25u, red < -0.25u, gray with no games.
+    var TILE_MARKETS = [['win', 'Moneyline'], ['o15', 'Over 1.5'], ['btts', 'BTTS']];
+    document.getElementById('teamMarketTiles').innerHTML = TILE_MARKETS.map(function(m) {
+      var r = teamMarketAgg(fullLog, 'Both', m[0]);
+      if (!r.gp) {
+        return '<div class="stat-tile t-none"><div class="lbl">' + m[1] + '</div><div class="val">&ndash;</div></div>';
+      }
+      var u = roundUnits(r.units);
+      var tint = u > 0.25 ? 't-good' : u >= -0.25 ? 't-warn' : 't-bad';
+      var pct = r.pct === null ? '&mdash;' : Math.round(r.pct * 100) + '%';
+      return '<div class="stat-tile ' + tint + '"><div class="lbl">' + m[1] + '</div>' +
+        '<div class="val">' + pct + '<span class="u-inline">' + fmtUnits(r.units) + '</span></div></div>';
+    }).join('');
+
+    // Home / Away splits, records or units.
+    var splitsMode = 'record';
+    function renderSplits() {
+      var isUnits = splitsMode === 'units';
+      function cell(r) { return isUnits ? unitsPill(r.units) : r.rec; }
+      function splitRow(label, side) {
+        var ml = teamMarketAgg(fullLog, side, 'win');
+        var o15 = teamMarketAgg(fullLog, side, 'o15');
+        var bt = teamMarketAgg(fullLog, side, 'btts');
+        return '<tr><td>' + label + '</td><td class="num">' + ml.gp + '</td>' +
+          '<td class="num">' + cell(ml) + '</td><td class="num">' + cell(o15) + '</td><td class="num">' + cell(bt) + '</td></tr>';
+      }
+      document.getElementById('teamSplitsTable').innerHTML =
+        '<tr><th style="text-align:left">Side</th><th>GP</th><th>' + (isUnits ? 'ML' : 'W-L-T') + '</th><th>O 1.5</th><th>BTTS</th></tr>' +
+        splitRow('All', 'Both') + splitRow('Home', 'Home') + splitRow('Away', 'Away');
     }
-    document.getElementById('teamSplitsTable').innerHTML =
-      '<tr><th style="text-align:left">Side</th><th>GP</th><th>W-L-T</th><th>O 1.5</th><th>BTTS</th></tr>' +
-      splitRow('Both', s.splits.Both) + splitRow('Home', s.splits.Home) + splitRow('Away', s.splits.Away);
+    document.querySelectorAll('[data-splits-mode]').forEach(function(btn) {
+      btn.onclick = function() {
+        splitsMode = btn.getAttribute('data-splits-mode');
+        document.querySelectorAll('[data-splits-mode]').forEach(function(b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+        renderSplits();
+      };
+    });
+    renderSplits();
 
     var streakHtml = '';
     if (st.wl_streak >= 2) {
@@ -1963,23 +2299,50 @@
     if (!streakHtml) streakHtml = '<span style="color:var(--text-muted);font-size:0.82rem;">No notable streak right now.</span>';
     document.getElementById('teamTrendsBadges').innerHTML = streakHtml;
 
-    var logRows = log.map(function(g) {
-      var wl = g.p1t > g.p1o ? 'W' : g.p1t < g.p1o ? 'L' : 'T';
-      var finalStr = (g.ft != null && g.fo != null) ? (g.ft + '-' + g.fo + (g.ot ? ' ' + g.ot : '')) : '&mdash;';
-      return '<tr>' +
-        '<td class="mono">' + g.date.slice(5) + '</td>' +
-        '<td>' + (g.side === 'Away' ? '@ ' : 'vs ') + g.opp + '</td>' +
-        '<td class="num"><span class="result-pill ' + wl + '">' + wl + '</span></td>' +
-        '<td class="num mono">' + g.p1t + '-' + g.p1o + '</td>' +
-        '<td class="num mono">' + finalStr + '</td>' +
-        '<td class="num"><span class="btts-badge ' + (g.btts ? 'yes' : 'no') + '">' + (g.btts ? '✓' : '✗') + '</span></td>' +
-        '</tr>';
-    }).join('');
-    document.getElementById('teamGamelogTable').innerHTML =
-      '<tr><th>Date</th><th>Opp</th><th>1P</th><th>Score</th><th>Final</th><th>BTTS</th></tr>' + logRows;
+    // Last 10 games in the selected split, with a units summary line.
+    var l10Side = 'all';
+    function renderLast10() {
+      var games = fullLog.filter(function(e) { return l10Side === 'all' || e.side === l10Side; }).slice(-10);
+      var ml = teamMarketAgg(games, 'Both', 'win');
+      var o15 = teamMarketAgg(games, 'Both', 'o15');
+      var bt = teamMarketAgg(games, 'Both', 'btts');
+      document.getElementById('teamL10Summary').innerHTML = games.length
+        ? '<span>ML <b>' + ml.rec + '</b> ' + unitsPill(ml.units) + '</span><span>&middot;</span>' +
+          '<span>O 1.5 <b>' + o15.rec + '</b> ' + unitsPill(o15.units) + '</span><span>&middot;</span>' +
+          '<span>BTTS <b>' + bt.rec + '</b> ' + unitsPill(bt.units) + '</span>' + unitsTipHtml()
+        : '';
+      var rows = games.slice().reverse().map(function(g) {
+        var wl = g.p1t > g.p1o ? 'W' : g.p1t < g.p1o ? 'L' : 'T';
+        var over = g.p1t + g.p1o >= 2;
+        var finalStr = (g.ft != null && g.fo != null) ? (g.ft + '-' + g.fo + (g.ot ? ' ' + g.ot : '')) : '&mdash;';
+        return '<tr>' +
+          '<td class="mono">' + g.date.slice(5) + '</td>' +
+          '<td><span class="opp-cell">' + (g.side === 'Away' ? '@' : 'vs') + ' ' +
+            (g.oppCode ? teamLogoHtml(g.oppCode, 16, {lazy: true}) : '') + escapeHtml(g.oppCode || g.opp) + '</span></td>' +
+          '<td class="mono">' + g.p1t + '-' + g.p1o + '</td>' +
+          '<td><span class="result-pill ' + wl + '">' + wl + '</span></td>' +
+          '<td><span class="btts-badge ' + (over ? 'yes' : 'no') + '">' + (over ? 'O' : 'U') + '</span></td>' +
+          '<td><span class="btts-badge ' + (g.btts ? 'yes' : 'no') + '">' + (g.btts ? 'Y' : 'N') + '</span></td>' +
+          '<td class="mono">' + finalStr + '</td>' +
+          '</tr>';
+      }).join('');
+      document.getElementById('teamGamelogTable').innerHTML =
+        '<colgroup><col style="width:14%"><col style="width:24%"><col style="width:12%"><col style="width:9%"><col style="width:11%"><col style="width:11%"><col style="width:19%"></colgroup>' +
+        '<tr><th>Date</th><th>Opp</th><th>Score</th><th>1P</th><th>O 1.5</th><th>BTTS</th><th>Final</th></tr>' +
+        (rows || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No games yet.</td></tr>');
+    }
+    document.querySelectorAll('[data-l10-side]').forEach(function(btn) {
+      btn.onclick = function() {
+        l10Side = btn.getAttribute('data-l10-side');
+        document.querySelectorAll('[data-l10-side]').forEach(function(b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+        renderLast10();
+      };
+    });
+    renderLast10();
   }
 
   if (document.getElementById('leagueBody')) renderTable();
+  if (document.getElementById('seasonResults')) renderSeasonResults();
   if (document.getElementById('gamesView')) renderDateView();
   if (document.getElementById('trendsGrid')) renderTrendsPage();
   if (document.getElementById('teamsGrid')) renderTeamsGrid('');
