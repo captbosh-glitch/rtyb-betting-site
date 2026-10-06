@@ -72,7 +72,7 @@ PAGE_META = {
     'trends': {
         'title': 'RTYB — Trends to Watch',
         'h1': 'NHL — Trends to Watch',
-        'desc': ('Active streaks and extreme season rates across Moneyline, Over-Under 1.5, and BTTS. '
+        'desc': ('Active streaks and extreme season rates across Moneyline, Over 1.5, and BTTS. '
                   'Scoped to tonight’s teams by default.'),
     },
     'teamsindex': {
@@ -142,11 +142,16 @@ def build_season_stats(merged_games, team_names):
                     split['o15'] += total > 1
                     split['o25'] += total > 2
                     split['btts'] += btts
-                ml = (g.get('odds') or {}).get('ml') or {}
+                odds = g.get('odds') or {}
+                ml = odds.get('ml') or {}
+                tot = (odds.get('totals') or {}).get('1.5') or {}
+                # Prices for the units math on Stats/team pages: this team's
+                # moneyline, the Over 1.5 price and the BTTS Yes price.
                 gamelog[code].append({
-                    'date': date_str, 'side': side, 'opp': TEAM_CITY.get(opp, opp),
+                    'date': date_str, 'side': side, 'opp': TEAM_CITY.get(opp, opp), 'oppCode': opp,
                     'p1t': p1t, 'p1o': p1o, 'ft': ft, 'fo': fo, 'ot': g.get('ot') or '',
-                    'ml': ml.get(code), 'btts': btts,
+                    'ml': ml.get(code), 'overPrice': tot.get('over'), 'bttsYesPrice': odds.get('btts_yes'),
+                    'btts': btts,
                 })
 
     def streak(log, result_fn):
@@ -180,7 +185,7 @@ def team_page_meta(code, name):
     return {
         'title': 'RTYB — ' + name,
         'h1': name,
-        'desc': ('1st-period Moneyline, Over-Under 1.5, and BTTS rates, home/away splits, last 10 games, '
+        'desc': ('1st-period Moneyline, Over 1.5, and BTTS records and units, home/away splits, last 10 games, '
                   'and current trends for the ' + name + '.'),
     }
 
