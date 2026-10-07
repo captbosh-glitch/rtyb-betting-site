@@ -563,6 +563,16 @@
   .pct-num { width: 42px; text-align: right; }
   .rec-cell { color: var(--text-muted); }
   .rec-cell b { color: var(--text); }
+  /* Stats team table: fixed stat columns so values line up under their headers. */
+  #leagueTable { table-layout: fixed; }
+  #leagueTable .col-rec { width: 110px; }
+  #leagueTable .col-pct { width: 150px; }
+  #leagueTable .col-units { width: 120px; }
+  @media (max-width: 600px) {
+    #leagueTable .col-rec { width: 62px; }
+    #leagueTable .col-pct { width: 48px; }
+    #leagueTable .col-units { width: 74px; }
+  }
 
   /* ---------- Detail drawer ---------- */
   .scrim {
@@ -852,7 +862,7 @@
         <button class="seg-btn" data-market="btts">BTTS</button>
         <button class="seg-btn adv-market" data-market="o05" hidden>Over 0.5</button>
         <button class="seg-btn adv-market" data-market="o25" hidden>Over 2.5</button>
-        <button type="button" class="adv-link" id="advToggle" aria-expanded="false">Advanced</button>
+        <button type="button" class="adv-link" id="advToggle" aria-expanded="false" hidden>Advanced</button><!-- hidden for now; remove `hidden` to bring back Over 0.5 / 2.5 -->
       </div>
       <div class="control-group">
         <span class="control-label">Side</span>
@@ -871,10 +881,9 @@
           <thead>
             <tr>
               <th data-sort="name">Team<span class="arrow"></span></th>
-              <th class="num" data-sort="gp">GP<span class="arrow"></span></th>
-              <th data-sort="wins">Record<span class="arrow"></span></th>
-              <th class="num" data-sort="pct">Win %<span class="arrow"></span></th>
-              <th class="num" data-sort="units">Units<span class="units-tip-slot"></span><span class="arrow">▼</span></th>
+              <th class="num col-rec" data-sort="wins">Record<span class="arrow"></span></th>
+              <th class="num col-pct" data-sort="pct">Win %<span class="arrow"></span></th>
+              <th class="num col-units" data-sort="units">Units<span class="units-tip-slot"></span><span class="arrow">▼</span></th>
             </tr>
           </thead>
           <tbody id="leagueBody"></tbody>
@@ -1397,17 +1406,16 @@
       return (va - vb) * state.sortDir;
     });
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No teams match &ldquo;' + escapeHtml(state.search) + '&rdquo;.</div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">No teams match &ldquo;' + escapeHtml(state.search) + '&rdquo;.</div></td></tr>';
       return;
     }
     tbody.innerHTML = rows.map(function(r) {
       var pctDisplay = r.pct === null ? null : Math.round(r.pct * 100);
       return '<tr data-team="' + r.code + '">' +
         '<td class="team-cell">' + teamLogoHtml(r.code, 24, {lazy: true}) + escapeHtml(r.name) + '</td>' +
-        '<td class="num mono">' + r.gp + '</td>' +
-        '<td class="rec-cell mono"><b>' + r.rec + '</b></td>' +
-        '<td class="num"><div class="pct-cell"><div class="pct-bar"><span style="width:' + (pctDisplay || 0) + '%"></span></div><span class="pct-num mono">' + (pctDisplay === null ? '&mdash;' : pctDisplay + '%') + '</span></div></td>' +
-        '<td class="num">' + unitsPill(r.units) + '</td>' +
+        '<td class="num rec-cell mono col-rec"><b>' + r.rec + '</b></td>' +
+        '<td class="num col-pct"><div class="pct-cell"><div class="pct-bar"><span style="width:' + (pctDisplay || 0) + '%"></span></div><span class="pct-num mono">' + (pctDisplay === null ? '&mdash;' : pctDisplay + '%') + '</span></div></td>' +
+        '<td class="num col-units">' + unitsPill(r.units) + '</td>' +
         '</tr>';
     }).join('');
     tbody.querySelectorAll('tr[data-team]').forEach(function(tr) {
@@ -1589,11 +1597,10 @@
       return;
     }
 
-    // Today and future dates: results only once every game is graded.
-    // Past dates: whatever was graded.
-    var isPast = dateStr < todayET();
+    // Shows as soon as the first game's 1st period is final, and fills in
+    // as more games are graded.
     var rows = computeDailySummary(games);
-    if (!rows || (!isPast && !games.every(hasP1Result))) {
+    if (!rows) {
       el.style.display = 'none';
       el.innerHTML = '';
       return;
@@ -1819,10 +1826,24 @@
     list.innerHTML = games.map(function(g) { return renderGameCard(g, showTrends); }).join('');
   }
 
+  // Previous day's results strip on today's page -- up only until today's
+  // first game starts (re-checked at that moment if the page stays open).
+  var yesterdayStripTimer = null;
+  function firstStartToday() {
+    var starts = (SCHEDULE.games[todayET()] || []).map(function(g) { return Date.parse(g.startTimeUTC); })
+      .filter(function(t) { return !isNaN(t); });
+    return starts.length ? Math.min.apply(null, starts) : null;
+  }
   function renderYesterdayStrip() {
     var el = document.getElementById('yesterdayStrip');
     if (!el) return;
+    if (yesterdayStripTimer) { clearTimeout(yesterdayStripTimer); yesterdayStripTimer = null; }
     if (dateState.selectedDate !== todayET()) { el.style.display = 'none'; el.onclick = null; return; }
+    var firstStart = firstStartToday();
+    if (firstStart !== null && Date.now() >= firstStart) { el.style.display = 'none'; el.onclick = null; return; }
+    if (firstStart !== null) {
+      yesterdayStripTimer = setTimeout(renderYesterdayStrip, Math.min(firstStart - Date.now() + 1000, 2147483000));
+    }
     var yDate = mostRecentGameDayBefore(dateState.selectedDate);
     if (!yDate) { el.style.display = 'none'; el.onclick = null; return; }
     var rows = computeDailySummary(SCHEDULE.games[yDate]);
