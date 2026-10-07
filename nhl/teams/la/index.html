@@ -726,6 +726,11 @@
   .season-card-head .sc-gp { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-muted); }
   .season-card .seg-toggle { margin-bottom: 0; }
   .sc-week { font-size: 0.74rem; color: var(--text-muted); margin: -6px 0 10px; }
+  .season-card .lbl-short { display: none; }
+  @media (max-width: 480px) {
+    .season-card .lbl-full { display: none; }
+    .season-card .lbl-short { display: inline; }
+  }
   .sc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
   @media (max-width: 720px) { .sc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .sc-block { background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 9px; padding: 10px 11px; min-width: 0; }
@@ -1642,12 +1647,10 @@
   var MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   function shortDate(dateStr) { var d = parseDateStr(dateStr); return MONTH_ABBR[d.getUTCMonth()] + ' ' + d.getUTCDate(); }
   function mondayOf(dateStr) { var d = parseDateStr(dateStr); return addDays(dateStr, -((d.getUTCDay() + 6) % 7)); }
-  // Weeks run Monday-Sunday; Week 1 is the season's opening (partial) week.
-  function seasonWeek(dateStr) {
-    var startMon = mondayOf(SEASON_START), mon = mondayOf(dateStr);
-    var n = Math.round((parseDateStr(mon) - parseDateStr(startMon)) / (7 * 86400000)) + 1;
-    var from = mon < SEASON_START ? SEASON_START : mon;
-    return { n: n, from: from, to: addDays(mon, 6) };
+  // Weeks run Monday-Sunday. weeksBack 0 = the current week, 1 = last week.
+  function weekRange(weeksBack) {
+    var mon = addDays(mondayOf(todayET()), -7 * weeksBack);
+    return { from: mon, to: addDays(mon, 6) };
   }
   function gradedGamesBetween(from, to) {
     var out = [];
@@ -1658,15 +1661,15 @@
     return out;
   }
 
-  var seasonCardMode = 'season';
+  var seasonCardMode = 'all'; // 'all' | 'week' (current) | 'lastweek'
   function renderSeasonResults() {
     var el = document.getElementById('seasonResults');
     if (!el) return;
     var games, weekLine = '';
-    if (seasonCardMode === 'week') {
-      var wk = seasonWeek(todayET() < SEASON_START ? SEASON_START : todayET());
-      games = gradedGamesBetween(wk.from, wk.to);
-      weekLine = '<div class="sc-week">Week ' + wk.n + ' (' + shortDate(wk.from) + ' &ndash; ' + shortDate(wk.to) + ')</div>';
+    if (seasonCardMode === 'week' || seasonCardMode === 'lastweek') {
+      var wk = weekRange(seasonCardMode === 'week' ? 0 : 1);
+      games = gradedGamesBetween(wk.from < SEASON_START ? SEASON_START : wk.from, wk.to);
+      weekLine = '<div class="sc-week">(' + shortDate(wk.from) + ' &ndash; ' + shortDate(wk.to) + ')</div>';
     } else {
       games = gradedGamesBetween(SEASON_START || '0000-00-00', '9999-12-31');
     }
@@ -1689,8 +1692,9 @@
     el.innerHTML =
       '<div class="season-card-head"><h3>Season Results</h3><div class="sc-right">' +
         '<div class="seg-toggle" role="group" aria-label="Season or this week">' +
-          '<button class="seg-btn" data-sc-mode="season" aria-pressed="' + (seasonCardMode === 'season') + '">Season</button>' +
-          '<button class="seg-btn" data-sc-mode="week" aria-pressed="' + (seasonCardMode === 'week') + '">This Week</button>' +
+          '<button class="seg-btn" data-sc-mode="all" aria-pressed="' + (seasonCardMode === 'all') + '">All</button>' +
+          '<button class="seg-btn" data-sc-mode="week" aria-pressed="' + (seasonCardMode === 'week') + '"><span class="lbl-full">Current Week</span><span class="lbl-short">Cur Wk</span></button>' +
+          '<button class="seg-btn" data-sc-mode="lastweek" aria-pressed="' + (seasonCardMode === 'lastweek') + '"><span class="lbl-full">Last Week</span><span class="lbl-short">Last Wk</span></button>' +
         '</div><span class="sc-gp">' + b.gp + ' GP</span>' + unitsTipHtml() + '</div></div>' +
       weekLine +
       '<div class="sc-grid">' +
