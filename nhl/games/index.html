@@ -637,6 +637,14 @@
   .stat-tile .lbl { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 700; }
   .stat-tile .val { font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 600; margin-top: 3px; font-variant-numeric: tabular-nums; }
 
+  .team-section-title {
+    font-size: 1.15rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+    color: var(--text); margin: 26px 0 10px; display: flex; align-items: center;
+  }
+  .team-section-title .info-tip { margin-left: 6px; }
+  #teamLastGame .daily-summary { margin-top: -4px; }
+  a.team-link { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--text-faint); }
+  a.team-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
   .drawer-section-title {
     font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
     color: var(--text-muted); font-weight: 700; margin: 18px 0 8px;
@@ -1162,7 +1170,6 @@
     if (document.getElementById('leagueBody')) renderTable();
     if (document.getElementById('gamesView')) renderDateView();
     if (document.getElementById('trendsGrid')) renderTrendsPage();
-    if (document.getElementById('teamsGrid')) renderTeamsGrid(teamsSearchBoxEl ? teamsSearchBoxEl.value : '');
     if (document.body.getAttribute('data-team-code')) renderTeamPage();
   });
 
@@ -2215,35 +2222,21 @@
     });
   });
 
-  // ---- Teams index page ----
-  var DIVISION_ORDER = ['Atlantic', 'Metropolitan', 'Central', 'Pacific'];
-  function renderTeamsGrid(filterText) {
-    var container = document.getElementById('teamsGrid');
-    if (!container) return;
-    var divisions = DATA.divisions || {};
-    var q = (filterText || '').trim().toLowerCase();
-    var html = '';
-    DIVISION_ORDER.forEach(function(divName) {
-      var codes = (divisions[divName] || []).filter(function(code) {
-        var s = DATA.summary[code];
-        return s && (!q || s.name.toLowerCase().indexOf(q) !== -1);
-      });
-      if (!codes.length) return;
-      html += '<div class="division-group"><h2 class="division-title">' + escapeHtml(divName) + '</h2>' +
-        '<div class="team-tile-grid">' + codes.map(function(code) {
-          var s = DATA.summary[code];
-          return '<a class="team-tile" href="' + SITE_ROOT + '/nhl/teams/' + code.toLowerCase() + '/">' +
-            teamLogoHtml(code, 56, {lazy: true, cls: 'team-tile-logo'}) +
-            '<span class="team-tile-name">' + escapeHtml(s.name) + '</span>' +
-          '</a>';
-        }).join('') + '</div></div>';
-    });
-    container.innerHTML = html || '<div class="empty-state">No teams match &ldquo;' + escapeHtml(filterText) + '&rdquo;.</div>';
-  }
-  var teamsSearchBoxEl = document.getElementById('teamsSearchBox');
-  if (teamsSearchBoxEl) teamsSearchBoxEl.addEventListener('input', function(e) { renderTeamsGrid(e.target.value); });
-
   // ---- Team detail page ----
+  function teamLink(code, label) {
+    return '<a class="team-link" href="' + SITE_ROOT + '/nhl/teams/' + code.toLowerCase() + '/">' + escapeHtml(label) + '</a>';
+  }
+  // Most recent game with a graded 1st period, this season.
+  function findLastGame(code) {
+    var dates = Object.keys(SCHEDULE.games || {}).filter(function(d) { return d <= todayET(); }).sort().reverse();
+    for (var i = 0; i < dates.length; i++) {
+      var games = (SCHEDULE.games[dates[i]] || []).filter(function(g) {
+        return (g.away === code || g.home === code) && hasP1Result(g);
+      });
+      if (games.length) return { date: dates[i], game: games[games.length - 1] };
+    }
+    return null;
+  }
   function findNextGame(code) {
     var todayStr = todayET();
     var dates = Object.keys(SCHEDULE.games || {}).filter(function(d) { return d >= todayStr; }).sort();
@@ -2282,7 +2275,7 @@
       var ouPrice = (odds.totals && odds.totals['1.5']) ? (fmtAmerican(odds.totals['1.5'].over) + ' / ' + fmtAmerican(odds.totals['1.5'].under)) : '&mdash;';
       var bttsPrice = (odds.btts_yes != null) ? fmtAmerican(odds.btts_yes) : '&mdash;';
       nextGameEl.innerHTML = '<div class="daily-summary"><h3>Next Game</h3>' +
-        '<div class="ds-row"><span class="ds-label">' + (isHome ? 'vs ' : '@ ') + escapeHtml(oppName) + '</span>' +
+        '<div class="ds-row"><span class="ds-label">' + (isHome ? 'vs ' : '@ ') + teamLink(oppCode, oppName) + '</span>' +
           '<span class="ds-right"><a href="' + SITE_ROOT + '/nhl/games/?date=' + dateStr + '">' + escapeHtml(dateLabelText(dateStr)) + ' &middot; ' + fmtGameTime(g.startTimeUTC) + '</a></span></div>' +
         '<div class="ds-row"><span class="ds-label">Moneyline</span><span class="ds-right mono">' + mlPrice + '</span></div>' +
         '<div class="ds-row"><span class="ds-label">Over 1.5</span><span class="ds-right mono">' + ouPrice + '</span></div>' +
@@ -2290,6 +2283,37 @@
       '</div>';
     } else {
       nextGameEl.innerHTML = '<div class="no-games-note">No upcoming game currently scheduled.</div>';
+    }
+
+    // Last Game: same layout as Next Game, with the 1st-period results and
+    // the price on the side that won each market.
+    var lastGameEl = document.getElementById('teamLastGame');
+    var last = findLastGame(code);
+    if (last) {
+      var lg = last.game, lDate = last.date;
+      var lHome = lg.home === code;
+      var lOpp = lHome ? lg.away : lg.home;
+      var lOppName = DATA.summary[lOpp] ? DATA.summary[lOpp].name : lOpp;
+      var lOdds = lg.odds || {};
+      var tP1 = lHome ? lg.homeP1 : lg.awayP1, oP1 = lHome ? lg.awayP1 : lg.homeP1;
+      var res = tP1 > oP1 ? 'W' : tP1 < oP1 ? 'L' : 'T';
+      var mlRow = '<span class="result-pill ' + res + '">' + res + '</span> ' + escapeHtml(code) + ' ' + fmtAmerican(lOdds.ml ? lOdds.ml[code] : null);
+      var lOver = lg.awayP1 + lg.homeP1 > 1;
+      var lTot = (lOdds.totals && lOdds.totals['1.5']) || {};
+      var lYes = lg.awayP1 >= 1 && lg.homeP1 >= 1;
+      var tFinal = lHome ? lg.homeFinal : lg.awayFinal, oFinal = lHome ? lg.awayFinal : lg.homeFinal;
+      var finalStr = (tFinal != null && oFinal != null) ? (tFinal + '-' + oFinal + (lg.ot ? ' ' + lg.ot : '')) : '&mdash;';
+      lastGameEl.innerHTML = '<div class="daily-summary"><h3>Last Game</h3>' +
+        '<div class="ds-row"><span class="ds-label">' + (lHome ? 'vs ' : '@ ') + teamLink(lOpp, lOppName) + '</span>' +
+          '<span class="ds-right"><a href="' + SITE_ROOT + '/nhl/games/?date=' + lDate + '">' + escapeHtml(dateLabelText(lDate)) + '</a></span></div>' +
+        '<div class="ds-row"><span class="ds-label">1st Period</span><span class="ds-right mono">' + tP1 + '-' + oP1 + '</span></div>' +
+        '<div class="ds-row"><span class="ds-label">Moneyline</span><span class="ds-right mono">' + mlRow + '</span></div>' +
+        '<div class="ds-row"><span class="ds-label">Over 1.5</span><span class="ds-right mono">' + (lOver ? 'Over ' : 'Under ') + fmtAmerican(lOver ? lTot.over : lTot.under) + '</span></div>' +
+        '<div class="ds-row"><span class="ds-label">BTTS</span><span class="ds-right mono">' + (lYes ? 'Yes ' : 'No ') + fmtAmerican(lYes ? lOdds.btts_yes : lOdds.btts_no) + '</span></div>' +
+        '<div class="ds-row"><span class="ds-label">Final</span><span class="ds-right mono">' + finalStr + '</span></div>' +
+      '</div>';
+    } else {
+      lastGameEl.innerHTML = '';
     }
 
     var fullLog = DATA.gamelog[code] || [];
@@ -2401,7 +2425,6 @@
   if (document.getElementById('seasonResults')) renderSeasonResults();
   if (document.getElementById('gamesView')) renderDateView();
   if (document.getElementById('trendsGrid')) renderTrendsPage();
-  if (document.getElementById('teamsGrid')) renderTeamsGrid('');
   if (document.body.getAttribute('data-team-code')) renderTeamPage();
 
   } // end rtybInit
