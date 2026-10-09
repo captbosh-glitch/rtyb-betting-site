@@ -13,6 +13,10 @@ on:
       - 'base_data.json'
       - 'template.html'
       - 'scripts/**'
+      # Admin Save (Matchups or Results Tool) publishes to these -- rebuild
+      # right away so every record (Games, Stats, Teams, team pages) reflects it.
+      - 'data_admin/odds_overrides.json'
+      - 'data_admin/results_overrides.json'
 
 permissions:
   contents: write
