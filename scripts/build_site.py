@@ -66,8 +66,8 @@ PAGE_META = {
     'hitrates': {
         'title': 'RTYB — Stats',
         'h1': 'NHL — Stats',
-        'desc': ('1st-period results by team for the 2026–27 regular season (since Sept. 29). '
-                  'Pick a market, split by home/away, and tap any team for the full trend and game log.'),
+        'desc': ('League-wide 1st-period results for the 2026–27 regular season (since Sept. 29): '
+                  'home/away, favorites/underdogs, Over 1.5 and BTTS, with units.'),
     },
     'trends': {
         'title': 'RTYB — Trends to Watch',
@@ -78,7 +78,8 @@ PAGE_META = {
     'teamsindex': {
         'title': 'RTYB — Teams',
         'h1': 'NHL — Teams',
-        'desc': 'Every NHL team, grouped by division.',
+        'desc': ('Every team’s 1st-period record, win % and units this season. '
+                  'Pick a market, split by home/away, and tap any team for its full page.'),
     },
 }
 

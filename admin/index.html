@@ -73,10 +73,13 @@
   .empty { color: var(--text-faint); font-size: 0.85rem; padding: 10px 0; }
   .note { font-size: 0.75rem; color: var(--text-faint); margin-top: 6px; }
   a.note-link { font-size: 0.78rem; color: var(--text-muted); margin-left: auto; }
+  .back-link { display: inline-block; font-size: 0.82rem; font-weight: 600; color: var(--accent); text-decoration: none; margin-bottom: 14px; }
+  .back-link:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <a class="back-link" href="../">&larr; Back to the RTYB site</a>
 
   <div id="gate" class="gate" hidden>
     <h1>RTYB Admin</h1>
@@ -171,6 +174,7 @@
 
   var DATA = null;
   var matchupsDraft = {};
+  var oddsOverrides = {};
   var resultsDraft = {};
 
   // Whichever table was last Saved stays "locked" (read-only, signed odds)
@@ -189,10 +193,12 @@
       fetchJson('../nhl/data.json', { schedule: { games: {} }, summary: {} }),
       fetchJson('../data_admin/matchups_draft.json', {}),
       fetchJson('../data_admin/results_draft.json', {}),
+      fetchJson('../data_admin/odds_overrides.json', {}),
     ]).then(function(results) {
       DATA = results[0];
       matchupsDraft = results[1] || {};
       resultsDraft = results[2] || {};
+      oddsOverrides = results[3] || {};
       populateDateSelect();
     });
   }
@@ -257,18 +263,23 @@
     setLockUI('results', !!resultsLocked[date]);
   }
 
+  // Only values saved from this page (typed in or AI-parsed) fill the
+  // fields: the saved draft first, then what was published. The automated
+  // odds feeds never pre-fill anything here.
   function matchupFieldValues(date, g) {
     var mDraft = matchupsDraft[date] || {};
-    var key = g.away + '|' + g.home;
-    var d = mDraft[key] || {};
-    var live = g.odds || {};
+    var d = mDraft[g.away + '|' + g.home] || {};
+    var pub = oddsOverrides[date + '|' + g.away + '|' + g.home] || {};
+    var pubMl = pub.ml || {};
+    var pubTot = (pub.totals && pub.totals['1.5']) || {};
+    function pick(a, b) { return a != null ? a : (b != null ? b : null); }
     return {
-      mlHome: d.mlHome != null ? d.mlHome : (live.ml ? live.ml[g.home] : null),
-      mlAway: d.mlAway != null ? d.mlAway : (live.ml ? live.ml[g.away] : null),
-      over: d.totalOver != null ? d.totalOver : (live.totals && live.totals['1.5'] ? live.totals['1.5'].over : null),
-      under: d.totalUnder != null ? d.totalUnder : (live.totals && live.totals['1.5'] ? live.totals['1.5'].under : null),
-      bYes: d.bttsYes != null ? d.bttsYes : live.btts_yes,
-      bNo: d.bttsNo != null ? d.bttsNo : live.btts_no,
+      mlHome: pick(d.mlHome, pubMl[g.home]),
+      mlAway: pick(d.mlAway, pubMl[g.away]),
+      over: pick(d.totalOver, pubTot.over),
+      under: pick(d.totalUnder, pubTot.under),
+      bYes: pick(d.bttsYes, pub.btts_yes),
+      bNo: pick(d.bttsNo, pub.btts_no),
     };
   }
 
