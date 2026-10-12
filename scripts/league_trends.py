@@ -29,7 +29,8 @@ CONFIG = {
     'rate_diff_pts': 8,        # hit rate must differ from the league rate by this many points...
     'units_threshold': 2.0,    # ...or units must be at least +/- this
     'min_games': 10,           # rate trends need at least this many games
-    'current_min_games': 20,   # below this, a split uses 2025-26 + 2026-27 combined
+    'combine_2025_26': False,  # True: splits under current_min_games also use 2025-26 (needs history passed in)
+    'current_min_games': 20,
     'min_streak': 5,           # streak trends qualify at this many in a row
     'small_rate': 20,          # "small sample" tag for rate trends under this many games
     'streak_weight': 4,        # streak score = length x this
@@ -294,7 +295,7 @@ def generate_for_date(games, d):
         cur = tally(cur_before)
         since = False
         rec = cur
-        if cur.n < CONFIG['current_min_games'] and not priced_only:
+        if CONFIG['combine_2025_26'] and cur.n < CONFIG['current_min_games'] and not priced_only:
             rec, since = tally(before), True
         rate, units = rec.rate, rec.unit_total
         if rec.n >= CONFIG['min_games'] and rate is not None:
@@ -335,7 +336,7 @@ def generate_for_date(games, d):
         if not games_tonight:
             continue
         cur_pool = [G for G in cur_before if test(G)]
-        since = len(cur_pool) < CONFIG['current_min_games'] and not priced_only
+        since = CONFIG['combine_2025_26'] and len(cur_pool) < CONFIG['current_min_games'] and not priced_only
         pool = [G for G in before if test(G)] if since else cur_pool
         league = before if since else cur_before
         for fam, (hit_tag, miss_tag) in (('ou', ('O1.5', 'U1.5')), ('btts', ('BTTS Yes', 'BTTS No'))):

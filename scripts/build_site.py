@@ -76,8 +76,7 @@ PAGE_META = {
     'trends': {
         'title': 'RTYB — Trends to Watch',
         'h1': 'NHL — Trends to Watch',
-        'desc': ('Active streaks and extreme season rates across Moneyline, Over 1.5, and BTTS. '
-                  'Scoped to tonight’s teams by default.'),
+        'desc': ('League-wide angles and team streaks for today’s games across Moneyline, Over 1.5, and BTTS.'),
     },
     'teamsindex': {
         'title': 'RTYB — Teams',
@@ -453,20 +452,16 @@ def main():
         'games': {d: gs for d, gs in merged_games.items() if d >= SEASON_START},
     }
     full_data['seasonStart'] = SEASON_START
-    # 2025-26 regular season (data_seed/nhl_2025_26_games.json, from
-    # scripts/backfill_2025_26.py): 1P and final scores, no odds. Advanced
-    # Stats and Trends compute over it + this season so splits have real
-    # sample sizes.
-    full_data['history'] = [
-        {k: g[k] for k in ('date', 'startTimeUTC', 'away', 'home', 'awayP1', 'homeP1', 'awayFinal', 'homeFinal', 'ot')}
-        for g in load('data_seed/nhl_2025_26_games.json', [])
-    ]
+    # Stats and Trends use this season only (from SEASON_START). The 2025-26
+    # backfill (data_seed/nhl_2025_26_games.json, scripts/backfill_2025_26.py)
+    # stays in the repo but isn't published; pass it below to bring it back.
+    history_games = []
 
     # League Trends (scripts/league_trends.py): generated here rather than in
     # the browser so each date's list can be stored -- frozen once that
     # date's first game starts -- in league_trends_log.json.
     full_data['leagueTrends'] = league_trends.build(
-        full_data['history'], merged_games, SEASON_START, TEAM_DIVISIONS,
+        history_games, merged_games, SEASON_START, TEAM_DIVISIONS,
         os.path.join(ROOT, 'league_trends_log.json'))
     full_data['leagueTrendsConfig'] = {'shown': league_trends.CONFIG['shown']}
     # Restrict divisions to teams actually present in base_data.json's summary
