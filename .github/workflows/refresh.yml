@@ -78,7 +78,7 @@ jobs:
         run: |
           git config user.name "rtyb-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add index.html nhl schedule_data.json assets/logos
+          git add index.html nhl schedule_data.json assets/logos league_trends_log.json
           if git diff --cached --quiet; then
             echo "No changes, skipping commit."
             exit 0

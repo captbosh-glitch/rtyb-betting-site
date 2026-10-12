@@ -50,6 +50,10 @@ import html as html_lib
 import json
 import os
 import re
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import league_trends  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -457,6 +461,14 @@ def main():
         {k: g[k] for k in ('date', 'startTimeUTC', 'away', 'home', 'awayP1', 'homeP1', 'awayFinal', 'homeFinal', 'ot')}
         for g in load('data_seed/nhl_2025_26_games.json', [])
     ]
+
+    # League Trends (scripts/league_trends.py): generated here rather than in
+    # the browser so each date's list can be stored -- frozen once that
+    # date's first game starts -- in league_trends_log.json.
+    full_data['leagueTrends'] = league_trends.build(
+        full_data['history'], merged_games, SEASON_START, TEAM_DIVISIONS,
+        os.path.join(ROOT, 'league_trends_log.json'))
+    full_data['leagueTrendsConfig'] = {'shown': league_trends.CONFIG['shown']}
     # Restrict divisions to teams actually present in base_data.json's summary
     # (keeps the Teams page grid in sync if a team code ever changes).
     known_codes = set(base.get('summary', {}).keys())
