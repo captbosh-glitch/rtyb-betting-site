@@ -788,6 +788,27 @@
   .locked .adv-pills { opacity: 0.4; pointer-events: none; }
   .adv-lock { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; pointer-events: none; }
   .trends-section .adv-lock { align-items: flex-end; padding-bottom: 20px; }
+
+  /* ---------- League Trends ---------- */
+  .lt-summary { margin-top: 12px; font-size: 0.86rem; color: var(--text-muted); }
+  .lt-summary b { color: var(--text); font-family: 'JetBrains Mono', monospace; }
+  .lt-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  .lt-row { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 10px; padding: 10px 13px; }
+  .lt-top { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  .lt-tag {
+    flex-shrink: 0; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--accent); border: 1px solid var(--accent); padding: 1px 6px; border-radius: 4px; white-space: nowrap;
+  }
+  .lt-sentence { font-weight: 600; font-size: 0.88rem; min-width: 0; }
+  @media (min-width: 900px) { .lt-sentence { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
+  .lt-rec { font-size: 0.76rem; color: var(--text-muted); margin-top: 3px; }
+  .lt-games { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; font-size: 0.78rem; align-items: center; }
+  .lt-when { font-weight: 700; color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .lt-game { font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+  .lt-chip { font-family: 'Source Sans 3', sans-serif; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; padding: 1px 5px; border-radius: 3px; margin-left: 2px; }
+  .lt-pending { background: var(--neutral-chip); color: var(--text-muted); }
+  .lt-w { background: var(--good-dim); color: var(--good); }
+  .lt-l { background: var(--bad-dim); color: var(--bad); }
   .adv-lock-card {
     pointer-events: auto; max-width: 340px; text-align: center; background: var(--panel); border: 1px solid var(--border);
     border-radius: 12px; padding: 16px 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); color: var(--text);
@@ -1439,6 +1460,53 @@
     if (locked) {
       var lock = document.createElement('div');
       lock.innerHTML = lockOverlayHtml('trendsSection');
+      section.appendChild(lock.firstChild);
+    }
+  }
+
+  // ---- League Trends (daily slate) ----
+  // Generated and stored at build time (scripts/league_trends.py): each
+  // date's list freezes when its first game starts, so a past date always
+  // shows the trends that applied that day and how they did.
+  var LT_STATUS = { PENDING: ['Pending', 'lt-pending'], W: ['W', 'lt-w'], L: ['L', 'lt-l'], P: ['Push', 'lt-pending'] };
+  function renderLeagueTrends(dateStr) {
+    var section = document.getElementById('leagueTrendsSection');
+    if (!section) return;
+    var entry = (DATA.leagueTrends || {})[dateStr];
+    var trends = (entry && entry.trends) || [];
+    if (!trends.length) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    var isPast = dateStr < todayET();
+    var summary = document.getElementById('leagueTrendsSummary');
+    var rec = entry.record || { w: 0, l: 0 };
+    if (isPast && rec.w + rec.l) {
+      summary.style.display = '';
+      summary.innerHTML = 'League Trends went <b>' + rec.w + '-' + rec.l + '</b> on this date.';
+    } else {
+      summary.style.display = 'none';
+    }
+    var locked = !RTYB_CONFIG.isPremium && trends.length > RTYB_CONFIG.freeTrends;
+    section.classList.toggle('locked', locked);
+    var oldLock = section.querySelector('.adv-lock');
+    if (oldLock) oldLock.remove();
+    var whenLabel = isPast ? escapeHtml(dateLabelText(dateStr)) : (dateStr === todayET() ? 'Tonight' : escapeHtml(dateLabelText(dateStr)));
+    document.getElementById('leagueTrendsList').innerHTML = trends.map(function(t, i) {
+      var blur = locked && i >= RTYB_CONFIG.freeTrends ? ' trend-blur' : '';
+      var units = (t.units !== null && t.units !== undefined) ? ' · ' + unitsPill(t.units) : '';
+      var games = t.games.map(function(g) {
+        var st = LT_STATUS[g.status] || LT_STATUS.PENDING;
+        return '<span class="lt-game">' + escapeHtml(g.label) + ' <span class="lt-chip ' + st[1] + '">' + st[0] + '</span></span>';
+      }).join('');
+      return '<div class="lt-row' + blur + '">' +
+        '<div class="lt-top"><span class="lt-tag">' + escapeHtml(t.market) + '</span>' +
+          '<span class="lt-sentence">' + escapeHtml(t.sentence) + '</span></div>' +
+        '<div class="lt-rec mono">' + escapeHtml(t.record) + units + (t.small ? ' <span class="small-sample">small sample</span>' : '') + '</div>' +
+        '<div class="lt-games"><span class="lt-when">' + whenLabel + ':</span>' + games + '</div>' +
+      '</div>';
+    }).join('');
+    if (locked) {
+      var lock = document.createElement('div');
+      lock.innerHTML = lockOverlayHtml('leagueTrendsSection');
       section.appendChild(lock.firstChild);
     }
   }
@@ -2175,6 +2243,7 @@
     advSituational: ['Unlock Situational Results', 'Rest edges, back-to-backs, bounce-backs and divisional trends for every market.'],
     advGoals: ['Unlock Goal Stats', 'Overs ladder, goal splits and shutout bounce-backs for 1st-period totals.'],
     advBoard: ['Unlock the Money Board', '1st-period units by home/road, favorite/underdog and price.'],
+    leagueTrendsSection: ['Unlock League Trends', 'League-wide angles for every game on tonight’s slate.'],
     trendsSection: ['Unlock Trends to Watch', 'Back-to-backs, bounce-backs and situational spots for every game on the slate.']
   };
   function lockOverlayHtml(id) {
@@ -2428,6 +2497,7 @@
     var isPastDate = dateStr < todayET();
     if (trendsSection) trendsSection.style.display = isPastDate ? 'none' : '';
     if (!isPastDate) renderTrends(currentGamesToday);
+    renderLeagueTrends(dateStr);
     renderCalendar();
   }
 
