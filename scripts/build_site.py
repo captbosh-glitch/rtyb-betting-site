@@ -377,7 +377,11 @@ def main():
             if g.get('id') is not None:
                 prev_games_by_id[g['id']] = g
 
-    merged_games = {}
+    # The fetch only covers a rolling window of dates (fetch_schedule.py),
+    # so start from every previously saved date and let the fresh window
+    # overwrite just its own dates. Otherwise finished games drop off the
+    # site (and out of every season record) once they age out of the window.
+    merged_games = {d: list(gs) for d, gs in prev_schedule.get('games', {}).items()}
     for date_str, games in fresh_schedule.get('games', {}).items():
         merged_list = []
         for g in games:
@@ -416,11 +420,8 @@ def main():
     # If this run had no fresh schedule at all (e.g. schedule_fresh.json
     # missing, as in a local/manual build), fall back to the previously
     # committed schedule so the site still has data to render.
-    if not merged_games and prev_schedule.get('games'):
-        merged_games = prev_schedule['games']
-        merged_game_counts = prev_schedule.get('gameCounts', {})
-    else:
-        merged_game_counts = fresh_schedule.get('gameCounts') or prev_schedule.get('gameCounts', {})
+    merged_game_counts = dict(prev_schedule.get('gameCounts', {}))
+    merged_game_counts.update(fresh_schedule.get('gameCounts') or {})
 
     # Applied unconditionally, after either path above, so admin-published
     # odds/results always take effect -- including on a local/manual build
