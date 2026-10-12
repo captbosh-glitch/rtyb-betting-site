@@ -790,6 +790,10 @@
   .trends-section .adv-lock { align-items: flex-end; padding-bottom: 20px; }
 
   /* ---------- League Trends ---------- */
+  .trends-page-section { position: relative; margin-bottom: 30px; }
+  .tp-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .tp-head h2 { font-size: 1.15rem; }
+  .tp-sub { color: var(--text-muted); font-size: 0.84rem; margin-top: 3px; }
   .lt-summary { margin-top: 12px; font-size: 0.86rem; color: var(--text-muted); }
   .lt-summary b { color: var(--text); font-family: 'JetBrains Mono', monospace; }
   .lt-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
@@ -1319,7 +1323,7 @@
       .sort(function(a, b) { return b.strength - a.strength; });
   }
 
-  // ---- Situational spots (league-wide records, since 2025-26) ----
+  // ---- Situational spots (league-wide records, this season) ----
   var _spotStats = null;
   function spotStats() {
     if (_spotStats) return _spotStats;
@@ -1436,15 +1440,29 @@
   // date's list freezes when its first game starts, so a past date always
   // shows the trends that applied that day and how they did.
   var LT_STATUS = { PENDING: ['Pending', 'lt-pending'], W: ['W', 'lt-w'], L: ['L', 'lt-l'], P: ['Push', 'lt-pending'] };
-  function renderLeagueTrends(dateStr) {
-    var section = document.getElementById('leagueTrendsSection');
+  var LT_MARKET_FILTER = { all: null, ml: ['ML'], o15: ['O1.5', 'U1.5'], btts: ['BTTS Yes', 'BTTS No'] };
+
+  // opts: {section, list, summary, market ('all'|'ml'|'o15'|'btts'), keepEmpty}
+  function renderLeagueTrendsInto(dateStr, opts) {
+    var section = document.getElementById(opts.section);
     if (!section) return;
     var entry = (DATA.leagueTrends || {})[dateStr];
-    var trends = (entry && entry.trends) || [];
-    if (!trends.length) { section.style.display = 'none'; return; }
+    var allowed = LT_MARKET_FILTER[opts.market || 'all'];
+    var trends = ((entry && entry.trends) || []).filter(function(t) { return !allowed || allowed.indexOf(t.market) !== -1; });
+    var listEl = document.getElementById(opts.list);
+    var oldLock = section.querySelector('.adv-lock');
+    if (oldLock) oldLock.remove();
+    section.classList.remove('locked');
+    if (!trends.length) {
+      if (!opts.keepEmpty) { section.style.display = 'none'; return; }
+      section.style.display = '';
+      document.getElementById(opts.summary).style.display = 'none';
+      listEl.innerHTML = '<div class="empty-state">No league trends apply to ' + (entry ? 'this market today.' : 'today’s games.') + '</div>';
+      return;
+    }
     section.style.display = '';
     var isPast = dateStr < todayET();
-    var summary = document.getElementById('leagueTrendsSummary');
+    var summary = document.getElementById(opts.summary);
     var rec = entry.record || { w: 0, l: 0 };
     if (isPast && rec.w + rec.l) {
       summary.style.display = '';
@@ -1454,10 +1472,8 @@
     }
     var locked = !RTYB_CONFIG.isPremium && trends.length > RTYB_CONFIG.freeTrends;
     section.classList.toggle('locked', locked);
-    var oldLock = section.querySelector('.adv-lock');
-    if (oldLock) oldLock.remove();
-    var whenLabel = isPast ? escapeHtml(dateLabelText(dateStr)) : (dateStr === todayET() ? 'Tonight' : escapeHtml(dateLabelText(dateStr)));
-    document.getElementById('leagueTrendsList').innerHTML = trends.map(function(t, i) {
+    var whenLabel = dateStr === todayET() ? 'Tonight' : escapeHtml(dateLabelText(dateStr));
+    listEl.innerHTML = trends.map(function(t, i) {
       var blur = locked && i >= RTYB_CONFIG.freeTrends ? ' trend-blur' : '';
       var units = (t.units !== null && t.units !== undefined) ? ' · ' + unitsPill(t.units) : '';
       var games = t.games.map(function(g) {
@@ -1477,6 +1493,22 @@
       section.appendChild(lock.firstChild);
     }
   }
+  function renderLeagueTrends(dateStr) {
+    renderLeagueTrendsInto(dateStr, { section: 'leagueTrendsSection', list: 'leagueTrendsList', summary: 'leagueTrendsSummary' });
+  }
+
+  // Trends page: today's League Trends, filtered by its own market pills.
+  var ltPageMarket = 'all';
+  function renderLeagueTrendsPage() {
+    renderLeagueTrendsInto(dateState.selectedDate, { section: 'ltPageSection', list: 'ltPageList', summary: 'ltPageSummary', market: ltPageMarket, keepEmpty: true });
+  }
+  document.querySelectorAll('[data-lt-market]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('[data-lt-market]').forEach(function(b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+      ltPageMarket = btn.getAttribute('data-lt-market');
+      renderLeagueTrendsPage();
+    });
+  });
 
   // ---- controls wiring ----
   function setSortArrows() {
@@ -2263,11 +2295,11 @@
   function renderAdvancedStats() {
     if (!document.getElementById('advSituational')) return;
     renderAdvSection('advSituational',
-      advHead('Situational Results', 'Since 2025–26', pillGroup('Market', 'data-situ-market', [['ml', 'Moneyline'], ['o15', 'Over 1.5'], ['btts', 'BTTS']], advState.situMarket)),
+      advHead('Situational Results', '', pillGroup('Market', 'data-situ-market', [['ml', 'Moneyline'], ['o15', 'Over 1.5'], ['btts', 'BTTS']], advState.situMarket)),
       situationalCards(advState.situMarket));
-    renderAdvSection('advGoals', advHead('Goal Stats', '1st-period totals · Over/Under · Since 2025–26'), goalStatsCards());
+    renderAdvSection('advGoals', advHead('Goal Stats', '1st-period totals · Over/Under'), goalStatsCards());
     renderAdvSection('advBoard',
-      advHead('Money Board', '1P moneyline at closing prices · games since odds tracking began (Sept. 29, 2026)', pillGroup('View', 'data-board-view', [['pct', 'Win %'], ['units', 'Profit']], advState.boardView)),
+      advHead('Money Board', '1P moneyline at closing prices', pillGroup('View', 'data-board-view', [['pct', 'Win %'], ['units', 'Profit']], advState.boardView)),
       moneyBoardCards());
     document.querySelectorAll('[data-situ-market]').forEach(function(b) {
       b.onclick = function() { advState.situMarket = b.getAttribute('data-situ-market'); renderAdvancedStats(); };
@@ -2752,14 +2784,6 @@
       renderTrendsPage();
     });
   });
-  document.querySelectorAll('[data-trend-scope]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('[data-trend-scope]').forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
-      btn.setAttribute('aria-pressed', 'true');
-      trendState.scope = btn.getAttribute('data-trend-scope');
-      renderTrendsPage();
-    });
-  });
 
   // ---- Team detail page ----
   function teamLink(code, label) {
@@ -2965,6 +2989,7 @@
   if (document.getElementById('advSituational')) renderAdvancedStats();
   if (document.getElementById('gamesView')) renderDateView();
   if (document.getElementById('trendsGrid')) renderTrendsPage();
+  if (document.getElementById('ltPageSection')) renderLeagueTrendsPage();
   if (document.body.getAttribute('data-team-code')) renderTeamPage();
 
   } // end rtybInit
