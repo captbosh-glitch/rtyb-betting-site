@@ -449,6 +449,14 @@ def main():
         'games': {d: gs for d, gs in merged_games.items() if d >= SEASON_START},
     }
     full_data['seasonStart'] = SEASON_START
+    # 2025-26 regular season (data_seed/nhl_2025_26_games.json, from
+    # scripts/backfill_2025_26.py): 1P and final scores, no odds. Advanced
+    # Stats and Trends compute over it + this season so splits have real
+    # sample sizes.
+    full_data['history'] = [
+        {k: g[k] for k in ('date', 'startTimeUTC', 'away', 'home', 'awayP1', 'homeP1', 'awayFinal', 'homeFinal', 'ot')}
+        for g in load('data_seed/nhl_2025_26_games.json', [])
+    ]
     # Restrict divisions to teams actually present in base_data.json's summary
     # (keeps the Teams page grid in sync if a team code ever changes).
     known_codes = set(base.get('summary', {}).keys())
