@@ -46,6 +46,7 @@
     --ball-shine: rgba(255, 255, 255, 0.16);
     --ball-leather: #8A4B22;
     --ball-leather-edge: #4E2610;
+    --ball-leather-rim: #D9DDE3;
     --ball-lace: #F4EFE6;
     --ball-orange: #E8772E;
     --ball-orange-edge: #7A3510;
@@ -93,6 +94,7 @@
     --logo-bets: #6D4AD4;
     --ball-puck-rim: #16181D;
     --ball-white-edge: #8A919C;
+    --ball-leather-rim: transparent;
     color-scheme: light;
   }
   @media (prefers-color-scheme: light) {
@@ -134,6 +136,7 @@
       --logo-bets: #6D4AD4;
       --ball-puck-rim: #16181D;
       --ball-white-edge: #8A919C;
+      --ball-leather-rim: transparent;
       color-scheme: light;
     }
   }
@@ -405,6 +408,7 @@
   .sport-icon .bi-puck-shine { fill: var(--ball-shine); }
   .sport-icon .bi-rim { stroke: var(--ball-puck-rim); }
   .sport-icon .bi-leather { fill: var(--ball-leather); stroke: var(--ball-leather-edge); }
+  .sport-icon .bi-leather-rim { stroke: var(--ball-leather-rim); }
   .sport-icon .bi-stripe, .sport-icon .bi-lace { stroke: var(--ball-lace); }
   .sport-icon .bi-basketball { fill: var(--ball-orange); stroke: var(--ball-orange-edge); }
   .sport-icon .bi-seam { stroke: var(--ball-seam); }
