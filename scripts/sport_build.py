@@ -26,6 +26,7 @@ from datetime import date as Date, datetime, timezone
 from zoneinfo import ZoneInfo
 
 import grading
+import icons
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ET = ZoneInfo('America/New_York')
@@ -704,6 +705,13 @@ def game_out(g):
     }
 
 
+def logo_flag(sport_key, slug):
+    """'d' = light + dark logos cached, 'l' = light only, None = no logo
+    (assets/logos/{sport}/, scripts/fetch_sport_logos.py)."""
+    info = icons.logo_index(sport_key).get(slug)
+    return None if info is None else ('d' if info.get('dark') else 'l')
+
+
 def build(sp, teams_list, now_utc=None):
     """Writes {slug}/data.json (+ past seasons' stats). Returns a summary
     for the build log and the home page: {season, games, graded, today}."""
@@ -742,7 +750,8 @@ def build(sp, teams_list, now_utc=None):
         'season': current, 'seasonLabel': season_label(sp['key'], current) if current else None,
         'seasons': season_list,
         'generated': now_utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
-        'teams': {t['slug']: {k: t.get(k) for k in ('name', 'short', 'code', 'color', 'conference', 'division')} for t in teams_list},
+        'teams': {t['slug']: dict({k: t.get(k) for k in ('name', 'short', 'code', 'color', 'conference', 'division')},
+                                  logo=logo_flag(sp['key'], t['slug'])) for t in teams_list},
         'otherTeams': extra,
         'games': by_date,
         'stats': stats,

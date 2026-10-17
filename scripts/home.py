@@ -87,6 +87,15 @@ def nhl_colors(template):
     return dict(re.findall(r"(\w+): '#([0-9A-Fa-f]{6})'", m.group(1))) if m else {}
 
 
+def nhl_logo(code):
+    """NHL's cached SVGs (fetch_team_logos.py), light and dark."""
+    light = os.path.join(ROOT, 'assets', 'logos', f'{code}_light.svg')
+    if not os.path.exists(light):
+        return ''
+    dark = f'assets/logos/{code}_dark.svg' if os.path.exists(os.path.join(ROOT, 'assets', 'logos', f'{code}_dark.svg')) else None
+    return icons.logo_html(f'assets/logos/{code}_light.svg', dark, 24)
+
+
 def nhl_games(nhl_data, colors):
     """NHL schedule in the shape the home page uses."""
     out = {}
@@ -101,8 +110,10 @@ def nhl_games(nhl_data, colors):
             p1 = (g.get('awayP1'), g.get('homeP1'))
             out.setdefault(d, []).append({
                 'sport': 'nhl', 'label': 'NHL', 'slug': 'nhl', 'start': g.get('startTimeUTC'), 'state': state,
-                'away': {'code': g['away'], 'name': names.get(g['away'], g['away']).split()[-1], 'color': colors.get(g['away'])},
-                'home': {'code': g['home'], 'name': names.get(g['home'], g['home']).split()[-1], 'color': colors.get(g['home'])},
+                'away': {'code': g['away'], 'name': names.get(g['away'], g['away']).split()[-1], 'color': colors.get(g['away']),
+                         'logo': nhl_logo(g['away'])},
+                'home': {'code': g['home'], 'name': names.get(g['home'], g['home']).split()[-1], 'color': colors.get(g['home']),
+                         'logo': nhl_logo(g['home'])},
                 'score': (g.get('awayFinal'), g.get('homeFinal')) if state != 'pre' else None,
                 'seg': '1P', 'segScore': p1 if None not in p1 and state != 'pre' else None,
                 'segFinal': state == 'final' and None not in p1,
@@ -117,7 +128,8 @@ def nhl_games(nhl_data, colors):
 def team_view(doc, slug):
     t = (doc.get('teams') or {}).get(slug)
     if t:
-        return {'code': t.get('code'), 'name': t.get('short') or t.get('name'), 'color': t.get('color')}
+        return {'code': t.get('code'), 'name': t.get('short') or t.get('name'), 'color': t.get('color'),
+                'logo': icons.team_logo(doc['sport'], slug, 24, root='')}
     name = (doc.get('otherTeams') or {}).get(slug, slug)
     return {'code': ''.join(w[0] for w in name.split()[:3]).upper(), 'name': name, 'color': None}
 
@@ -221,7 +233,7 @@ def game_card(g, kind):
     lines = ''.join(f'<div class="hc-line">{esc(x)}</div>' for x in (g.get('lines') or []) + (g.get('extra') or []))
     if kind == 'tonight' and not lines:
         lines = f'<div class="hc-line muted">{esc(g["seg"])} odds pending</div>'
-    team = lambda t: f'<span class="hc-team">{badge(t["code"], t["color"], 24)}<span>{esc(t["name"])}</span></span>'
+    team = lambda t: f'<span class="hc-team">{t.get("logo") or badge(t["code"], t["color"], 24)}<span>{esc(t["name"])}</span></span>'
     return (f'<a class="hc-card" href="{esc(g["href"])}">'
             f'<div class="hc-top"><span class="hc-sport">{icons.sport_icon(g["sport"])}{esc(g["label"])}</span><span class="hc-when">{esc(when)}</span></div>'
             f'<div class="hc-teams">{team(g["away"])}<span class="hc-at">@</span>{team(g["home"])}{score}</div>'

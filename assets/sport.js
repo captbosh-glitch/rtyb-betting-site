@@ -58,13 +58,22 @@
     return D.teams[slug] || { name: (D.otherTeams || {})[slug] || slug, short: (D.otherTeams || {})[slug] || slug, code: '', color: null };
   }
   function teamUrl(slug) { return D.teams[slug] ? ROOT + SPORT_SLUG + '/teams/' + slug + '/' : null; }
+  // The team's logo (assets/logos/{sport}/, light + dark versions switched
+  // by CSS with the theme), or a team-color circle when there isn't one.
   function badge(slug, size) {
     var t = team(slug);
+    size = size || 26;
+    if (t.logo) {
+      var base = ROOT + 'assets/logos/' + D.sport + '/' + slug;
+      var st = ' style="width:' + size + 'px;height:' + size + 'px"';
+      return t.logo === 'd'
+        ? '<span class="tlogo"' + st + '><img class="tl-light" src="' + base + '.png" alt="" loading="lazy"><img class="tl-dark" src="' + base + '-dark.png" alt="" loading="lazy"></span>'
+        : '<span class="tlogo"' + st + '><img src="' + base + '.png" alt="" loading="lazy"></span>';
+    }
     var hex = (t.color || '5B6674').replace('#', '');
     var r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
     var fg = (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#111' : '#FFF';
     var code = t.code || (t.short || '?').slice(0, 3).toUpperCase();
-    size = size || 26;
     return '<span class="team-badge" style="width:' + size + 'px;height:' + size + 'px;background:#' + hex + ';color:' + fg +
       ';font-size:' + Math.max(8, Math.round(size * (code.length > 3 ? 0.27 : 0.34))) + 'px">' + esc(code) + '</span>';
   }

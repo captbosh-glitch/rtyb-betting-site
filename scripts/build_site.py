@@ -426,6 +426,7 @@ def lighten(html, page_dir):
     if 'id="sportApp"' in html:
         shell += f'\n<script src="{prefix}assets/sport.js"></script>'
         html = html.replace('<body ', f'<body data-sport-slug="{page_dir.split("/")[0]}" ', 1)
+    html = html.replace('__ROOT__/', prefix)   # team logo paths (icons.team_logo)
     start = html.rindex(MAIN_SCRIPT_START)
     end = html.index('</script>', start) + len('</script>')
     return html[:start] + shell + html[end:]
@@ -498,8 +499,12 @@ def esc(s):
     return html_lib.escape(s or '', quote=True)
 
 
-def badge_html(team, size=40):
-    """Team-color circle with the abbreviation, text color picked for contrast."""
+def badge_html(team, size=40, sport_key=None):
+    """The team's logo (assets/logos/{sport}/) when cached, else a
+    team-color circle with the abbreviation, text color picked for contrast."""
+    logo = icons.team_logo(sport_key, team['slug'], size, alt='') if sport_key else ''
+    if logo:
+        return logo
     color = '#' + (team.get('color') or '5B6674')
     r, g, b = (int(color[i:i + 2], 16) for i in (1, 3, 5))
     lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
@@ -585,7 +590,7 @@ def teams_index_html(sport, teams):
         for letter in sorted(letters):
             rows = ''.join(
                 f'<a class="team-row" href="{team_url(sport, t)}" data-team-item data-search="{search_text(t)}" data-conf="{esc(t["conference"])}">'
-                f'{badge_html(t, 34)}<span class="team-row-text"><span class="team-row-name">{esc(t["name"])}</span>'
+                f'{badge_html(t, 34, sport["key"])}<span class="team-row-text"><span class="team-row-name">{esc(t["name"])}</span>'
                 f'<span class="team-row-conf">{esc(t["conference"])}</span></span></a>'
                 for t in letters[letter])
             body += (f'<div class="letter-group" data-team-group><h2 class="letter-title">{letter}</h2>'
@@ -598,7 +603,7 @@ def teams_index_html(sport, teams):
         for (conf, group) in sorted(groups, key=group_order):
             tiles = ''.join(
                 f'<a class="team-tile" href="{team_url(sport, t)}" data-team-item data-search="{search_text(t)}" data-conf="{esc(t["conference"])}">'
-                f'<span class="team-tile-row">{badge_html(t, 40)}<span class="team-tile-name">{esc(t["name"])}</span></span></a>'
+                f'<span class="team-tile-row">{badge_html(t, 40, sport["key"])}<span class="team-tile-name">{esc(t["name"])}</span></span></a>'
                 for t in sorted(groups[(conf, group)], key=lambda x: x['name']))
             body += (f'<div class="division-group" data-team-group><h2 class="division-title">{esc(short_group(group))}</h2>'
                      f'<div class="team-tile-grid">{tiles}</div></div>')
@@ -613,7 +618,7 @@ def team_detail_html(sport, team):
         return f'<h3 class="team-section-title">{title}</h3><div class="section-empty">{msg}</div>'
     no_games = f'No {esc(sport["label"])} games tracked yet.'
     return (f'<a class="sport-team-back" href="/{sport["slug"]}/teams/">&larr; All {esc(sport["label"])} teams</a>'
-            f'<div class="sport-team-head">{badge_html(team, 64)}<div><h1>{esc(team["name"])}</h1>'
+            f'<div class="sport-team-head">{badge_html(team, 64, sport["key"])}<div><h1>{esc(team["name"])}</h1>'
             f'<div class="sport-team-meta">{esc(meta)}</div></div></div>'
             # assets/sport.js fills these in from data.json once games exist
             + f'<div id="sportApp" data-section="team" data-team="{esc(team["slug"])}">'

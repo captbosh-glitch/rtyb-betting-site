@@ -52,6 +52,9 @@ jobs:
       - name: Fetch team logos (cached, idempotent -- no API key needed)
         run: python3 scripts/fetch_team_logos.py
 
+      - name: Fetch other sports' team logos (cached; only new teams are requested)
+        run: python3 scripts/fetch_sport_logos.py || echo "logo fetch failed; teams keep their color badges"
+
       - name: Decide whether this run also fetches odds
         id: gate
         run: |

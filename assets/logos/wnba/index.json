@@ -1,0 +1,47 @@
+{
+"atl": {
+"dark": false
+},
+"chi": {
+"dark": true
+},
+"con": {
+"dark": false
+},
+"dal": {
+"dark": true
+},
+"gs": {
+"dark": true
+},
+"ind": {
+"dark": false
+},
+"la": {
+"dark": false
+},
+"lv": {
+"dark": false
+},
+"min": {
+"dark": false
+},
+"ny": {
+"dark": true
+},
+"phx": {
+"dark": false
+},
+"por": {
+"dark": true
+},
+"sea": {
+"dark": true
+},
+"tor": {
+"dark": true
+},
+"wsh": {
+"dark": false
+}
+}

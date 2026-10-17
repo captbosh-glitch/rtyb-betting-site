@@ -6,8 +6,46 @@ with the theme (a black puck needs a light rim on dark; a white baseball
 needs a gray edge on light).
 
   sport_icon('nhl')  -> inline <svg>, or '' for a sport with no icon
+
+Also the team-logo markup shared by the build (team lists, team pages,
+home page): logo_html() shows the light logo, and the dark-background
+version when there is one, switched by CSS with the theme (.tlogo in
+template.html), so it works on static pages.
 """
+import json
+import os
+
 import sports
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_LOGO_INDEX = {}
+
+
+def logo_index(sport_key):
+    """{slug: {"dark": bool}} from assets/logos/{sport}/index.json."""
+    if sport_key not in _LOGO_INDEX:
+        path = os.path.join(ROOT, 'assets', 'logos', sport_key, 'index.json')
+        _LOGO_INDEX[sport_key] = json.load(open(path, encoding='utf-8')) if os.path.exists(path) else {}
+    return _LOGO_INDEX[sport_key]
+
+
+def logo_html(light_src, dark_src, size, alt=''):
+    """Team logo at `size` px; dark_src (or None) is shown on dark themes."""
+    style = f'width:{size}px;height:{size}px'
+    if not dark_src:
+        return f'<span class="tlogo" style="{style}"><img src="{light_src}" alt="{alt}" loading="lazy"></span>'
+    return (f'<span class="tlogo" style="{style}"><img class="tl-light" src="{light_src}" alt="{alt}" loading="lazy">'
+            f'<img class="tl-dark" src="{dark_src}" alt="{alt}" loading="lazy"></span>')
+
+
+def team_logo(sport_key, slug, size, root='__ROOT__/', alt=''):
+    """Logo markup for a non-NHL team, or '' when it has no cached logo.
+    `root` prefixes the asset path (pages swap __ROOT__/ for their depth)."""
+    info = logo_index(sport_key).get(slug)
+    if info is None:
+        return ''
+    base = f'{root}assets/logos/{sport_key}/{slug}'
+    return logo_html(f'{base}.png', f'{base}-dark.png' if info.get('dark') else None, size, alt)
 
 
 def puck():
