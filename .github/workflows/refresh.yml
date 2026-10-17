@@ -38,6 +38,9 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Grading tests (a failure stops the publish)
+        run: python3 -m unittest discover tests
+
       - name: Fetch NHL schedule and scores
         run: python3 scripts/fetch_schedule.py
 
