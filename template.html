@@ -337,7 +337,6 @@
     flex-shrink: 0; line-height: 0;
   }
   .team-logo-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
-  .team-logo-tile img { width: 76%; height: 76%; }
   .team-logo-fallback {
     display: flex; align-items: center; justify-content: center;
     width: 100%; height: 100%; border-radius: 50%; color: #fff; font-weight: 700;
@@ -1432,22 +1431,14 @@
   function escapeAttr(s) {
     return escapeHtml(s).replace(/"/g, '&quot;');
   }
-  // Logos 20px and up sit on a rounded tile in the team's color (the
-  // sportsbook look), using NHL's dark-background logo, which reads on every
-  // team color. Smaller ones (game-log opponents) stay plain.
-  var LOGO_TILE_MIN = 20;
   function teamLogoHtml(code, size, opts) {
     opts = opts || {};
     var info = DATA.summary[code];
     var name = info ? info.name : code;
-    var tile = size >= LOGO_TILE_MIN && TEAM_TRUE_COLOR[code];
-    var variant = tile || currentTheme() === 'dark' ? 'dark' : 'light';
+    var variant = currentTheme() === 'dark' ? 'dark' : 'light';
     var lazyAttr = opts.lazy ? ' loading="lazy"' : '';
-    var img = tile ? Math.round(size * 0.76) : size;
-    var style = 'width:' + size + 'px;height:' + size + 'px' +
-      (tile ? ';background:' + TEAM_TRUE_COLOR[code] + ';border-radius:' + Math.max(4, Math.round(size * 0.22)) + 'px' : '');
-    return '<span class="team-logo-wrap' + (tile ? ' team-logo-tile' : '') + (opts.cls ? ' ' + opts.cls : '') + '" style="' + style + '">' +
-      '<img src="' + SITE_ROOT + '/assets/logos/' + code + '_' + variant + '.svg" width="' + img + '" height="' + img + '"' +
+    return '<span class="team-logo-wrap' + (opts.cls ? ' ' + opts.cls : '') + '" style="width:' + size + 'px;height:' + size + 'px">' +
+      '<img src="' + SITE_ROOT + '/assets/logos/' + code + '_' + variant + '.svg" width="' + size + '" height="' + size + '"' +
       ' alt="' + escapeAttr(name) + ' logo"' + lazyAttr +
       ' onerror="window.rtybLogoFallback(this,\'' + code + '\',' + size + ')">' +
       '</span>';
