@@ -46,7 +46,7 @@
     --ball-shine: rgba(255, 255, 255, 0.16);
     --ball-leather: #8A4B22;
     --ball-leather-edge: #4E2610;
-    --ball-leather-rim: #D9DDE3;
+    --ball-leather-rim: var(--ball-puck-rim);
     --ball-lace: #F4EFE6;
     --ball-orange: #E8772E;
     --ball-orange-edge: #7A3510;
