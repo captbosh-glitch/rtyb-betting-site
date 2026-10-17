@@ -54,6 +54,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import league_trends  # noqa: E402
+import sport_build  # noqa: E402
 import sports  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -276,9 +277,22 @@ NHL_FOOTER = ('RTYB &mdash; 2026&ndash;27 regular season, games from Sept. 29 on
               'ties (periods ending level) count as pushes on the Moneyline market. Not affiliated with the NHL.')
 
 
+# Filled by build_sport_data() before any page renders: per sport, what
+# sport_build.build() returned ({season, games, graded, today}).
+SPORT_DATA = {}
+
+
 def sport_has_data(key):
-    """Sports with real data published; the rest show "Soon" in the selector."""
-    return key == 'nhl'
+    """Sports with games loaded; the rest show "Soon" in the selector."""
+    return key == 'nhl' or (SPORT_DATA.get(key) or {}).get('season') is not None
+
+
+def build_sport_data():
+    """Grade, total up and write {slug}/data.json for every non-NHL sport
+    (scripts/sport_build.py), before any page is rendered."""
+    for sp in sports.SPORTS:
+        if sp['key'] != 'nhl':
+            SPORT_DATA[sp['key']] = sport_build.build(sp, load_teams(sp))
 
 
 def sport_menu_html(current, section):
@@ -301,9 +315,15 @@ def apply_sport(out, sport, section):
     out = out.replace('__BRAND_HREF__', sports.section_path(sport, 'games'))
     for sec in ('games', 'stats', 'trends', 'teams'):
         out = out.replace(f'__NAV_HREF_{sec.upper()}__', sports.section_path(sport, sec))
-    out = out.replace('__FOOTER_TEXT__', NHL_FOOTER if is_nhl else
-                      f'RTYB &mdash; Run to Your Bets. {sport["label"]} {sports.segment_summary(sport)} coverage is coming soon. '
-                      'Not affiliated with any league.')
+    if is_nhl:
+        footer = NHL_FOOTER
+    elif sport_has_data(sport['key']):
+        footer = (f'RTYB &mdash; Run to Your Bets. {sport["label"]} {sports.segment_summary(sport)} results; '
+                  'odds-based records count only games with saved odds. Not affiliated with any league.')
+    else:
+        footer = (f'RTYB &mdash; Run to Your Bets. {sport["label"]} {sports.segment_summary(sport)} coverage is coming soon. '
+                  'Not affiliated with any league.')
+    out = out.replace('__FOOTER_TEXT__', footer)
     out = out.replace('__DATA_PATH__', f'/{sport["slug"]}/data.json')
     out = out.replace('__SPORT_SLUGS_JSON__', json.dumps([sp['slug'] for sp in sports.SPORTS]))
     return out
@@ -376,9 +396,12 @@ def lighten(html, page_dir):
     prefix = '../' * len([p for p in page_dir.split('/') if p])
     html = html.replace('<div class="no-games-note" id="rtybLoadNote">Loading data&hellip;</div>', '', 1)
     html = STYLE_RE.sub(lambda m: f'<link rel="stylesheet" href="{prefix}assets/site.css">', html, count=1)
+    shell = SHELL_JS.replace('__SPORT_SLUGS_JSON__', json.dumps([sp['slug'] for sp in sports.SPORTS]))
+    if 'id="sportApp"' in html:
+        shell += f'\n<script src="{prefix}assets/sport.js"></script>'
+        html = html.replace('<body ', f'<body data-sport-slug="{page_dir.split("/")[0]}" ', 1)
     start = html.rindex(MAIN_SCRIPT_START)
     end = html.index('</script>', start) + len('</script>')
-    shell = SHELL_JS.replace('__SPORT_SLUGS_JSON__', json.dumps([sp['slug'] for sp in sports.SPORTS]))
     return html[:start] + shell + html[end:]
 
 
@@ -456,9 +479,6 @@ def redirect_page_html(relative_target):
 </html>
 """
 
-
-EMPTY_DATA = {'summary': {}, 'streaks': {}, 'gamelog': {}, 'schedule': {'gameCounts': {}, 'games': {}},
-              'divisions': {}, 'leagueTrends': {}}
 
 EMPTY_COPY = {
     'games': ('No {label} games yet', 'odds, results and trends'),
@@ -599,12 +619,22 @@ def team_detail_html(sport, team):
     return (f'<a class="sport-team-back" href="/{sport["slug"]}/teams/">&larr; All {esc(sport["label"])} teams</a>'
             f'<div class="sport-team-head">{badge_html(team, 64)}<div><h1>{esc(team["name"])}</h1>'
             f'<div class="sport-team-meta">{esc(meta)}</div></div></div>'
+            # assets/sport.js fills these in from data.json once games exist
+            + f'<div id="sportApp" data-section="team" data-team="{esc(team["slug"])}">'
             + section('Next Game', 'No upcoming game scheduled yet.')
             + section('Last Game', no_games)
             + section('Season Markets', f'Records and units will appear here once games are graded.<span class="empty-tags">{tags}</span>')
             + section('Home / Away Splits', no_games)
             + section('Current Trends', 'No trends yet.')
-            + section(f'Last 10 Games &mdash; {esc(sports.segment_summary(sport))}', no_games))
+            + section(f'Last 10 Games &mdash; {esc(sports.segment_summary(sport))}', no_games)
+            + '</div>')
+
+
+SECTION_DESC = {
+    'games': '{label} games by date with {segs} odds, scores and results.',
+    'stats': '{label} {segs} records: SU, ATS and totals by team, with units.',
+    'trends': '{label} League Trends for each slate and current team streaks.',
+}
 
 
 def write_light(template_html_page, page_dir):
@@ -615,9 +645,10 @@ def write_light(template_html_page, page_dir):
 
 
 def build_other_sports(template):
-    """Pages for every non-NHL sport in the registry. With no data yet each
-    section renders a clean empty state; each sport also gets an empty
-    data.json so the shared page script loads without errors."""
+    """Pages for every non-NHL sport in the registry. Games / Stats / Trends
+    are rendered in the browser by assets/sport.js from {slug}/data.json
+    (written by build_sport_data); a sport with no games loaded yet gets a
+    clean empty state instead."""
     os.makedirs(os.path.join(ROOT, 'assets'), exist_ok=True)
     with open(os.path.join(ROOT, 'assets', 'site.css'), 'w', encoding='utf-8') as f:
         f.write(site_css(template))
@@ -628,10 +659,6 @@ def build_other_sports(template):
     for sp in sports.SPORTS:
         if sp['key'] == 'nhl':
             continue
-        base = os.path.join(ROOT, sp['slug'])
-        os.makedirs(base, exist_ok=True)
-        with open(os.path.join(base, 'data.json'), 'w', encoding='utf-8') as f:
-            json.dump(dict(EMPTY_DATA, sport=sp['key']), f, separators=(',', ':'))
         teams = load_teams(sp)
         for section in ('games', 'stats', 'trends', 'teams'):
             label = sports.SECTION_LABELS[section]
@@ -641,6 +668,11 @@ def build_other_sports(template):
                 meta['desc'] = (f'Every {sp["label"]} team, '
                                 + ('A–Z with a conference filter.' if sp['key'] in ('ncaaf', 'ncaab') else 'grouped by division.'))
                 html = render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=teams_index_html(sp, teams))
+            elif section != 'teams' and sport_has_data(sp['key']):
+                meta['desc'] = SECTION_DESC[section].format(label=sp['label'], segs=sports.segment_summary(sp))
+                body = (f'<div id="sportApp" data-section="{section}"><div class="no-games-note">Loading&hellip;</div>'
+                        f'<noscript>This page needs JavaScript.</noscript></div>')
+                html = render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=body)
             else:
                 html = render_page(template, 'empty', '', meta=meta, sport=sp, empty_html=empty_state_html(sp, section))
             write_light(html, f"{sp['slug']}/{sp['sections'][section]}")
@@ -651,7 +683,8 @@ def build_other_sports(template):
                     'section': 'teams'}
             write_light(render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=team_detail_html(sp, t)),
                         f"{sp['slug']}/teams/{t['slug']}")
-        written.append(f"{sp['slug']} ({len(teams)} teams)")
+        info = SPORT_DATA.get(sp['key']) or {}
+        written.append(f"{sp['slug']} ({len(teams)} teams, {info.get('graded', 0)} graded games)")
     return ', '.join(written)
 
 
@@ -686,6 +719,7 @@ def apply_admin_overrides(merged_games, odds_overrides, results_overrides):
 
 
 def main():
+    build_sport_data()
     base = load('base_data.json', {'summary': {}, 'streaks': {}, 'gamelog': {}})
     fresh_schedule = load('schedule_fresh.json', {'gameCounts': {}, 'games': {}})
     prev_schedule = load('schedule_data.json', {'gameCounts': {}, 'games': {}})

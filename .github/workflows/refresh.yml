@@ -44,6 +44,11 @@ jobs:
       - name: Fetch NHL schedule and scores
         run: python3 scripts/fetch_schedule.py
 
+      - name: Fetch other sports' schedules and scores (ESPN, yesterday through next week)
+        # A failed date is logged to data_seed/games/<sport>/failures.json and
+        # retried on later runs; it never stops the NHL refresh.
+        run: python3 scripts/fetch_sport_games.py daily || echo "other sports fetch failed; keeping saved games"
+
       - name: Fetch team logos (cached, idempotent -- no API key needed)
         run: python3 scripts/fetch_team_logos.py
 
@@ -83,7 +88,7 @@ jobs:
           git config user.name "rtyb-bot"
           git config user.email "actions@users.noreply.github.com"
           # One folder per sport in scripts/sports.py -- add new sports here too.
-          git add index.html nhl nfl nba wnba mlb college-football college-basketball schedule_data.json assets/logos assets/site.css assets/sports.json league_trends_log.json
+          git add index.html nhl nfl nba wnba mlb college-football college-basketball schedule_data.json assets/logos assets/site.css assets/sports.json league_trends_log.json data_seed/games trends_log
           if git diff --cached --quiet; then
             echo "No changes, skipping commit."
             exit 0

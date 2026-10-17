@@ -614,7 +614,7 @@
   var TEAM_BY_SLUG = {};
   var TEAM_INDEX = {};      // lowercased name / code / city -> [slugs]
   var ODDS = {};            // data_admin/odds/{sport}.json
-  var SCHEDULE = {};        // {slug}/data.json schedule.games, once loaded
+  var SCHEDULE = {};        // {slug}/data.json games by date, once loaded
   var SEGMENT = null;
   var added = {};           // date -> [{away, home}] not yet saved
   var oddsLocked = {};      // date|segment -> bool
@@ -684,7 +684,7 @@
       if (!SPORT || SPORT.key !== key) return;
       setTeams((r[0] && r[0].teams) || []);
       ODDS = r[1] || {};
-      SCHEDULE = (r[2] && r[2].schedule && r[2].schedule.games) || {};
+      SCHEDULE = (r[2] && r[2].games) || {};   // {date: [{away, home, ...}]} from sport_build.py
       renderSegTabs();
       renderOdds();
     });
