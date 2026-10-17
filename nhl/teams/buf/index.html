@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="RTYB — Run to Your Bets: NHL 1st-period betting stats and trends.">
 </head>
-<body data-team-code="BUF">
+<body data-team-code="BUF" data-sport="nhl">
 <title>RTYB — Buffalo Sabres</title>
 <style>
   :root {
@@ -254,6 +254,15 @@
   }
   :root:not([data-theme="light"]) .next-gameday-btn { color: var(--accent); }
 
+
+  /* ---------- Sports with no data yet ---------- */
+  .empty-sport { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 32px 24px; text-align: center; }
+  .empty-sport h2 { font-size: 1.4rem; margin-bottom: 6px; }
+  .empty-sport p { color: var(--text-muted); max-width: 52ch; margin: 0 auto; }
+  .empty-sport .empty-tags { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .empty-sport .empty-tags span { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); border: 1px solid var(--accent); padding: 2px 8px; border-radius: 4px; }
+  .nav-dropdown-item[aria-current="true"] { color: var(--accent); font-weight: 700; }
+  .nav-dropdown-item .soon { margin-left: auto; padding-left: 12px; font-size: 0.68rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.04em; }
 
   /* ---------- Team logos (light/dark SVG, w/ circle+abbrev fallback) ---------- */
   .team-logo-wrap {
@@ -914,9 +923,7 @@
         <button type="button" class="nav-link nav-dropdown-btn" id="sportBtn" aria-haspopup="true" aria-expanded="false">
           NHL <span class="nav-caret">&#9662;</span>
         </button>
-        <div class="nav-dropdown-menu" id="sportMenu">
-          <a class="nav-dropdown-item" href="/nhl/games/">NHL</a>
-        </div>
+        <div class="nav-dropdown-menu" id="sportMenu"><a class="nav-dropdown-item" href="/nhl/teams/" aria-current="true">NHL</a><a class="nav-dropdown-item" href="/nfl/teams/">NFL<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/nba/teams/">NBA<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/wnba/teams/">WNBA<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/mlb/teams/">MLB<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/college-football/teams/">NCAAF<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/college-basketball/teams/">NCAAB<span class="soon">Soon</span></a></div>
       </div>
       <a class="nav-link" href="/nhl/games/" >Games</a>
       <a class="nav-link" href="/nhl/1st-period-stats/" >Stats</a>
@@ -970,6 +977,8 @@
   <div class="l10-summary" id="teamL10Summary"></div>
   <table class="gamelog l10" id="teamGamelogTable"></table>
   
+
+  
 </main>
 
 <footer>
@@ -988,9 +997,17 @@
   // rather than hardcoded, so the exact same file also works unmodified
   // when served from a plain local dev server at the domain root (no
   // "/nhl/" anchor found -> SITE_ROOT is just '').
+  // Every sport's pages live under its own folder (/nhl/, /nfl/,
+  // /college-football/, ...), so look for whichever sport folder is in the
+  // URL; the list comes from the sport registry (scripts/sports.py).
+  var SPORT_SLUGS = ["nhl", "nfl", "nba", "wnba", "mlb", "college-football", "college-basketball"];
   var SITE_ROOT = (function() {
-    var i = location.pathname.indexOf('/nhl/');
-    return i >= 0 ? location.pathname.slice(0, i) : '';
+    var best = -1;
+    SPORT_SLUGS.forEach(function(slug) {
+      var i = location.pathname.indexOf('/' + slug + '/');
+      if (i >= 0 && (best < 0 || i < best)) best = i;
+    });
+    return best >= 0 ? location.pathname.slice(0, best) : '';
   })();
 
   // Anything already sitting in the DOM at this point (the nav bar, Teams
@@ -1000,7 +1017,7 @@
   // prefixes SITE_ROOT directly at render time instead -- see
   // teamLogoHtml(), renderGameCard(), etc. below.
   if (SITE_ROOT) {
-    Array.prototype.forEach.call(document.querySelectorAll('a[href^="/nhl/"]'), function(a) {
+    Array.prototype.forEach.call(document.querySelectorAll('a[href^="/"]:not([href^="//"])'), function(a) {
       a.setAttribute('href', SITE_ROOT + a.getAttribute('href'));
     });
     Array.prototype.forEach.call(document.querySelectorAll('img[src^="/assets/logos/"]'), function(img) {
