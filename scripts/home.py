@@ -406,9 +406,9 @@ def sport_status(sp, games_by_date, today):
     return f'Back in {month[:3]}', False, month[:3]
 
 
-def build(template, nhl_data, logo_svg, now_utc=None):
-    now_utc = now_utc or datetime.now(timezone.utc)
-    today = now_utc.astimezone(ET).date().isoformat()
+def collect(template, nhl_data):
+    """Every sport's games by date in the home page shape, plus each
+    non-NHL sport's data.json."""
     colors = nhl_colors(template)
     by_sport = {'nhl': nhl_games(nhl_data, colors)}
     docs = {}
@@ -419,6 +419,26 @@ def build(template, nhl_data, logo_svg, now_utc=None):
         doc = json.load(open(path, encoding='utf-8')) if os.path.exists(path) else {}
         docs[sp['key']] = doc
         by_sport[sp['key']] = sport_games(doc) if doc.get('games') is not None and doc.get('segments') else {}
+    return by_sport, docs
+
+
+def sport_statuses(template, nhl_data, now_utc=None):
+    """{sport key: {'chip', 'live', 'short'}} -- the same LIVE / date /
+    month labels the home page shows, for every page's Sports menu."""
+    now_utc = now_utc or datetime.now(timezone.utc)
+    today = now_utc.astimezone(ET).date().isoformat()
+    by_sport, _ = collect(template, nhl_data)
+    out = {}
+    for sp in sports.SPORTS:
+        chip, live, short = sport_status(sp, by_sport.get(sp['key'], {}), today)
+        out[sp['key']] = {'chip': chip, 'live': live, 'short': short}
+    return out
+
+
+def build(template, nhl_data, logo_svg, now_utc=None):
+    now_utc = now_utc or datetime.now(timezone.utc)
+    today = now_utc.astimezone(ET).date().isoformat()
+    by_sport, docs = collect(template, nhl_data)
 
     status = []
     for sp in sports.SPORTS:

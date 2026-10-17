@@ -297,11 +297,21 @@ def build_sport_data():
             SPORT_DATA[sp['key']] = sport_build.build(sp, load_teams(sp))
 
 
+# Filled in main() once NHL's data is merged, before any page renders:
+# home.sport_statuses(), so every Sports menu matches the home page.
+SPORT_STATUS = {}
+
+
 def sport_menu_html(current, section):
     items = []
     for sp in sports.SPORTS:
         cur = ' aria-current="true"' if sp['key'] == current['key'] else ''
-        soon = '' if sport_has_data(sp['key']) else '<span class="soon">Soon</span>'
+        st = SPORT_STATUS.get(sp['key'])
+        if st:
+            soon = (f'<span class="nav-status{" live" if st["live"] else ""}">'
+                    f'{"LIVE" if st["live"] else html_lib.escape(st["short"])}</span>')
+        else:
+            soon = '' if sport_has_data(sp['key']) else '<span class="soon">Soon</span>'
         items.append(f'<a class="nav-dropdown-item" href="{sports.section_path(sp, section)}"{cur}>'
                      f'{icons.sport_icon(sp)}{sp["label"]}{soon}</a>')
     return ''.join(items)
@@ -831,6 +841,7 @@ def main():
     template_path = os.path.join(ROOT, 'template.html')
     with open(template_path, encoding='utf-8') as f:
         template = f.read()
+    SPORT_STATUS.update(home.sport_statuses(template, full_data))
 
     team_colors = extract_team_true_colors(template)
     teams_menu_html = build_teams_menu_html(full_data.get('summary', {}), team_colors)
