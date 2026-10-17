@@ -309,12 +309,86 @@ def apply_sport(out, sport, section):
     return out
 
 
-def render_page(template, page_key, teams_menu_html, meta=None, team_code='', sport=None, empty_html=''):
+# Pages for the other sports don't need NHL's page code (~60 KB of script)
+# or a private copy of the styles (~90 KB) -- with hundreds of college team
+# pages that would add ~100 MB to the site. They share one stylesheet
+# (assets/site.css, written by the build from template.html's <style>) and
+# run this small script for the nav, menus and theme toggle.
+SHELL_JS = """<script>
+(function() {
+  'use strict';
+  var SPORT_SLUGS = __SPORT_SLUGS_JSON__;
+  var SITE_ROOT = (function() {
+    var best = -1;
+    SPORT_SLUGS.forEach(function(slug) {
+      var i = location.pathname.indexOf('/' + slug + '/');
+      if (i >= 0 && (best < 0 || i < best)) best = i;
+    });
+    return best >= 0 ? location.pathname.slice(0, best) : '';
+  })();
+  if (SITE_ROOT) {
+    document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach(function(a) {
+      a.setAttribute('href', SITE_ROOT + a.getAttribute('href'));
+    });
+  }
+  try {
+    var saved = localStorage.getItem('rtyb-theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+  } catch (e) {}
+  document.getElementById('themeToggle').addEventListener('click', function() {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('rtyb-theme', next); } catch (e) {}
+  });
+  var btn = document.getElementById('sportBtn'), menu = document.getElementById('sportMenu');
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var opening = !menu.classList.contains('open');
+    menu.classList.toggle('open', opening);
+    btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  });
+  document.addEventListener('click', function(e) {
+    if (!menu.contains(e.target)) { menu.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+  });
+  var hamburger = document.getElementById('hamburgerBtn'), mainNav = document.getElementById('mainNav');
+  hamburger.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var opening = !mainNav.classList.contains('open');
+    mainNav.classList.toggle('open', opening);
+    hamburger.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  });
+})();
+</script>"""
+
+STYLE_RE = re.compile(r'<style>\n(.*?)\n</style>', re.S)
+MAIN_SCRIPT_START = "<script>\n(function() {\n  'use strict';"
+
+
+def site_css(template):
+    return STYLE_RE.search(template).group(1)
+
+
+def lighten(html, page_dir):
+    """Swap the inline styles for the shared stylesheet and NHL's page code
+    for SHELL_JS. page_dir is the page's folder relative to the site root."""
+    prefix = '../' * len([p for p in page_dir.split('/') if p])
+    html = html.replace('<div class="no-games-note" id="rtybLoadNote">Loading data&hellip;</div>', '', 1)
+    html = STYLE_RE.sub(lambda m: f'<link rel="stylesheet" href="{prefix}assets/site.css">', html, count=1)
+    start = html.rindex(MAIN_SCRIPT_START)
+    end = html.index('</script>', start) + len('</script>')
+    shell = SHELL_JS.replace('__SPORT_SLUGS_JSON__', json.dumps([sp['slug'] for sp in sports.SPORTS]))
+    return html[:start] + shell + html[end:]
+
+
+def render_page(template, page_key, teams_menu_html, meta=None, team_code='', sport=None, empty_html='', sport_body=''):
     sport = sport or sports.BY_KEY['nhl']
     out = strip_pages(template, page_key)
     section = PAGE_SECTION.get(page_key) or (meta or {}).get('section')
     out = apply_sport(out, sport, section)
     out = out.replace('__EMPTY_HTML__', empty_html)
+    out = out.replace('__SPORT_BODY__', sport_body)
     meta = meta or PAGE_META[page_key]
     out = out.replace('__PAGE_TITLE__', meta['title'])
     out = out.replace('__PAGE_H1__', meta['h1'])
@@ -402,10 +476,151 @@ def empty_state_html(sport, section):
             f'<div class="empty-tags">{tags}</div>')
 
 
+
+# ---------- Teams pages for the non-NHL sports (from data_seed/teams/) ----------
+def esc(s):
+    return html_lib.escape(s or '', quote=True)
+
+
+def badge_html(team, size=40):
+    """Team-color circle with the abbreviation, text color picked for contrast."""
+    color = '#' + (team.get('color') or '5B6674')
+    r, g, b = (int(color[i:i + 2], 16) for i in (1, 3, 5))
+    lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    text = '#111111' if lum > 150 else '#FFFFFF'
+    code = esc(team['code'])
+    fs = max(10, int(size * (0.36 if len(team['code']) <= 3 else 0.3)))
+    return (f'<span class="team-badge" style="width:{size}px;height:{size}px;background:{color};color:{text};'
+            f'font-size:{fs}px" aria-hidden="true">{code}</span>')
+
+
+def short_group(name):
+    """'American League East' -> 'AL East'; leaves others alone."""
+    return (name or '').replace('American League', 'AL').replace('National League', 'NL')
+
+
+def team_url(sport, team):
+    return f"/{sport['slug']}/teams/{team['slug']}/"
+
+
+def load_teams(sport):
+    doc = load(os.path.join('data_seed', 'teams', f"{sport['key']}.json"), None)
+    return doc['teams'] if doc else []
+
+
+TEAM_FILTER_JS = """<script>
+(function() {
+  var search = document.getElementById('sportTeamSearch');
+  var conf = document.getElementById('sportTeamConf');
+  var count = document.getElementById('sportTeamCount');
+  var none = document.getElementById('sportTeamNone');
+  function apply() {
+    var q = (search.value || '').trim().toLowerCase();
+    var c = conf ? conf.value : '';
+    var shown = 0;
+    document.querySelectorAll('[data-team-item]').forEach(function(el) {
+      var ok = (!q || el.getAttribute('data-search').indexOf(q) !== -1) && (!c || el.getAttribute('data-conf') === c);
+      el.hidden = !ok;
+      if (ok) shown++;
+    });
+    document.querySelectorAll('[data-team-group]').forEach(function(g) {
+      g.hidden = !g.querySelector('[data-team-item]:not([hidden])');
+    });
+    if (count) count.textContent = shown + (shown === 1 ? ' team' : ' teams');
+    if (none) none.hidden = shown !== 0;
+  }
+  search.addEventListener('input', apply);
+  if (conf) conf.addEventListener('change', apply);
+})();
+</script>"""
+
+
+# Divisions in the order leagues list them (East before Central before
+# West); anything else, alphabetical.
+DIVISION_ORDER = ['East', 'North', 'Central', 'South', 'West']
+
+
+def group_order(key):
+    conf, group = key
+    word = next((w for w in DIVISION_ORDER if group.endswith(' ' + w)), None)
+    return (conf, DIVISION_ORDER.index(word) if word else len(DIVISION_ORDER), group)
+
+
+def teams_index_html(sport, teams):
+    college = sport['key'] in ('ncaaf', 'ncaab')
+    controls = ('<div class="controls"><div class="control-group">'
+                f'<input class="search-box" id="sportTeamSearch" type="search" placeholder="Search team&hellip;" '
+                f'aria-label="Search {esc(sport["label"])} teams" style="width:220px">')
+    if college:
+        confs = sorted({t['conference'] for t in teams if t['conference']})
+        opts = ''.join(f'<option value="{esc(c)}">{esc(c)} ({sum(1 for t in teams if t["conference"] == c)})</option>' for c in confs)
+        controls += (f'<select class="conf-select" id="sportTeamConf" aria-label="Filter by conference">'
+                     f'<option value="">All conferences</option>{opts}</select>')
+    controls += f'</div><span class="teams-count" id="sportTeamCount">{len(teams)} teams</span></div>'
+
+    def search_text(t):
+        return esc(' '.join(filter(None, [t['name'], t['code'], t.get('short'), t['conference'], t.get('division')])).lower())
+
+    body = ''
+    if college:
+        letters = {}
+        for t in teams:
+            letters.setdefault(t['name'][0].upper(), []).append(t)
+        for letter in sorted(letters):
+            rows = ''.join(
+                f'<a class="team-row" href="{team_url(sport, t)}" data-team-item data-search="{search_text(t)}" data-conf="{esc(t["conference"])}">'
+                f'{badge_html(t, 34)}<span class="team-row-text"><span class="team-row-name">{esc(t["name"])}</span>'
+                f'<span class="team-row-conf">{esc(t["conference"])}</span></span></a>'
+                for t in letters[letter])
+            body += (f'<div class="letter-group" data-team-group><h2 class="letter-title">{letter}</h2>'
+                     f'<div class="team-list">{rows}</div></div>')
+    else:
+        groups = {}
+        for t in teams:
+            key = (t['conference'] or '', t.get('division') or t['conference'] or '')
+            groups.setdefault(key, []).append(t)
+        for (conf, group) in sorted(groups, key=group_order):
+            tiles = ''.join(
+                f'<a class="team-tile" href="{team_url(sport, t)}" data-team-item data-search="{search_text(t)}" data-conf="{esc(t["conference"])}">'
+                f'<span class="team-tile-row">{badge_html(t, 40)}<span class="team-tile-name">{esc(t["name"])}</span></span></a>'
+                for t in sorted(groups[(conf, group)], key=lambda x: x['name']))
+            body += (f'<div class="division-group" data-team-group><h2 class="division-title">{esc(short_group(group))}</h2>'
+                     f'<div class="team-tile-grid">{tiles}</div></div>')
+    body += '<div class="teams-empty" id="sportTeamNone" hidden>No teams match that search.</div>'
+    return controls + body + TEAM_FILTER_JS
+
+
+def team_detail_html(sport, team):
+    meta = ' · '.join(filter(None, [short_group(team.get('division')), team['conference']]))
+    tags = ''.join(f'<span>{esc(seg["tag"])}</span>' for seg in sport['segments'])
+    def section(title, msg):
+        return f'<h3 class="team-section-title">{title}</h3><div class="section-empty">{msg}</div>'
+    no_games = f'No {esc(sport["label"])} games tracked yet.'
+    return (f'<a class="sport-team-back" href="/{sport["slug"]}/teams/">&larr; All {esc(sport["label"])} teams</a>'
+            f'<div class="sport-team-head">{badge_html(team, 64)}<div><h1>{esc(team["name"])}</h1>'
+            f'<div class="sport-team-meta">{esc(meta)}</div></div></div>'
+            + section('Next Game', 'No upcoming game scheduled yet.')
+            + section('Last Game', no_games)
+            + section('Season Markets', f'Records and units will appear here once games are graded.<span class="empty-tags">{tags}</span>')
+            + section('Home / Away Splits', no_games)
+            + section('Current Trends', 'No trends yet.')
+            + section(f'Last 10 Games &mdash; {esc(sports.segment_summary(sport))}', no_games))
+
+
+def write_light(template_html_page, page_dir):
+    path = os.path.join(ROOT, page_dir)
+    os.makedirs(path, exist_ok=True)
+    with open(os.path.join(path, 'index.html'), 'w', encoding='utf-8') as f:
+        f.write(lighten(template_html_page, page_dir))
+
+
 def build_other_sports(template):
     """Pages for every non-NHL sport in the registry. With no data yet each
     section renders a clean empty state; each sport also gets an empty
     data.json so the shared page script loads without errors."""
+    os.makedirs(os.path.join(ROOT, 'assets'), exist_ok=True)
+    with open(os.path.join(ROOT, 'assets', 'site.css'), 'w', encoding='utf-8') as f:
+        f.write(site_css(template))
     written = []
     for sp in sports.SPORTS:
         if sp['key'] == 'nhl':
@@ -414,16 +629,26 @@ def build_other_sports(template):
         os.makedirs(base, exist_ok=True)
         with open(os.path.join(base, 'data.json'), 'w', encoding='utf-8') as f:
             json.dump(dict(EMPTY_DATA, sport=sp['key']), f, separators=(',', ':'))
+        teams = load_teams(sp)
         for section in ('games', 'stats', 'trends', 'teams'):
             label = sports.SECTION_LABELS[section]
             meta = {'title': f'RTYB — {sp["label"]} {label}', 'h1': f'{sp["label"]} — {label}',
                     'desc': f'{sp["label"]} {sports.segment_summary(sp)} {EMPTY_COPY[section][1]}.', 'section': section}
-            html = render_page(template, 'empty', '', meta=meta, sport=sp, empty_html=empty_state_html(sp, section))
-            d = os.path.join(base, sp['sections'][section])
-            os.makedirs(d, exist_ok=True)
-            with open(os.path.join(d, 'index.html'), 'w', encoding='utf-8') as f:
-                f.write(html)
-        written.append(sp['slug'])
+            if section == 'teams' and teams:
+                meta['desc'] = (f'Every {sp["label"]} team, '
+                                + ('A–Z with a conference filter.' if sp['key'] in ('ncaaf', 'ncaab') else 'grouped by division.'))
+                html = render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=teams_index_html(sp, teams))
+            else:
+                html = render_page(template, 'empty', '', meta=meta, sport=sp, empty_html=empty_state_html(sp, section))
+            write_light(html, f"{sp['slug']}/{sp['sections'][section]}")
+        # one page per team
+        for t in teams:
+            meta = {'title': f'RTYB — {t["name"]}', 'h1': f'{sp["label"]} — Teams',
+                    'desc': f'{sp["label"]} {sports.segment_summary(sp)} records, splits and trends for the {t["name"]}.',
+                    'section': 'teams'}
+            write_light(render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=team_detail_html(sp, t)),
+                        f"{sp['slug']}/teams/{t['slug']}")
+        written.append(f"{sp['slug']} ({len(teams)} teams)")
     return ', '.join(written)
 
 

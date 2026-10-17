@@ -79,7 +79,7 @@ jobs:
           git config user.name "rtyb-bot"
           git config user.email "actions@users.noreply.github.com"
           # One folder per sport in scripts/sports.py -- add new sports here too.
-          git add index.html nhl nfl nba wnba mlb college-football college-basketball schedule_data.json assets/logos league_trends_log.json
+          git add index.html nhl nfl nba wnba mlb college-football college-basketball schedule_data.json assets/logos assets/site.css league_trends_log.json
           if git diff --cached --quiet; then
             echo "No changes, skipping commit."
             exit 0
