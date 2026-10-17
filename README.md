@@ -30,6 +30,25 @@ static site via GitHub Pages.
   it's over, so this snapshot is the only record of what the price was).
 - `.github/workflows/refresh.yml` — runs the whole pipeline on a schedule.
 
+### Other sports (NFL, NBA, WNBA, MLB, NCAAF, NCAAB)
+
+- `scripts/sports.py` — the sport registry (URLs, segments, season months).
+- `scripts/fetch_teams.py` — team lists and conferences into `data_seed/teams/`.
+- `scripts/fetch_sport_games.py` — schedules, scores and line scores from
+  ESPN's public scoreboard into `data_seed/games/{sport}/{season}.json`
+  (idempotent; failed dates go to `failures.json` and are retried). The
+  refresh job runs `daily` (yesterday through next week) every time.
+  `coverage` prints games and line-score completeness per season. Backfills:
+  `python3 scripts/fetch_sport_games.py ncaaf 2006-08-20 2007-01-25`, and
+  `... ncaab 2026-03-17 2026-04-06 --ncaa-tournament` for tournament games only.
+- `scripts/grading.py` — grades every segment + market (tests in `tests/`).
+- `scripts/sport_build.py` — grades the games, totals stats, writes League
+  Trends (`trends_log/`) and each sport's `data.json`;
+  `assets/sport.js` renders the pages from it.
+- Odds come only from the Admin page (`data_admin/odds/{sport}.json`).
+  Games without odds still grade SU and NRFI/YRFI; ATS, totals, favorites
+  and units stay empty for them rather than counting as 0 or a loss.
+
 ## One-time setup
 
 1. **Push this repo to GitHub** (already done if you're reading this from

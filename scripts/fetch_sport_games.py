@@ -10,6 +10,10 @@ failures.json and retried on the next run that covers them.
   python3 scripts/fetch_sport_games.py daily                  # every sport: yesterday..+7 days
   python3 scripts/fetch_sport_games.py nfl 2026-09-01 2026-10-17
   python3 scripts/fetch_sport_games.py retry                  # dates in failures.json
+  python3 scripts/fetch_sport_games.py coverage               # games / line scores per season
+  python3 scripts/fetch_sport_games.py ncaab 2026-03-17 2026-04-06 --ncaa-tournament
+                                    # only NCAA Tournament games (ESPN's game note
+                                    # "NCAA Men's Basketball Championship"; not NIT etc.)
 
 Saved game:
   {"id", "date" (ET), "start" (UTC ISO), "state": pre | in | final |
@@ -176,10 +180,12 @@ def fetch_dates(sport, dates, keep=None, verbose=True):
     (e.g. NCAA Tournament only). Returns (games saved, failed dates)."""
     path, extra = SOURCES[sport]
     team_slugs = load_teams(sport)
-    by_season, failed, seen_dates = {}, {}, set()
+    by_season, failed, seen_dates, skipped = {}, {}, set(), []
 
     def get(d):
-        url = f'https://site.api.espn.com/apis/site/v2/sports/{path}/scoreboard?dates={d.replace("-", "")}&limit=1000{extra}'
+        # limit=300: ESPN quietly caps some recent college days at 25 games
+        # when asked for more (limit=1000), but returns the full day here.
+        url = f'https://site.api.espn.com/apis/site/v2/sports/{path}/scoreboard?dates={d.replace("-", "")}&limit=300{extra}'
         return d, fetch_json(url)
 
     with ThreadPoolExecutor(max_workers=6) as pool:
@@ -192,9 +198,17 @@ def fetch_dates(sport, dates, keep=None, verbose=True):
             continue
         seen_dates.add(d)
         for ev in data.get('events') or []:
-            g = parse_event(sport, ev, team_slugs)
+            try:
+                g = parse_event(sport, ev, team_slugs)
+            except (KeyError, IndexError, TypeError) as e:
+                # A malformed entry (e.g. a game listed with no details) is
+                # skipped and logged, not allowed to stop the whole load.
+                skipped.append(f"{d} {ev.get('id')}: {e!r}")
+                continue
             if g and (keep is None or keep(g)):
                 by_season.setdefault(g['season'], {})[g['id']] = g
+    if skipped and verbose:
+        print(f'  {sport}: skipped {len(skipped)} malformed entries: {"; ".join(skipped[:5])}', file=sys.stderr)
     saved = 0
     for season, games in by_season.items():
         p = season_path(sport, season)
@@ -232,8 +246,39 @@ def daily():
         print(f'{sport}: {saved} games' + (f', {len(failed)} dates failed' if failed else ''))
 
 
+# Periods a final needs for every segment to grade (MLB: 5 innings for F5).
+FULL_PERIODS = {'nfl': 2, 'ncaaf': 2, 'nba': 2, 'wnba': 2, 'ncaab': 1, 'mlb': 5}
+
+
+def coverage():
+    """Per sport and season: games, finals, finals with the line scores the
+    segments need, and seasons where that's incomplete (flagged)."""
+    for sport in SOURCES:
+        d = os.path.join(GAMES_DIR, sport)
+        if not os.path.isdir(d):
+            print(f'{sport}: no games loaded')
+            continue
+        for name in sorted(os.listdir(d)):
+            if not name[:4].isdigit():
+                continue
+            games = list(read_json(os.path.join(d, name), {}).get('games', {}).values())
+            finals = [g for g in games if g['final']]
+            need = FULL_PERIODS[sport]
+            full = sum(1 for g in finals if min(len(g['away_ls']), len(g['home_ls'])) >= need)
+            pct = 100 * full / len(finals) if finals else 0
+            flag = '' if not finals or pct >= 99 else '  <-- missing line scores'
+            dates = sorted(g['date'] for g in games)
+            print(f'{sport} {name[:-5]}: {len(games)} games ({dates[0]} to {dates[-1]}), {len(finals)} final, '
+                  f'{full} with line scores ({pct:.1f}%){flag}')
+        fails = read_json(os.path.join(d, 'failures.json'), {})
+        if fails:
+            print(f'{sport}: {len(fails)} failed dates: {", ".join(sorted(fails)[:10])}')
+
+
 def main(argv):
-    if not argv or argv[0] == 'daily':
+    if argv and argv[0] == 'coverage':
+        coverage()
+    elif not argv or argv[0] == 'daily':
         daily()
     elif argv[0] == 'retry':
         for sport in SOURCES:
@@ -242,7 +287,10 @@ def main(argv):
                 print(sport, fetch_dates(sport, fails))
     else:
         sport, start, end = argv[0], argv[1], argv[2]
-        saved, failed = fetch_dates(sport, date_range(start, end))
+        keep = None
+        if '--ncaa-tournament' in argv[3:]:
+            keep = lambda g: (g.get('note') or '').startswith("NCAA Men's Basketball Championship")
+        saved, failed = fetch_dates(sport, date_range(start, end), keep=keep)
         print(f'{sport} {start}..{end}: {saved} games, {len(failed)} failed dates')
 
 
