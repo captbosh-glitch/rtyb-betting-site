@@ -34,6 +34,8 @@ body.hm-open { overflow: hidden; }
   border-radius: 8px; color: var(--text); text-decoration: none; font-weight: 600;
 }
 .hn-sport-item:hover { background: var(--panel-2); }
+.hn-sport-name { display: flex; align-items: center; gap: 10px; }
+.hn-sport-name .sport-icon { width: 26px; }
 .hn-badge {
   font: 700 0.68rem 'JetBrains Mono', monospace; letter-spacing: 0.04em; color: var(--text-muted);
   border: 1px solid var(--border); border-radius: 5px; padding: 2px 6px; text-transform: uppercase;
@@ -80,7 +82,8 @@ body.hm-open { overflow: hidden; }
   background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; text-decoration: none; color: var(--text);
 }
 .hs-chip:hover { border-color: var(--accent); }
-.hs-name { font: 800 1rem 'Barlow Condensed', sans-serif; letter-spacing: 0.04em; }
+.hs-name { display: flex; align-items: center; gap: 7px; font: 800 1rem 'Barlow Condensed', sans-serif; letter-spacing: 0.04em; }
+.hs-name .sport-icon { width: 26px; }
 .hs-count { font-size: 0.76rem; color: var(--text-muted); white-space: nowrap; }
 .hs-chip.live .hs-count { color: var(--accent); font-weight: 700; }
 
@@ -120,7 +123,8 @@ body.hm-open { overflow: hidden; }
 .hc-card:hover { border-color: var(--accent); }
 .hc-card.is-extra { display: none; }
 .hc-top { display: flex; justify-content: space-between; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 8px; }
-.hc-sport { font: 800 0.74rem 'Barlow Condensed', sans-serif; letter-spacing: 0.08em; color: var(--accent); }
+.hc-sport { display: inline-flex; align-items: center; gap: 6px; font: 800 0.74rem 'Barlow Condensed', sans-serif; letter-spacing: 0.08em; color: var(--accent); }
+.hc-sport .sport-icon { width: 20px; }
 .hc-teams { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font: 700 1.02rem 'Barlow Condensed', sans-serif; }
 .hc-team { display: inline-flex; align-items: center; gap: 6px; }
 .hc-at { color: var(--text-faint); font-size: 0.85rem; }

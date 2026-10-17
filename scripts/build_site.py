@@ -55,6 +55,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import league_trends  # noqa: E402
 import home  # noqa: E402
+import icons  # noqa: E402
 import sport_build  # noqa: E402
 import sports  # noqa: E402
 
@@ -301,7 +302,8 @@ def sport_menu_html(current, section):
     for sp in sports.SPORTS:
         cur = ' aria-current="true"' if sp['key'] == current['key'] else ''
         soon = '' if sport_has_data(sp['key']) else '<span class="soon">Soon</span>'
-        items.append(f'<a class="nav-dropdown-item" href="{sports.section_path(sp, section)}"{cur}>{sp["label"]}{soon}</a>')
+        items.append(f'<a class="nav-dropdown-item" href="{sports.section_path(sp, section)}"{cur}>'
+                     f'{icons.sport_icon(sp)}{sp["label"]}{soon}</a>')
     return ''.join(items)
 
 
@@ -331,6 +333,8 @@ def apply_sport(out, sport, section):
     out = out.replace('__META_DESC__', NHL_META_DESC if is_nhl else
                       f'RTYB — Run to Your Bets: {sport["label"]} {sports.segment_summary(sport)} betting stats and trends.')
     out = out.replace('__LOGO_SVG__', LOGO_SVG)
+    out = out.replace('__SPORT_ICON__', icons.sport_icon(sport))
+    out = out.replace('__PAGE_ICON__', icons.sport_icon(sport))
     out = out.replace('__SPORT_KEY__', sport['key'])
     out = out.replace('__SPORT_LABEL__', sport['label'])
     out = out.replace('__SPORT_MENU_ITEMS__', sport_menu_html(sport, section or 'games'))

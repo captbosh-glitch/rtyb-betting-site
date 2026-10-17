@@ -385,6 +385,10 @@
 
   .page-head { margin-bottom: 18px; }
   .page-head h1 { font-size: clamp(1.6rem, 4vw, 2.1rem); }
+  .page-title { display: flex; align-items: center; gap: 12px; }
+  /* League icons (scripts/icons.py): one color, follows the theme */
+  .sport-icon { display: inline-block; width: 1.55em; height: auto; flex-shrink: 0; color: var(--accent); vertical-align: -0.28em; }
+  .page-title .sport-icon { width: 1.9em; vertical-align: middle; }
   .page-head p { color: var(--text-muted); font-size: 0.92rem; margin-top: 4px; max-width: 62ch; }
 
   /* ---------- Date bar ---------- */
@@ -1022,7 +1026,7 @@
     <nav class="main-nav" id="mainNav">
       <div class="nav-dropdown" id="sportDropdown">
         <button type="button" class="nav-link nav-dropdown-btn" id="sportBtn" aria-haspopup="true" aria-expanded="false">
-          __SPORT_LABEL__ <span class="nav-caret">&#9662;</span>
+          __SPORT_ICON__ __SPORT_LABEL__ <span class="nav-caret">&#9662;</span>
         </button>
         <div class="nav-dropdown-menu" id="sportMenu">__SPORT_MENU_ITEMS__</div>
       </div>
@@ -1041,7 +1045,7 @@
 
 <main>
   <div class="page-head">
-    <h1>__PAGE_H1__</h1>
+    <h1 class="page-title">__PAGE_ICON__<span>__PAGE_H1__</span></h1>
     <p>__PAGE_DESC__</p>
   </div>
 

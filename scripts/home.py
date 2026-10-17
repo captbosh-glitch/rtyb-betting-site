@@ -20,6 +20,7 @@ import re
 from datetime import date as Date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
+import icons
 import sports
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -222,7 +223,7 @@ def game_card(g, kind):
         lines = f'<div class="hc-line muted">{esc(g["seg"])} odds pending</div>'
     team = lambda t: f'<span class="hc-team">{badge(t["code"], t["color"], 24)}<span>{esc(t["name"])}</span></span>'
     return (f'<a class="hc-card" href="{esc(g["href"])}">'
-            f'<div class="hc-top"><span class="hc-sport">{esc(g["label"])}</span><span class="hc-when">{esc(when)}</span></div>'
+            f'<div class="hc-top"><span class="hc-sport">{icons.sport_icon(g["sport"])}{esc(g["label"])}</span><span class="hc-when">{esc(when)}</span></div>'
             f'<div class="hc-teams">{team(g["away"])}<span class="hc-at">@</span>{team(g["home"])}{score}</div>'
             f'{seg if kind == "results" else ""}{lines if kind == "tonight" else ""}</a>')
 
@@ -243,7 +244,7 @@ def nav_html(status, depth=''):
     """Desktop nav + the phone menu. status: [(sport, chip, live)]."""
     sport_items = ''.join(
         f'<a class="hn-sport-item" href="{depth}{sports.section_path(sp, "games").lstrip("/")}">'
-        f'<span>{esc(sp["label"])}</span><span class="hn-badge{" live" if live else ""}">{"LIVE" if live else esc(short)}</span></a>'
+        f'<span class="hn-sport-name">{icons.sport_icon(sp)}{esc(sp["label"])}</span><span class="hn-badge{" live" if live else ""}">{"LIVE" if live else esc(short)}</span></a>'
         for sp, chip, live, short in status)
     return f'''
 <header class="hn">
@@ -443,7 +444,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
     # ---- sections
     chips = ''.join(
         f'<a class="hs-chip{" live" if live else ""}" href="{sports.section_path(sp, "games").lstrip("/")}">'
-        f'<span class="hs-name">{esc(sp["label"])}</span><span class="hs-count">{esc(chip)}</span></a>'
+        f'<span class="hs-name">{icons.sport_icon(sp)}{esc(sp["label"])}</span><span class="hs-count">{esc(chip)}</span></a>'
         for sp, chip, live, short in status)
 
     if recap:
