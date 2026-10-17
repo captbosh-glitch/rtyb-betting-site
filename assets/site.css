@@ -184,10 +184,10 @@
     align-items: center;
     gap: 4px;
     flex: 1;
-    overflow-x: auto;
-    scrollbar-width: none;
+    /* visible, not scrolling: the sport dropdown hangs below the bar and
+       would be clipped otherwise (phones use the hamburger layout below) */
+    overflow: visible;
   }
-  .main-nav::-webkit-scrollbar { display: none; }
   .nav-link {
     background: none;
     border: 1px solid transparent;
