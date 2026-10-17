@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="RTYB — Run to Your Bets: NCAAB 1st Half betting stats and trends.">
+</head>
+<body data-team-code="" data-sport="ncaab">
+<title>RTYB — Belmont Bruins</title>
+<link rel="stylesheet" href="../../../assets/site.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap">
+
+<header class="top">
+  <div class="top-inner">
+    <a class="brand" href="/college-basketball/games/" aria-label="RTYB home">
+      <div class="mark">RTY<span>B</span></div>
+      <div class="tag">Run to Your Bets</div>
+    </a>
+
+    <nav class="main-nav" id="mainNav">
+      <div class="nav-dropdown" id="sportDropdown">
+        <button type="button" class="nav-link nav-dropdown-btn" id="sportBtn" aria-haspopup="true" aria-expanded="false">
+          NCAAB <span class="nav-caret">&#9662;</span>
+        </button>
+        <div class="nav-dropdown-menu" id="sportMenu"><a class="nav-dropdown-item" href="/nhl/teams/">NHL</a><a class="nav-dropdown-item" href="/nfl/teams/">NFL<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/nba/teams/">NBA<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/wnba/teams/">WNBA<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/mlb/teams/">MLB<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/college-football/teams/">NCAAF<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/college-basketball/teams/" aria-current="true">NCAAB<span class="soon">Soon</span></a></div>
+      </div>
+      <a class="nav-link" href="/college-basketball/games/" >Games</a>
+      <a class="nav-link" href="/college-basketball/stats/" >Stats</a>
+      <a class="nav-link" href="/college-basketball/trends/" >Trends</a>
+      <a class="nav-link" href="/college-basketball/teams/" >Teams</a>
+    </nav>
+
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    <button class="hamburger" id="hamburgerBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="page-head">
+    <h1>NCAAB — Teams</h1>
+    <p>NCAAB 1st Half records, splits and trends for the Belmont Bruins.</p>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  <a class="sport-team-back" href="/college-basketball/teams/">&larr; All NCAAB teams</a><div class="sport-team-head"><span class="team-badge" style="width:64px;height:64px;background:#182142;color:#FFFFFF;font-size:23px" aria-hidden="true">BEL</span><div><h1>Belmont Bruins</h1><div class="sport-team-meta">Missouri Valley Conference</div></div></div><h3 class="team-section-title">Next Game</h3><div class="section-empty">No upcoming game scheduled yet.</div><h3 class="team-section-title">Last Game</h3><div class="section-empty">No NCAAB games tracked yet.</div><h3 class="team-section-title">Season Markets</h3><div class="section-empty">Records and units will appear here once games are graded.<span class="empty-tags"><span>1H</span></span></div><h3 class="team-section-title">Home / Away Splits</h3><div class="section-empty">No NCAAB games tracked yet.</div><h3 class="team-section-title">Current Trends</h3><div class="section-empty">No trends yet.</div><h3 class="team-section-title">Last 10 Games &mdash; 1st Half</h3><div class="section-empty">No NCAAB games tracked yet.</div>
+  
+
+  
+</main>
+
+<footer>
+  RTYB &mdash; Run to Your Bets. NCAAB 1st Half coverage is coming soon. Not affiliated with any league.
+</footer>
+
+<script>
+(function() {
+  'use strict';
+  var SPORT_SLUGS = ["nhl", "nfl", "nba", "wnba", "mlb", "college-football", "college-basketball"];
+  var SITE_ROOT = (function() {
+    var best = -1;
+    SPORT_SLUGS.forEach(function(slug) {
+      var i = location.pathname.indexOf('/' + slug + '/');
+      if (i >= 0 && (best < 0 || i < best)) best = i;
+    });
+    return best >= 0 ? location.pathname.slice(0, best) : '';
+  })();
+  if (SITE_ROOT) {
+    document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach(function(a) {
+      a.setAttribute('href', SITE_ROOT + a.getAttribute('href'));
+    });
+  }
+  try {
+    var saved = localStorage.getItem('rtyb-theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+  } catch (e) {}
+  document.getElementById('themeToggle').addEventListener('click', function() {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('rtyb-theme', next); } catch (e) {}
+  });
+  var btn = document.getElementById('sportBtn'), menu = document.getElementById('sportMenu');
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var opening = !menu.classList.contains('open');
+    menu.classList.toggle('open', opening);
+    btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  });
+  document.addEventListener('click', function(e) {
+    if (!menu.contains(e.target)) { menu.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+  });
+  var hamburger = document.getElementById('hamburgerBtn'), mainNav = document.getElementById('mainNav');
+  hamburger.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var opening = !mainNav.classList.contains('open');
+    mainNav.classList.toggle('open', opening);
+    hamburger.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  });
+})();
+</script>
+
+</body>
+</html>

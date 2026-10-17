@@ -897,6 +897,42 @@
   .team-tile-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem; }
   .team-tile-stats { font-size: 0.76rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
 
+  /* ---------- Teams pages for the other sports (built from the registry) ---------- */
+  .team-badge {
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    border-radius: 50%; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 0.02em;
+  }
+  .team-tile-row { display: flex; align-items: center; gap: 10px; }
+  .team-tile-meta { font-size: 0.74rem; color: var(--text-muted); }
+  .teams-count { font-size: 0.82rem; color: var(--text-muted); }
+  .conf-select {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; color: var(--text);
+    padding: 6px 10px; font-size: 0.85rem; max-width: 100%;
+  }
+  .letter-group { margin-bottom: 18px; }
+  .letter-title { font-size: 1.1rem; color: var(--accent); border-bottom: 1px solid var(--border-soft); padding-bottom: 4px; margin-bottom: 8px; }
+  .team-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 6px; }
+  .team-row {
+    display: flex; align-items: center; gap: 10px; min-width: 0;
+    background: var(--panel); border: 1px solid var(--border-soft); border-radius: 8px;
+    padding: 8px 10px; text-decoration: none; color: var(--text);
+  }
+  .team-row:hover { border-color: var(--accent); }
+  .team-row-text { display: flex; flex-direction: column; min-width: 0; }
+  .team-row-name { font-weight: 600; font-size: 0.9rem; }
+  .team-row-conf { font-size: 0.74rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* filters toggle [hidden]; the display rules above would otherwise win */
+  [data-team-item][hidden], [data-team-group][hidden], .teams-empty[hidden] { display: none; }
+  .teams-empty { padding: 30px 10px; text-align: center; color: var(--text-muted); }
+  .sport-team-head { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+  .sport-team-head h1 { font-size: clamp(1.5rem, 4vw, 2rem); }
+  .sport-team-meta { color: var(--text-muted); font-size: 0.9rem; }
+  .sport-team-back { display: inline-block; margin: 6px 0 4px; font-size: 0.85rem; color: var(--accent); text-decoration: none; }
+  .sport-team-back:hover { text-decoration: underline; }
+  .section-empty { color: var(--text-muted); font-size: 0.88rem; background: var(--panel); border: 1px dashed var(--border); border-radius: 10px; padding: 14px 16px; }
+  .section-empty .empty-tags { display: inline-flex; gap: 6px; margin-left: 6px; vertical-align: middle; }
+  .section-empty .empty-tags span { font-size: 0.68rem; font-weight: 700; color: var(--accent); border: 1px solid var(--accent); padding: 0 6px; border-radius: 4px; }
+
   /* ---------- Team detail page ---------- */
   .team-page-head { margin-bottom: 16px; }
   .team-page-head h1 { font-size: clamp(1.5rem, 4vw, 2rem); }
@@ -954,6 +990,8 @@
   <section id="advGoals"></section>
   <section id="advBoard"></section>
   <p class="adv-teams-link"><a href="/nhl/teams/">See team breakdowns on the Teams page &rarr;</a></p>
+  
+
   
 
   
