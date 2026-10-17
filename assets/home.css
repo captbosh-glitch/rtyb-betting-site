@@ -89,6 +89,9 @@ body.hm-open { overflow: hidden; }
 
 .hh { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; align-items: center; padding: 18px 0 30px; }
 .hh h1 { font-size: clamp(2.2rem, 5.2vw, 3.9rem); line-height: 0.98; letter-spacing: 0.01em; margin: 0 0 14px; }
+/* Hero colors follow the logo: RTY's color (gold on dark, black on light), then the purple */
+.hh h1 .hh-a { color: var(--logo-rty); }
+.hh h1 .hh-b { color: var(--accent); }
 .hh p { font-size: 1.08rem; color: var(--text-muted); max-width: 520px; margin: 0 0 20px; }
 .hh-cta { display: flex; flex-wrap: wrap; gap: 10px; }
 .btn-primary, .btn-ghost {

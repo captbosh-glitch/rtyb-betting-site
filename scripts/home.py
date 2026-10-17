@@ -488,7 +488,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
     else:
         last = '<div class="ln-card"><div class="ln-head"><span>Last night on RTYB</span></div><p class="muted">No graded games yet.</p></div>'
 
-    hero = (f'<section class="hh"><div class="hh-copy"><h1>The first period. The first quarter. The first inning.</h1>'
+    hero = (f'<section class="hh"><div class="hh-copy"><h1><span class="hh-a">The first</span> <span class="hh-b">period.</span><br><span class="hh-a">The first</span> <span class="hh-b">quarter.</span><br><span class="hh-a">The first</span> <span class="hh-b">inning.</span></h1>'
             f'<p>Records, results and trends for the opening segment of every game &mdash; NHL, NFL, NBA, WNBA, MLB and college.</p>'
             f'<div class="hh-cta"><a class="btn-primary" href="#tonight">Tonight&rsquo;s games</a>'
             f'<a class="btn-ghost" href="#premium">Go Premium</a></div></div>{last}</section>')
