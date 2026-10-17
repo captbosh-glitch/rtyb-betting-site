@@ -32,6 +32,9 @@
  *                         just returns {ok, matchups} for the page to drop into the form
  *   /results/save       body: {date, results: [{away,home,awayScore,homeScore}, ...]}
  *   /results/publish    same body -- also writes data_admin/results_overrides.json
+ *   /odds/save          body: {sport, rows: [{date, away, home, segment, ats, ml, total}], removes: [{date, away, home}]}
+ *                         -- odds for the other sports (not NHL), one file per sport at
+ *                         data_admin/odds/{sport}.json, stored per game + segment + market
  */
 
 const REPO_OWNER = "captbosh-glitch"; // TODO confirm this is the right GitHub org/user for this repo
@@ -206,6 +209,80 @@ async function publishResults(env, body) {
   });
 }
 
+// ---- Other sports' odds (spread sports; MLB adds its markets next) ----
+// Segments each sport takes odds for; mirrors scripts/sports.py.
+const SPORT_SEGMENTS = {
+  nfl: ["1q", "1h"], nba: ["1q", "1h"], wnba: ["1q", "1h"],
+  ncaaf: ["1q", "1h"], ncaab: ["1h"],
+};
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TEAM_RE = /^[a-z0-9-]{1,60}$/;
+
+function isNum(n) { return typeof n === "number" && Number.isFinite(n); }
+function isHalf(n) { return Math.abs(n * 2 - Math.round(n * 2)) < 1e-9; }
+function isOdds(n) { return isNum(n) && Math.abs(n) >= 100; }
+
+// Same checks as the admin page; returns an error string or null.
+function checkOddsRow(r, segments) {
+  const where = r && `${r.date} ${r.away} @ ${r.home} ${r.segment}`;
+  if (!r || !DATE_RE.test(r.date) || !TEAM_RE.test(r.away) || !TEAM_RE.test(r.home)) return "each row needs date, away and home";
+  if (r.away === r.home) return `${where}: away and home are the same team`;
+  if (!segments.includes(r.segment)) return `${where}: unknown segment`;
+  if (r.ats != null) {
+    const a = r.ats.away || {}, h = r.ats.home || {};
+    if (!isNum(a.line) || !isNum(h.line)) return `${where}: ATS needs both lines`;
+    if (a.line !== -h.line) return `${where}: ATS lines must be opposites`;
+    if (!isHalf(a.line)) return `${where}: ATS line should be a whole or half point`;
+    if (!isOdds(a.price) || !isOdds(h.price)) return `${where}: ATS prices look wrong`;
+  }
+  if (r.ml != null && (!isOdds(r.ml.away) || !isOdds(r.ml.home))) return `${where}: ML needs both sides`;
+  if (r.total != null) {
+    if (!isNum(r.total.line) || r.total.line <= 0 || !isHalf(r.total.line)) return `${where}: total should be a positive whole or half point`;
+    if (!isOdds(r.total.over) || !isOdds(r.total.under)) return `${where}: total prices look wrong`;
+  }
+  return null;
+}
+
+function validateOdds(body) {
+  if (!body || !SPORT_SEGMENTS[body.sport] || !Array.isArray(body.rows)) return "expected {sport, rows: []}";
+  if (body.removes != null && !Array.isArray(body.removes)) return "removes must be a list";
+  if (body.rows.length > 2000) return "too many rows in one save";
+  for (const r of body.rows) {
+    const err = checkOddsRow(r, SPORT_SEGMENTS[body.sport]);
+    if (err) return err;
+  }
+  for (const x of body.removes || []) {
+    if (!x || !DATE_RE.test(x.date) || !TEAM_RE.test(x.away) || !TEAM_RE.test(x.home)) return "each remove needs date, away and home";
+  }
+  return null;
+}
+
+// Each row replaces that game's odds for that one segment (other segments
+// are kept). A market sent as null is cleared.
+async function saveSportOdds(env, body) {
+  const dates = [...new Set(body.rows.map((r) => r.date).concat((body.removes || []).map((x) => x.date)))].sort();
+  const label = dates.length === 1 ? dates[0] : `${dates[0]}..${dates[dates.length - 1]}`;
+  return commitJsonFile(env, `data_admin/odds/${body.sport}.json`, `Admin: ${body.sport} odds ${label}`, (current) => {
+    const next = { ...current };
+    for (const r of body.rows) {
+      const key = matchupKey(r.date, r.away, r.home);
+      const game = next[key] || { date: r.date, away: r.away, home: r.home, segments: {} };
+      const pick = (m, fields) => (m == null ? null : Object.fromEntries(fields.map((f) => [f, m[f]])));
+      game.segments = {
+        ...game.segments,
+        [r.segment]: {
+          ats: r.ats == null ? null : { away: pick(r.ats.away, ["line", "price"]), home: pick(r.ats.home, ["line", "price"]) },
+          ml: pick(r.ml, ["away", "home"]),
+          total: pick(r.total, ["line", "over", "under"]),
+        },
+      };
+      next[key] = game;
+    }
+    for (const x of body.removes || []) delete next[matchupKey(x.date, x.away, x.home)];
+    return next;
+  });
+}
+
 function validateParse(body) {
   if (!body || typeof body.date !== "string" || typeof body.text !== "string" || !Array.isArray(body.games)) {
     return "expected {date, text, games: []}";
@@ -363,6 +440,12 @@ export default {
         const err = validateResults(body);
         if (err) return json({ ok: false, error: err }, 400);
         result = await publishResults(env, body);
+        break;
+      }
+      case "/odds/save": {
+        const err = validateOdds(body);
+        if (err) return json({ ok: false, error: err }, 400);
+        result = await saveSportOdds(env, body);
         break;
       }
       default:

@@ -621,6 +621,9 @@ def build_other_sports(template):
     os.makedirs(os.path.join(ROOT, 'assets'), exist_ok=True)
     with open(os.path.join(ROOT, 'assets', 'site.css'), 'w', encoding='utf-8') as f:
         f.write(site_css(template))
+    # The Admin page reads the registry from here (sport menu, segments).
+    with open(os.path.join(ROOT, 'assets', 'sports.json'), 'w', encoding='utf-8') as f:
+        json.dump([{k: sp[k] for k in ('key', 'label', 'slug', 'sport_type', 'segments')} for sp in sports.SPORTS], f, indent=1)
     written = []
     for sp in sports.SPORTS:
         if sp['key'] == 'nhl':

@@ -23,6 +23,7 @@
     }
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body {
     margin: 0; background: var(--bg); color: var(--text);
     font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -75,6 +76,23 @@
   a.note-link { font-size: 0.78rem; color: var(--text-muted); margin-left: auto; }
   .back-link { display: inline-block; font-size: 0.82rem; font-weight: 600; color: var(--accent); text-decoration: none; margin-bottom: 14px; }
   .back-link:hover { text-decoration: underline; }
+  .seg-tabs { display: flex; gap: 6px; margin-top: 14px; }
+  .seg-tabs button { background: var(--panel-2); color: var(--text-muted); border: 1px solid var(--border); padding: 6px 14px; }
+  .seg-tabs button[aria-pressed="true"] { background: var(--accent); color: #06161C; border-color: var(--accent); }
+  td input { display: block; }
+  td .price { margin-top: 4px; font-size: 0.75rem; padding: 4px 6px; }
+  td .price-pair { display: flex; gap: 4px; }
+  td .price-pair input { max-width: 43px; }
+  td .locked-sub { display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
+  td.err input, input.err { border-color: var(--bad); }
+  .row-err { color: var(--bad); font-size: 0.75rem; }
+  .add-game { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+  .add-game input { max-width: 240px; }
+  button.remove { background: none; color: var(--text-faint); padding: 4px 8px; font-size: 1rem; }
+  .preview-h { font-size: 0.8rem; font-weight: 700; margin: 14px 0 0; text-transform: uppercase; letter-spacing: 0.04em; }
+  .preview-h.ok { color: var(--good); }
+  .preview-h.bad { color: var(--bad); }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
 </style>
 </head>
 <body>
@@ -95,10 +113,66 @@
 
     <div class="card">
       <div class="row">
-        <label for="dateSelect">Date</label>
-        <select id="dateSelect"></select>
+        <label for="sportSelect">Sport</label>
+        <select id="sportSelect"><option value="nhl">NHL</option></select>
+        <span class="row" id="nhlDateRow">
+          <label for="dateSelect">Date</label>
+          <select id="dateSelect"></select>
+        </span>
+        <span class="row" id="sportDateRow" hidden>
+          <label for="sportDate">Date</label>
+          <input type="date" id="sportDate" style="width:auto">
+        </span>
       </div>
     </div>
+
+    <div id="sportTools" hidden>
+      <div class="card" id="mlbSoon" hidden>
+        <h2>MLB odds</h2>
+        <p class="sub" style="margin-bottom:0">NRFI / YRFI and First Five entry is the next step of the build.</p>
+      </div>
+
+      <div id="spreadTools">
+      <div class="card">
+        <h2 id="oddsTitle">Odds</h2>
+        <p class="sub" style="margin-bottom:0">One table per segment. ATS is the line (away and home must be opposites &mdash; type one and the other fills in); the small field under it is the price, &ndash;110 unless you change it. Total is the line with Over / Under prices underneath. Save pushes these odds to the site.</p>
+        <div class="seg-tabs" id="segTabs"></div>
+        <table id="oddsTable">
+          <thead><tr>
+            <th>Matchup</th><th>ATS Away</th><th>ATS Home</th><th>ML Away</th><th>ML Home</th><th>Total</th><th></th>
+          </tr></thead>
+          <tbody id="oddsBody"></tbody>
+        </table>
+        <div class="add-game">
+          <input type="text" id="addAway" list="teamList" placeholder="Away team" autocomplete="off">
+          <span>@</span>
+          <input type="text" id="addHome" list="teamList" placeholder="Home team" autocomplete="off">
+          <button class="save" id="addGameBtn">Add game</button>
+        </div>
+        <datalist id="teamList"></datalist>
+        <div class="actions">
+          <button class="publish" id="oddsSave">Save</button>
+          <button class="save" id="oddsEdit" hidden>Edit</button>
+        </div>
+        <p class="status" id="oddsStatus"></p>
+      </div>
+
+      <div class="card">
+        <h2>Import CSV</h2>
+        <p class="sub" style="margin-bottom:0">Choose a file or paste rows. Columns (any order, header row required): <code>date, away, home, segment, ats_away, ats_home, ml_away, ml_home, total</code>, plus optional <code>ats_away_price, ats_home_price, over_price, under_price</code> (blank = &ndash;110). A <code>matchup</code> column like &ldquo;LV @ NY&rdquo; works instead of away/home. Missing date or segment uses what&rsquo;s selected above. Teams match by name, city, nickname or abbreviation. <a href="#" id="csvTemplate">Download a template</a></p>
+        <div class="row" style="margin-top:12px"><input type="file" id="csvFile" accept=".csv,text/csv" style="width:auto"></div>
+        <textarea id="csvText" placeholder="or paste CSV here..." style="margin-top:10px"></textarea>
+        <div class="actions">
+          <button class="save" id="csvPreviewBtn">Preview</button>
+          <button class="publish" id="csvImportBtn" hidden>Import matched rows</button>
+        </div>
+        <p class="status" id="csvStatus"></p>
+        <div id="csvPreview"></div>
+      </div>
+      </div>
+    </div>
+
+    <div id="nhlTools">
 
     <div class="card">
       <h2>Matchups Tool</h2>
@@ -140,6 +214,8 @@
         <a href="#matchupsTable" class="note-link">or enter manually</a>
       </div>
       <p class="status" id="parseStatus"></p>
+    </div>
+
     </div>
 
     <p class="note">Changes take effect on the next site rebuild, usually within a minute or two (the Save commit triggers it automatically). Reload this page after saving to re-check what went live.</p>
@@ -519,6 +595,497 @@
     if (el) el.value = val;
   }
 
+  // ---------------------------------------------------------------------
+  // Other sports. The sport menu defaults to NHL (the tools above, as they
+  // were). Spread sports get one odds table per segment, stored per game +
+  // segment + market in data_admin/odds/{sport}.json:
+  //   {"2026-10-20|bos|nyk": {date, away, home, segments: {"1q": {
+  //       ats: {away: {line, price}, home: {line, price}},
+  //       ml: {away, home}, total: {line, over, under}}}}}
+  // Teams are identified by their slug (data_seed/teams/{sport}.json).
+  // ---------------------------------------------------------------------
+  var DEFAULT_PRICE = -110;
+  var SPORTS = [];          // registry from assets/sports.json
+  var SPORT = null;         // selected sport (null = NHL)
+  var TEAMS = [];           // that sport's teams
+  var TEAM_BY_SLUG = {};
+  var TEAM_INDEX = {};      // lowercased name / code / city -> [slugs]
+  var ODDS = {};            // data_admin/odds/{sport}.json
+  var SCHEDULE = {};        // {slug}/data.json schedule.games, once loaded
+  var SEGMENT = null;
+  var added = {};           // date -> [{away, home}] not yet saved
+  var oddsLocked = {};      // date|segment -> bool
+  var csvMatched = [];
+
+  function loadSports() {
+    return fetchJson('../assets/sports.json', []).then(function(list) {
+      SPORTS = list || [];
+      var sel = document.getElementById('sportSelect');
+      sel.innerHTML = SPORTS.map(function(s) {
+        return '<option value="' + s.key + '">' + escapeHtml(s.label) + '</option>';
+      }).join('') || '<option value="nhl">NHL</option>';
+      var want = new URLSearchParams(location.search).get('sport');
+      sel.value = SPORTS.some(function(s) { return s.key === want; }) ? want : 'nhl';
+      sel.addEventListener('change', function() {
+        var u = new URL(location.href);
+        if (sel.value === 'nhl') u.searchParams.delete('sport'); else u.searchParams.set('sport', sel.value);
+        history.replaceState(null, '', u);
+        selectSport(sel.value);
+      });
+      selectSport(sel.value);
+    });
+  }
+
+  function selectSport(key) {
+    var isNhl = key === 'nhl';
+    document.getElementById('nhlTools').hidden = !isNhl;
+    document.getElementById('nhlDateRow').hidden = !isNhl;
+    document.getElementById('sportTools').hidden = isNhl;
+    document.getElementById('sportDateRow').hidden = isNhl;
+    if (isNhl) { SPORT = null; return; }
+    SPORT = SPORTS.filter(function(s) { return s.key === key; })[0];
+    var isMlb = SPORT.sport_type === 'baseball';
+    document.getElementById('mlbSoon').hidden = !isMlb;
+    document.getElementById('spreadTools').hidden = isMlb;
+    if (isMlb) return;
+    SEGMENT = SPORT.segments[0].key;
+    var dateEl = document.getElementById('sportDate');
+    if (!dateEl.value) dateEl.value = todayET();
+    document.getElementById('oddsBody').innerHTML = '<tr><td colspan="7" class="empty">Loading&hellip;</td></tr>';
+    Promise.all([
+      fetchJson('../data_seed/teams/' + key + '.json', { teams: [] }),
+      fetchJson('../data_admin/odds/' + key + '.json', {}),
+      fetchJson('../' + SPORT.slug + '/data.json', {}),
+    ]).then(function(r) {
+      if (!SPORT || SPORT.key !== key) return;
+      setTeams((r[0] && r[0].teams) || []);
+      ODDS = r[1] || {};
+      SCHEDULE = (r[2] && r[2].schedule && r[2].schedule.games) || {};
+      renderSegTabs();
+      renderOdds();
+    });
+  }
+
+  function norm(s) { return String(s || '').toLowerCase().replace(/[.']/g, '').replace(/&/g, 'and').replace(/\s+/g, ' ').trim(); }
+
+  function setTeams(list) {
+    TEAMS = list; TEAM_BY_SLUG = {}; TEAM_INDEX = {};
+    function add(k, slug) {
+      k = norm(k); if (!k) return;
+      var l = TEAM_INDEX[k] || (TEAM_INDEX[k] = []);
+      if (l.indexOf(slug) === -1) l.push(slug);
+    }
+    list.forEach(function(t) {
+      TEAM_BY_SLUG[t.slug] = t;
+      [t.slug, t.code, t.name, t.short, t.location, t.nickname, t.location + ' ' + t.nickname].forEach(function(k) { add(k, t.slug); });
+    });
+    document.getElementById('teamList').innerHTML = list.map(function(t) {
+      return '<option value="' + escapeHtml(t.name) + '">';
+    }).join('');
+  }
+
+  // -> {slug} or {error}
+  function findTeam(text) {
+    var hits = TEAM_INDEX[norm(text)] || [];
+    if (hits.length === 1) return { slug: hits[0] };
+    if (hits.length > 1) return { error: '"' + text + '" matches ' + hits.length + ' teams' };
+    return { error: '"' + text + '" isn\'t a known ' + SPORT.label + ' team' };
+  }
+
+  function teamLabel(slug) {
+    var t = TEAM_BY_SLUG[slug];
+    return t ? (t.short || t.name) : slug;
+  }
+
+  function sportDate() { return document.getElementById('sportDate').value; }
+  function gameKey(date, away, home) { return date + '|' + away + '|' + home; }
+
+  function gamesFor(date) {
+    var seen = {}, out = [];
+    function push(away, home) {
+      var k = away + '|' + home;
+      if (seen[k] || !away || !home) return;
+      seen[k] = true; out.push({ away: away, home: home });
+    }
+    (SCHEDULE[date] || []).forEach(function(g) { push(g.away, g.home); });
+    Object.keys(ODDS).forEach(function(k) { var g = ODDS[k]; if (g.date === date) push(g.away, g.home); });
+    (added[date] || []).forEach(function(g) { push(g.away, g.home); });
+    return out;
+  }
+
+  function renderSegTabs() {
+    var el = document.getElementById('segTabs');
+    el.innerHTML = SPORT.segments.map(function(s) {
+      return '<button type="button" data-seg="' + s.key + '" aria-pressed="' + (s.key === SEGMENT) + '">' + escapeHtml(s.label) + '</button>';
+    }).join('');
+    document.getElementById('oddsTitle').textContent = SPORT.label + ' odds';
+  }
+
+  function segValues(date, g) {
+    var game = ODDS[gameKey(date, g.away, g.home)];
+    return (game && game.segments && game.segments[SEGMENT]) || {};
+  }
+
+  function inp(id, value, cls) {
+    return '<input type="number" step="any" id="' + id + '"' + (cls ? ' class="' + cls + '"' : '') + ' value="' + (value == null ? '' : value) + '">';
+  }
+
+  function renderOdds() {
+    var date = sportDate();
+    var games = gamesFor(date);
+    var body = document.getElementById('oddsBody');
+    var locked = !!oddsLocked[date + '|' + SEGMENT];
+    if (!games.length) {
+      body.innerHTML = '<tr><td colspan="7" class="empty">No ' + escapeHtml(SPORT.label) + ' games on this date yet &mdash; add one below or import a CSV.</td></tr>';
+    } else {
+      body.innerHTML = games.map(function(g, i) {
+        var v = segValues(date, g);
+        var ats = v.ats || {}, aA = ats.away || {}, aH = ats.home || {}, ml = v.ml || {}, tot = v.total || {};
+        var cells;
+        if (locked) {
+          var sub = function(p) { return '<span class="locked-sub">' + escapeHtml(signed(p)) + '</span>'; };
+          cells =
+            '<td><span class="locked-val">' + escapeHtml(signed(aA.line)) + '</span>' + (aA.line != null ? sub(aA.price) : '') + '</td>' +
+            '<td><span class="locked-val">' + escapeHtml(signed(aH.line)) + '</span>' + (aH.line != null ? sub(aH.price) : '') + '</td>' +
+            '<td><span class="locked-val">' + escapeHtml(signed(ml.away)) + '</span></td>' +
+            '<td><span class="locked-val">' + escapeHtml(signed(ml.home)) + '</span></td>' +
+            '<td><span class="locked-val">' + escapeHtml(tot.line == null ? '' : String(tot.line)) + '</span>' +
+              (tot.line != null ? '<span class="locked-sub">O ' + escapeHtml(signed(tot.over)) + ' / U ' + escapeHtml(signed(tot.under)) + '</span>' : '') + '</td><td></td>';
+        } else {
+          cells =
+            '<td>' + inp('o' + i + '_atsA', aA.line) + inp('o' + i + '_atsAP', aA.price != null ? aA.price : DEFAULT_PRICE, 'price') + '</td>' +
+            '<td>' + inp('o' + i + '_atsH', aH.line) + inp('o' + i + '_atsHP', aH.price != null ? aH.price : DEFAULT_PRICE, 'price') + '</td>' +
+            '<td>' + inp('o' + i + '_mlA', ml.away) + '</td>' +
+            '<td>' + inp('o' + i + '_mlH', ml.home) + '</td>' +
+            '<td>' + inp('o' + i + '_tot', tot.line) +
+              '<div class="price-pair">' + inp('o' + i + '_ovP', tot.over != null ? tot.over : DEFAULT_PRICE, 'price') + inp('o' + i + '_unP', tot.under != null ? tot.under : DEFAULT_PRICE, 'price') + '</div></td>' +
+            '<td><button type="button" class="remove" data-remove="' + i + '" title="Remove this game">&times;</button></td>';
+        }
+        return '<tr data-away="' + g.away + '" data-home="' + g.home + '">' +
+          '<td class="matchup">' + escapeHtml(teamLabel(g.away)) + ' @ ' + escapeHtml(teamLabel(g.home)) +
+          '<div class="row-err" id="o' + i + '_err"></div></td>' + cells + '</tr>';
+      }).join('');
+    }
+    document.getElementById('oddsSave').hidden = locked;
+    document.getElementById('oddsEdit').hidden = !locked;
+    document.querySelector('.add-game').hidden = locked;
+  }
+
+  function isHalf(n) { return Math.abs(n * 2 - Math.round(n * 2)) < 1e-9; }
+  function isOdds(n) { return n != null && Math.abs(n) >= 100; }
+
+  // Checks one game + segment; returns a list of problems (empty = fine).
+  // The worker runs the same checks before writing.
+  function checkRow(r) {
+    var errs = [];
+    if (r.ats) {
+      if (r.ats.away.line == null || r.ats.home.line == null) errs.push('ATS needs both lines');
+      else {
+        if (r.ats.away.line !== -r.ats.home.line) errs.push('ATS lines must be opposites (' + signed(r.ats.away.line) + ' / ' + signed(r.ats.home.line) + ')');
+        if (!isHalf(r.ats.away.line)) errs.push('ATS line should be a whole or half point');
+      }
+      if (!isOdds(r.ats.away.price) || !isOdds(r.ats.home.price)) errs.push('ATS prices look wrong');
+    }
+    if (r.ml && (!isOdds(r.ml.away) || !isOdds(r.ml.home))) errs.push('ML needs both sides (e.g. -120 / +105)');
+    if (r.total) {
+      if (!(r.total.line > 0) || !isHalf(r.total.line)) errs.push('Total should be a positive whole or half point');
+      if (!isOdds(r.total.over) || !isOdds(r.total.under)) errs.push('Total prices look wrong');
+    }
+    return errs;
+  }
+
+  function buildRow(date, away, home, f) {
+    // f: raw numbers (null when blank). Prices fall back to -110.
+    var p = function(x) { return x == null ? DEFAULT_PRICE : x; };
+    if (f.atsA != null && f.atsH == null) f.atsH = -f.atsA;
+    if (f.atsH != null && f.atsA == null) f.atsA = -f.atsH;
+    var row = { date: date, away: away, home: home, segment: f.segment || SEGMENT, ats: null, ml: null, total: null };
+    if (f.atsA != null) row.ats = { away: { line: f.atsA, price: p(f.atsAP) }, home: { line: f.atsH, price: p(f.atsHP) } };
+    if (f.mlA != null || f.mlH != null) row.ml = { away: f.mlA, home: f.mlH };
+    if (f.tot != null) row.total = { line: f.tot, over: p(f.ovP), under: p(f.unP) };
+    return row;
+  }
+
+  function collectOdds() {
+    var date = sportDate();
+    var rows = document.querySelectorAll('#oddsBody tr[data-away]');
+    var out = [], bad = 0;
+    Array.prototype.forEach.call(rows, function(tr, i) {
+      var f = {};
+      ['atsA', 'atsAP', 'atsH', 'atsHP', 'mlA', 'mlH', 'tot', 'ovP', 'unP'].forEach(function(k) { f[k] = numVal('o' + i + '_' + k); });
+      var row = buildRow(date, tr.getAttribute('data-away'), tr.getAttribute('data-home'), f);
+      var errs = checkRow(row);
+      document.getElementById('o' + i + '_err').textContent = errs.join('; ');
+      tr.classList.toggle('err', errs.length > 0);
+      if (errs.length) bad++;
+      out.push(row);
+    });
+    return bad ? null : out;
+  }
+
+  // Keep the ATS pair opposite as you type: entering one side fills the other.
+  document.getElementById('oddsBody').addEventListener('input', function(e) {
+    var m = e.target.id && e.target.id.match(/^o(\d+)_ats([AH])$/);
+    if (!m) return;
+    var other = document.getElementById('o' + m[1] + '_ats' + (m[2] === 'A' ? 'H' : 'A'));
+    if (e.target.value === '' || isNaN(Number(e.target.value))) return;
+    var n = Number(e.target.value);
+    other.value = n === 0 ? 0 : -n;
+  });
+
+  document.getElementById('oddsBody').addEventListener('click', function(e) {
+    var b = e.target.closest('[data-remove]');
+    if (!b) return;
+    var tr = b.closest('tr');
+    var date = sportDate(), away = tr.getAttribute('data-away'), home = tr.getAttribute('data-home');
+    var label = teamLabel(away) + ' @ ' + teamLabel(home);
+    var saved = ODDS[gameKey(date, away, home)];
+    added[date] = (added[date] || []).filter(function(g) { return !(g.away === away && g.home === home); });
+    if (!saved) { renderOdds(); return; }
+    if (!confirm('Remove ' + label + ' and all its saved odds (every segment) for ' + date + '?')) return;
+    var status = document.getElementById('oddsStatus');
+    callWorker('/odds/save', { sport: SPORT.key, rows: [], removes: [{ date: date, away: away, home: home }] }, status, b, 'Removing', 'Removed.')
+      .then(function() { delete ODDS[gameKey(date, away, home)]; renderOdds(); })
+      .catch(function() {});
+  });
+
+  document.getElementById('segTabs').addEventListener('click', function(e) {
+    var b = e.target.closest('[data-seg]');
+    if (!b) return;
+    SEGMENT = b.getAttribute('data-seg');
+    document.getElementById('oddsStatus').textContent = '';
+    renderSegTabs(); renderOdds();
+  });
+
+  document.getElementById('sportDate').addEventListener('change', function() {
+    if (!SPORT) return;
+    document.getElementById('oddsStatus').textContent = '';
+    renderOdds();
+  });
+
+  document.getElementById('addGameBtn').addEventListener('click', function() {
+    var status = document.getElementById('oddsStatus');
+    var a = findTeam(document.getElementById('addAway').value);
+    var h = findTeam(document.getElementById('addHome').value);
+    var err = a.error || h.error || (a.slug === h.slug ? 'Pick two different teams' : '');
+    if (err) { status.className = 'status err'; status.textContent = err; return; }
+    var date = sportDate();
+    (added[date] = added[date] || []).push({ away: a.slug, home: h.slug });
+    document.getElementById('addAway').value = '';
+    document.getElementById('addHome').value = '';
+    status.textContent = '';
+    renderOdds();
+  });
+
+  function applySaved(rows) {
+    rows.forEach(function(r) {
+      var k = gameKey(r.date, r.away, r.home);
+      var g = ODDS[k] || (ODDS[k] = { date: r.date, away: r.away, home: r.home, segments: {} });
+      g.segments[r.segment] = { ats: r.ats, ml: r.ml, total: r.total };
+    });
+  }
+
+  document.getElementById('oddsSave').addEventListener('click', function() {
+    var status = document.getElementById('oddsStatus');
+    var rows = collectOdds();
+    if (!rows) { status.className = 'status err'; status.textContent = 'Fix the highlighted rows first.'; return; }
+    if (!rows.length) { status.className = 'status err'; status.textContent = 'No games to save.'; return; }
+    var date = sportDate(), seg = SEGMENT;
+    callWorker('/odds/save', { sport: SPORT.key, rows: rows, removes: [] }, status, this, 'Saving', SAVED_MSG)
+      .then(function() {
+        applySaved(rows);
+        added[date] = [];
+        oddsLocked[date + '|' + seg] = true;
+        renderOdds();
+      }).catch(function() {});
+  });
+
+  document.getElementById('oddsEdit').addEventListener('click', function() {
+    oddsLocked[sportDate() + '|' + SEGMENT] = false;
+    document.getElementById('oddsStatus').textContent = '';
+    renderOdds();
+  });
+
+  // ---- CSV import ----
+  function parseCsv(text) {
+    var rows = [], row = [], cell = '', q = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (q) {
+        if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+        else if (c === '"') q = false;
+        else cell += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(cell); cell = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(cell); rows.push(row); row = []; cell = '';
+      } else cell += c;
+    }
+    if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+    return rows.filter(function(r) { return r.some(function(c) { return c.trim() !== ''; }); });
+  }
+
+  var CSV_COLS = {
+    date: 'date', away: 'away', awayteam: 'away', home: 'home', hometeam: 'home', matchup: 'matchup', game: 'matchup',
+    segment: 'segment', seg: 'segment', period: 'segment',
+    atsaway: 'atsA', awayats: 'atsA', spreadaway: 'atsA', awayspread: 'atsA',
+    atshome: 'atsH', homeats: 'atsH', spreadhome: 'atsH', homespread: 'atsH',
+    atsawayprice: 'atsAP', atshomeprice: 'atsHP',
+    mlaway: 'mlA', awayml: 'mlA', mlhome: 'mlH', homeml: 'mlH',
+    total: 'tot', ou: 'tot', overunder: 'tot', overprice: 'ovP', underprice: 'unP',
+  };
+
+  function csvDate(s, fallback) {
+    s = String(s || '').trim();
+    if (!s) return fallback;
+    var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
+    m = s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
+    if (m) {
+      var y = m[3] ? (m[3].length === 2 ? '20' + m[3] : m[3]) : fallback.slice(0, 4);
+      return y + '-' + ('0' + m[1]).slice(-2) + '-' + ('0' + m[2]).slice(-2);
+    }
+    return null;
+  }
+
+  function csvSegment(s) {
+    s = norm(s).replace(/\s/g, '');
+    if (!s) return SEGMENT;
+    var hit = SPORT.segments.filter(function(g) {
+      return [g.key, g.tag, g.label].some(function(x) { return norm(x).replace(/\s/g, '') === s; }) ||
+        (s === 'firsthalf' && g.key === '1h') || (s === 'firstquarter' && g.key === '1q');
+    })[0];
+    return hit ? hit.key : null;
+  }
+
+  function csvNum(s) {
+    s = String(s == null ? '' : s).trim().replace(/^\+/, '');
+    if (s === '' || /^(pk|pick|pickem)$/i.test(s)) return /^(pk|pick|pickem)$/i.test(s) ? 0 : null;
+    var n = Number(s);
+    return isNaN(n) ? undefined : n;
+  }
+
+  function previewCsv(text) {
+    var grid = parseCsv(text);
+    if (grid.length < 2) return { error: 'Need a header row and at least one data row.' };
+    var head = grid[0].map(function(h) { return CSV_COLS[norm(h).replace(/[^a-z]/g, '')] || null; });
+    if (head.indexOf('matchup') === -1 && (head.indexOf('away') === -1 || head.indexOf('home') === -1)) {
+      return { error: 'Header needs away and home columns (or a matchup column).' };
+    }
+    var matched = [], unmatched = [];
+    grid.slice(1).forEach(function(cells, n) {
+      var raw = {};
+      head.forEach(function(k, j) { if (k) raw[k] = (cells[j] || '').trim(); });
+      var problems = [];
+      var awayTxt = raw.away, homeTxt = raw.home;
+      if (raw.matchup && (!awayTxt || !homeTxt)) {
+        var parts = raw.matchup.split(/\s+(?:@|at|vs\.?|v)\s+/i);
+        if (parts.length === 2) { awayTxt = parts[0]; homeTxt = parts[1]; }
+        else problems.push('can\'t split matchup "' + raw.matchup + '"');
+      }
+      var a = awayTxt ? findTeam(awayTxt) : { error: 'no away team' };
+      var h = homeTxt ? findTeam(homeTxt) : { error: 'no home team' };
+      if (a.error) problems.push(a.error);
+      if (h.error) problems.push(h.error);
+      var date = csvDate(raw.date, sportDate());
+      if (!date) problems.push('can\'t read date "' + raw.date + '"');
+      var seg = csvSegment(raw.segment);
+      if (!seg) problems.push('unknown segment "' + raw.segment + '"');
+      var f = { segment: seg };
+      ['atsA', 'atsH', 'atsAP', 'atsHP', 'mlA', 'mlH', 'tot', 'ovP', 'unP'].forEach(function(k) {
+        var v = csvNum(raw[k]);
+        if (v === undefined) { problems.push(k.replace('atsA', 'ATS away').replace('atsH', 'ATS home') + ' "' + raw[k] + '" isn\'t a number'); v = null; }
+        f[k] = v;
+      });
+      var row = null;
+      if (!problems.length) {
+        row = buildRow(date, a.slug, h.slug, f);
+        problems = checkRow(row);
+        if (!row.ats && !row.ml && !row.total) problems.push('no odds in this row');
+      }
+      var line = n + 2;
+      if (problems.length) unmatched.push({ line: line, text: cells.join(', '), why: problems.join('; ') });
+      else matched.push({ line: line, row: row });
+    });
+    return { matched: matched, unmatched: unmatched };
+  }
+
+  function segTag(key) {
+    var s = SPORT.segments.filter(function(g) { return g.key === key; })[0];
+    return s ? s.tag : key;
+  }
+
+  function renderPreview(res) {
+    var el = document.getElementById('csvPreview');
+    var status = document.getElementById('csvStatus');
+    var importBtn = document.getElementById('csvImportBtn');
+    csvMatched = [];
+    if (res.error) { status.className = 'status err'; status.textContent = res.error; el.innerHTML = ''; importBtn.hidden = true; return; }
+    csvMatched = res.matched.map(function(m) { return m.row; });
+    status.className = 'status';
+    status.textContent = res.matched.length + ' matched, ' + res.unmatched.length + ' unmatched.';
+    var html = '';
+    if (res.matched.length) {
+      html += '<p class="preview-h ok">Matched (' + res.matched.length + ')</p><table><thead><tr><th>Line</th><th>Date</th><th>Seg</th><th>Matchup</th><th>ATS</th><th>ML</th><th>Total</th></tr></thead><tbody>' +
+        res.matched.map(function(m) {
+          var r = m.row;
+          return '<tr><td>' + m.line + '</td><td>' + r.date + '</td><td>' + escapeHtml(segTag(r.segment)) + '</td>' +
+            '<td class="matchup">' + escapeHtml(teamLabel(r.away)) + ' @ ' + escapeHtml(teamLabel(r.home)) + '</td>' +
+            '<td>' + (r.ats ? escapeHtml(signed(r.ats.away.line) + ' / ' + signed(r.ats.home.line)) : '') + '</td>' +
+            '<td>' + (r.ml ? escapeHtml(signed(r.ml.away) + ' / ' + signed(r.ml.home)) : '') + '</td>' +
+            '<td>' + (r.total ? escapeHtml(String(r.total.line)) : '') + '</td></tr>';
+        }).join('') + '</tbody></table>';
+    }
+    if (res.unmatched.length) {
+      html += '<p class="preview-h bad">Unmatched (' + res.unmatched.length + ') &mdash; these won&rsquo;t be imported</p><table><thead><tr><th>Line</th><th>Row</th><th>Why</th></tr></thead><tbody>' +
+        res.unmatched.map(function(u) {
+          return '<tr><td>' + u.line + '</td><td>' + escapeHtml(u.text) + '</td><td class="row-err">' + escapeHtml(u.why) + '</td></tr>';
+        }).join('') + '</tbody></table>';
+    }
+    el.innerHTML = html;
+    importBtn.hidden = !csvMatched.length;
+    importBtn.textContent = 'Import ' + csvMatched.length + ' matched row' + (csvMatched.length === 1 ? '' : 's');
+  }
+
+  document.getElementById('csvFile').addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function() { document.getElementById('csvText').value = reader.result; renderPreview(previewCsv(reader.result)); };
+    reader.readAsText(file);
+  });
+
+  document.getElementById('csvPreviewBtn').addEventListener('click', function() {
+    renderPreview(previewCsv(document.getElementById('csvText').value));
+  });
+
+  document.getElementById('csvImportBtn').addEventListener('click', function() {
+    if (!csvMatched.length) return;
+    var rows = csvMatched.slice();
+    var status = document.getElementById('csvStatus');
+    callWorker('/odds/save', { sport: SPORT.key, rows: rows, removes: [] }, status, this, 'Importing', 'Imported ' + rows.length + ' row' + (rows.length === 1 ? '' : 's') + '. ' + SAVED_MSG)
+      .then(function() {
+        applySaved(rows);
+        csvMatched = [];
+        document.getElementById('csvImportBtn').hidden = true;
+        document.getElementById('csvPreview').innerHTML = '';
+        renderOdds();
+      }).catch(function() {});
+  });
+
+  document.getElementById('csvTemplate').addEventListener('click', function(e) {
+    e.preventDefault();
+    if (!SPORT) return;
+    var t = TEAMS.slice(0, 2);
+    var csv = 'date,away,home,segment,ats_away,ats_home,ml_away,ml_home,total,ats_away_price,ats_home_price,over_price,under_price\n' +
+      sportDate() + ',' + (t[0] ? t[0].name : 'Away') + ',' + (t[1] ? t[1].name : 'Home') + ',' + segTag(SEGMENT) + ',-2.5,2.5,-135,115,44.5,,,,\n';
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = 'rtyb-' + SPORT.key + '-odds-template.csv';
+    a.click();
+  });
+
   function showGate(msg) {
     document.getElementById('main').hidden = true;
     document.getElementById('gate').hidden = false;
@@ -531,6 +1098,7 @@
     document.getElementById('gate').hidden = true;
     document.getElementById('main').hidden = false;
     loadAll();
+    loadSports();
   }
 
   document.getElementById('secretSubmit').addEventListener('click', function() {
