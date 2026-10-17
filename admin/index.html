@@ -83,6 +83,8 @@
   td .price { margin-top: 4px; font-size: 0.75rem; padding: 4px 6px; }
   td .price-pair { display: flex; gap: 4px; }
   td .price-pair input { max-width: 43px; }
+  td .line-tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+  td select.fav { font-size: 0.72rem; padding: 3px 4px; margin-top: 4px; display: block; }
   td .locked-sub { display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
   td.err input, input.err { border-color: var(--bad); }
   .row-err { color: var(--bad); font-size: 0.75rem; }
@@ -127,20 +129,13 @@
     </div>
 
     <div id="sportTools" hidden>
-      <div class="card" id="mlbSoon" hidden>
-        <h2>MLB odds</h2>
-        <p class="sub" style="margin-bottom:0">NRFI / YRFI and First Five entry is the next step of the build.</p>
-      </div>
-
       <div id="spreadTools">
       <div class="card">
         <h2 id="oddsTitle">Odds</h2>
-        <p class="sub" style="margin-bottom:0">One table per segment. ATS is the line (away and home must be opposites &mdash; type one and the other fills in); the small field under it is the price, &ndash;110 unless you change it. Total is the line with Over / Under prices underneath. Save pushes these odds to the site.</p>
+        <p class="sub" style="margin-bottom:0" id="oddsHelp"></p>
         <div class="seg-tabs" id="segTabs"></div>
         <table id="oddsTable">
-          <thead><tr>
-            <th>Matchup</th><th>ATS Away</th><th>ATS Home</th><th>ML Away</th><th>ML Home</th><th>Total</th><th></th>
-          </tr></thead>
+          <thead id="oddsHead"></thead>
           <tbody id="oddsBody"></tbody>
         </table>
         <div class="add-game">
@@ -159,7 +154,7 @@
 
       <div class="card">
         <h2>Import CSV</h2>
-        <p class="sub" style="margin-bottom:0">Choose a file or paste rows. Columns (any order, header row required): <code>date, away, home, segment, ats_away, ats_home, ml_away, ml_home, total</code>, plus optional <code>ats_away_price, ats_home_price, over_price, under_price</code> (blank = &ndash;110). A <code>matchup</code> column like &ldquo;LV @ NY&rdquo; works instead of away/home. Missing date or segment uses what&rsquo;s selected above. Teams match by name, city, nickname or abbreviation. <a href="#" id="csvTemplate">Download a template</a></p>
+        <p class="sub" style="margin-bottom:0">Choose a file or paste rows. <span id="csvCols"></span> A <code>matchup</code> column like &ldquo;LV @ NY&rdquo; works instead of away/home. Missing date or segment uses what&rsquo;s selected above. Teams match by name, city, nickname or abbreviation. <a href="#" id="csvTemplate">Download a template</a></p>
         <div class="row" style="margin-top:12px"><input type="file" id="csvFile" accept=".csv,text/csv" style="width:auto"></div>
         <textarea id="csvText" placeholder="or paste CSV here..." style="margin-top:10px"></textarea>
         <div class="actions">
@@ -597,12 +592,20 @@
 
   // ---------------------------------------------------------------------
   // Other sports. The sport menu defaults to NHL (the tools above, as they
-  // were). Spread sports get one odds table per segment, stored per game +
-  // segment + market in data_admin/odds/{sport}.json:
-  //   {"2026-10-20|bos|nyk": {date, away, home, segments: {"1q": {
-  //       ats: {away: {line, price}, home: {line, price}},
-  //       ml: {away, home}, total: {line, over, under}}}}}
+  // were). Every other sport gets one odds table per segment, stored per
+  // game + segment + market in data_admin/odds/{sport}.json:
+  //   {"2026-10-20|bos|nyk": {date, away, home, segments: {
+  //      "1q": {ats: {away: {line, price}, home: {line, price}},     spread sports
+  //             ml: {away, home}, total: {line, over, under}},
+  //      "f5": {same, with ats.fav_override: 'away'|'home'|null},     MLB First Five
+  //      "1i": {nrfi_yrfi: {yrfi, nrfi}}}}}                           MLB 1st inning
   // Teams are identified by their slug (data_seed/teams/{sport}.json).
+  //
+  // Three table layouts, by segment:
+  //   spread  ATS line + price (default -110), ML, Total + O/U prices
+  //   f5      MLB First Five: ATS columns are prices; the line is always
+  //           0.5 and the ML favorite lays -0.5 unless overridden
+  //   rfi     MLB 1st inning: Yes (YRFI) / No (NRFI) prices
   // ---------------------------------------------------------------------
   var DEFAULT_PRICE = -110;
   var SPORTS = [];          // registry from assets/sports.json
@@ -616,6 +619,28 @@
   var added = {};           // date -> [{away, home}] not yet saved
   var oddsLocked = {};      // date|segment -> bool
   var csvMatched = [];
+
+  var FIELDS = {
+    spread: ['atsA', 'atsAP', 'atsH', 'atsHP', 'mlA', 'mlH', 'tot', 'ovP', 'unP'],
+    f5: ['atsA', 'atsH', 'mlA', 'mlH', 'tot', 'ovP', 'unP'],
+    rfi: ['yes', 'no'],
+  };
+  var HEADERS = {
+    spread: ['Matchup', 'ATS Away', 'ATS Home', 'ML Away', 'ML Home', 'Total', ''],
+    f5: ['Matchup', 'ATS Away', 'ATS Home', 'ML Away', 'ML Home', 'Total', ''],
+    rfi: ['Matchup', 'Yes (YRFI)', 'No (NRFI)', ''],
+  };
+  var HELP = {
+    spread: 'One table per segment. ATS is the line (away and home must be opposites &mdash; type one and the other fills in); the small field under it is the price, &ndash;110 unless you change it. Total is the line with Over / Under prices underneath. Save pushes these odds to the site.',
+    f5: 'First Five innings. The ATS columns are <b>prices</b> &mdash; the line is always 0.5, and the moneyline favorite (shorter ML) lays &ndash;0.5. Use the Fav menu under the matchup to override (or to pick a side when the moneylines are even or blank). Total can be a whole number or a .5; Over / Under prices default to &ndash;110.',
+    rfi: 'Run in the 1st inning: Yes is the YRFI price, No is the NRFI price.',
+  };
+
+  function segMode(seg) {
+    if (!SPORT || SPORT.sport_type !== 'baseball') return 'spread';
+    return seg === '1i' ? 'rfi' : 'f5';
+  }
+  function mode() { return segMode(SEGMENT); }
 
   function loadSports() {
     return fetchJson('../assets/sports.json', []).then(function(list) {
@@ -644,13 +669,12 @@
     document.getElementById('sportDateRow').hidden = isNhl;
     if (isNhl) { SPORT = null; return; }
     SPORT = SPORTS.filter(function(s) { return s.key === key; })[0];
-    var isMlb = SPORT.sport_type === 'baseball';
-    document.getElementById('mlbSoon').hidden = !isMlb;
-    document.getElementById('spreadTools').hidden = isMlb;
-    if (isMlb) return;
     SEGMENT = SPORT.segments[0].key;
     var dateEl = document.getElementById('sportDate');
     if (!dateEl.value) dateEl.value = todayET();
+    document.getElementById('csvCols').innerHTML = SPORT.sport_type === 'baseball'
+      ? 'Columns (any order, header row required): <code>date, away, home, segment</code> (NRFI or F5), then for NRFI rows <code>yes, no</code> (YRFI / NRFI prices) and for F5 rows <code>ats_away, ats_home</code> (prices), <code>ml_away, ml_home, total</code>, optional <code>over_price, under_price</code> (blank = &ndash;110) and <code>fav</code> (away / home, to override which side lays &ndash;0.5).'
+      : 'Columns (any order, header row required): <code>date, away, home, segment, ats_away, ats_home, ml_away, ml_home, total</code>, plus optional <code>ats_away_price, ats_home_price, over_price, under_price</code> (blank = &ndash;110).';
     document.getElementById('oddsBody').innerHTML = '<tr><td colspan="7" class="empty">Loading&hellip;</td></tr>';
     Promise.all([
       fetchJson('../data_seed/teams/' + key + '.json', { teams: [] }),
@@ -730,92 +754,166 @@
     return '<input type="number" step="any" id="' + id + '"' + (cls ? ' class="' + cls + '"' : '') + ' value="' + (value == null ? '' : value) + '">';
   }
 
+  // Implied probability of American odds; the favorite is the higher one.
+  function implied(o) { return o < 0 ? -o / (-o + 100) : 100 / (o + 100); }
+
+  // F5: which side lays -0.5. An override wins; otherwise the shorter ML.
+  function f5Fav(mlA, mlH, override) {
+    if (override === 'away' || override === 'home') return override;
+    if (!isOdds(mlA) || !isOdds(mlH)) return null;
+    var a = implied(mlA), h = implied(mlH);
+    return a > h ? 'away' : h > a ? 'home' : null;
+  }
+
+  function lockedVal(v) { return '<span class="locked-val">' + escapeHtml(v) + '</span>'; }
+  function lockedSub(v) { return '<span class="locked-sub">' + escapeHtml(v) + '</span>'; }
+
+  function rowCells(i, v, locked) {
+    var m = mode();
+    if (m === 'rfi') {
+      var r = v.nrfi_yrfi || {};
+      if (locked) return '<td>' + lockedVal(signed(r.yrfi)) + '</td><td>' + lockedVal(signed(r.nrfi)) + '</td><td></td>';
+      return '<td>' + inp('o' + i + '_yes', r.yrfi) + '</td><td>' + inp('o' + i + '_no', r.nrfi) + '</td>';
+    }
+    var ats = v.ats || {}, aA = ats.away || {}, aH = ats.home || {}, ml = v.ml || {}, tot = v.total || {};
+    var totLocked = '<td>' + lockedVal(tot.line == null ? '' : String(tot.line)) +
+      (tot.line != null ? lockedSub('O ' + signed(tot.over) + ' / U ' + signed(tot.under)) : '') + '</td><td></td>';
+    var totInputs = '<td>' + inp('o' + i + '_tot', tot.line) +
+      '<div class="price-pair">' + inp('o' + i + '_ovP', tot.over != null ? tot.over : DEFAULT_PRICE, 'price') + inp('o' + i + '_unP', tot.under != null ? tot.under : DEFAULT_PRICE, 'price') + '</div></td>';
+    if (locked) {
+      var atsCell = function(side) { return '<td>' + lockedVal(signed(side.line)) + (side.line != null ? lockedSub(signed(side.price)) : '') + '</td>'; };
+      return atsCell(aA) + atsCell(aH) + '<td>' + lockedVal(signed(ml.away)) + '</td><td>' + lockedVal(signed(ml.home)) + '</td>' + totLocked;
+    }
+    if (m === 'f5') {
+      return '<td><span class="line-tag" id="o' + i + '_lineA"></span>' + inp('o' + i + '_atsA', aA.price) + '</td>' +
+        '<td><span class="line-tag" id="o' + i + '_lineH"></span>' + inp('o' + i + '_atsH', aH.price) + '</td>' +
+        '<td>' + inp('o' + i + '_mlA', ml.away) + '</td><td>' + inp('o' + i + '_mlH', ml.home) + '</td>' + totInputs;
+    }
+    return '<td>' + inp('o' + i + '_atsA', aA.line) + inp('o' + i + '_atsAP', aA.price != null ? aA.price : DEFAULT_PRICE, 'price') + '</td>' +
+      '<td>' + inp('o' + i + '_atsH', aH.line) + inp('o' + i + '_atsHP', aH.price != null ? aH.price : DEFAULT_PRICE, 'price') + '</td>' +
+      '<td>' + inp('o' + i + '_mlA', ml.away) + '</td><td>' + inp('o' + i + '_mlH', ml.home) + '</td>' + totInputs;
+  }
+
+  function favSelect(i, v) {
+    var cur = (v.ats && v.ats.fav_override) || '';
+    return '<select class="fav" id="o' + i + '_fav" title="Which side lays -0.5">' +
+      [['', 'Fav: by ML'], ['away', 'Fav: away'], ['home', 'Fav: home']].map(function(o) {
+        return '<option value="' + o[0] + '"' + (o[0] === cur ? ' selected' : '') + '>' + o[1] + '</option>';
+      }).join('') + '</select>';
+  }
+
+  // F5 rows: show which side currently lays -0.5 next to the price inputs.
+  function refreshF5Lines() {
+    if (mode() !== 'f5') return;
+    document.querySelectorAll('#oddsBody tr[data-away]').forEach(function(tr, i) {
+      var la = document.getElementById('o' + i + '_lineA');
+      if (!la) return;
+      var fav = f5Fav(numVal('o' + i + '_mlA'), numVal('o' + i + '_mlH'), document.getElementById('o' + i + '_fav').value);
+      la.textContent = fav ? (fav === 'away' ? '-0.5' : '+0.5') : '±0.5';
+      document.getElementById('o' + i + '_lineH').textContent = fav ? (fav === 'home' ? '-0.5' : '+0.5') : '±0.5';
+    });
+  }
+
   function renderOdds() {
+    var m = mode();
+    var head = HEADERS[m];
+    document.getElementById('oddsHead').innerHTML = '<tr>' + head.map(function(h) { return '<th>' + h + '</th>'; }).join('') + '</tr>';
+    document.getElementById('oddsHelp').innerHTML = HELP[m];
     var date = sportDate();
     var games = gamesFor(date);
     var body = document.getElementById('oddsBody');
     var locked = !!oddsLocked[date + '|' + SEGMENT];
     if (!games.length) {
-      body.innerHTML = '<tr><td colspan="7" class="empty">No ' + escapeHtml(SPORT.label) + ' games on this date yet &mdash; add one below or import a CSV.</td></tr>';
+      body.innerHTML = '<tr><td colspan="' + head.length + '" class="empty">No ' + escapeHtml(SPORT.label) + ' games on this date yet &mdash; add one below or import a CSV.</td></tr>';
     } else {
       body.innerHTML = games.map(function(g, i) {
         var v = segValues(date, g);
-        var ats = v.ats || {}, aA = ats.away || {}, aH = ats.home || {}, ml = v.ml || {}, tot = v.total || {};
-        var cells;
-        if (locked) {
-          var sub = function(p) { return '<span class="locked-sub">' + escapeHtml(signed(p)) + '</span>'; };
-          cells =
-            '<td><span class="locked-val">' + escapeHtml(signed(aA.line)) + '</span>' + (aA.line != null ? sub(aA.price) : '') + '</td>' +
-            '<td><span class="locked-val">' + escapeHtml(signed(aH.line)) + '</span>' + (aH.line != null ? sub(aH.price) : '') + '</td>' +
-            '<td><span class="locked-val">' + escapeHtml(signed(ml.away)) + '</span></td>' +
-            '<td><span class="locked-val">' + escapeHtml(signed(ml.home)) + '</span></td>' +
-            '<td><span class="locked-val">' + escapeHtml(tot.line == null ? '' : String(tot.line)) + '</span>' +
-              (tot.line != null ? '<span class="locked-sub">O ' + escapeHtml(signed(tot.over)) + ' / U ' + escapeHtml(signed(tot.under)) + '</span>' : '') + '</td><td></td>';
-        } else {
-          cells =
-            '<td>' + inp('o' + i + '_atsA', aA.line) + inp('o' + i + '_atsAP', aA.price != null ? aA.price : DEFAULT_PRICE, 'price') + '</td>' +
-            '<td>' + inp('o' + i + '_atsH', aH.line) + inp('o' + i + '_atsHP', aH.price != null ? aH.price : DEFAULT_PRICE, 'price') + '</td>' +
-            '<td>' + inp('o' + i + '_mlA', ml.away) + '</td>' +
-            '<td>' + inp('o' + i + '_mlH', ml.home) + '</td>' +
-            '<td>' + inp('o' + i + '_tot', tot.line) +
-              '<div class="price-pair">' + inp('o' + i + '_ovP', tot.over != null ? tot.over : DEFAULT_PRICE, 'price') + inp('o' + i + '_unP', tot.under != null ? tot.under : DEFAULT_PRICE, 'price') + '</div></td>' +
-            '<td><button type="button" class="remove" data-remove="' + i + '" title="Remove this game">&times;</button></td>';
-        }
+        var remove = locked ? '' : '<td><button type="button" class="remove" data-remove="' + i + '" title="Remove this game">&times;</button></td>';
         return '<tr data-away="' + g.away + '" data-home="' + g.home + '">' +
           '<td class="matchup">' + escapeHtml(teamLabel(g.away)) + ' @ ' + escapeHtml(teamLabel(g.home)) +
-          '<div class="row-err" id="o' + i + '_err"></div></td>' + cells + '</tr>';
+          (m === 'f5' && !locked ? favSelect(i, v) : '') +
+          '<div class="row-err" id="o' + i + '_err"></div></td>' + rowCells(i, v, locked) + remove + '</tr>';
       }).join('');
     }
+    refreshF5Lines();
     document.getElementById('oddsSave').hidden = locked;
     document.getElementById('oddsEdit').hidden = !locked;
     document.querySelector('.add-game').hidden = locked;
   }
 
   function isHalf(n) { return Math.abs(n * 2 - Math.round(n * 2)) < 1e-9; }
-  function isOdds(n) { return n != null && Math.abs(n) >= 100; }
+  function isOdds(n) { return typeof n === 'number' && isFinite(n) && Math.abs(n) >= 100; }
 
   // Checks one game + segment; returns a list of problems (empty = fine).
   // The worker runs the same checks before writing.
   function checkRow(r) {
-    var errs = [];
+    var errs = [], m = segMode(r.segment);
+    if (m === 'rfi') {
+      if (r.nrfi_yrfi && (!isOdds(r.nrfi_yrfi.yrfi) || !isOdds(r.nrfi_yrfi.nrfi))) errs.push('Needs both Yes and No prices (e.g. +110 / -130)');
+      return errs;
+    }
     if (r.ats) {
-      if (r.ats.away.line == null || r.ats.home.line == null) errs.push('ATS needs both lines');
-      else {
+      if (r.ats.away.line == null || r.ats.home.line == null) {
+        errs.push(m === 'f5' ? 'Can\'t tell which side lays -0.5 &mdash; enter both MLs or pick Fav' : 'ATS needs both lines');
+      } else {
         if (r.ats.away.line !== -r.ats.home.line) errs.push('ATS lines must be opposites (' + signed(r.ats.away.line) + ' / ' + signed(r.ats.home.line) + ')');
         if (!isHalf(r.ats.away.line)) errs.push('ATS line should be a whole or half point');
+        if (m === 'f5' && Math.abs(r.ats.away.line) !== 0.5) errs.push('F5 line is always 0.5');
       }
-      if (!isOdds(r.ats.away.price) || !isOdds(r.ats.home.price)) errs.push('ATS prices look wrong');
+      if (!isOdds(r.ats.away.price) || !isOdds(r.ats.home.price)) errs.push(m === 'f5' ? 'ATS needs both prices' : 'ATS prices look wrong');
     }
     if (r.ml && (!isOdds(r.ml.away) || !isOdds(r.ml.home))) errs.push('ML needs both sides (e.g. -120 / +105)');
     if (r.total) {
-      if (!(r.total.line > 0) || !isHalf(r.total.line)) errs.push('Total should be a positive whole or half point');
+      if (!(r.total.line > 0) || !isHalf(r.total.line)) errs.push('Total should be a positive whole or half number');
       if (!isOdds(r.total.over) || !isOdds(r.total.under)) errs.push('Total prices look wrong');
     }
     return errs;
   }
 
+  // f: raw numbers (null when blank) for the segment's fields, plus
+  // f.segment and (F5) f.fav. Prices fall back to -110.
   function buildRow(date, away, home, f) {
-    // f: raw numbers (null when blank). Prices fall back to -110.
+    var seg = f.segment || SEGMENT, m = segMode(seg);
     var p = function(x) { return x == null ? DEFAULT_PRICE : x; };
-    if (f.atsA != null && f.atsH == null) f.atsH = -f.atsA;
-    if (f.atsH != null && f.atsA == null) f.atsA = -f.atsH;
-    var row = { date: date, away: away, home: home, segment: f.segment || SEGMENT, ats: null, ml: null, total: null };
-    if (f.atsA != null) row.ats = { away: { line: f.atsA, price: p(f.atsAP) }, home: { line: f.atsH, price: p(f.atsHP) } };
+    var row = { date: date, away: away, home: home, segment: seg };
+    if (m === 'rfi') {
+      row.nrfi_yrfi = (f.yes != null || f.no != null) ? { yrfi: f.yes, nrfi: f.no } : null;
+      return row;
+    }
+    row.ats = null; row.ml = null; row.total = null;
     if (f.mlA != null || f.mlH != null) row.ml = { away: f.mlA, home: f.mlH };
     if (f.tot != null) row.total = { line: f.tot, over: p(f.ovP), under: p(f.unP) };
+    if (m === 'f5') {
+      if (f.atsA != null || f.atsH != null) {
+        var override = f.fav === 'away' || f.fav === 'home' ? f.fav : null;
+        var fav = f5Fav(f.mlA, f.mlH, override);
+        row.ats = {
+          away: { line: fav ? (fav === 'away' ? -0.5 : 0.5) : null, price: f.atsA },
+          home: { line: fav ? (fav === 'home' ? -0.5 : 0.5) : null, price: f.atsH },
+          fav_override: override,
+        };
+      }
+      return row;
+    }
+    if (f.atsA != null && f.atsH == null) f.atsH = -f.atsA;
+    if (f.atsH != null && f.atsA == null) f.atsA = -f.atsH;
+    if (f.atsA != null) row.ats = { away: { line: f.atsA, price: p(f.atsAP) }, home: { line: f.atsH, price: p(f.atsHP) } };
     return row;
   }
 
+  function hasOdds(r) { return !!(r.ats || r.ml || r.total || r.nrfi_yrfi); }
+
   function collectOdds() {
-    var date = sportDate();
+    var date = sportDate(), m = mode();
     var rows = document.querySelectorAll('#oddsBody tr[data-away]');
     var out = [], bad = 0;
     Array.prototype.forEach.call(rows, function(tr, i) {
-      var f = {};
-      ['atsA', 'atsAP', 'atsH', 'atsHP', 'mlA', 'mlH', 'tot', 'ovP', 'unP'].forEach(function(k) { f[k] = numVal('o' + i + '_' + k); });
+      var f = { segment: SEGMENT };
+      FIELDS[m].forEach(function(k) { f[k] = numVal('o' + i + '_' + k); });
+      if (m === 'f5') f.fav = document.getElementById('o' + i + '_fav').value;
       var row = buildRow(date, tr.getAttribute('data-away'), tr.getAttribute('data-home'), f);
       var errs = checkRow(row);
-      document.getElementById('o' + i + '_err').textContent = errs.join('; ');
+      document.getElementById('o' + i + '_err').innerHTML = errs.join('; ');
       tr.classList.toggle('err', errs.length > 0);
       if (errs.length) bad++;
       out.push(row);
@@ -823,15 +921,17 @@
     return bad ? null : out;
   }
 
-  // Keep the ATS pair opposite as you type: entering one side fills the other.
-  document.getElementById('oddsBody').addEventListener('input', function(e) {
+  // Spread sports: keep the ATS pair opposite as you type. F5: show which
+  // side lays -0.5 as the MLs / Fav menu change.
+  function onOddsInput(e) {
+    if (mode() === 'f5') { refreshF5Lines(); return; }
     var m = e.target.id && e.target.id.match(/^o(\d+)_ats([AH])$/);
-    if (!m) return;
-    var other = document.getElementById('o' + m[1] + '_ats' + (m[2] === 'A' ? 'H' : 'A'));
-    if (e.target.value === '' || isNaN(Number(e.target.value))) return;
+    if (!m || e.target.value === '' || isNaN(Number(e.target.value))) return;
     var n = Number(e.target.value);
-    other.value = n === 0 ? 0 : -n;
-  });
+    document.getElementById('o' + m[1] + '_ats' + (m[2] === 'A' ? 'H' : 'A')).value = n === 0 ? 0 : -n;
+  }
+  document.getElementById('oddsBody').addEventListener('input', onOddsInput);
+  document.getElementById('oddsBody').addEventListener('change', function(e) { if (mode() === 'f5') refreshF5Lines(); });
 
   document.getElementById('oddsBody').addEventListener('click', function(e) {
     var b = e.target.closest('[data-remove]');
@@ -877,11 +977,15 @@
     renderOdds();
   });
 
+  function segStore(r) {
+    return segMode(r.segment) === 'rfi' ? { nrfi_yrfi: r.nrfi_yrfi } : { ats: r.ats, ml: r.ml, total: r.total };
+  }
+
   function applySaved(rows) {
     rows.forEach(function(r) {
       var k = gameKey(r.date, r.away, r.home);
       var g = ODDS[k] || (ODDS[k] = { date: r.date, away: r.away, home: r.home, segments: {} });
-      g.segments[r.segment] = { ats: r.ats, ml: r.ml, total: r.total };
+      g.segments[r.segment] = segStore(r);
     });
   }
 
@@ -928,12 +1032,13 @@
 
   var CSV_COLS = {
     date: 'date', away: 'away', awayteam: 'away', home: 'home', hometeam: 'home', matchup: 'matchup', game: 'matchup',
-    segment: 'segment', seg: 'segment', period: 'segment',
+    segment: 'segment', seg: 'segment', period: 'segment', market: 'segment',
     atsaway: 'atsA', awayats: 'atsA', spreadaway: 'atsA', awayspread: 'atsA',
     atshome: 'atsH', homeats: 'atsH', spreadhome: 'atsH', homespread: 'atsH',
     atsawayprice: 'atsAP', atshomeprice: 'atsHP',
     mlaway: 'mlA', awayml: 'mlA', mlhome: 'mlH', homeml: 'mlH',
     total: 'tot', ou: 'tot', overunder: 'tot', overprice: 'ovP', underprice: 'unP',
+    yes: 'yes', yrfi: 'yes', no: 'no', nrfi: 'no', fav: 'fav', favorite: 'fav',
   };
 
   function csvDate(s, fallback) {
@@ -949,27 +1054,31 @@
     return null;
   }
 
+  var SEG_ALIASES = { firsthalf: '1h', firstquarter: '1q', firstfive: 'f5', first5: 'f5', f5innings: 'f5', firstinning: '1i', yrfi: '1i', nrfiyrfi: '1i' };
+
   function csvSegment(s) {
-    s = norm(s).replace(/\s/g, '');
+    s = norm(s).replace(/[\s/]/g, '');
     if (!s) return SEGMENT;
     var hit = SPORT.segments.filter(function(g) {
-      return [g.key, g.tag, g.label].some(function(x) { return norm(x).replace(/\s/g, '') === s; }) ||
-        (s === 'firsthalf' && g.key === '1h') || (s === 'firstquarter' && g.key === '1q');
+      return [g.key, g.tag, g.label].some(function(x) { return norm(x).replace(/[\s/]/g, '') === s; }) || SEG_ALIASES[s] === g.key;
     })[0];
     return hit ? hit.key : null;
   }
 
   function csvNum(s) {
     s = String(s == null ? '' : s).trim().replace(/^\+/, '');
-    if (s === '' || /^(pk|pick|pickem)$/i.test(s)) return /^(pk|pick|pickem)$/i.test(s) ? 0 : null;
+    if (/^(pk|pick|pickem)$/i.test(s)) return 0;
+    if (s === '') return null;
     var n = Number(s);
     return isNaN(n) ? undefined : n;
   }
 
+  var FIELD_NAMES = { atsA: 'ATS away', atsH: 'ATS home', atsAP: 'ATS away price', atsHP: 'ATS home price', mlA: 'ML away', mlH: 'ML home', tot: 'total', ovP: 'over price', unP: 'under price', yes: 'yes', no: 'no' };
+
   function previewCsv(text) {
     var grid = parseCsv(text);
     if (grid.length < 2) return { error: 'Need a header row and at least one data row.' };
-    var head = grid[0].map(function(h) { return CSV_COLS[norm(h).replace(/[^a-z]/g, '')] || null; });
+    var head = grid[0].map(function(h) { return CSV_COLS[norm(h).replace(/[^a-z0-9]/g, '')] || null; });
     if (head.indexOf('matchup') === -1 && (head.indexOf('away') === -1 || head.indexOf('home') === -1)) {
       return { error: 'Header needs away and home columns (or a matchup column).' };
     }
@@ -993,16 +1102,23 @@
       var seg = csvSegment(raw.segment);
       if (!seg) problems.push('unknown segment "' + raw.segment + '"');
       var f = { segment: seg };
-      ['atsA', 'atsH', 'atsAP', 'atsHP', 'mlA', 'mlH', 'tot', 'ovP', 'unP'].forEach(function(k) {
+      FIELDS[segMode(seg)].forEach(function(k) {
         var v = csvNum(raw[k]);
-        if (v === undefined) { problems.push(k.replace('atsA', 'ATS away').replace('atsH', 'ATS home') + ' "' + raw[k] + '" isn\'t a number'); v = null; }
+        if (v === undefined) { problems.push(FIELD_NAMES[k] + ' "' + raw[k] + '" isn\'t a number'); v = null; }
         f[k] = v;
       });
+      if (seg && segMode(seg) === 'f5' && raw.fav) {
+        var fv = norm(raw.fav);
+        var ft = (fv === 'away' || fv === 'a') ? 'away' : (fv === 'home' || fv === 'h') ? 'home' : null;
+        if (!ft) { var hit = findTeam(raw.fav); ft = hit.slug && hit.slug === a.slug ? 'away' : hit.slug && hit.slug === h.slug ? 'home' : null; }
+        if (!ft) problems.push('fav "' + raw.fav + '" should be away, home or one of the two teams');
+        f.fav = ft;
+      }
       var row = null;
       if (!problems.length) {
         row = buildRow(date, a.slug, h.slug, f);
-        problems = checkRow(row);
-        if (!row.ats && !row.ml && !row.total) problems.push('no odds in this row');
+        problems = checkRow(row).map(function(p) { return p.replace(/&mdash;/g, '—'); });
+        if (!hasOdds(row)) problems.push('no odds in this row');
       }
       var line = n + 2;
       if (problems.length) unmatched.push({ line: line, text: cells.join(', '), why: problems.join('; ') });
@@ -1016,6 +1132,15 @@
     return s ? s.tag : key;
   }
 
+  function describeRow(r) {
+    if (r.nrfi_yrfi) return 'YRFI ' + signed(r.nrfi_yrfi.yrfi) + ' / NRFI ' + signed(r.nrfi_yrfi.nrfi);
+    var parts = [];
+    if (r.ats) parts.push('ATS ' + signed(r.ats.away.line) + ' (' + signed(r.ats.away.price) + ') / ' + signed(r.ats.home.line) + ' (' + signed(r.ats.home.price) + ')');
+    if (r.ml) parts.push('ML ' + signed(r.ml.away) + ' / ' + signed(r.ml.home));
+    if (r.total) parts.push('Total ' + r.total.line + ' (O ' + signed(r.total.over) + ' / U ' + signed(r.total.under) + ')');
+    return parts.join(' · ');
+  }
+
   function renderPreview(res) {
     var el = document.getElementById('csvPreview');
     var status = document.getElementById('csvStatus');
@@ -1027,14 +1152,12 @@
     status.textContent = res.matched.length + ' matched, ' + res.unmatched.length + ' unmatched.';
     var html = '';
     if (res.matched.length) {
-      html += '<p class="preview-h ok">Matched (' + res.matched.length + ')</p><table><thead><tr><th>Line</th><th>Date</th><th>Seg</th><th>Matchup</th><th>ATS</th><th>ML</th><th>Total</th></tr></thead><tbody>' +
+      html += '<p class="preview-h ok">Matched (' + res.matched.length + ')</p><table><thead><tr><th>Line</th><th>Date</th><th>Seg</th><th>Matchup</th><th>Odds</th></tr></thead><tbody>' +
         res.matched.map(function(m) {
           var r = m.row;
           return '<tr><td>' + m.line + '</td><td>' + r.date + '</td><td>' + escapeHtml(segTag(r.segment)) + '</td>' +
             '<td class="matchup">' + escapeHtml(teamLabel(r.away)) + ' @ ' + escapeHtml(teamLabel(r.home)) + '</td>' +
-            '<td>' + (r.ats ? escapeHtml(signed(r.ats.away.line) + ' / ' + signed(r.ats.home.line)) : '') + '</td>' +
-            '<td>' + (r.ml ? escapeHtml(signed(r.ml.away) + ' / ' + signed(r.ml.home)) : '') + '</td>' +
-            '<td>' + (r.total ? escapeHtml(String(r.total.line)) : '') + '</td></tr>';
+            '<td>' + escapeHtml(describeRow(r)) + '</td></tr>';
         }).join('') + '</tbody></table>';
     }
     if (res.unmatched.length) {
@@ -1077,13 +1200,17 @@
   document.getElementById('csvTemplate').addEventListener('click', function(e) {
     e.preventDefault();
     if (!SPORT) return;
-    var t = TEAMS.slice(0, 2);
-    var csv = 'date,away,home,segment,ats_away,ats_home,ml_away,ml_home,total,ats_away_price,ats_home_price,over_price,under_price\n' +
-      sportDate() + ',' + (t[0] ? t[0].name : 'Away') + ',' + (t[1] ? t[1].name : 'Home') + ',' + segTag(SEGMENT) + ',-2.5,2.5,-135,115,44.5,,,,\n';
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-    a.download = 'rtyb-' + SPORT.key + '-odds-template.csv';
-    a.click();
+    var t = TEAMS.slice(0, 2), a = t[0] ? t[0].name : 'Away', h = t[1] ? t[1].name : 'Home', d = sportDate();
+    var csv = SPORT.sport_type === 'baseball'
+      ? 'date,away,home,segment,yes,no,ats_away,ats_home,fav,ml_away,ml_home,total,over_price,under_price\n' +
+        d + ',' + a + ',' + h + ',NRFI,+110,-135,,,,,,,,\n' +
+        d + ',' + a + ',' + h + ',F5,,,-105,-115,,-130,+110,4.5,,\n'
+      : 'date,away,home,segment,ats_away,ats_home,ml_away,ml_home,total,ats_away_price,ats_home_price,over_price,under_price\n' +
+        d + ',' + a + ',' + h + ',' + segTag(SEGMENT) + ',-2.5,2.5,-135,115,44.5,,,,\n';
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    link.download = 'rtyb-' + SPORT.key + '-odds-template.csv';
+    link.click();
   });
 
   function showGate(msg) {
