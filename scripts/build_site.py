@@ -334,7 +334,7 @@ def apply_sport(out, sport, section):
     out = out.replace('__SPORT_KEY__', sport['key'])
     out = out.replace('__SPORT_LABEL__', sport['label'])
     out = out.replace('__SPORT_MENU_ITEMS__', sport_menu_html(sport, section or 'games'))
-    out = out.replace('__BRAND_HREF__', sports.section_path(sport, 'games'))
+    out = out.replace('__BRAND_HREF__', '/')  # the home page (prefixed with SITE_ROOT at load)
     for sec in ('games', 'stats', 'trends', 'teams'):
         out = out.replace(f'__NAV_HREF_{sec.upper()}__', sports.section_path(sport, sec))
     if is_nhl:
