@@ -12,7 +12,7 @@ body.hm-open { overflow: hidden; }
 .hn-links { display: flex; align-items: center; gap: 4px; }
 .hn-link {
   display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 12px; border: none; background: none;
-  font: 700 0.92rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.05em;
+  font: 700 1.1rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.05em;
   color: var(--text-muted); text-decoration: none; cursor: pointer; border-radius: 8px;
 }
 .hn-link:hover, .hn-link[aria-expanded="true"] { color: var(--text); }
@@ -20,7 +20,7 @@ body.hm-open { overflow: hidden; }
 .hn-premium, .hm-premium, .btn-gold {
   display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px;
   background: var(--gold); color: var(--on-gold); border: none; border-radius: 10px; cursor: pointer;
-  font: 800 0.92rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none;
+  font: 800 1.05rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none;
 }
 .hn .theme-toggle { width: 44px; height: 44px; }
 .hn-drop { position: relative; }
