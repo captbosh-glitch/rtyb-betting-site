@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="RTYB — Run to Your Bets: NFL 1st Quarter and 1st Half betting stats and trends.">
 </head>
-<body data-team-code="" data-sport="nfl">
+<body data-sport-slug="nfl" data-team-code="" data-sport="nfl">
 <title>RTYB — NFL Trends</title>
 <link rel="stylesheet" href="../../assets/site.css">
 
@@ -24,7 +24,7 @@
         <button type="button" class="nav-link nav-dropdown-btn" id="sportBtn" aria-haspopup="true" aria-expanded="false">
           NFL <span class="nav-caret">&#9662;</span>
         </button>
-        <div class="nav-dropdown-menu" id="sportMenu"><a class="nav-dropdown-item" href="/nhl/trends/">NHL</a><a class="nav-dropdown-item" href="/nfl/trends/" aria-current="true">NFL<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/nba/trends/">NBA<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/wnba/trends/">WNBA<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/mlb/trends/">MLB<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/college-football/trends/">NCAAF<span class="soon">Soon</span></a><a class="nav-dropdown-item" href="/college-basketball/trends/">NCAAB<span class="soon">Soon</span></a></div>
+        <div class="nav-dropdown-menu" id="sportMenu"><a class="nav-dropdown-item" href="/nhl/trends/">NHL</a><a class="nav-dropdown-item" href="/nfl/trends/" aria-current="true">NFL</a><a class="nav-dropdown-item" href="/nba/trends/">NBA</a><a class="nav-dropdown-item" href="/wnba/trends/">WNBA</a><a class="nav-dropdown-item" href="/mlb/trends/">MLB</a><a class="nav-dropdown-item" href="/college-football/trends/">NCAAF</a><a class="nav-dropdown-item" href="/college-basketball/trends/">NCAAB<span class="soon">Soon</span></a></div>
       </div>
       <a class="nav-link" href="/nfl/games/" >Games</a>
       <a class="nav-link" href="/nfl/stats/" >Stats</a>
@@ -42,7 +42,7 @@
 <main>
   <div class="page-head">
     <h1>NFL — Trends</h1>
-    <p>NFL 1st Quarter and 1st Half streaks and league trends.</p>
+    <p>NFL League Trends for each slate and current team streaks.</p>
   </div>
 
   
@@ -58,14 +58,14 @@
   
 
   
-
+  <div id="sportApp" data-section="trends"><div class="no-games-note">Loading&hellip;</div><noscript>This page needs JavaScript.</noscript></div>
   
-  <section class="empty-sport"><h2>No NFL trends yet</h2><p>NFL 1st Quarter and 1st Half streaks and league trends are coming to RTYB soon.</p><div class="empty-tags"><span>1Q</span><span>1H</span></div></section>
+
   
 </main>
 
 <footer>
-  RTYB &mdash; Run to Your Bets. NFL 1st Quarter and 1st Half coverage is coming soon. Not affiliated with any league.
+  RTYB &mdash; Run to Your Bets. NFL 1st Quarter and 1st Half results; odds-based records count only games with saved odds. Not affiliated with any league.
 </footer>
 
 <script>
@@ -115,6 +115,7 @@
   });
 })();
 </script>
+<script src="../../assets/sport.js"></script>
 
 </body>
 </html>
