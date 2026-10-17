@@ -285,6 +285,9 @@
     .nav-link, .nav-dropdown-btn { justify-content: space-between; width: 100%; }
     .nav-dropdown-menu { position: static; box-shadow: none; margin-left: 8px; width: calc(100% - 8px); }
     .hamburger { display: flex; }
+    .top-inner .nav-account { display: none; }
+    .main-nav .nav-mobile-only { display: flex; }
+    .main-nav .nav-premium { margin-top: 8px; min-height: 44px; }
   }
 
   /* ---------- Yesterday's results strip ---------- */
@@ -319,6 +322,21 @@
   .empty-sport .empty-tags { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
   .empty-sport .empty-tags span { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); border: 1px solid var(--accent); padding: 2px 8px; border-radius: 4px; }
   .nav-dropdown-item[aria-current="true"] { color: var(--accent); font-weight: 700; }
+  /* Sports menu: LIVE, or the date / month the season starts (home.py) */
+  .nav-dropdown-item .nav-status {
+    margin-left: auto; padding: 2px 6px; font: 700 0.66rem 'JetBrains Mono', monospace; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--text-muted); border: 1px solid var(--border); border-radius: 5px;
+  }
+  .nav-dropdown-item .nav-status.live { color: var(--good); border-color: var(--good); }
+  .nav-dropdown-item { min-width: 170px; }
+  /* Sign in / Go Premium on every page (same as the home page) */
+  .nav-account { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .nav-premium {
+    display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 16px;
+    background: var(--gold); color: var(--on-gold); border-radius: 10px; text-decoration: none; white-space: nowrap;
+    font: 800 1.05rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .nav-mobile-only { display: none; }
   .nav-dropdown-item .soon { margin-left: auto; padding-left: 12px; font-size: 0.68rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.04em; }
 
   /* ---------- Team logos (light/dark SVG, w/ circle+abbrev fallback) ---------- */
