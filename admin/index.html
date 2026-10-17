@@ -9,7 +9,7 @@
   :root {
     --bg: #0B0F14; --panel: #121820; --panel-2: #1A222C; --panel-3: #212B37;
     --border: #263140; --border-soft: #1D2733; --text: #EAEEF3;
-    --text-muted: #8B96A5; --text-faint: #5C6B7A; --accent: #34D5FF;
+    --text-muted: #8B96A5; --text-faint: #5C6B7A; --accent: #A78BFA; --on-accent: #0B0F14;
     --good: #33D17A; --good-dim: #17462C; --bad: #FF4D6A; --bad-dim: #4A1620;
     color-scheme: dark;
   }
@@ -17,7 +17,7 @@
     :root {
       --bg: #F3F5F8; --panel: #FFFFFF; --panel-2: #F7F9FB; --panel-3: #EDF1F5;
       --border: #DCE2E9; --border-soft: #E7EBEF; --text: #12181F;
-      --text-muted: #5B6674; --text-faint: #8891A0; --accent: #0B93B5;
+      --text-muted: #5B6674; --text-faint: #8891A0; --accent: #6D4AD4; --on-accent: #FFFFFF;
       --good: #158A4B; --good-dim: #E3F6EB; --bad: #D42B49; --bad-dim: #FCE7EA;
       color-scheme: light;
     }
@@ -64,7 +64,7 @@
     padding: 9px 18px; cursor: pointer;
   }
   button.save { background: var(--panel-3); color: var(--text); border: 1px solid var(--border); }
-  button.publish { background: var(--accent); color: #06161C; }
+  button.publish { background: var(--accent); color: var(--on-accent); }
   button:disabled { opacity: 0.5; cursor: default; }
   .status { font-size: 0.82rem; margin-top: 10px; min-height: 1.2em; }
   .status.ok { color: var(--good); }
@@ -78,7 +78,7 @@
   .back-link:hover { text-decoration: underline; }
   .seg-tabs { display: flex; gap: 6px; margin-top: 14px; }
   .seg-tabs button { background: var(--panel-2); color: var(--text-muted); border: 1px solid var(--border); padding: 6px 14px; }
-  .seg-tabs button[aria-pressed="true"] { background: var(--accent); color: #06161C; border-color: var(--accent); }
+  .seg-tabs button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
   td input { display: block; }
   td .price { margin-top: 4px; font-size: 0.75rem; padding: 4px 6px; }
   td .price-pair { display: flex; gap: 4px; }

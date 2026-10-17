@@ -28,7 +28,7 @@ Inputs (all relative to repo root, where this runs from in CI):
 
 Output (all static files -- no server, GitHub Pages "deploy from branch,
 root" compatible):
-  index.html               -- root redirect to /nhl/games/
+  index.html, learn/       -- home page and Learn page (scripts/home.py)
   nhl/data.json             -- the full merged data blob (summary/streaks/
                               gamelog/schedule/divisions for all teams),
                               written ONCE and fetched by every generated
@@ -54,6 +54,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import league_trends  # noqa: E402
+import home  # noqa: E402
 import sport_build  # noqa: E402
 import sports  # noqa: E402
 
@@ -304,11 +305,32 @@ def sport_menu_html(current, section):
     return ''.join(items)
 
 
+# The PH4 logo: stopwatch + RTY with a leaning B, tagline the same width.
+# Geometry from the logo sheet; the B position (132.9) and tagline length
+# (94.8) were measured in Barlow Condensed 800. Colors are --logo-* tokens.
+LOGO_SVG = (
+    '<svg class="logo" viewBox="-8 19 176 72" role="img" aria-label="RTYB — Run to Your Bets">'
+    '<g class="lg-ring" stroke-width="3" stroke-linecap="round">'
+    '<line x1="-6" y1="46" x2="4" y2="46" opacity="0.6"/><line x1="-3" y1="58" x2="4" y2="58" opacity="0.35"/></g>'
+    '<rect class="lg-fill" x="25" y="21" width="10" height="6" rx="2"/>'
+    '<line class="lg-ring" x1="45.8" y1="36.2" x2="48.9" y2="33.1" stroke-width="3" stroke-linecap="round"/>'
+    '<circle class="lg-ring" cx="30" cy="52" r="22" fill="none" stroke-width="3"/>'
+    '<path class="lg-fill" d="M30 52 L30 36 A16 16 0 0 1 43.9 44.0 Z" opacity="0.85"/>'
+    '<line class="lg-hand" x1="30" y1="52" x2="40.8" y2="43.0" stroke-width="3" stroke-linecap="round"/>'
+    '<circle class="lg-dot" cx="30" cy="52" r="3"/>'
+    '<text class="lg-rty" x="62" y="68" font-size="50" letter-spacing="1">RTY</text>'
+    '<g transform="translate(132.9 68) skewX(-14)"><text class="lg-b" x="0" y="0" font-size="50">B</text></g>'
+    '<text class="lg-tag" x="62" y="86" font-size="10.5" font-weight="600" textLength="94.8" lengthAdjust="spacing">'
+    'RUN TO YOUR <tspan class="lg-bets" font-weight="800">BETS</tspan></text>'
+    '</svg>')
+
+
 def apply_sport(out, sport, section):
     """Fill the sport-specific placeholders shared by every page."""
     is_nhl = sport['key'] == 'nhl'
     out = out.replace('__META_DESC__', NHL_META_DESC if is_nhl else
                       f'RTYB — Run to Your Bets: {sport["label"]} {sports.segment_summary(sport)} betting stats and trends.')
+    out = out.replace('__LOGO_SVG__', LOGO_SVG)
     out = out.replace('__SPORT_KEY__', sport['key'])
     out = out.replace('__SPORT_LABEL__', sport['label'])
     out = out.replace('__SPORT_MENU_ITEMS__', sport_menu_html(sport, section or 'games'))
@@ -425,36 +447,6 @@ def render_page(template, page_key, teams_menu_html, meta=None, team_code='', sp
     return out
 
 
-# NOTE: every href/src in this redirect page is deliberately RELATIVE
-# ("nhl/games/", no leading slash) rather than root-relative ("/nhl/games/").
-# This site is hosted as a GitHub Pages *project* site under a subpath (e.g.
-# /rtyb-betting-site/), not at the domain root, so a root-relative link here
-# would resolve to the wrong place entirely (the bare domain root, where
-# nothing is published) -- exactly the "no GitHub Pages site here" 404 this
-# fix addresses. A relative link always resolves against wherever this file
-# itself is actually being served from, so it's correct both here (local
-# testing at the domain root) and in production (served under the repo's
-# subpath) with no runtime detection needed. Every OTHER page in the site is
-# nested one level under /nhl/, where a small JS snippet at the top of
-# template.html's <script> block detects the real subpath at runtime instead
-# (see SITE_ROOT there) -- this file is the one exception, since it sits at
-# the true site root with no "/nhl/" segment in its own URL to detect from.
-ROOT_REDIRECT_HTML = """<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="refresh" content="0; url=nhl/games/">
-<link rel="canonical" href="nhl/games/">
-<title>RTYB</title>
-<script>location.replace('nhl/games/');</script>
-</head>
-<body>
-<p>Redirecting to <a href="nhl/games/">nhl/games/</a>&hellip;</p>
-</body>
-</html>
-"""
-
 
 def redirect_page_html(relative_target):
     """A tiny redirect stub for a URL that moved -- e.g. the old
@@ -462,7 +454,7 @@ def redirect_page_html(relative_target):
     is relative to the redirect page's own folder (both pages sit one level
     under /nhl/, so a sibling rename is just "../new-slug/"), which keeps
     this correct under GitHub Pages' project-site subpath with no runtime
-    detection needed, same reasoning as ROOT_REDIRECT_HTML above."""
+    detection needed."""
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -876,8 +868,6 @@ def main():
         f.write(trends_html)
     with open(os.path.join(teams_dir, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(teamsindex_html)
-    with open(os.path.join(ROOT, 'index.html'), 'w', encoding='utf-8') as f:
-        f.write(ROOT_REDIRECT_HTML)
 
     team_bytes = 0
     for code, info in full_data.get('summary', {}).items():
@@ -897,8 +887,10 @@ def main():
         f.write(redirect_page_html('../1st-period-stats/'))
 
     other = build_other_sports(template)
+    # Home page + Learn, last: they read every sport's data.json.
+    home_info = home.build(template, full_data, LOGO_SVG)
 
-    print(f"wrote index.html (redirect), nhl/data.json ({len(data_json)} bytes), "
+    print(f"wrote index.html (home: {home_info['tonight']} games tonight, {home_info['trends']} trends), learn/, nhl/data.json ({len(data_json)} bytes), "
           f"nhl/games/index.html ({len(games_html)} bytes), "
           f"nhl/1st-period-stats/index.html ({len(hitrates_html)} bytes), "
           f"nhl/hit-rates/index.html (redirect stub), "
