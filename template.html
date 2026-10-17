@@ -201,7 +201,8 @@
     text-decoration: none;
   }
   /* Logo (PH4). Colors come from the --logo-* tokens so it follows the theme. */
-  .logo { display: block; height: 40px; width: auto; overflow: visible; }
+  .logo { display: block; height: 56px; width: auto; overflow: visible; }
+  @media (max-width: 600px) { .logo { height: 46px; } }
   .logo .lg-rty { fill: var(--logo-rty); }
   .logo .lg-b, .logo .lg-fill { fill: var(--logo-mark); }
   .logo .lg-ring { stroke: var(--logo-mark); }

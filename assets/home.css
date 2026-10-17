@@ -1,6 +1,6 @@
 /* Home and Learn pages (scripts/home.py). Colors are the site tokens from
    assets/site.css; nothing here is hardcoded. */
-html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+html { scroll-behavior: smooth; scroll-padding-top: 90px; }
 body.home { min-height: 100%; }
 body.hm-open { overflow: hidden; }
 .muted { color: var(--text-muted); }

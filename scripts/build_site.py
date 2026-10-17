@@ -322,7 +322,7 @@ LOGO_SVG = (
     '<circle class="lg-dot" cx="30" cy="52" r="3"/>'
     '<text class="lg-rty" x="62" y="68" font-size="50" letter-spacing="1">RTY</text>'
     '<g transform="translate(132.9 68) skewX(-14)"><text class="lg-b" x="0" y="0" font-size="50">B</text></g>'
-    '<text class="lg-tag" x="62" y="86" font-size="10.5" font-weight="600" textLength="94.8" lengthAdjust="spacing">'
+    '<text class="lg-tag" x="62" y="87" font-size="13" font-weight="700" textLength="94.8" lengthAdjust="spacingAndGlyphs">'
     'RUN TO YOUR <tspan class="lg-bets" font-weight="800">BETS</tspan></text>'
     '</svg>')
 
