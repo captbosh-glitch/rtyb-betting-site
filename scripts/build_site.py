@@ -54,6 +54,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import league_trends  # noqa: E402
+import sports  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -265,8 +266,55 @@ def build_teams_menu_html(summary, team_colors):
     return ''.join(items)
 
 
-def render_page(template, page_key, teams_menu_html, meta=None, team_code=''):
+# Which nav section each page belongs to (for the sport selector, which keeps
+# you on the same section when you switch sports).
+PAGE_SECTION = {'games': 'games', 'hitrates': 'stats', 'trends': 'trends', 'teamsindex': 'teams', 'team': 'teams', 'empty': None}
+
+# NHL keeps its exact existing text; other sports get generic versions.
+NHL_META_DESC = 'RTYB — Run to Your Bets: NHL 1st-period betting stats and trends.'
+NHL_FOOTER = ('RTYB &mdash; 2026&ndash;27 regular season, games from Sept. 29 on. Records reflect 1st-period results only; '
+              'ties (periods ending level) count as pushes on the Moneyline market. Not affiliated with the NHL.')
+
+
+def sport_has_data(key):
+    """Sports with real data published; the rest show "Soon" in the selector."""
+    return key == 'nhl'
+
+
+def sport_menu_html(current, section):
+    items = []
+    for sp in sports.SPORTS:
+        cur = ' aria-current="true"' if sp['key'] == current['key'] else ''
+        soon = '' if sport_has_data(sp['key']) else '<span class="soon">Soon</span>'
+        items.append(f'<a class="nav-dropdown-item" href="{sports.section_path(sp, section)}"{cur}>{sp["label"]}{soon}</a>')
+    return ''.join(items)
+
+
+def apply_sport(out, sport, section):
+    """Fill the sport-specific placeholders shared by every page."""
+    is_nhl = sport['key'] == 'nhl'
+    out = out.replace('__META_DESC__', NHL_META_DESC if is_nhl else
+                      f'RTYB — Run to Your Bets: {sport["label"]} {sports.segment_summary(sport)} betting stats and trends.')
+    out = out.replace('__SPORT_KEY__', sport['key'])
+    out = out.replace('__SPORT_LABEL__', sport['label'])
+    out = out.replace('__SPORT_MENU_ITEMS__', sport_menu_html(sport, section or 'games'))
+    out = out.replace('__BRAND_HREF__', sports.section_path(sport, 'games'))
+    for sec in ('games', 'stats', 'trends', 'teams'):
+        out = out.replace(f'__NAV_HREF_{sec.upper()}__', sports.section_path(sport, sec))
+    out = out.replace('__FOOTER_TEXT__', NHL_FOOTER if is_nhl else
+                      f'RTYB &mdash; Run to Your Bets. {sport["label"]} {sports.segment_summary(sport)} coverage is coming soon. '
+                      'Not affiliated with any league.')
+    out = out.replace('__DATA_PATH__', f'/{sport["slug"]}/data.json')
+    out = out.replace('__SPORT_SLUGS_JSON__', json.dumps([sp['slug'] for sp in sports.SPORTS]))
+    return out
+
+
+def render_page(template, page_key, teams_menu_html, meta=None, team_code='', sport=None, empty_html=''):
+    sport = sport or sports.BY_KEY['nhl']
     out = strip_pages(template, page_key)
+    section = PAGE_SECTION.get(page_key) or (meta or {}).get('section')
+    out = apply_sport(out, sport, section)
+    out = out.replace('__EMPTY_HTML__', empty_html)
     meta = meta or PAGE_META[page_key]
     out = out.replace('__PAGE_TITLE__', meta['title'])
     out = out.replace('__PAGE_H1__', meta['h1'])
@@ -333,6 +381,50 @@ def redirect_page_html(relative_target):
 </body>
 </html>
 """
+
+
+EMPTY_DATA = {'summary': {}, 'streaks': {}, 'gamelog': {}, 'schedule': {'gameCounts': {}, 'games': {}},
+              'divisions': {}, 'leagueTrends': {}}
+
+EMPTY_COPY = {
+    'games': ('No {label} games yet', 'odds, results and trends'),
+    'stats': ('No {label} stats yet', 'records, hit rates and units'),
+    'trends': ('No {label} trends yet', 'streaks and league trends'),
+    'teams': ('No {label} teams yet', 'team pages with records and splits'),
+}
+
+
+def empty_state_html(sport, section):
+    title, what = EMPTY_COPY[section]
+    tags = ''.join(f'<span>{seg["tag"]}</span>' for seg in sport['segments'])
+    return (f'<h2>{html_lib.escape(title.format(label=sport["label"]))}</h2>'
+            f'<p>{sport["label"]} {sports.segment_summary(sport)} {what} are coming to RTYB soon.</p>'
+            f'<div class="empty-tags">{tags}</div>')
+
+
+def build_other_sports(template):
+    """Pages for every non-NHL sport in the registry. With no data yet each
+    section renders a clean empty state; each sport also gets an empty
+    data.json so the shared page script loads without errors."""
+    written = []
+    for sp in sports.SPORTS:
+        if sp['key'] == 'nhl':
+            continue
+        base = os.path.join(ROOT, sp['slug'])
+        os.makedirs(base, exist_ok=True)
+        with open(os.path.join(base, 'data.json'), 'w', encoding='utf-8') as f:
+            json.dump(dict(EMPTY_DATA, sport=sp['key']), f, separators=(',', ':'))
+        for section in ('games', 'stats', 'trends', 'teams'):
+            label = sports.SECTION_LABELS[section]
+            meta = {'title': f'RTYB — {sp["label"]} {label}', 'h1': f'{sp["label"]} — {label}',
+                    'desc': f'{sp["label"]} {sports.segment_summary(sp)} {EMPTY_COPY[section][1]}.', 'section': section}
+            html = render_page(template, 'empty', '', meta=meta, sport=sp, empty_html=empty_state_html(sp, section))
+            d = os.path.join(base, sp['sections'][section])
+            os.makedirs(d, exist_ok=True)
+            with open(os.path.join(d, 'index.html'), 'w', encoding='utf-8') as f:
+                f.write(html)
+        written.append(sp['slug'])
+    return ', '.join(written)
 
 
 def apply_admin_overrides(merged_games, odds_overrides, results_overrides):
@@ -536,6 +628,14 @@ def main():
             f.write(team_html)
         team_bytes += len(team_html)
 
+    # /nhl/stats/ -> NHL's Stats page, so /{slug}/stats/ works for every sport.
+    nhl_stats_alias = os.path.join(ROOT, 'nhl', 'stats')
+    os.makedirs(nhl_stats_alias, exist_ok=True)
+    with open(os.path.join(nhl_stats_alias, 'index.html'), 'w', encoding='utf-8') as f:
+        f.write(redirect_page_html('../1st-period-stats/'))
+
+    other = build_other_sports(template)
+
     print(f"wrote index.html (redirect), nhl/data.json ({len(data_json)} bytes), "
           f"nhl/games/index.html ({len(games_html)} bytes), "
           f"nhl/1st-period-stats/index.html ({len(hitrates_html)} bytes), "
@@ -543,7 +643,8 @@ def main():
           f"nhl/trends/index.html ({len(trends_html)} bytes), "
           f"nhl/teams/index.html ({len(teamsindex_html)} bytes), "
           f"{len(full_data.get('summary', {}))} nhl/teams/<slug>/index.html pages ({team_bytes} bytes total), "
-          f"and schedule_data.json ({sum(len(v) for v in merged_games.values())} games)")
+          f"and schedule_data.json ({sum(len(v) for v in merged_games.values())} games); "
+          f"other sports: {other}")
 
 
 if __name__ == '__main__':

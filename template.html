@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="RTYB — Run to Your Bets: NHL 1st-period betting stats and trends.">
+<meta name="description" content="__META_DESC__">
 </head>
-<body data-team-code="__PAGE_TEAM_CODE__">
+<body data-team-code="__PAGE_TEAM_CODE__" data-sport="__SPORT_KEY__">
 <title>__PAGE_TITLE__</title>
 <style>
   :root {
@@ -254,6 +254,15 @@
   }
   :root:not([data-theme="light"]) .next-gameday-btn { color: var(--accent); }
 
+
+  /* ---------- Sports with no data yet ---------- */
+  .empty-sport { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 32px 24px; text-align: center; }
+  .empty-sport h2 { font-size: 1.4rem; margin-bottom: 6px; }
+  .empty-sport p { color: var(--text-muted); max-width: 52ch; margin: 0 auto; }
+  .empty-sport .empty-tags { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .empty-sport .empty-tags span { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); border: 1px solid var(--accent); padding: 2px 8px; border-radius: 4px; }
+  .nav-dropdown-item[aria-current="true"] { color: var(--accent); font-weight: 700; }
+  .nav-dropdown-item .soon { margin-left: auto; padding-left: 12px; font-size: 0.68rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.04em; }
 
   /* ---------- Team logos (light/dark SVG, w/ circle+abbrev fallback) ---------- */
   .team-logo-wrap {
@@ -904,7 +913,7 @@
 
 <header class="top">
   <div class="top-inner">
-    <a class="brand" href="/nhl/games/" aria-label="RTYB home">
+    <a class="brand" href="__BRAND_HREF__" aria-label="RTYB home">
       <div class="mark">RTY<span>B</span></div>
       <div class="tag">Run to Your Bets</div>
     </a>
@@ -912,16 +921,14 @@
     <nav class="main-nav" id="mainNav">
       <div class="nav-dropdown" id="sportDropdown">
         <button type="button" class="nav-link nav-dropdown-btn" id="sportBtn" aria-haspopup="true" aria-expanded="false">
-          NHL <span class="nav-caret">&#9662;</span>
+          __SPORT_LABEL__ <span class="nav-caret">&#9662;</span>
         </button>
-        <div class="nav-dropdown-menu" id="sportMenu">
-          <a class="nav-dropdown-item" href="/nhl/games/">NHL</a>
-        </div>
+        <div class="nav-dropdown-menu" id="sportMenu">__SPORT_MENU_ITEMS__</div>
       </div>
-      <a class="nav-link" href="/nhl/games/" __NAV_GAMES_CURRENT__>Games</a>
-      <a class="nav-link" href="/nhl/1st-period-stats/" __NAV_HITRATES_CURRENT__>Stats</a>
-      <a class="nav-link" href="/nhl/trends/" __NAV_TRENDS_CURRENT__>Trends</a>
-      <a class="nav-link" href="/nhl/teams/" __NAV_TEAMS_CURRENT__>Teams</a>
+      <a class="nav-link" href="__NAV_HREF_GAMES__" __NAV_GAMES_CURRENT__>Games</a>
+      <a class="nav-link" href="__NAV_HREF_STATS__" __NAV_HITRATES_CURRENT__>Stats</a>
+      <a class="nav-link" href="__NAV_HREF_TRENDS__" __NAV_TRENDS_CURRENT__>Trends</a>
+      <a class="nav-link" href="__NAV_HREF_TEAMS__" __NAV_TEAMS_CURRENT__>Teams</a>
     </nav>
 
     <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
@@ -1095,10 +1102,14 @@
   <div class="l10-summary" id="teamL10Summary"></div>
   <table class="gamelog l10" id="teamGamelogTable"></table>
   <!-- /PAGE:team -->
+
+  <!-- PAGE:empty -->
+  <section class="empty-sport">__EMPTY_HTML__</section>
+  <!-- /PAGE:empty -->
 </main>
 
 <footer>
-  RTYB &mdash; 2026&ndash;27 regular season, games from Sept. 29 on. Records reflect 1st-period results only; ties (periods ending level) count as pushes on the Moneyline market. Not affiliated with the NHL.
+  __FOOTER_TEXT__
 </footer>
 
 <script>
@@ -1113,9 +1124,17 @@
   // rather than hardcoded, so the exact same file also works unmodified
   // when served from a plain local dev server at the domain root (no
   // "/nhl/" anchor found -> SITE_ROOT is just '').
+  // Every sport's pages live under its own folder (/nhl/, /nfl/,
+  // /college-football/, ...), so look for whichever sport folder is in the
+  // URL; the list comes from the sport registry (scripts/sports.py).
+  var SPORT_SLUGS = __SPORT_SLUGS_JSON__;
   var SITE_ROOT = (function() {
-    var i = location.pathname.indexOf('/nhl/');
-    return i >= 0 ? location.pathname.slice(0, i) : '';
+    var best = -1;
+    SPORT_SLUGS.forEach(function(slug) {
+      var i = location.pathname.indexOf('/' + slug + '/');
+      if (i >= 0 && (best < 0 || i < best)) best = i;
+    });
+    return best >= 0 ? location.pathname.slice(0, best) : '';
   })();
 
   // Anything already sitting in the DOM at this point (the nav bar, Teams
@@ -1125,7 +1144,7 @@
   // prefixes SITE_ROOT directly at render time instead -- see
   // teamLogoHtml(), renderGameCard(), etc. below.
   if (SITE_ROOT) {
-    Array.prototype.forEach.call(document.querySelectorAll('a[href^="/nhl/"]'), function(a) {
+    Array.prototype.forEach.call(document.querySelectorAll('a[href^="/"]:not([href^="//"])'), function(a) {
       a.setAttribute('href', SITE_ROOT + a.getAttribute('href'));
     });
     Array.prototype.forEach.call(document.querySelectorAll('img[src^="/assets/logos/"]'), function(img) {
@@ -3136,7 +3155,7 @@
   } // end rtybInit
 
   var loadNote = document.getElementById('rtybLoadNote');
-  fetch(SITE_ROOT + '/nhl/data.json')
+  fetch(SITE_ROOT + '__DATA_PATH__')
     .then(function(r) {
       if (!r.ok) throw new Error('data.json HTTP ' + r.status);
       return r.json();
