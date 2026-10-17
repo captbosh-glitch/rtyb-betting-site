@@ -24,6 +24,8 @@ def football():
     laces = ''.join(f'<line x1="{x}" y1="14.4" x2="{x}" y2="17.6"/>' for x in (12.6, 14.9, 17.1, 19.4))
     # Rotated and scaled up so it fills the same box as the round balls.
     return ('<g transform="rotate(-35 16 16) translate(16 16) scale(1.16) translate(-16 -16)">'
+            # light outline under the leather (like the puck's rim) so it shows on dark
+            '<path class="bi-leather-rim" d="M2.5 16 Q16 3 29.5 16 Q16 29 2.5 16 Z" fill="none" stroke-width="2.4" stroke-linejoin="round"/>'
             '<path class="bi-leather" d="M2.5 16 Q16 3 29.5 16 Q16 29 2.5 16 Z" stroke-width="1" stroke-linejoin="round"/>'
             '<path class="bi-stripe" d="M7.2 11.4 Q8.7 16 7.2 20.6 M24.8 11.4 Q23.3 16 24.8 20.6" fill="none" stroke-width="1.4"/>'
             f'<g class="bi-lace" stroke-width="1.2" stroke-linecap="round"><line x1="11.3" y1="16" x2="20.7" y2="16"/>{laces}</g>'
