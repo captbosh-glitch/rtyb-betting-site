@@ -8,6 +8,9 @@
 <body data-team-code="SJ" data-sport="nhl">
 <title>RTYB — San Jose Sharks</title>
 <style>
+  /* Brand palette: logo PH4 (purple stopwatch and B; gold RTY, hand and
+     BETS on dark; on light the gold parts turn black and BETS purple).
+     Every color on the site comes from these tokens; team colors are data. */
   :root {
     --bg: #0B0F14;
     --panel: #121820;
@@ -18,17 +21,32 @@
     --text: #EAEEF3;
     --text-muted: #8B96A5;
     --text-faint: #5C6B7A;
-    --accent: #34D5FF;
-    --accent-dim: #1C6B85;
+    --accent: #A78BFA;
+    --accent-dim: #2E2550;
+    --on-accent: #0B0F14;
+    --gold: #F5C542;
+    --on-gold: #0B0F14;
+    --premium-bg: #15112A;
+    --premium-text: #F1EEFB;
+    --premium-muted: #B3A9D6;
+    --premium-gold: #F5C542;
+    --premium-on-gold: #0B0F14;
     --good: #33D17A;
     --good-dim: #17462C;
     --bad: #FF4D6A;
     --bad-dim: #4A1620;
     --neutral-chip: #2A3542;
-    --warn: #F5C542;
-    --warn-dim: #463A12;
-    --trend: #B79CFF;
-    --trend-dim: #2A2147;
+    --warn: #FF8A3D;
+    --warn-dim: #4A2A12;
+    --trend: var(--accent);
+    --trend-dim: var(--accent-dim);
+    --shadow: rgba(0, 0, 0, 0.35);
+    --scrim: rgba(0, 0, 0, 0.55);
+    --logo-rty: #F5C542;
+    --logo-hand: #F5C542;
+    --logo-mark: #A78BFA;
+    --logo-tag: #8B96A5;
+    --logo-bets: #F5C542;
     color-scheme: dark;
   }
   :root[data-theme="light"] {
@@ -40,17 +58,33 @@
     --border-soft: #E7EBEF;
     --text: #12181F;
     --text-muted: #5B6674;
-    --accent: #0B93B5;
-    --accent-dim: #DFF4FA;
+    --text-faint: #8891A0;
+    --accent: #6D4AD4;
+    --accent-dim: #EFEAFD;
+    --on-accent: #FFFFFF;
+    --gold: #A87400;
+    --on-gold: #FFFFFF;
+    --premium-bg: #15112A;
+    --premium-text: #F1EEFB;
+    --premium-muted: #B3A9D6;
+    --premium-gold: #F5C542;
+    --premium-on-gold: #0B0F14;
     --good: #158A4B;
     --good-dim: #E3F6EB;
     --bad: #D42B49;
     --bad-dim: #FCE7EA;
     --neutral-chip: #EEF1F5;
-    --warn: #8F6400;
-    --warn-dim: #FBF1D3;
-    --trend: #6B46C8;
-    --trend-dim: #F1ECFD;
+    --warn: #D9601A;
+    --warn-dim: #FDEBDD;
+    --trend: var(--accent);
+    --trend-dim: var(--accent-dim);
+    --shadow: rgba(18, 24, 31, 0.18);
+    --scrim: rgba(18, 24, 31, 0.45);
+    --logo-rty: #12181F;
+    --logo-hand: #12181F;
+    --logo-mark: #6D4AD4;
+    --logo-tag: #5B6674;
+    --logo-bets: #6D4AD4;
     color-scheme: light;
   }
   @media (prefers-color-scheme: light) {
@@ -63,17 +97,33 @@
       --border-soft: #E7EBEF;
       --text: #12181F;
       --text-muted: #5B6674;
-      --accent: #0B93B5;
-      --accent-dim: #DFF4FA;
+      --text-faint: #8891A0;
+      --accent: #6D4AD4;
+      --accent-dim: #EFEAFD;
+      --on-accent: #FFFFFF;
+      --gold: #A87400;
+      --on-gold: #FFFFFF;
+      --premium-bg: #15112A;
+      --premium-text: #F1EEFB;
+      --premium-muted: #B3A9D6;
+    --premium-gold: #F5C542;
+    --premium-on-gold: #0B0F14;
       --good: #158A4B;
       --good-dim: #E3F6EB;
       --bad: #D42B49;
       --bad-dim: #FCE7EA;
       --neutral-chip: #EEF1F5;
-      --warn: #8F6400;
-      --warn-dim: #FBF1D3;
-      --trend: #6B46C8;
-      --trend-dim: #F1ECFD;
+      --warn: #D9601A;
+      --warn-dim: #FDEBDD;
+      --trend: var(--accent);
+      --trend-dim: var(--accent-dim);
+      --shadow: rgba(18, 24, 31, 0.18);
+      --scrim: rgba(18, 24, 31, 0.45);
+      --logo-rty: #12181F;
+      --logo-hand: #12181F;
+      --logo-mark: #6D4AD4;
+      --logo-tag: #5B6674;
+      --logo-bets: #6D4AD4;
       color-scheme: light;
     }
   }
@@ -127,23 +177,16 @@
     flex-shrink: 0;
     text-decoration: none;
   }
-  .brand .mark {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 800;
-    font-size: 1.7rem;
-    letter-spacing: 0.03em;
-    color: var(--text);
-  }
-  .brand .mark span { color: var(--accent); }
-  .brand .tag {
-    font-size: 0.66rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-family: 'Source Sans 3', sans-serif;
-    display: none;
-  }
-  @media (min-width: 640px) { .brand .tag { display: block; } }
+  /* Logo (PH4). Colors come from the --logo-* tokens so it follows the theme. */
+  .logo { display: block; height: 40px; width: auto; overflow: visible; }
+  .logo .lg-rty { fill: var(--logo-rty); }
+  .logo .lg-b, .logo .lg-fill { fill: var(--logo-mark); }
+  .logo .lg-ring { stroke: var(--logo-mark); }
+  .logo .lg-hand { stroke: var(--logo-hand); }
+  .logo .lg-dot { fill: var(--logo-hand); }
+  .logo .lg-tag { fill: var(--logo-tag); }
+  .logo .lg-bets { fill: var(--logo-bets); }
+  .logo text { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; }
 
   /* ---------- Main nav ---------- */
   .main-nav {
@@ -187,7 +230,7 @@
     min-width: 190px;
     background: var(--panel); border: 1px solid var(--border);
     border-radius: 10px; padding: 6px;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    box-shadow: 0 12px 32px var(--shadow);
     display: none; flex-direction: column; gap: 1px;
     z-index: 45;
   }
@@ -222,7 +265,7 @@
       padding: 8px 12px 12px;
       display: none;
       overflow: visible;
-      box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+      box-shadow: 0 12px 24px var(--shadow);
     }
     .main-nav.open { display: flex; }
     .nav-link, .nav-dropdown-btn { justify-content: space-between; width: 100%; }
@@ -379,7 +422,7 @@
   .cal-popover {
     position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
     background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
-    padding: 12px; width: 260px; box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    padding: 12px; width: 260px; box-shadow: 0 12px 32px var(--shadow);
     z-index: 40;
   }
   .cal-head {
@@ -590,7 +633,7 @@
   /* ---------- Detail drawer ---------- */
   .scrim {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: var(--scrim);
     opacity: 0; pointer-events: none;
     transition: opacity .18s ease;
     z-index: 50;
@@ -726,7 +769,7 @@
     width: 250px; padding: 9px 11px; border-radius: 8px;
     background: var(--panel-3); border: 1px solid var(--border); color: var(--text);
     font: 400 0.76rem/1.4 'Source Sans 3', -apple-system, sans-serif; text-align: left;
-    white-space: normal; box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    white-space: normal; box-shadow: 0 6px 18px var(--shadow);
   }
   .info-tip:hover .tip-bubble, .info-tip.open .tip-bubble { display: block; }
   .info-tip.tip-left .tip-bubble { right: auto; left: -8px; }
@@ -824,13 +867,13 @@
   .lt-l { background: var(--bad-dim); color: var(--bad); }
   .adv-lock-card {
     pointer-events: auto; max-width: 340px; text-align: center; background: var(--panel); border: 1px solid var(--border);
-    border-radius: 12px; padding: 16px 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); color: var(--text);
+    border-radius: 12px; padding: 16px 18px; box-shadow: 0 10px 30px var(--shadow); color: var(--text);
   }
   .adv-lock-card svg { color: var(--accent); }
   .adv-lock-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.05rem; text-transform: uppercase; margin-top: 4px; }
   .adv-lock-desc { font-size: 0.8rem; color: var(--text-muted); margin: 4px 0 10px; }
   .adv-lock-btn {
-    display: inline-block; background: var(--accent); color: #06161C; font-weight: 700; font-size: 0.8rem;
+    display: inline-block; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 0.8rem;
     padding: 7px 14px; border-radius: 7px; text-decoration: none;
   }
 
@@ -973,8 +1016,7 @@
 <header class="top">
   <div class="top-inner">
     <a class="brand" href="/nhl/games/" aria-label="RTYB home">
-      <div class="mark">RTY<span>B</span></div>
-      <div class="tag">Run to Your Bets</div>
+      <svg class="logo" viewBox="-8 19 176 72" role="img" aria-label="RTYB — Run to Your Bets"><g class="lg-ring" stroke-width="3" stroke-linecap="round"><line x1="-6" y1="46" x2="4" y2="46" opacity="0.6"/><line x1="-3" y1="58" x2="4" y2="58" opacity="0.35"/></g><rect class="lg-fill" x="25" y="21" width="10" height="6" rx="2"/><line class="lg-ring" x1="45.8" y1="36.2" x2="48.9" y2="33.1" stroke-width="3" stroke-linecap="round"/><circle class="lg-ring" cx="30" cy="52" r="22" fill="none" stroke-width="3"/><path class="lg-fill" d="M30 52 L30 36 A16 16 0 0 1 43.9 44.0 Z" opacity="0.85"/><line class="lg-hand" x1="30" y1="52" x2="40.8" y2="43.0" stroke-width="3" stroke-linecap="round"/><circle class="lg-dot" cx="30" cy="52" r="3"/><text class="lg-rty" x="62" y="68" font-size="50" letter-spacing="1">RTY</text><g transform="translate(132.9 68) skewX(-14)"><text class="lg-b" x="0" y="0" font-size="50">B</text></g><text class="lg-tag" x="62" y="86" font-size="10.5" font-weight="600" textLength="94.8" lengthAdjust="spacing">RUN TO YOUR <tspan class="lg-bets" font-weight="800">BETS</tspan></text></svg>
     </a>
 
     <nav class="main-nav" id="mainNav">

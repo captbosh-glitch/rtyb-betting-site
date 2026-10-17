@@ -1,0 +1,137 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RTYB — Learn</title><meta name="description" content="How first-segment bets work: spreads, moneylines, totals, NRFI, First Five and units."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap"><link rel="stylesheet" href="../assets/site.css"><link rel="stylesheet" href="../assets/home.css"></head><body class="home">
+<header class="hn">
+  <div class="hn-inner">
+    <a class="brand" href="../" aria-label="RTYB home"><svg class="logo" viewBox="-8 19 176 72" role="img" aria-label="RTYB — Run to Your Bets"><g class="lg-ring" stroke-width="3" stroke-linecap="round"><line x1="-6" y1="46" x2="4" y2="46" opacity="0.6"/><line x1="-3" y1="58" x2="4" y2="58" opacity="0.35"/></g><rect class="lg-fill" x="25" y="21" width="10" height="6" rx="2"/><line class="lg-ring" x1="45.8" y1="36.2" x2="48.9" y2="33.1" stroke-width="3" stroke-linecap="round"/><circle class="lg-ring" cx="30" cy="52" r="22" fill="none" stroke-width="3"/><path class="lg-fill" d="M30 52 L30 36 A16 16 0 0 1 43.9 44.0 Z" opacity="0.85"/><line class="lg-hand" x1="30" y1="52" x2="40.8" y2="43.0" stroke-width="3" stroke-linecap="round"/><circle class="lg-dot" cx="30" cy="52" r="3"/><text class="lg-rty" x="62" y="68" font-size="50" letter-spacing="1">RTY</text><g transform="translate(132.9 68) skewX(-14)"><text class="lg-b" x="0" y="0" font-size="50">B</text></g><text class="lg-tag" x="62" y="86" font-size="10.5" font-weight="600" textLength="94.8" lengthAdjust="spacing">RUN TO YOUR <tspan class="lg-bets" font-weight="800">BETS</tspan></text></svg></a>
+    <nav class="hn-links" aria-label="Main">
+      <div class="hn-drop">
+        <button class="hn-link hn-drop-btn" id="hnSportsBtn" aria-expanded="false" aria-haspopup="true">Sports <span aria-hidden="true">&#9662;</span></button>
+        <div class="hn-drop-menu" id="hnSportsMenu"><a class="hn-sport-item" href="../nhl/games/"><span>NHL</span><span class="hn-badge live">LIVE</span></a><a class="hn-sport-item" href="../nfl/games/"><span>NFL</span><span class="hn-badge live">LIVE</span></a><a class="hn-sport-item" href="../nba/games/"><span>NBA</span><span class="hn-badge">Oct 20</span></a><a class="hn-sport-item" href="../wnba/games/"><span>WNBA</span><span class="hn-badge live">LIVE</span></a><a class="hn-sport-item" href="../mlb/games/"><span>MLB</span><span class="hn-badge live">LIVE</span></a><a class="hn-sport-item" href="../college-football/games/"><span>NCAAF</span><span class="hn-badge live">LIVE</span></a><a class="hn-sport-item" href="../college-basketball/games/"><span>NCAAB</span><span class="hn-badge">Nov</span></a></div>
+      </div>
+      <a class="hn-link" href="../#tonight">Tonight</a>
+      <a class="hn-link" href="../#trends">Trends to Watch</a>
+      <a class="hn-link" href="../learn/">Learn</a>
+    </nav>
+    <div class="hn-right">
+      <a class="hn-link hn-signin" href="../#premium">Sign in</a>
+      <a class="hn-premium" href="../#premium">Go Premium</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light/dark theme">&#9681;</button>
+      <button class="hn-burger" id="hnBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="hnMenu">
+        <span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+<div class="hm" id="hnMenu" hidden>
+  <div class="hm-head">
+    <a class="brand" href="../" aria-label="RTYB home"><svg class="logo" viewBox="-8 19 176 72" role="img" aria-label="RTYB — Run to Your Bets"><g class="lg-ring" stroke-width="3" stroke-linecap="round"><line x1="-6" y1="46" x2="4" y2="46" opacity="0.6"/><line x1="-3" y1="58" x2="4" y2="58" opacity="0.35"/></g><rect class="lg-fill" x="25" y="21" width="10" height="6" rx="2"/><line class="lg-ring" x1="45.8" y1="36.2" x2="48.9" y2="33.1" stroke-width="3" stroke-linecap="round"/><circle class="lg-ring" cx="30" cy="52" r="22" fill="none" stroke-width="3"/><path class="lg-fill" d="M30 52 L30 36 A16 16 0 0 1 43.9 44.0 Z" opacity="0.85"/><line class="lg-hand" x1="30" y1="52" x2="40.8" y2="43.0" stroke-width="3" stroke-linecap="round"/><circle class="lg-dot" cx="30" cy="52" r="3"/><text class="lg-rty" x="62" y="68" font-size="50" letter-spacing="1">RTY</text><g transform="translate(132.9 68) skewX(-14)"><text class="lg-b" x="0" y="0" font-size="50">B</text></g><text class="lg-tag" x="62" y="86" font-size="10.5" font-weight="600" textLength="94.8" lengthAdjust="spacing">RUN TO YOUR <tspan class="lg-bets" font-weight="800">BETS</tspan></text></svg></a>
+    <button class="hm-close" id="hnClose" type="button" aria-label="Close menu">&times;</button>
+  </div>
+  <div class="hm-body">
+    <button class="hm-acc" id="hmSportsBtn" type="button" aria-expanded="true" aria-controls="hmSports">Sports <span aria-hidden="true">&#9662;</span></button>
+    <div class="hm-sports" id="hmSports"><a class="hn-sport-item" href="../nhl/games/"><span>NHL</span><span class="hn-badge live">LIVE</span></a><a class="hn-sport-item" href="../nfl/games/"><span>NFL</span><span class="hn-badge live">LIVE</span></a><a class="hn-sport-item" href="../nba/games/"><span>NBA</span><span class="hn-badge">Oct 20</span></a><a class="hn-sport-item" href="../wnba/games/"><span>WNBA</span><span class="hn-badge live">LIVE</span></a><a class="hn-sport-item" href="../mlb/games/"><span>MLB</span><span class="hn-badge live">LIVE</span></a><a class="hn-sport-item" href="../college-football/games/"><span>NCAAF</span><span class="hn-badge live">LIVE</span></a><a class="hn-sport-item" href="../college-basketball/games/"><span>NCAAB</span><span class="hn-badge">Nov</span></a></div>
+    <div class="hm-label">Everything</div>
+    <a class="hm-item" href="../#tonight">Tonight</a>
+    <a class="hm-item" href="../#trends">Trends to Watch</a>
+    <a class="hm-item" href="../learn/">Learn</a>
+    <a class="hm-item" href="../#premium">Sign in</a>
+    <button class="hm-item hm-theme" id="hmTheme" type="button">Light / dark theme</button>
+  </div>
+  <a class="hm-premium" href="../#premium">Go Premium</a>
+</div><main class="hp">
+<section class="hp-sec learn">
+  <h1>Learn</h1>
+  <p class="lead">RTYB tracks the opening segment of every game. Here&rsquo;s what each market means and how we grade it.</p>
+  <h2 id="segments">First-segment bets</h2>
+  <p>Instead of the whole game, these bets settle on the first piece of it: the 1st period in the NHL, the 1st quarter or
+  1st half in football and basketball, and the 1st inning or first five innings in baseball. They settle fast and
+  depend on how teams start, which is what RTYB&rsquo;s records and trends measure.</p>
+  <h2 id="ats">Spread (ATS)</h2>
+  <p>The favorite gives points and the underdog gets them: &ldquo;Lakers &minus;1.5&rdquo; wins if the Lakers win the
+  segment by 2 or more. Records are W-L-P &mdash; a push (P) is when the margin lands exactly on the line, and the bet is
+  refunded. Spreads are usually priced at &minus;110 (risk $110 to win $100) unless another price is listed.</p>
+  <h2 id="su">Moneyline and SU</h2>
+  <p>A moneyline bet is on who wins the segment outright. RTYB shows these records as SU (straight up), W-L-T. A tie
+  in the segment is a push for the bet (0 units). Prices: &minus;150 means risk $150 to win $100; +130 means risk $100 to
+  win $130.</p>
+  <h2 id="totals">Totals (Over / Under)</h2>
+  <p>A bet on combined points, goals or runs in the segment. Records are O-U-P. A half-point line (44.5) can&rsquo;t push;
+  a whole-number line (44) pushes when the total lands on it exactly.</p>
+  <h2 id="nrfi">NRFI / YRFI and First Five (F5)</h2>
+  <p>NRFI is &ldquo;no run first inning&rdquo; &mdash; neither team scores in the 1st. YRFI is the opposite. There are no
+  pushes; if the 1st inning isn&rsquo;t finished, it&rsquo;s No Action. First Five bets settle on the score after five
+  innings: the F5 spread is always 0.5 runs (a tie goes to the +0.5 side), an F5 moneyline tie is a push, and fewer than
+  five innings played means No Action.</p>
+  <h2 id="units">Units</h2>
+  <p>1 unit = $100 risked on every game in a category at the listed price. A loss is &minus;1 unit; a win pays by the
+  price (+0.91u at &minus;110). Pushes, ties and No Action are 0. Records that need odds &mdash; spreads, totals,
+  favorites and units &mdash; only count games with saved odds, and say how many (&ldquo;based on N games with
+  odds&rdquo;).</p>
+  <h2 id="responsible">Bet responsibly</h2>
+  <p>Only bet what you can afford to lose. If gambling stops being fun, call 1-800-GAMBLER for free, confidential help.</p>
+</section></main>
+<footer class="hf">
+  <div class="hf-inner">
+    <p class="hf-rg"><b>21+ only.</b> Gambling problem? Call <a href="tel:18004262537">1-800-GAMBLER</a>. Please bet responsibly.</p>
+    <p class="hf-small">RTYB &mdash; Run to Your Bets is for information and entertainment. Not affiliated with any league or sportsbook.
+    Records and units are for tracking only; past results don&rsquo;t predict future ones.</p>
+  </div>
+</footer>
+<script>
+(function() {
+  'use strict';
+  var root = document.documentElement;
+  try { var saved = localStorage.getItem('rtyb-theme'); if (saved) root.setAttribute('data-theme', saved); } catch (e) {}
+  function toggleTheme() {
+    var cur = root.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('rtyb-theme', next); } catch (e) {}
+  }
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+  document.getElementById('hmTheme').addEventListener('click', toggleTheme);
+  // Sports dropdown (desktop)
+  var sBtn = document.getElementById('hnSportsBtn'), sMenu = document.getElementById('hnSportsMenu');
+  sBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var open = !sMenu.classList.contains('open');
+    sMenu.classList.toggle('open', open);
+    sBtn.setAttribute('aria-expanded', String(open));
+  });
+  document.addEventListener('click', function(e) {
+    if (!sMenu.contains(e.target)) { sMenu.classList.remove('open'); sBtn.setAttribute('aria-expanded', 'false'); }
+  });
+  // Full-screen menu (phones)
+  var menu = document.getElementById('hnMenu'), burger = document.getElementById('hnBurger');
+  function setMenu(open) {
+    menu.hidden = !open;
+    burger.setAttribute('aria-expanded', String(open));
+    document.body.classList.toggle('hm-open', open);
+    if (open) document.getElementById('hnClose').focus(); else burger.focus();
+  }
+  burger.addEventListener('click', function() { setMenu(true); });
+  document.getElementById('hnClose').addEventListener('click', function() { setMenu(false); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && !menu.hidden) setMenu(false); });
+  menu.querySelectorAll('a').forEach(function(a) { a.addEventListener('click', function() { setMenu(false); }); });
+  var acc = document.getElementById('hmSportsBtn'), accBody = document.getElementById('hmSports');
+  acc.addEventListener('click', function() {
+    var open = acc.getAttribute('aria-expanded') !== 'true';
+    acc.setAttribute('aria-expanded', String(open));
+    accBody.hidden = !open;
+  });
+  // "All N games" expanders
+  document.querySelectorAll('[data-expand]').forEach(function(b) {
+    b.addEventListener('click', function() {
+      document.querySelectorAll('#' + b.getAttribute('data-expand') + ' .is-extra').forEach(function(el) { el.classList.remove('is-extra'); });
+      b.remove();
+    });
+  });
+  // Email signup: there's no list behind it yet, so nothing is sent or stored.
+  var form = document.getElementById('premiumForm');
+  if (form) form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var msg = document.getElementById('premiumMsg');
+    var endpoint = form.getAttribute('data-endpoint');
+    if (!endpoint) { msg.textContent = 'Signups open soon — check back shortly.'; return; }
+  });
+})();
+</script></body></html>
