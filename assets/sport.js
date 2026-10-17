@@ -597,7 +597,7 @@
                   ['ATS' + (atsN ? ' ' + oddsNote(atsN) : ''), atsN ? rec(r.ats) : '&mdash;', atsN ? pctTxt(r.ats[0], r.ats[1]) : '&mdash;', unitsPill(r.ats[3], r.ats[4])],
                   ['O-U-P' + (ouN ? ' ' + oddsNote(ouN) : ''), ouN ? rec(r.over) : '&mdash;', ouN ? pctTxt(r.over[0], r.over[1]) + ' O' : '&mdash;', null]];
         }
-        return '<div class="daily-summary"><h3>' + esc(s.label) + ' &middot; ' + r.gp + ' GP</h3>' +
+        return '<div class="daily-summary season-markets"><h3>' + esc(s.label) + ' &middot; ' + r.gp + ' GP</h3>' +
           '<div class="ds-row ds-head"><span></span><span class="ds-right"><span class="ds-col-rec">Record</span><span class="ds-col-pct">Rate</span><span class="ds-col-units">Units</span></span></div>' +
           rows.map(function(x) {
             return '<div class="ds-row"><span class="ds-label">' + x[0] + '</span><span class="ds-right"><span class="ds-record ds-col-rec">' + x[1] +
@@ -620,8 +620,8 @@
       }).join('') + '</div>' : emptyNote('No active streaks of 4 or more.'));
       // last 10
       var l10 = finals.slice(-10).reverse();
-      html += section('Last 10 Games &mdash; ' + esc(seg(k).label), l10.length ? '<div class="gamelog-scroll"><table class="gamelog"><thead><tr><th>Date</th><th>Opp</th><th>' + esc(seg(k).tag) + '</th>' +
-        (isRfi(k) ? '<th>1st</th>' : '<th>SU</th><th>ATS</th><th>O/U</th>') + '<th>Final</th></tr></thead><tbody>' + l10.map(function(g) {
+      html += section('Last 10 Games &mdash; ' + esc(seg(k).label), l10.length ? '<div class="gamelog-scroll"><table class="gamelog"><thead><tr><th>Date</th><th>Opp</th><th>' + (isRfi(k) ? '1st Inn' : esc(seg(k).tag)) + '</th>' +
+        (isRfi(k) ? '<th>NRFI/YRFI</th>' : '<th>SU</th><th>ATS</th><th>O/U</th>') + '<th>Final</th></tr></thead><tbody>' + l10.map(function(g) {
           var home = g.home === slug, opp = home ? g.away : g.home;
           var r = (g.res || {})[k] || {};
           var sc = r.sc ? (home ? r.sc[1] + '–' + r.sc[0] : r.sc[0] + '–' + r.sc[1]) : (r.na ? 'NA' : '&mdash;');
