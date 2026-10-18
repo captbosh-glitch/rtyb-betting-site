@@ -77,6 +77,23 @@ def basketball():
             '<path d="M7.2 6.4 Q12.5 16 7.2 25.6"/><path d="M24.8 6.4 Q19.5 16 24.8 25.6"/></g>')
 
 
+def wnba_basketball():
+    # The WNBA ball: the regular basketball turned 90 degrees, so the curved
+    # seams run across the top and bottom, bowing out toward the edges, with
+    # its panels: white cap, orange band to the center line, white band,
+    # orange cap, in about equal bands. (Seam ends sit on the r=13 circle
+    # at y=11 and y=21, bowing gently to y=9 and y=23.)
+    upper = 'M4 11 Q16 7 28 11'
+    lower = 'M4 21 Q16 25 28 21'
+    return ('<circle class="bi-wnba-white" cx="16" cy="16" r="13"/>'
+            '<path class="bi-wnba-orange" d="M4 11 Q16 7 28 11 A13 13 0 0 1 29 16 L3 16 A13 13 0 0 1 4 11 Z"/>'
+            '<path class="bi-wnba-orange" d="M4 21 Q16 25 28 21 A13 13 0 0 1 4 21 Z"/>'
+            '<g class="bi-seam" fill="none" stroke-width="1.3" stroke-linecap="round">'
+            f'<line x1="3" y1="16" x2="29" y2="16"/><line x1="16" y1="3" x2="16" y2="29"/>'
+            f'<path d="{upper}"/><path d="{lower}"/></g>'
+            '<circle class="bi-wnba-edge" cx="16" cy="16" r="13" fill="none" stroke-width="1.1"/>')
+
+
 def baseball():
     return ('<circle class="bi-baseball" cx="16" cy="16" r="13" stroke-width="1.1"/>'
             '<g class="bi-stitch" fill="none" stroke-linecap="round">'
@@ -87,11 +104,11 @@ def baseball():
             '</g>')
 
 
-ICONS = {'puck': puck, 'football': football, 'basketball': basketball, 'baseball': baseball}
+ICONS = {'puck': puck, 'football': football, 'basketball': basketball, 'wnba_basketball': wnba_basketball, 'baseball': baseball}
 
 # Which ball each league gets.
 SPORT_ICON = {'nhl': 'puck', 'nfl': 'football', 'ncaaf': 'football',
-              'nba': 'basketball', 'wnba': 'basketball', 'ncaab': 'basketball', 'mlb': 'baseball'}
+              'nba': 'basketball', 'wnba': 'wnba_basketball', 'ncaab': 'basketball', 'mlb': 'baseball'}
 
 
 def sport_icon(sport, cls=''):
