@@ -46,6 +46,15 @@ def signed(n):
     return f'+{n}' if n > 0 else str(n)
 
 
+def units_cell(u):
+    """'Last night' units, after the record: red when negative, green when
+    positive."""
+    if not u:
+        return ''
+    cls = ' neg' if u.startswith('-') else ' pos' if u.startswith('+') else ''
+    return f'<span class="ln-u{cls}">{esc(u)}</span>'
+
+
 def fmt_units(u):
     return f"{'+' if u > 0 else ''}{u:.2f}u"
 
@@ -352,6 +361,25 @@ PAGE_JS = '''
     acc.setAttribute('aria-expanded', String(open));
     accBody.hidden = !open;
   });
+  // League chips: arrows (and edge fades) when the row is wider than the
+  // screen; each arrow shows only when there's more that way.
+  var hsRow = document.getElementById('hsRow'), hsWrap = document.getElementById('hsWrap');
+  if (hsRow) {
+    var prev = hsWrap.querySelector('.prev'), next = hsWrap.querySelector('.next');
+    var syncArrows = function() {
+      var max = hsRow.scrollWidth - hsRow.clientWidth;
+      prev.hidden = hsRow.scrollLeft <= 2;
+      next.hidden = hsRow.scrollLeft >= max - 2;
+      hsWrap.classList.toggle('fade-l', !prev.hidden);
+      hsWrap.classList.toggle('fade-r', !next.hidden);
+    };
+    var by = function(dir) { hsRow.scrollBy({ left: dir * Math.max(160, hsRow.clientWidth * 0.7), behavior: 'smooth' }); };
+    prev.addEventListener('click', function() { by(-1); });
+    next.addEventListener('click', function() { by(1); });
+    hsRow.addEventListener('scroll', syncArrows, { passive: true });
+    window.addEventListener('resize', syncArrows);
+    syncArrows();
+  }
   // "All N games" expanders
   document.querySelectorAll('[data-expand]').forEach(function(b) {
     b.addEventListener('click', function() {
@@ -481,7 +509,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
 
     if recap:
         rows = ''.join(f'<div class="ln-row"><span class="ln-sport">{esc(s)}</span><span class="ln-what">{esc(w)}</span>'
-                       f'<span class="ln-rec">{esc(r)}</span>{f"<span class=ln-u>{esc(u)}</span>" if u else ""}</div>'
+                       f'<span class="ln-val"><span class="ln-rec">{esc(r)}</span>{units_cell(u)}</span></div>'
                        for s, w, r, u in recap[:6])
         last = (f'<div class="ln-card"><div class="ln-head"><span>Last night on RTYB</span><span>{esc(day_label(yday))}</span></div>'
                 f'{rows}<div class="ln-foot">{len(yday_games)} games graded &middot; <a href="#results">See results</a></div></div>')
@@ -539,7 +567,11 @@ def build(template, nhl_data, logo_svg, now_utc=None):
     learn_html = (f'<section class="hp-sec" id="learn"><div class="hp-head"><h2>Learn</h2></div>'
                   f'<div class="hl-grid">{learn}</div></section>')
 
-    body = (f'<div class="hs-row">{chips}</div>{hero}{tonight_html}{results_html}{trends_html}{premium}{learn_html}')
+    chip_row = (f'<div class="hs-wrap" id="hsWrap">'
+                f'<button class="hs-arrow prev" type="button" aria-label="Scroll leagues left" hidden>&lsaquo;</button>'
+                f'<div class="hs-row" id="hsRow">{chips}</div>'
+                f'<button class="hs-arrow next" type="button" aria-label="Scroll leagues right" hidden>&rsaquo;</button></div>')
+    body = (f'{chip_row}{hero}{tonight_html}{results_html}{trends_html}{premium}{learn_html}')
     home = page('RTYB — Run to Your Bets', 'First period, first quarter and first inning betting stats, results and trends for NHL, NFL, NBA, WNBA, MLB and college.',
                 body, status).replace('__LOGO_SVG__', logo_svg)
     with open(os.path.join(ROOT, 'index.html'), 'w', encoding='utf-8') as f:

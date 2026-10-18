@@ -527,7 +527,7 @@
       (D.games[cur] || []).forEach(function(g) { playing[g.away] = g; playing[g.home] = g; });
       var html = dateBar(cur, dates);
       html += '<section class="trends-page-section"><div class="tp-head"><div><h2>League Trends</h2>' +
-        '<p class="tp-sub">League-wide angles that apply to ' + esc(dateLabel(cur).toLowerCase() === 'today' ? 'today&rsquo;s' : dateLabel(cur) + '&rsquo;s') + ' games, ranked by edge. Locked in when the first game starts.</p></div></div>';
+        '<p class="tp-sub">League-wide angles that apply to ' + (dateLabel(cur).toLowerCase() === 'today' ? 'today&rsquo;s' : esc(dateLabel(cur)) + '&rsquo;s') + ' games, ranked by edge. Locked in when the first game starts.</p></div></div>';
       if (e && e.trends.length) {
         var r = e.record || { w: 0, l: 0 };
         if (r.w + r.l) html += '<p class="lt-summary">League Trends went <b>' + r.w + '-' + r.l + '</b> on this date.</p>';
