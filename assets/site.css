@@ -443,6 +443,9 @@
   .sport-icon .bi-stripe, .sport-icon .bi-lace { stroke: var(--ball-lace); }
   .sport-icon .bi-basketball { fill: var(--ball-orange); stroke: var(--ball-orange-edge); }
   .sport-icon .bi-seam { stroke: var(--ball-seam); }
+  .sport-icon .bi-wnba-white { fill: var(--ball-white); }
+  .sport-icon .bi-wnba-orange { fill: var(--ball-orange); }
+  .sport-icon .bi-wnba-edge { stroke: var(--ball-orange-edge); }
   .sport-icon .bi-baseball { fill: var(--ball-white); stroke: var(--ball-white-edge); }
   .sport-icon .bi-stitch { stroke: var(--ball-stitch); }
   .page-head p { color: var(--text-muted); font-size: 0.92rem; margin-top: 4px; max-width: 62ch; }
