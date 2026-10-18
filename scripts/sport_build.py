@@ -9,8 +9,6 @@ writes {slug}/data.json for the pages (assets/sport.js renders them):
   games    current season by ET date: teams, status, line scores, odds and
            the graded result per segment + market
   stats    current season: per team and league-wide, per segment
-  seasons  every season loaded; past seasons' stats go to
-           {slug}/stats/{season}.json (Stats page season menu)
   trends   League Trends per date, NHL's rules (league_trends.py) adapted
            to SU / ATS / Totals / NRFI; each date freezes when its first
            game starts (trends_log/{sport}.json) and only results update
@@ -740,25 +738,18 @@ def logo_flag(sport_key, slug):
 
 
 def build(sp, teams_list, now_utc=None):
-    """Writes {slug}/data.json (+ past seasons' stats). Returns a summary
-    for the build log and the home page: {season, games, graded, today}."""
+    """Writes {slug}/data.json for the current season (the latest one
+    loaded; earlier seasons stay in data_seed/games but aren't published).
+    Returns a summary for the build log and the home page:
+    {season, games, graded, today}."""
     now_utc = now_utc or datetime.now(timezone.utc)
     seasons = load_games(sp['key'])
     odds = read_json(os.path.join(ROOT, 'data_admin', 'odds', f"{sp['key']}.json"), {})
     teams = {t['slug']: t for t in teams_list}
     slug_dir = os.path.join(ROOT, sp['slug'])
-    season_list = []
     current = max(seasons) if seasons else None
-    for season in sorted(seasons):
-        games = seasons[season]
-        grade_all(sp, games, odds)
-        graded = sum(1 for g in games if g.get('final'))
-        season_list.append({'season': season, 'label': season_label(sp['key'], season), 'games': graded})
-        if season != current:
-            stats = season_stats(sp, games)
-            write_json(os.path.join(slug_dir, 'stats', f'{season}.json'),
-                       {'season': season, 'label': season_label(sp['key'], season), 'stats': stats})
     games = seasons.get(current, [])
+    grade_all(sp, games, odds)
     by_date = {}
     for g in games:
         by_date.setdefault(g['date'], []).append(game_out(g))
@@ -777,7 +768,6 @@ def build(sp, teams_list, now_utc=None):
         'schedule': sp.get('schedule', 'day'),
         'weeks': week_list(games) if sp.get('schedule') == 'week' else None,
         'season': current, 'seasonLabel': season_label(sp['key'], current) if current else None,
-        'seasons': season_list,
         'generated': now_utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
         'teams': {t['slug']: dict({k: t.get(k) for k in ('name', 'short', 'code', 'color', 'conference', 'division')},
                                   logo=logo_flag(sp['key'], t['slug'])) for t in teams_list},

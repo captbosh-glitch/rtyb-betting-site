@@ -475,8 +475,6 @@
     var season = D.season;
     var stats = D.stats;
     var query = '';
-    var cache = {};
-    cache[D.season] = D.stats;
     function draw() {
       var lg = (stats.league || {})[k];
       var cols = statColumns(k);
@@ -495,10 +493,8 @@
         return (va - vb) * SORT.dir;
       });
       if (query) rows = rows.filter(function(r) { var t = team(r._slug); return (t.name + ' ' + t.code + ' ' + (t.conference || '')).toLowerCase().indexOf(query) !== -1; });
-      var seasons = D.seasons || [];
-      var seasonSel = seasons.length > 1 ? '<select class="conf-select" id="seasonSel">' + seasons.slice().reverse().map(function(s) {
-        return '<option value="' + s.season + '"' + (s.season === season ? ' selected' : '') + '>' + esc(s.label) + ' season</option>';
-      }).join('') + '</select>' : '<span class="sc-gp">' + esc(D.seasonLabel) + ' season</span>';
+      // Current season only.
+      var seasonSel = '<span class="sc-gp">' + esc(D.seasonLabel) + ' season</span>';
       var atsN = 0, ouN = 0;
       if (!isRfi(k) && lg) { atsN = lg.home_ats[0] + lg.home_ats[1] + lg.home_ats[2]; ouN = lg.over[0] + lg.over[1] + lg.over[2]; }
       var html = '<div class="controls"><div class="control-group">' + segToggle('statSeg', k) + '</div>' +
@@ -528,14 +524,6 @@
           draw();
         };
       });
-      var sel = document.getElementById('seasonSel');
-      if (sel) sel.onchange = function() {
-        var s = Number(sel.value);
-        if (cache[s]) { season = s; stats = cache[s]; draw(); return; }
-        fetch(ROOT + SPORT_SLUG + '/stats/' + s + '.json').then(function(r) { return r.json(); }).then(function(doc) {
-          cache[s] = doc.stats; season = s; stats = doc.stats; draw();
-        }).catch(function() { sel.value = String(season); });
-      };
     }
     draw();
   }
