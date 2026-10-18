@@ -1045,6 +1045,7 @@
   .game-matchup .gm-at { color: var(--text-faint); font-size: 0.9rem; }
   .card-seg { margin: 0 0 4px; }
   .gm-seg-line { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+  .date-label .week-range { font-family: 'Source Sans 3', sans-serif; font-weight: 600; font-size: 0.8rem; color: var(--text-muted); margin-left: 6px; text-transform: none; }
   .gm-seg-line b { color: var(--text); }
   .odds-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   /* Phones: the new sports' cards stack ATS / SU / Total as rows so long

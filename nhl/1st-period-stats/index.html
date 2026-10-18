@@ -1055,6 +1055,7 @@
   .game-matchup .gm-at { color: var(--text-faint); font-size: 0.9rem; }
   .card-seg { margin: 0 0 4px; }
   .gm-seg-line { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+  .date-label .week-range { font-family: 'Source Sans 3', sans-serif; font-weight: 600; font-size: 0.8rem; color: var(--text-muted); margin-left: 6px; text-transform: none; }
   .gm-seg-line b { color: var(--text); }
   .odds-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   /* Phones: the new sports' cards stack ATS / SU / Total as rows so long
@@ -1679,7 +1680,7 @@
     }
     var locked = !RTYB_CONFIG.isPremium && trends.length > RTYB_CONFIG.freeTrends;
     section.classList.toggle('locked', locked);
-    var whenLabel = dateStr === todayET() ? 'Tonight' : escapeHtml(dateLabelText(dateStr));
+    var whenLabel = dateStr === todayET() ? 'Today' : escapeHtml(dateLabelText(dateStr));
     listEl.innerHTML = trends.map(function(t, i) {
       var blur = locked && i >= RTYB_CONFIG.freeTrends ? ' trend-blur' : '';
       var units = (t.units !== null && t.units !== undefined) ? ' · ' + unitsPill(t.units) : '';
@@ -2449,7 +2450,7 @@
     advSituational: ['Unlock Situational Results', 'Rest edges, back-to-backs, bounce-backs and divisional trends for every market.'],
     advGoals: ['Unlock Goal Stats', 'Overs ladder, goal splits and shutout bounce-backs for 1st-period totals.'],
     advBoard: ['Unlock the Money Board', '1st-period units by home/road, favorite/underdog and price.'],
-    leagueTrendsSection: ['Unlock League Trends', 'League-wide angles for every game on tonight’s slate.'],
+    leagueTrendsSection: ['Unlock League Trends', 'League-wide angles for every game on today’s slate.'],
     trendsSection: ['Unlock Trends to Watch', 'Back-to-backs, bounce-backs and situational spots for every game on the slate.']
   };
   function lockOverlayHtml(id) {

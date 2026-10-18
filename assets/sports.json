@@ -15,7 +15,8 @@
      "BTTS"
     ]
    }
-  ]
+  ],
+  "schedule": "day"
  },
  {
   "key": "nfl",
@@ -43,7 +44,8 @@
      "Total"
     ]
    }
-  ]
+  ],
+  "schedule": "week"
  },
  {
   "key": "nba",
@@ -71,7 +73,8 @@
      "Total"
     ]
    }
-  ]
+  ],
+  "schedule": "day"
  },
  {
   "key": "wnba",
@@ -99,7 +102,8 @@
      "Total"
     ]
    }
-  ]
+  ],
+  "schedule": "day"
  },
  {
   "key": "mlb",
@@ -125,7 +129,8 @@
      "Total"
     ]
    }
-  ]
+  ],
+  "schedule": "day"
  },
  {
   "key": "ncaaf",
@@ -153,7 +158,8 @@
      "Total"
     ]
    }
-  ]
+  ],
+  "schedule": "week"
  },
  {
   "key": "ncaab",
@@ -171,6 +177,7 @@
      "Total"
     ]
    }
-  ]
+  ],
+  "schedule": "day"
  }
 ]
