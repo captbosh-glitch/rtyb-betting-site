@@ -118,6 +118,25 @@
     acc.setAttribute('aria-expanded', String(open));
     accBody.hidden = !open;
   });
+  // League chips: arrows (and edge fades) when the row is wider than the
+  // screen; each arrow shows only when there's more that way.
+  var hsRow = document.getElementById('hsRow'), hsWrap = document.getElementById('hsWrap');
+  if (hsRow) {
+    var prev = hsWrap.querySelector('.prev'), next = hsWrap.querySelector('.next');
+    var syncArrows = function() {
+      var max = hsRow.scrollWidth - hsRow.clientWidth;
+      prev.hidden = hsRow.scrollLeft <= 2;
+      next.hidden = hsRow.scrollLeft >= max - 2;
+      hsWrap.classList.toggle('fade-l', !prev.hidden);
+      hsWrap.classList.toggle('fade-r', !next.hidden);
+    };
+    var by = function(dir) { hsRow.scrollBy({ left: dir * Math.max(160, hsRow.clientWidth * 0.7), behavior: 'smooth' }); };
+    prev.addEventListener('click', function() { by(-1); });
+    next.addEventListener('click', function() { by(1); });
+    hsRow.addEventListener('scroll', syncArrows, { passive: true });
+    window.addEventListener('resize', syncArrows);
+    syncArrows();
+  }
   // "All N games" expanders
   document.querySelectorAll('[data-expand]').forEach(function(b) {
     b.addEventListener('click', function() {

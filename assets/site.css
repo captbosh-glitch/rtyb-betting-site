@@ -286,6 +286,7 @@
     .nav-dropdown-menu { position: static; box-shadow: none; margin-left: 8px; width: calc(100% - 8px); }
     .hamburger { display: flex; }
     .top-inner .nav-account { display: none; }
+    .top-inner .theme-toggle { margin-left: auto; }
     .main-nav .nav-mobile-only { display: flex; }
     .main-nav .nav-premium { margin-top: 8px; min-height: 44px; }
   }
@@ -536,6 +537,7 @@
   .ds-col-units { width: 74px; text-align: right; }
   /* Team pages' season records run longer ("79 of 166", "75-59-32") */
   .season-markets .ds-col-rec { width: auto; min-width: 58px; white-space: nowrap; }
+  .season-markets .ds-col-pct { white-space: nowrap; }
   .ds-row.ds-head { padding: 0 0 4px; }
   .ds-row.ds-head .ds-right > span {
     font-family: 'Barlow Condensed', sans-serif; font-size: 0.66rem; font-weight: 700;
@@ -1045,6 +1047,13 @@
   .gm-seg-line { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
   .gm-seg-line b { color: var(--text); }
   .odds-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Phones: the new sports' cards stack ATS / SU / Total as rows so long
+     team names and lines don't run out of their pill */
+  @media (max-width: 520px) {
+    .card-body .odds-grid { grid-template-columns: 1fr; gap: 6px; }
+    .card-body .pill { flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; }
+    .card-body .pill .pill-body { justify-content: flex-end; font-size: 0.78rem; }
+  }
   .pill .pill-body .result-pill { width: 18px; height: 18px; line-height: 18px; font-size: 0.62rem; margin-left: 2px; }
   .odds-n { font-size: 0.7rem; color: var(--text-faint); font-weight: 400; white-space: nowrap; }
   .sport-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px; }
