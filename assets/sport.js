@@ -41,7 +41,12 @@
   }
   function timeET(iso) {
     if (!iso) return '';
-    return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }) + ' ET';
+    var t = new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }) + ' ET';
+    // Week view lists several days, so say which one.
+    if (D && D.schedule === 'week') {
+      t = new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'America/New_York' }) + ' · ' + t;
+    }
+    return t;
   }
   function signed(n) { return n == null ? '' : (n > 0 ? '+' : '') + n; }
   function fmtUnits(u) { var r = Math.round(u * 100) / 100; return (r > 0 ? '+' : '') + r.toFixed(2) + 'u'; }
@@ -295,8 +300,67 @@
     return null;
   }
 
+  // ------------------------------------------------- Games page, by week
+  // NFL / NCAAF: one week at a time (ESPN's weeks). Games still to play
+  // come first by kickoff (live ones keep their spot), finals drop to the
+  // bottom as they finish, and postponed / canceled games come last.
+  function weekGames(key) {
+    var out = [];
+    allDates().forEach(function(d) { D.games[d].forEach(function(g) { if (g.wk === key) out.push(g); }); });
+    var rank = function(g) { return g.state === 'final' ? 1 : (g.state === 'pre' || g.state === 'in') ? 0 : 2; };
+    return out.sort(function(a, b) { return (rank(a) - rank(b)) || ((a.start || '') < (b.start || '') ? -1 : (a.start || '') > (b.start || '') ? 1 : 0); });
+  }
+  function shortDay(d) { return new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }); }
+  function weekRange(w) { return w.start === w.end ? shortDay(w.start) : shortDay(w.start) + '–' + shortDay(w.end); }
+  // This week = the first week that still has a game to play; else the last.
+  function currentWeek(weeks) {
+    for (var i = 0; i < weeks.length; i++) {
+      if (weekGames(weeks[i].key).some(function(g) { return g.state === 'pre' || g.state === 'in'; })) return weeks[i].key;
+    }
+    return weeks[weeks.length - 1].key;
+  }
+  function renderGamesByWeek() {
+    var weeks = D.weeks || [];
+    if (!weeks.length) { app.innerHTML = emptyNote('No ' + esc(D.label) + ' games loaded yet.'); return; }
+    var keys = weeks.map(function(w) { return w.key; });
+    var want = new URLSearchParams(location.search).get('week');
+    var cur = keys.indexOf(want) !== -1 ? want : currentWeek(weeks);
+    var thisWeek = currentWeek(weeks);
+    function go(k) {
+      cur = k;
+      var u = new URL(location.href); u.searchParams.set('week', k); u.searchParams.delete('date');
+      history.replaceState(null, '', u);
+      draw();
+    }
+    function draw() {
+      var i = keys.indexOf(cur), w = weeks[i];
+      var games = weekGames(cur);
+      var k = getSeg();
+      var html = '<div class="date-bar">' +
+        '<button class="date-nav" id="weekPrev" aria-label="Previous week"' + (i <= 0 ? ' disabled' : '') + '>&lsaquo;</button>' +
+        '<div class="date-label-wrap"><span class="date-label">' + esc(w.label) + ' <span class="week-range">' + esc(weekRange(w)) + '</span></span>' +
+        (cur !== thisWeek ? '<button class="date-today-btn" id="weekNowBtn" type="button">This week</button>' : '') + '</div>' +
+        '<button class="date-nav" id="weekNext" aria-label="Next week"' + (i >= keys.length - 1 ? ' disabled' : '') + '>&rsaquo;</button></div>';
+      if (D.segments.length > 1) html += '<div class="sport-seg-row"><span class="control-label">Show</span>' + segToggle('pageSeg', k) + '</div>';
+      var recap = recapHtml(games, k);
+      if (recap) html += '<div class="daily-summary">' + recap + '</div>';
+      if (!games.length) html += '<div class="no-games-note">No ' + esc(D.label) + ' games this week.</div>';
+      html += '<div class="games-list">' + games.map(function(g) { return gameCard(g, k); }).join('') + '</div>';
+      app.innerHTML = html;
+      var p = document.getElementById('weekPrev'), n = document.getElementById('weekNext'), t = document.getElementById('weekNowBtn');
+      if (p) p.onclick = function() { if (i > 0) go(keys[i - 1]); };
+      if (n) n.onclick = function() { if (i < keys.length - 1) go(keys[i + 1]); };
+      if (t) t.onclick = function() { go(thisWeek); };
+      var ps = document.getElementById('pageSeg');
+      if (ps) ps.onclick = function(e) { var b = e.target.closest('[data-seg]'); if (b) { setSeg(b.getAttribute('data-seg')); draw(); } };
+    }
+    wireCardToggles(app);
+    draw();
+  }
+
   // ---------------------------------------------------------- Games page
   function renderGames() {
+    if (D.schedule === 'week') { renderGamesByWeek(); return; }
     var dates = allDates();
     if (!dates.length) {
       app.innerHTML = emptyNote('No ' + esc(D.label) + ' games loaded yet.');

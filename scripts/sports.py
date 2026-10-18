@@ -16,6 +16,8 @@ Field reference
   season_start   month (1-12) the season starts, for "Soon" / return-month labels
   sections       URL folder for each section; only NHL's Stats differs
                  (its page lives at /nhl/1st-period-stats/)
+  schedule       "day" (default) or "week": football's Games page and Admin
+                 go week by week (ESPN's weeks: Week 1.., Wild Card, Bowls)
 """
 
 SPREAD_MARKETS = ['ATS', 'ML', 'Total']
@@ -30,7 +32,7 @@ SPORTS = [
         'sections': {'games': 'games', 'stats': '1st-period-stats', 'trends': 'trends', 'teams': 'teams'},
     },
     {
-        'key': 'nfl', 'label': 'NFL', 'slug': 'nfl', 'sport_type': 'spread',
+        'key': 'nfl', 'label': 'NFL', 'slug': 'nfl', 'sport_type': 'spread', 'schedule': 'week',
         'segments': [
             {'key': '1q', 'label': '1st Quarter', 'tag': '1Q', 'markets': SPREAD_MARKETS},
             {'key': '1h', 'label': '1st Half', 'tag': '1H', 'markets': SPREAD_MARKETS},
@@ -62,7 +64,7 @@ SPORTS = [
         'season_start': 3,
     },
     {
-        'key': 'ncaaf', 'label': 'NCAAF', 'slug': 'college-football', 'sport_type': 'spread',
+        'key': 'ncaaf', 'label': 'NCAAF', 'slug': 'college-football', 'sport_type': 'spread', 'schedule': 'week',
         'segments': [
             {'key': '1q', 'label': '1st Quarter', 'tag': '1Q', 'markets': SPREAD_MARKETS},
             {'key': '1h', 'label': '1st Half', 'tag': '1H', 'markets': SPREAD_MARKETS},
@@ -85,6 +87,7 @@ MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
 
 for _s in SPORTS:
     _s.setdefault('sections', dict(DEFAULT_SECTIONS))
+    _s.setdefault('schedule', 'day')
 
 BY_KEY = {s['key']: s for s in SPORTS}
 

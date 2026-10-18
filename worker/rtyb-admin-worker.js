@@ -32,6 +32,8 @@
  *                         just returns {ok, matchups} for the page to drop into the form
  *   /results/save       body: {date, results: [{away,home,awayScore,homeScore}, ...]}
  *   /results/publish    same body -- also writes data_admin/results_overrides.json
+ *   /odds/parse         body: {sport, segment, mode, text, games: [{away, home, date, awayName, homeName}]} --
+ *                         AI fills one segment's table for the other sports; writes nothing
  *   /odds/save          body: {sport, rows: [{date, away, home, segment, ats, ml, total}], removes: [{date, away, home}]}
  *                         -- odds for the other sports (not NHL), one file per sport at
  *                         data_admin/odds/{sport}.json, stored per game + segment + market
@@ -299,6 +301,95 @@ async function saveSportOdds(env, body) {
   });
 }
 
+// ---- Other sports' AI parser: fills one segment's table in the admin ----
+const PARSE_SHAPES = {
+  // spread sports (NFL, NBA, WNBA, NCAAF, NCAAB)
+  spread: {
+    fields: `- atsAway, atsHome: the point spread for each side (e.g. -3.5 and 3.5; they must be opposites)
+- atsAwayPrice, atsHomePrice: the price on each spread side, if shown (e.g. -110, -105)
+- mlAway, mlHome: moneyline odds for each side (e.g. -150, 130)
+- total: the over/under line (e.g. 44.5)
+- overPrice, underPrice: the price on the over and the under, if shown`,
+    example: '{"away": "...", "home": "...", "date": "YYYY-MM-DD", "atsAway": -3.5, "atsAwayPrice": -110, "atsHome": 3.5, "atsHomePrice": -110, "mlAway": -150, "mlHome": 130, "total": 44.5, "overPrice": -110, "underPrice": -110}',
+  },
+  // MLB First Five: the run line is always 0.5, so only its prices matter
+  f5: {
+    fields: `- atsAwayPrice, atsHomePrice: the PRICES on the first-five run line (the line itself is always +/-0.5), e.g. -105, -115
+- fav: "away" or "home" -- which side is laying -0.5 on the run line, only if the text says so
+- mlAway, mlHome: first-five moneyline odds
+- total: the first-five over/under line (whole number or .5)
+- overPrice, underPrice: the price on the over and the under, if shown`,
+    example: '{"away": "...", "home": "...", "date": "YYYY-MM-DD", "atsAwayPrice": -105, "atsHomePrice": -115, "fav": "away", "mlAway": -130, "mlHome": 110, "total": 4.5, "overPrice": -110, "underPrice": -110}',
+  },
+  // MLB 1st inning
+  rfi: {
+    fields: `- yrfi: the price for YES, a run scores in the 1st inning (YRFI)
+- nrfi: the price for NO, no run in the 1st inning (NRFI)`,
+    example: '{"away": "...", "home": "...", "date": "YYYY-MM-DD", "yrfi": 110, "nrfi": -135}',
+  },
+};
+
+function validateSportParse(body) {
+  if (!body || !SPORT_SEGMENTS[body.sport] || !PARSE_SHAPES[body.mode]) return "expected {sport, segment, mode, text, games: []}";
+  if (!SPORT_SEGMENTS[body.sport].includes(body.segment)) return "unknown segment";
+  if (typeof body.text !== "string" || !body.text.trim()) return "text is empty";
+  if (body.text.length > 60000) return "text is too long -- paste fewer games at once";
+  if (!Array.isArray(body.games) || !body.games.length || body.games.length > 400) return "expected the games to match against";
+  for (const g of body.games) {
+    if (!g || !TEAM_RE.test(g.away) || !TEAM_RE.test(g.home) || !DATE_RE.test(g.date)) return "each game needs away, home and date";
+  }
+  return null;
+}
+
+async function parseSportOddsWithAI(env, body) {
+  const shape = PARSE_SHAPES[body.mode];
+  const clean = (x) => String(x || "").replace(/["\n]/g, " ").slice(0, 80);
+  const gameList = body.games
+    .map((g) => `- away="${g.away}" (${clean(g.awayName)}), home="${g.home}" (${clean(g.homeName)}), date="${g.date}"`)
+    .join("\n");
+  const prompt = `You extract ${clean(body.label)} ${clean(body.segmentLabel)} betting odds from pasted text (it may be a spreadsheet dump, a sportsbook screen, a picks message, or anything else) and match each game to one of the known games below.
+
+Only use odds for the ${clean(body.segmentLabel)} -- ignore full-game odds and other segments.
+
+Known games for ${clean(body.view)} (use these exact "away"/"home"/"date" values in your output, don't invent new ones):
+${gameList}
+
+Pasted text:
+"""
+${body.text}
+"""
+
+For each known game you can find odds for, extract:
+${shape.fields}
+
+Rules:
+- Only include a field if you actually found a number for it in the text -- leave it out, never guess.
+- Only include games from the known list that you found data for.
+- Odds are plain numbers (no + sign; negative numbers keep their -).
+- Respond with ONLY a JSON object, no other text, no markdown fences, in this exact shape:
+{"games": [${shape.example}]}`;
+
+  const answer = await askClaude(env, prompt);
+  if (!answer.ok) return answer;
+  const games = answer.parsed && answer.parsed.games;
+  if (!Array.isArray(games)) return { ok: false, status: 502, detail: "AI response didn't contain a games array" };
+  // Keep only known games and numeric fields.
+  const known = new Set(body.games.map((g) => `${g.date}|${g.away}|${g.home}`));
+  const pairs = new Set(body.games.map((g) => `${g.away}|${g.home}`));
+  const out = [];
+  for (const g of games) {
+    if (!g || !pairs.has(`${g.away}|${g.home}`)) continue;
+    const row = { away: g.away, home: g.home };
+    if (g.date && known.has(`${g.date}|${g.away}|${g.home}`)) row.date = g.date;
+    for (const [k, v] of Object.entries(g)) {
+      if (k === "fav" && (v === "away" || v === "home")) row.fav = v;
+      else if (!["away", "home", "date", "fav"].includes(k) && isNum(v)) row[k] = v;
+    }
+    out.push(row);
+  }
+  return { ok: true, games: out };
+}
+
 function validateParse(body) {
   if (!body || typeof body.date !== "string" || typeof body.text !== "string" || !Array.isArray(body.games)) {
     return "expected {date, text, games: []}";
@@ -310,42 +401,13 @@ function validateParse(body) {
   return null;
 }
 
-// Asks Claude to pull the six odds fields per matchup out of whatever text
-// was pasted in (a Google Sheets block, a picks message, anything). Doesn't
-// touch the repo -- just returns parsed values for the admin page to drop
-// into the Matchups Tool inputs, which are reviewed and Saved like any
-// manual edit.
-async function parseMatchupsWithAI(env, body) {
+// Sends one prompt to Claude and parses its JSON answer. Shared by the NHL
+// parser and the other sports' parser. Returns {ok, parsed} or
+// {ok: false, status, detail}.
+async function askClaude(env, prompt) {
   if (!env.ANTHROPIC_API_KEY) {
     return { ok: false, status: 501, detail: "ANTHROPIC_API_KEY isn't set as a Worker secret yet -- wrangler secret put ANTHROPIC_API_KEY" };
   }
-
-  const gameList = body.games
-    .map((g) => `- away="${g.away}" (${g.awayName || g.away}), home="${g.home}" (${g.homeName || g.home})`)
-    .join("\n");
-
-  const prompt = `You extract 1st-period NHL betting odds from pasted text (it may be a spreadsheet dump, a picks/Discord message, or anything else) and match each game to one of the known matchups below.
-
-Known matchups for ${body.date} (use these exact "away"/"home" codes in your output, don't invent new ones):
-${gameList}
-
-Pasted text:
-"""
-${body.text}
-"""
-
-For each matchup you can find odds for, extract:
-- mlAway, mlHome: moneyline odds for the away/home team (e.g. -120, 135)
-- totalOver, totalUnder: 1st-period Over/Under 1.5 goals odds
-- bttsYes, bttsNo: Both Teams To Score odds
-
-Rules:
-- Only include a field if you actually found a number for it in the text -- use null, never guess or invent a value.
-- Only include matchups from the known list above that you found data for. Skip matchups you can't find.
-- Odds are plain numbers (no + sign in your output; negative numbers keep their -).
-- Respond with ONLY a JSON object, no other text, no markdown fences, in this exact shape:
-{"matchups": [{"away": "...", "home": "...", "mlAway": -120, "mlHome": 135, "totalOver": -130, "totalUnder": 100, "bttsYes": 155, "bttsNo": -205}]}`;
-
   let resp;
   try {
     resp = await fetch("https://api.anthropic.com/v1/messages", {
@@ -397,6 +459,48 @@ Rules:
   } catch (e) {
     return { ok: false, status: 502, detail: `Couldn't parse the AI's response as JSON: ${raw.slice(0, 200)}` };
   }
+  return { ok: true, parsed };
+}
+
+// Asks Claude to pull the six odds fields per matchup out of whatever text
+// was pasted in (a Google Sheets block, a picks message, anything). Doesn't
+// touch the repo -- just returns parsed values for the admin page to drop
+// into the Matchups Tool inputs, which are reviewed and Saved like any
+// manual edit.
+async function parseMatchupsWithAI(env, body) {
+  if (!env.ANTHROPIC_API_KEY) {
+    return { ok: false, status: 501, detail: "ANTHROPIC_API_KEY isn't set as a Worker secret yet -- wrangler secret put ANTHROPIC_API_KEY" };
+  }
+
+  const gameList = body.games
+    .map((g) => `- away="${g.away}" (${g.awayName || g.away}), home="${g.home}" (${g.homeName || g.home})`)
+    .join("\n");
+
+  const prompt = `You extract 1st-period NHL betting odds from pasted text (it may be a spreadsheet dump, a picks/Discord message, or anything else) and match each game to one of the known matchups below.
+
+Known matchups for ${body.date} (use these exact "away"/"home" codes in your output, don't invent new ones):
+${gameList}
+
+Pasted text:
+"""
+${body.text}
+"""
+
+For each matchup you can find odds for, extract:
+- mlAway, mlHome: moneyline odds for the away/home team (e.g. -120, 135)
+- totalOver, totalUnder: 1st-period Over/Under 1.5 goals odds
+- bttsYes, bttsNo: Both Teams To Score odds
+
+Rules:
+- Only include a field if you actually found a number for it in the text -- use null, never guess or invent a value.
+- Only include matchups from the known list above that you found data for. Skip matchups you can't find.
+- Odds are plain numbers (no + sign in your output; negative numbers keep their -).
+- Respond with ONLY a JSON object, no other text, no markdown fences, in this exact shape:
+{"matchups": [{"away": "...", "home": "...", "mlAway": -120, "mlHome": 135, "totalOver": -130, "totalUnder": 100, "bttsYes": 155, "bttsNo": -205}]}`;
+
+  const answer = await askClaude(env, prompt);
+  if (!answer.ok) return answer;
+  const parsed = answer.parsed;
   if (!parsed || !Array.isArray(parsed.matchups)) {
     return { ok: false, status: 502, detail: "AI response didn't contain a matchups array" };
   }
@@ -457,6 +561,13 @@ export default {
         if (err) return json({ ok: false, error: err }, 400);
         result = await publishResults(env, body);
         break;
+      }
+      case "/odds/parse": {
+        const err = validateSportParse(body);
+        if (err) return json({ ok: false, error: err }, 400);
+        const parseResult = await parseSportOddsWithAI(env, body);
+        if (parseResult.ok) return json({ ok: true, games: parseResult.games });
+        return json({ ok: false, error: parseResult.detail || "Parse failed", status: parseResult.status }, 502);
       }
       case "/odds/save": {
         const err = validateOdds(body);

@@ -22,6 +22,8 @@ Saved game:
    data_seed/teams), "away_name", "home_name", "away_score", "home_score",
    "away_ls", "home_ls" (points or runs per period / inning),
    "periods_done", "final", "season", "season_type" (2 regular, 3 post),
+   "week", "week_label" (football: ESPN's week number and its calendar
+   label, e.g. 6 / "Week 6", or 1 / "Wild Card" in the postseason),
    "conf_game", "neutral", "note"}
 """
 import json
@@ -98,7 +100,22 @@ def periods_done(sport, state, status, n_played):
     return max(period - 1, 0)
 
 
-def parse_event(sport, ev, team_slugs):
+def week_labels(data):
+    """{(season type, week number): label} from a scoreboard's calendar."""
+    out = {}
+    for lg in data.get('leagues') or []:
+        for part in lg.get('calendar') or []:
+            if not isinstance(part, dict):
+                continue  # non-football calendars are plain date lists
+            for entry in part.get('entries') or []:
+                try:
+                    out[(int(part.get('value')), int(entry.get('value')))] = entry.get('label')
+                except (TypeError, ValueError):
+                    pass
+    return out
+
+
+def parse_event(sport, ev, team_slugs, labels=None):
     comp = ev['competitions'][0]
     status = comp.get('status') or ev.get('status') or {}
     stype = status.get('type') or {}
@@ -136,6 +153,7 @@ def parse_event(sport, ev, team_slugs):
     # the 9th when ahead, so its line score can be one inning shorter.)
     n_played = min(len(side['away']['ls']), len(side['home']['ls']))
     notes = [n.get('headline') for n in comp.get('notes') or [] if n.get('headline')]
+    week = (ev.get('week') or {}).get('number')
     return {
         'id': ev['id'],
         'date': local,
@@ -153,6 +171,8 @@ def parse_event(sport, ev, team_slugs):
         'conf_game': bool(comp.get('conferenceCompetition')),
         'neutral': bool(comp.get('neutralSite')),
         'note': notes[0] if notes else None,
+        'week': week,
+        'week_label': (labels or {}).get((season.get('type'), week)) if week else None,
     }
 
 
@@ -197,9 +217,10 @@ def fetch_dates(sport, dates, keep=None, verbose=True):
                 print(f'  {sport} {d}: FAILED ({failed[d]})', file=sys.stderr)
             continue
         seen_dates.add(d)
+        labels = week_labels(data)
         for ev in data.get('events') or []:
             try:
-                g = parse_event(sport, ev, team_slugs)
+                g = parse_event(sport, ev, team_slugs, labels)
             except (KeyError, IndexError, TypeError) as e:
                 # A malformed entry (e.g. a game listed with no details) is
                 # skipped and logged, not allowed to stop the whole load.

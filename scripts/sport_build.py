@@ -702,7 +702,34 @@ def game_out(g):
         'as': g['away_score'], 'hs': g['home_score'], 'als': g['away_ls'], 'hls': g['home_ls'],
         'note': g.get('note'), 'post': g.get('season_type') == 3, 'neutral': g.get('neutral') or False,
         'odds': g['_odds'] or None, 'res': {k: v for k, v in g['_res'].items() if v} or None,
+        'wk': week_key(g),
     }
+
+
+def week_key(g):
+    """'2-7' = regular season week 7, '3-1' = postseason week 1; None if
+    the game has no ESPN week (non-football)."""
+    return f"{g.get('season_type')}-{g['week']}" if g.get('week') else None
+
+
+def week_list(games):
+    """Weeks in order: [{key, label, start, end, games}] for the Games page
+    and Admin of week-scheduled sports."""
+    weeks = {}
+    for g in games:
+        k = week_key(g)
+        if not k:
+            continue
+        w = weeks.setdefault(k, {'key': k, 'label': g.get('week_label') or f"Week {g['week']}",
+                                 'start': g['date'], 'end': g['date'], 'games': 0,
+                                 '_order': (g.get('season_type') or 0, g['week'])})
+        w['start'] = min(w['start'], g['date'])
+        w['end'] = max(w['end'], g['date'])
+        w['games'] += 1
+    out = sorted(weeks.values(), key=lambda w: w['_order'])
+    for w in out:
+        del w['_order']
+    return out
 
 
 def logo_flag(sport_key, slug):
@@ -747,6 +774,8 @@ def build(sp, teams_list, now_utc=None):
     doc = {
         'sport': sp['key'], 'label': sp['label'], 'slug': sp['slug'], 'sportType': sp['sport_type'],
         'segments': sp['segments'],
+        'schedule': sp.get('schedule', 'day'),
+        'weeks': week_list(games) if sp.get('schedule') == 'week' else None,
         'season': current, 'seasonLabel': season_label(sp['key'], current) if current else None,
         'seasons': season_list,
         'generated': now_utc.strftime('%Y-%m-%dT%H:%M:%SZ'),

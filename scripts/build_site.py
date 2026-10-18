@@ -665,7 +665,7 @@ def build_other_sports(template):
         f.write(site_css(template))
     # The Admin page reads the registry from here (sport menu, segments).
     with open(os.path.join(ROOT, 'assets', 'sports.json'), 'w', encoding='utf-8') as f:
-        json.dump([{k: sp[k] for k in ('key', 'label', 'slug', 'sport_type', 'segments')} for sp in sports.SPORTS], f, indent=1)
+        json.dump([{k: sp[k] for k in ('key', 'label', 'slug', 'sport_type', 'segments', 'schedule')} for sp in sports.SPORTS], f, indent=1)
     written = []
     for sp in sports.SPORTS:
         if sp['key'] == 'nhl':
@@ -681,6 +681,8 @@ def build_other_sports(template):
                 html = render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=teams_index_html(sp, teams))
             elif section != 'teams' and sport_has_data(sp['key']):
                 meta['desc'] = SECTION_DESC[section].format(label=sp['label'], segs=sports.segment_summary(sp))
+                if section == 'games' and sp.get('schedule') == 'week':
+                    meta['desc'] = meta['desc'].replace('games by date', 'games by week')
                 body = (f'<div id="sportApp" data-section="{section}"><div class="no-games-note">Loading&hellip;</div>'
                         f'<noscript>This page needs JavaScript.</noscript></div>')
                 html = render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=body)
@@ -910,7 +912,7 @@ def main():
     # Home page + Learn, last: they read every sport's data.json.
     home_info = home.build(template, full_data, LOGO_SVG)
 
-    print(f"wrote index.html (home: {home_info['tonight']} games tonight, {home_info['trends']} trends), learn/, nhl/data.json ({len(data_json)} bytes), "
+    print(f"wrote index.html (home: {home_info['tonight']} games today, {home_info['trends']} trends), learn/, nhl/data.json ({len(data_json)} bytes), "
           f"nhl/games/index.html ({len(games_html)} bytes), "
           f"nhl/1st-period-stats/index.html ({len(hitrates_html)} bytes), "
           f"nhl/hit-rates/index.html (redirect stub), "

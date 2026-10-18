@@ -2,12 +2,12 @@
 Home page (index.html) and Learn page (learn/index.html), generated at
 build time from the same data every sport page uses: NHL's merged data
 (build_site.py) and each other sport's {slug}/data.json (sport_build.py).
-Static -- the refresh job rebuilds them every run, so "Tonight" and
+Static -- the refresh job rebuilds them every run, so "Today" and
 "Last night" are as fresh as the rest of the site.
 
-Sections, top to bottom: nav (Sports, Tonight, Trends to Watch, Learn,
+Sections, top to bottom: nav (Sports, Today, Trends to Watch, Learn,
 Sign in, Go Premium, theme toggle; full-screen menu on phones), sport
-chips, hero with "Last night on RTYB", Tonight grid, yesterday's results,
+chips, hero with "Last night on RTYB", Today grid, yesterday's results,
 Trends to Watch (first one open, the rest behind the Premium overlay),
 Premium + email signup, Learn links, footer.
 
@@ -276,7 +276,7 @@ def nav_html(status, depth=''):
         <button class="hn-link hn-drop-btn" id="hnSportsBtn" aria-expanded="false" aria-haspopup="true">Sports <span aria-hidden="true">&#9662;</span></button>
         <div class="hn-drop-menu" id="hnSportsMenu">{sport_items}</div>
       </div>
-      <a class="hn-link" href="{depth}#tonight">Tonight</a>
+      <a class="hn-link" href="{depth}#today">Today</a>
       <a class="hn-link" href="{depth}#trends">Trends to Watch</a>
       <a class="hn-link" href="{depth}learn/">Learn</a>
     </nav>
@@ -298,7 +298,7 @@ def nav_html(status, depth=''):
     <button class="hm-acc" id="hmSportsBtn" type="button" aria-expanded="true" aria-controls="hmSports">Sports <span aria-hidden="true">&#9662;</span></button>
     <div class="hm-sports" id="hmSports">{sport_items}</div>
     <div class="hm-label">Everything</div>
-    <a class="hm-item" href="{depth}#tonight">Tonight</a>
+    <a class="hm-item" href="{depth}#today">Today</a>
     <a class="hm-item" href="{depth}#trends">Trends to Watch</a>
     <a class="hm-item" href="{depth}learn/">Learn</a>
     <a class="hm-item" href="{depth}#premium">Sign in</a>
@@ -421,11 +421,11 @@ def sport_status(sp, games_by_date, today):
     recent = [d for d in dates if d < today and (t - Date.fromisoformat(d)).days <= 14
               and any(g['state'] == 'final' for g in games_by_date[d])]
     if todays and (recent or any(g['state'] != 'pre' for g in games_by_date[today])):
-        return f'{todays} tonight', True, 'LIVE'
+        return f'{todays} today', True, 'LIVE'
     if recent:
         return 'Off today', True, 'LIVE'
     if todays:
-        return f'Starts tonight ({todays})', True, 'LIVE'
+        return f'Starts today ({todays})', True, 'LIVE'
     upcoming = [d for d in dates if d > today]
     if upcoming and (Date.fromisoformat(upcoming[0]) - t).days <= 60:
         nd = Date.fromisoformat(upcoming[0])
@@ -518,7 +518,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
 
     hero = (f'<section class="hh"><div class="hh-copy"><h1><span class="hh-a">The first</span> <span class="hh-b">period.</span><br><span class="hh-a">The first</span> <span class="hh-b">quarter.</span><br><span class="hh-a">The first</span> <span class="hh-b">inning.</span></h1>'
             f'<p>Records, results and trends for the opening segment of every game &mdash; NHL, NFL, NBA, WNBA, MLB and college.</p>'
-            f'<div class="hh-cta"><a class="btn-primary" href="#tonight">Tonight&rsquo;s games</a>'
+            f'<div class="hh-cta"><a class="btn-primary" href="#today">Today&rsquo;s games</a>'
             f'<a class="btn-ghost" href="#premium">Go Premium</a></div></div>{last}</section>')
 
     def grid(games, kind, gid):
@@ -530,7 +530,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
                 if len(games) > TONIGHT_SHOWN else '')
         return f'<div class="hc-grid" id="{gid}">{cards}</div>{more}'
 
-    tonight_html = (f'<section class="hp-sec" id="tonight"><div class="hp-head"><h2>Tonight</h2>'
+    tonight_html = (f'<section class="hp-sec" id="today"><div class="hp-head"><h2>Today</h2>'
                     f'<span class="muted">{esc(day_label(today))} &middot; {len(tonight)} game{"s" if len(tonight) != 1 else ""}</span></div>'
                     + (grid(tonight, 'tonight', 'tonightGrid') or '<p class="hp-empty">No games on the board today.</p>') + '</section>')
     results_html = ''
@@ -545,12 +545,12 @@ def build(template, nhl_data, logo_svg, now_utc=None):
         if rest:
             n = len(trends) - 1
             locked = (f'<div class="ht-locked"><div class="ht-blur" aria-hidden="true">{rest}</div>'
-                      f'<div class="ht-overlay"><div class="ht-lock-card"><div class="ht-lock-title">{n} more Trends to Watch tonight</div>'
+                      f'<div class="ht-overlay"><div class="ht-lock-card"><div class="ht-lock-title">{n} more Trends to Watch today</div>'
                       f'<p>Every angle, every sport, graded nightly.</p><a class="btn-primary" href="#premium">Go Premium</a></div></div></div>')
-        trends_html = (f'<section class="hp-sec" id="trends"><div class="hp-head"><h2>Trends to Watch tonight</h2>'
+        trends_html = (f'<section class="hp-sec" id="trends"><div class="hp-head"><h2>Trends to Watch today</h2>'
                        f'<span class="muted">League-wide angles on today&rsquo;s games</span></div>{first}{locked}</section>')
     else:
-        trends_html = ('<section class="hp-sec" id="trends"><div class="hp-head"><h2>Trends to Watch tonight</h2></div>'
+        trends_html = ('<section class="hp-sec" id="trends"><div class="hp-head"><h2>Trends to Watch today</h2></div>'
                        '<p class="hp-empty">No trends clear the bar for today&rsquo;s games yet.</p></section>')
 
     premium = (f'<section class="hpp" id="premium"><div class="hpp-inner"><div>'

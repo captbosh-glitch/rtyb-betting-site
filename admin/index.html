@@ -83,6 +83,7 @@
   td .price { margin-top: 4px; font-size: 0.75rem; padding: 4px 6px; }
   td .price-pair { display: flex; gap: 4px; }
   td .price-pair input { max-width: 43px; }
+  td .game-when { display: block; font-weight: 400; font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
   td .line-tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
   td select.fav { font-size: 0.72rem; padding: 3px 4px; margin-top: 4px; display: block; }
   td .locked-sub { display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
@@ -125,6 +126,10 @@
           <label for="sportDate">Date</label>
           <input type="date" id="sportDate" style="width:auto">
         </span>
+        <span class="row" id="sportWeekRow" hidden>
+          <label for="sportWeek">Week</label>
+          <select id="sportWeek"></select>
+        </span>
       </div>
     </div>
 
@@ -142,6 +147,7 @@
           <input type="text" id="addAway" list="teamList" placeholder="Away team" autocomplete="off">
           <span>@</span>
           <input type="text" id="addHome" list="teamList" placeholder="Home team" autocomplete="off">
+          <input type="date" id="addDate" aria-label="Game date" hidden style="max-width:160px">
           <button class="save" id="addGameBtn">Add game</button>
         </div>
         <datalist id="teamList"></datalist>
@@ -152,7 +158,19 @@
         <p class="status" id="oddsStatus"></p>
       </div>
 
-      <div class="card">
+      <div class="card" id="sportParseCard">
+        <h2>Parse Odds Data with AI</h2>
+        <p class="sub" style="margin-bottom:0" id="sportParseHelp"></p>
+        <textarea id="sportParseInput" placeholder="Paste odds data here..."></textarea>
+        <div class="actions">
+          <button class="publish" id="sportParseBtn">Parse with AI</button>
+          <a href="#oddsTable" class="note-link">or enter manually</a>
+        </div>
+        <p class="status" id="sportParseStatus"></p>
+      </div>
+
+      <!-- Hidden for now; kept for backfilling odds later. -->
+      <div class="card" hidden>
         <h2>Import CSV</h2>
         <p class="sub" style="margin-bottom:0">Choose a file or paste rows. <span id="csvCols"></span> A <code>matchup</code> column like &ldquo;LV @ NY&rdquo; works instead of away/home. Missing date or segment uses what&rsquo;s selected above. Teams match by name, city, nickname or abbreviation. <a href="#" id="csvTemplate">Download a template</a></p>
         <div class="row" style="margin-top:12px"><input type="file" id="csvFile" accept=".csv,text/csv" style="width:auto"></div>
@@ -615,10 +633,15 @@
   var TEAM_INDEX = {};      // lowercased name / code / city -> [slugs]
   var ODDS = {};            // data_admin/odds/{sport}.json
   var SCHEDULE = {};        // {slug}/data.json games by date, once loaded
+  var WEEKS = [];           // football: [{key, label, start, end}] from data.json
   var SEGMENT = null;
-  var added = {};           // date -> [{away, home}] not yet saved
-  var oddsLocked = {};      // date|segment -> bool
+  var added = {};           // view (date or week) -> [{away, home, date}] not yet saved
+  var oddsLocked = {};      // view|segment -> bool
   var csvMatched = [];
+  // Unsaved table entries (typed or AI-parsed), kept across redraws -- adding
+  // a game, switching segment tabs or weeks -- until they're saved.
+  // Key: date|away|home|segment|input suffix.
+  var drafts = {};
 
   var FIELDS = {
     spread: ['atsA', 'atsAP', 'atsH', 'atsHP', 'mlA', 'mlH', 'tot', 'ovP', 'unP'],
@@ -667,8 +690,13 @@
     document.getElementById('nhlDateRow').hidden = !isNhl;
     document.getElementById('sportTools').hidden = isNhl;
     document.getElementById('sportDateRow').hidden = isNhl;
+    document.getElementById('sportWeekRow').hidden = true;
     if (isNhl) { SPORT = null; return; }
     SPORT = SPORTS.filter(function(s) { return s.key === key; })[0];
+    var weekly = isWeekly();
+    document.getElementById('sportDateRow').hidden = weekly;
+    document.getElementById('sportWeekRow').hidden = !weekly;
+    document.getElementById('addDate').hidden = !weekly;
     SEGMENT = SPORT.segments[0].key;
     var dateEl = document.getElementById('sportDate');
     if (!dateEl.value) dateEl.value = todayET();
@@ -685,6 +713,8 @@
       setTeams((r[0] && r[0].teams) || []);
       ODDS = r[1] || {};
       SCHEDULE = (r[2] && r[2].games) || {};   // {date: [{away, home, ...}]} from sport_build.py
+      WEEKS = (r[2] && r[2].weeks) || [];
+      if (isWeekly()) fillWeeks();
       renderSegTabs();
       renderOdds();
     });
@@ -724,17 +754,58 @@
   function sportDate() { return document.getElementById('sportDate').value; }
   function gameKey(date, away, home) { return date + '|' + away + '|' + home; }
 
-  function gamesFor(date) {
+  // Football (NFL, NCAAF) works week by week like its Games page; every
+  // other sport by date. Either way each game keeps its own date, which is
+  // what odds are saved under.
+  function isWeekly() { return !!SPORT && SPORT.schedule === 'week'; }
+  function curWeek() { var k = document.getElementById('sportWeek').value; return WEEKS.filter(function(w) { return w.key === k; })[0] || null; }
+  function viewKey() { return isWeekly() ? 'wk:' + (document.getElementById('sportWeek').value || '') : sportDate(); }
+  function viewLabel() { var w = curWeek(); return isWeekly() ? (w ? w.label : 'this week') : sportDate(); }
+
+  function fillWeeks() {
+    var sel = document.getElementById('sportWeek');
+    var now = null;
+    // This week = the first week that still has a game to play.
+    WEEKS.forEach(function(w) {
+      if (now) return;
+      Object.keys(SCHEDULE).forEach(function(d) {
+        (SCHEDULE[d] || []).forEach(function(g) { if (g.wk === w.key && (g.state === 'pre' || g.state === 'in')) now = now || w.key; });
+      });
+    });
+    sel.innerHTML = WEEKS.map(function(w) {
+      return '<option value="' + w.key + '">' + escapeHtml(w.label) + ' (' + w.start.slice(5).replace('-', '/') + '&ndash;' + w.end.slice(5).replace('-', '/') + ')</option>';
+    }).join('') || '<option value="">No weeks loaded</option>';
+    sel.value = now || (WEEKS.length ? WEEKS[WEEKS.length - 1].key : '');
+    var w = curWeek();
+    if (w) document.getElementById('addDate').value = w.start;
+  }
+
+  function gamesFor() {
     var seen = {}, out = [];
-    function push(away, home) {
-      var k = away + '|' + home;
-      if (seen[k] || !away || !home) return;
-      seen[k] = true; out.push({ away: away, home: home });
+    function push(g) {
+      var k = g.date + '|' + g.away + '|' + g.home;
+      if (seen[k] || !g.away || !g.home) return;
+      seen[k] = true; out.push(g);
     }
-    (SCHEDULE[date] || []).forEach(function(g) { push(g.away, g.home); });
-    Object.keys(ODDS).forEach(function(k) { var g = ODDS[k]; if (g.date === date) push(g.away, g.home); });
-    (added[date] || []).forEach(function(g) { push(g.away, g.home); });
-    return out;
+    var w = curWeek();
+    var inView = isWeekly()
+      ? function(d) { return !!w && d >= w.start && d <= w.end; }
+      : function(d) { return d === sportDate(); };
+    Object.keys(SCHEDULE).sort().forEach(function(d) {
+      (SCHEDULE[d] || []).forEach(function(g) {
+        if (isWeekly() ? (w && g.wk === w.key) : d === sportDate()) push({ away: g.away, home: g.home, date: d, start: g.start });
+      });
+    });
+    Object.keys(ODDS).forEach(function(k) { var g = ODDS[k]; if (inView(g.date)) push({ away: g.away, home: g.home, date: g.date }); });
+    (added[viewKey()] || []).forEach(function(g) { push(g); });
+    return out.sort(function(a, b) { return ((a.start || a.date) < (b.start || b.date)) ? -1 : ((a.start || a.date) > (b.start || b.date)) ? 1 : 0; });
+  }
+
+  function whenLabel(g) {
+    if (g.start) {
+      return new Date(g.start).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }) + ' ET';
+    }
+    return new Date(g.date + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
   }
 
   function renderSegTabs() {
@@ -745,8 +816,8 @@
     document.getElementById('oddsTitle').textContent = SPORT.label + ' odds';
   }
 
-  function segValues(date, g) {
-    var game = ODDS[gameKey(date, g.away, g.home)];
+  function segValues(g) {
+    var game = ODDS[gameKey(g.date, g.away, g.home)];
     return (game && game.segments && game.segments[SEGMENT]) || {};
   }
 
@@ -819,26 +890,57 @@
     var head = HEADERS[m];
     document.getElementById('oddsHead').innerHTML = '<tr>' + head.map(function(h) { return '<th>' + h + '</th>'; }).join('') + '</tr>';
     document.getElementById('oddsHelp').innerHTML = HELP[m];
-    var date = sportDate();
-    var games = gamesFor(date);
+    var segLabel = SPORT.segments.filter(function(x) { return x.key === SEGMENT; })[0].label;
+    document.getElementById('sportParseHelp').innerHTML = 'Paste ' + escapeHtml(SPORT.label) + ' ' + escapeHtml(segLabel) +
+      ' odds for ' + (isWeekly() ? 'this week' : 'this date') + ' &mdash; a sheet, a picks message, anything &mdash; and AI fills in the ' +
+      escapeHtml(segLabel) + ' table above. Switch the tab above to parse another segment. Review before hitting Save; nothing here touches the live site by itself.';
+    keepDrafts();
+    var games = gamesFor();
     var body = document.getElementById('oddsBody');
-    var locked = !!oddsLocked[date + '|' + SEGMENT];
+    var locked = !!oddsLocked[viewKey() + '|' + SEGMENT];
     if (!games.length) {
-      body.innerHTML = '<tr><td colspan="' + head.length + '" class="empty">No ' + escapeHtml(SPORT.label) + ' games on this date yet &mdash; add one below or import a CSV.</td></tr>';
+      body.innerHTML = '<tr><td colspan="' + head.length + '" class="empty">No ' + escapeHtml(SPORT.label) + ' games ' + (isWeekly() ? 'this week' : 'on this date') + ' yet &mdash; add one below.</td></tr>';
     } else {
       body.innerHTML = games.map(function(g, i) {
-        var v = segValues(date, g);
+        var v = segValues(g);
         var remove = locked ? '' : '<td><button type="button" class="remove" data-remove="' + i + '" title="Remove this game">&times;</button></td>';
-        return '<tr data-away="' + g.away + '" data-home="' + g.home + '">' +
+        return '<tr data-away="' + g.away + '" data-home="' + g.home + '" data-date="' + g.date + '" data-seg="' + SEGMENT + '">' +
           '<td class="matchup">' + escapeHtml(teamLabel(g.away)) + ' @ ' + escapeHtml(teamLabel(g.home)) +
+          (isWeekly() ? '<span class="game-when">' + escapeHtml(whenLabel(g)) + '</span>' : '') +
           (m === 'f5' && !locked ? favSelect(i, v) : '') +
           '<div class="row-err" id="o' + i + '_err"></div></td>' + rowCells(i, v, locked) + remove + '</tr>';
       }).join('');
     }
+    if (!locked) restoreDrafts();
     refreshF5Lines();
     document.getElementById('oddsSave').hidden = locked;
     document.getElementById('oddsEdit').hidden = !locked;
     document.querySelector('.add-game').hidden = locked;
+  }
+
+  function draftKey(tr, el) {
+    return tr.getAttribute('data-date') + '|' + tr.getAttribute('data-away') + '|' + tr.getAttribute('data-home') + '|' +
+      tr.getAttribute('data-seg') + '|' + el.id.replace(/^o\d+_/, '');
+  }
+  // Remember what's in the table now, before it's redrawn.
+  function keepDrafts() {
+    document.querySelectorAll('#oddsBody tr[data-away]').forEach(function(tr) {
+      tr.querySelectorAll('input, select').forEach(function(el) { if (el.id) drafts[draftKey(tr, el)] = el.value; });
+    });
+  }
+  function restoreDrafts() {
+    document.querySelectorAll('#oddsBody tr[data-away]').forEach(function(tr) {
+      tr.querySelectorAll('input, select').forEach(function(el) {
+        var k = el.id && draftKey(tr, el);
+        if (k && Object.prototype.hasOwnProperty.call(drafts, k)) el.value = drafts[k];
+      });
+    });
+  }
+  function clearDrafts(rows) {
+    rows.forEach(function(r) {
+      var prefix = r.date + '|' + r.away + '|' + r.home + '|' + r.segment + '|';
+      Object.keys(drafts).forEach(function(k) { if (k.indexOf(prefix) === 0) delete drafts[k]; });
+    });
   }
 
   function isHalf(n) { return Math.abs(n * 2 - Math.round(n * 2)) < 1e-9; }
@@ -904,14 +1006,14 @@
   function hasOdds(r) { return !!(r.ats || r.ml || r.total || r.nrfi_yrfi); }
 
   function collectOdds() {
-    var date = sportDate(), m = mode();
+    var m = mode();
     var rows = document.querySelectorAll('#oddsBody tr[data-away]');
     var out = [], bad = 0;
     Array.prototype.forEach.call(rows, function(tr, i) {
       var f = { segment: SEGMENT };
       FIELDS[m].forEach(function(k) { f[k] = numVal('o' + i + '_' + k); });
       if (m === 'f5') f.fav = document.getElementById('o' + i + '_fav').value;
-      var row = buildRow(date, tr.getAttribute('data-away'), tr.getAttribute('data-home'), f);
+      var row = buildRow(tr.getAttribute('data-date'), tr.getAttribute('data-away'), tr.getAttribute('data-home'), f);
       var errs = checkRow(row);
       document.getElementById('o' + i + '_err').innerHTML = errs.join('; ');
       tr.classList.toggle('err', errs.length > 0);
@@ -937,10 +1039,10 @@
     var b = e.target.closest('[data-remove]');
     if (!b) return;
     var tr = b.closest('tr');
-    var date = sportDate(), away = tr.getAttribute('data-away'), home = tr.getAttribute('data-home');
+    var date = tr.getAttribute('data-date'), away = tr.getAttribute('data-away'), home = tr.getAttribute('data-home');
     var label = teamLabel(away) + ' @ ' + teamLabel(home);
     var saved = ODDS[gameKey(date, away, home)];
-    added[date] = (added[date] || []).filter(function(g) { return !(g.away === away && g.home === home); });
+    added[viewKey()] = (added[viewKey()] || []).filter(function(g) { return !(g.away === away && g.home === home && g.date === date); });
     if (!saved) { renderOdds(); return; }
     if (!confirm('Remove ' + label + ' and all its saved odds (every segment) for ' + date + '?')) return;
     var status = document.getElementById('oddsStatus');
@@ -962,6 +1064,13 @@
     document.getElementById('oddsStatus').textContent = '';
     renderOdds();
   });
+  document.getElementById('sportWeek').addEventListener('change', function() {
+    if (!SPORT) return;
+    var w = curWeek();
+    if (w) document.getElementById('addDate').value = w.start;
+    document.getElementById('oddsStatus').textContent = '';
+    renderOdds();
+  });
 
   document.getElementById('addGameBtn').addEventListener('click', function() {
     var status = document.getElementById('oddsStatus');
@@ -969,8 +1078,9 @@
     var h = findTeam(document.getElementById('addHome').value);
     var err = a.error || h.error || (a.slug === h.slug ? 'Pick two different teams' : '');
     if (err) { status.className = 'status err'; status.textContent = err; return; }
-    var date = sportDate();
-    (added[date] = added[date] || []).push({ away: a.slug, home: h.slug });
+    var date = isWeekly() ? document.getElementById('addDate').value : sportDate();
+    if (!date) { status.className = 'status err'; status.textContent = 'Pick the game date'; return; }
+    (added[viewKey()] = added[viewKey()] || []).push({ away: a.slug, home: h.slug, date: date });
     document.getElementById('addAway').value = '';
     document.getElementById('addHome').value = '';
     status.textContent = '';
@@ -994,20 +1104,66 @@
     var rows = collectOdds();
     if (!rows) { status.className = 'status err'; status.textContent = 'Fix the highlighted rows first.'; return; }
     if (!rows.length) { status.className = 'status err'; status.textContent = 'No games to save.'; return; }
-    var date = sportDate(), seg = SEGMENT;
+    var view = viewKey(), seg = SEGMENT;
     callWorker('/odds/save', { sport: SPORT.key, rows: rows, removes: [] }, status, this, 'Saving', SAVED_MSG)
       .then(function() {
         applySaved(rows);
-        added[date] = [];
-        oddsLocked[date + '|' + seg] = true;
+        clearDrafts(rows);
+        added[view] = [];
+        oddsLocked[view + '|' + seg] = true;
         renderOdds();
       }).catch(function() {});
   });
 
   document.getElementById('oddsEdit').addEventListener('click', function() {
-    oddsLocked[sportDate() + '|' + SEGMENT] = false;
+    oddsLocked[viewKey() + '|' + SEGMENT] = false;
     document.getElementById('oddsStatus').textContent = '';
     renderOdds();
+  });
+
+  // ---- AI parser (same idea as NHL's): fills the current segment's table ----
+  // Field names the worker returns -> this table's inputs, per layout.
+  var PARSE_FIELDS = {
+    spread: { atsAway: 'atsA', atsAwayPrice: 'atsAP', atsHome: 'atsH', atsHomePrice: 'atsHP', mlAway: 'mlA', mlHome: 'mlH', total: 'tot', overPrice: 'ovP', underPrice: 'unP' },
+    f5: { atsAwayPrice: 'atsA', atsHomePrice: 'atsH', mlAway: 'mlA', mlHome: 'mlH', total: 'tot', overPrice: 'ovP', underPrice: 'unP' },
+    rfi: { yrfi: 'yes', nrfi: 'no' },
+  };
+
+  document.getElementById('sportParseBtn').addEventListener('click', function() {
+    var status = document.getElementById('sportParseStatus');
+    var text = document.getElementById('sportParseInput').value.trim();
+    if (!text) { status.className = 'status err'; status.textContent = 'Paste some odds data first.'; return; }
+    var games = gamesFor();
+    if (!games.length) { status.className = 'status err'; status.textContent = 'No games ' + (isWeekly() ? 'this week' : 'on this date') + ' to match against.'; return; }
+    var m = mode(), seg = SPORT.segments.filter(function(x) { return x.key === SEGMENT; })[0];
+    var payload = {
+      sport: SPORT.key, label: SPORT.label, segment: SEGMENT, segmentLabel: seg.label, mode: m,
+      view: viewLabel(), text: text,
+      games: games.map(function(g) { return { away: g.away, home: g.home, date: g.date, awayName: (TEAM_BY_SLUG[g.away] || {}).name || g.away, homeName: (TEAM_BY_SLUG[g.home] || {}).name || g.home }; }),
+    };
+    callWorker('/odds/parse', payload, status, this, 'Parsing', 'Parsed — review the ' + seg.label + ' table, then Save.')
+      .then(function(res) {
+        var parsed = (res.body && res.body.games) || [];
+        if (!parsed.length) { status.className = 'status err'; status.textContent = 'AI didn\'t find odds for these games -- check the pasted text or enter manually.'; return; }
+        oddsLocked[viewKey() + '|' + SEGMENT] = false;
+        renderOdds();
+        var rows = Array.prototype.slice.call(document.querySelectorAll('#oddsBody tr[data-away]'));
+        var filled = 0;
+        parsed.forEach(function(p) {
+          var i = -1;
+          rows.forEach(function(tr, j) {
+            if (i === -1 && tr.getAttribute('data-away') === p.away && tr.getAttribute('data-home') === p.home && (!p.date || tr.getAttribute('data-date') === p.date)) i = j;
+          });
+          if (i === -1) return;
+          var map = PARSE_FIELDS[m];
+          Object.keys(map).forEach(function(f) { setNumIfPresent('o' + i + '_' + map[f], p[f]); });
+          if (m === 'f5' && (p.fav === 'away' || p.fav === 'home')) document.getElementById('o' + i + '_fav').value = p.fav;
+          filled++;
+        });
+        refreshF5Lines();
+        status.textContent = 'Filled ' + filled + ' game' + (filled === 1 ? '' : 's') + ' — review the ' + seg.label + ' table, then Save.';
+      })
+      .catch(function() { /* status already shows the error */ });
   });
 
   // ---- CSV import ----
