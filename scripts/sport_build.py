@@ -488,9 +488,12 @@ def side_pick(teams, G, k, market, c, label_extra):
             'label': f"{me}{' ' + label_extra if label_extra else ''} {'vs' if c['side'] == 'home' else '@'} {opp}"}
 
 
-def generate_for_date(sp, teams, games, d):
+def generate_for_date(sp, teams, games, d, slate=None):
+    """Trends for the games on date d -- or, for week-scheduled sports, for
+    `slate` (the week's games), using only games before d (the week's first
+    day)."""
     before = [G for G in games if G['date'] < d and G['graded']]
-    tonight = [G for G in games if G['date'] == d]
+    tonight = slate if slate is not None else [G for G in games if G['date'] == d]
     if not tonight:
         return []
     cands = []
@@ -665,25 +668,49 @@ def grade_trends(entry, by_key):
     entry['record'] = {'w': w, 'l': l}
 
 
+def slates(sp, prepared):
+    """[(log key, first date, games)]: one slate per date, or per ESPN week
+    for week-scheduled sports (NFL, NCAAF), keyed by the week ('2-7')."""
+    groups = {}
+    if sp.get('schedule') == 'week':
+        for G in prepared:
+            k = week_key(G['g'])
+            if k:
+                groups.setdefault(k, []).append(G)
+    else:
+        for G in prepared:
+            groups.setdefault(G['date'], []).append(G)
+    out = [(k, min(G['date'] for G in gs), gs) for k, gs in groups.items()]
+    return sorted(out, key=lambda x: (x[1], x[0]))
+
+
 def update_trends_log(sp, teams, games, log_path, now_utc):
     log = read_json(log_path, {})
     today = now_utc.astimezone(ET).date().isoformat()
     prepared = prepare(sp, teams, games)
     by_key = {G['key']: G for G in prepared}
-    dates = sorted({G['date'] for G in prepared})
+    groups = slates(sp, prepared)
+    # A sport that moved from daily to weekly slates drops its old date keys.
+    keys = {k for k, _, _ in groups}
+    for k in list(log):
+        if k not in keys:
+            del log[k]
     floor = None
     if not log:
         floor = (datetime.fromisoformat(today).date().toordinal() - CONFIG['first_backfill_days'])
-    for d in dates:
-        if floor is not None and Date.fromisoformat(d).toordinal() < floor:
+    for k, d, slate in groups:
+        if floor is not None and sp.get('schedule') != 'week' and Date.fromisoformat(d).toordinal() < floor:
             continue
-        starts = [G['g']['start'] for G in prepared if G['date'] == d and G['g'].get('start')]
+        # Locked once the slate's first game starts.
+        starts = [G['g']['start'] for G in slate if G['g'].get('start')]
         first = min(starts) if starts else None
         started = d < today or (first is not None and now_utc >= datetime.fromisoformat(first.replace('Z', '+00:00')))
-        entry = log.get(d)
+        entry = log.get(k)
         if entry is None or not entry.get('frozen'):
-            entry = {'trends': generate_for_date(sp, teams, prepared, d), 'frozen': started}
-            log[d] = entry
+            entry = {'trends': generate_for_date(sp, teams, prepared, d,
+                                                 slate if sp.get('schedule') == 'week' else None),
+                     'frozen': started}
+            log[k] = entry
         elif started:
             entry['frozen'] = True
         grade_trends(entry, by_key)

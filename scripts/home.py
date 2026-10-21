@@ -498,7 +498,12 @@ def build(template, nhl_data, logo_svg, now_utc=None):
         pass
     for sp in sports.SPORTS:
         doc = docs.get(sp['key']) or {}
-        trends += [(sp['label'], t) for t in ((doc.get('trends') or {}).get(today) or {}).get('trends', [])]
+        key = today
+        if doc.get('schedule') == 'week':
+            # Football's trends are per week: this week's, if it has games today.
+            wk = next((w for w in doc.get('weeks') or [] if w['start'] <= today <= w['end']), None)
+            key = wk['key'] if wk and doc.get('games', {}).get(today) else None
+        trends += [(sp['label'], t) for t in ((doc.get('trends') or {}).get(key) or {}).get('trends', [])]
     trends.sort(key=lambda x: -(x[1].get('score') or 0))
 
     # ---- sections

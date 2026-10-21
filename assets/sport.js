@@ -566,7 +566,77 @@
       '<div class="lt-rec">' + sub + '</div><div class="lt-games"><span class="lt-when">Picks</span>' + chips + '</div></div>';
   }
 
+  // League Trends + Team Streaks for one slate: a date, or (football) a week.
+  // `games` = the slate's games; `when` = "today's" / "Week 7's"; `on` = how
+  // to say when a team plays ("Today", "Week 7").
+  function trendsSections(e, games, when, on, noun) {
+    var playing = {};
+    games.forEach(function(g) { playing[g.away] = g; playing[g.home] = g; });
+    var html = '<section class="trends-page-section"><div class="tp-head"><div><h2>League Trends</h2>' +
+      '<p class="tp-sub">League-wide angles that apply to ' + when + ' games, ranked by edge. Locked in when the first game starts.</p></div></div>';
+    if (e && e.trends.length) {
+      var r = e.record || { w: 0, l: 0 };
+      if (r.w + r.l) html += '<p class="lt-summary">League Trends went <b>' + r.w + '-' + r.l + '</b> ' + noun + '.</p>';
+      html += '<div class="lt-list">' + e.trends.map(trendRow).join('') + '</div>';
+    } else {
+      html += '<div class="no-games-note" style="margin-top:12px">' + (games.length ? 'No league trends clear the bar for these games (8+ points off the league rate, or &plusmn;2 units, over 10+ games).' : 'No ' + esc(D.label) + ' games ' + noun + '.') + '</div>';
+    }
+    html += '</section>';
+    // Team streaks: teams playing in this slate first.
+    var list = [];
+    Object.keys(D.streaks || {}).forEach(function(slug) {
+      if (!D.teams[slug]) return;
+      D.streaks[slug].forEach(function(s) { list.push({ slug: slug, s: s, on: !!playing[slug] }); });
+    });
+    list.sort(function(a, b) { return (b.on - a.on) || (b.s.n - a.s.n); });
+    html += '<section class="trends-page-section"><div class="tp-head"><div><h2>Team Streaks</h2>' +
+      '<p class="tp-sub">Current runs of 4 or more, through the latest final. Teams playing ' + esc(on) + ' first.</p></div></div>';
+    html += list.length ? '<div class="lt-list">' + list.slice(0, 30).map(function(x) {
+      var g = playing[x.slug];
+      var opp = g ? (g.home === x.slug ? 'vs ' + shortName(g.away) : '@ ' + shortName(g.home)) : '';
+      var day = g && D.schedule === 'week' && g.start
+        ? new Date(g.start).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'America/New_York' }) + ' '
+        : '';
+      return '<div class="lt-row"><div class="lt-top">' + teamLink(x.slug, badge(x.slug, 22)) + '<span class="lt-sentence">' +
+        esc(team(x.slug).short || team(x.slug).name) + ': ' + esc(streakText(x.s)) + '</span></div>' +
+        (g ? '<div class="lt-rec">Plays ' + esc(day || on + ' ') + esc(opp) + '</div>' : '') + '</div>';
+    }).join('') + '</div>' : '<div class="no-games-note" style="margin-top:12px">No team has a run of 4+ right now.</div>';
+    return html + '</section>';
+  }
+
+  // Football: one list per week, like its Games page.
+  function renderTrendsByWeek() {
+    var weeks = D.weeks || [];
+    if (!weeks.length) { app.innerHTML = emptyNote('No ' + esc(D.label) + ' games loaded yet &mdash; trends appear once games are played.'); return; }
+    var keys = weeks.map(function(w) { return w.key; });
+    var want = new URLSearchParams(location.search).get('week');
+    var thisWeek = currentWeek(weeks);
+    var cur = keys.indexOf(want) !== -1 ? want : thisWeek;
+    function go(k) {
+      cur = k;
+      var u = new URL(location.href); u.searchParams.set('week', k); u.searchParams.delete('date');
+      history.replaceState(null, '', u);
+      draw();
+    }
+    function draw() {
+      var i = keys.indexOf(cur), w = weeks[i];
+      var html = '<div class="date-bar">' +
+        '<button class="date-nav" id="weekPrev" aria-label="Previous week"' + (i <= 0 ? ' disabled' : '') + '>&lsaquo;</button>' +
+        '<div class="date-label-wrap"><span class="date-label">' + esc(w.label) + ' <span class="week-range">' + esc(weekRange(w)) + '</span></span>' +
+        (cur !== thisWeek ? '<button class="date-today-btn" id="weekNowBtn" type="button">This week</button>' : '') + '</div>' +
+        '<button class="date-nav" id="weekNext" aria-label="Next week"' + (i >= keys.length - 1 ? ' disabled' : '') + '>&rsaquo;</button></div>';
+      html += trendsSections(D.trends[cur], weekGames(cur), esc(w.label) + '&rsquo;s', w.label, 'in ' + esc(w.label));
+      app.innerHTML = html;
+      var p = document.getElementById('weekPrev'), n = document.getElementById('weekNext'), t = document.getElementById('weekNowBtn');
+      if (p) p.onclick = function() { if (i > 0) go(keys[i - 1]); };
+      if (n) n.onclick = function() { if (i < keys.length - 1) go(keys[i + 1]); };
+      if (t) t.onclick = function() { go(thisWeek); };
+    }
+    draw();
+  }
+
   function renderTrends() {
+    if (D.schedule === 'week') { renderTrendsByWeek(); return; }
     var dates = Object.keys(D.trends || {}).sort();
     var gameDates = allDates();
     if (!gameDates.length) { app.innerHTML = emptyNote('No ' + esc(D.label) + ' games loaded yet &mdash; trends appear once games are played.'); return; }
@@ -574,38 +644,8 @@
     var cur = urlDate() || defaultDate(dates);
     function go(d) { cur = d; setUrlDate(d); draw(); }
     function draw() {
-      var e = D.trends[cur];
-      var playing = {};
-      (D.games[cur] || []).forEach(function(g) { playing[g.away] = g; playing[g.home] = g; });
-      var html = dateBar(cur, dates);
-      html += '<section class="trends-page-section"><div class="tp-head"><div><h2>League Trends</h2>' +
-        '<p class="tp-sub">League-wide angles that apply to ' + (dateLabel(cur).toLowerCase() === 'today' ? 'today&rsquo;s' : esc(dateLabel(cur)) + '&rsquo;s') + ' games, ranked by edge. Locked in when the first game starts.</p></div></div>';
-      if (e && e.trends.length) {
-        var r = e.record || { w: 0, l: 0 };
-        if (r.w + r.l) html += '<p class="lt-summary">League Trends went <b>' + r.w + '-' + r.l + '</b> on this date.</p>';
-        html += '<div class="lt-list">' + e.trends.map(trendRow).join('') + '</div>';
-      } else {
-        html += '<div class="no-games-note" style="margin-top:12px">' + (D.games[cur] ? 'No league trends clear the bar for these games (8+ points off the league rate, or &plusmn;2 units, over 10+ games).' : 'No ' + esc(D.label) + ' games on this date.') + '</div>';
-      }
-      html += '</section>';
-      // Team streaks: teams playing this date first.
-      var list = [];
-      Object.keys(D.streaks || {}).forEach(function(slug) {
-        if (!D.teams[slug]) return;
-        D.streaks[slug].forEach(function(s) { list.push({ slug: slug, s: s, on: !!playing[slug] }); });
-      });
-      list.sort(function(a, b) { return (b.on - a.on) || (b.s.n - a.s.n); });
-      html += '<section class="trends-page-section"><div class="tp-head"><div><h2>Team Streaks</h2>' +
-        '<p class="tp-sub">Current runs of ' + 4 + ' or more, through the latest final. Teams playing ' + esc(dateLabel(cur)) + ' first.</p></div></div>';
-      html += list.length ? '<div class="lt-list">' + list.slice(0, 30).map(function(x) {
-        var g = playing[x.slug];
-        var opp = g ? (g.home === x.slug ? 'vs ' + shortName(g.away) : '@ ' + shortName(g.home)) : '';
-        return '<div class="lt-row"><div class="lt-top">' + teamLink(x.slug, badge(x.slug, 22)) + '<span class="lt-sentence">' +
-          esc(team(x.slug).short || team(x.slug).name) + ': ' + esc(streakText(x.s)) + '</span></div>' +
-          (g ? '<div class="lt-rec">Plays ' + esc(dateLabel(cur)) + ' ' + esc(opp) + '</div>' : '') + '</div>';
-      }).join('') + '</div>' : '<div class="no-games-note" style="margin-top:12px">No team has a run of 4+ right now.</div>';
-      html += '</section>';
-      app.innerHTML = html;
+      var when = dateLabel(cur).toLowerCase() === 'today' ? 'today&rsquo;s' : esc(dateLabel(cur)) + '&rsquo;s';
+      app.innerHTML = dateBar(cur, dates) + trendsSections(D.trends[cur], D.games[cur] || [], when, dateLabel(cur), 'on this date');
       wireDateBar(dates, cur, go);
     }
     draw();
