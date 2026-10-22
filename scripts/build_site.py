@@ -57,6 +57,7 @@ import league_trends  # noqa: E402
 import home  # noqa: E402
 import icons  # noqa: E402
 import sport_build  # noqa: E402
+import trend_rules  # noqa: E402
 import sports  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -80,7 +81,7 @@ PAGE_META = {
     'trends': {
         'title': 'RTYB — Trends to Watch',
         'h1': 'NHL — Trends to Watch',
-        'desc': ('League-wide angles and team streaks for today’s games across Moneyline, Over 1.5, and BTTS.'),
+        'desc': ('League trends and team trends for today’s games: 1st-period Moneyline, Total 1.5 and BTTS, from the side to bet.'),
     },
     'teamsindex': {
         'title': 'RTYB — Teams',
@@ -831,6 +832,7 @@ def main():
         history_games, merged_games, SEASON_START, TEAM_DIVISIONS,
         os.path.join(ROOT, 'league_trends_log.json'))
     full_data['leagueTrendsConfig'] = {'shown': league_trends.CONFIG['shown']}
+    full_data['trendRules'] = trend_rules.for_page()   # shared thresholds for the pages
     # Restrict divisions to teams actually present in base_data.json's summary
     # (keeps the Teams page grid in sync if a team code ever changes).
     known_codes = set(base.get('summary', {}).keys())

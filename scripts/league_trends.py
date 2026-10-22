@@ -24,6 +24,8 @@ import os
 from datetime import date as Date, datetime, timezone
 from zoneinfo import ZoneInfo
 
+import trend_rules
+
 # Every threshold in one place.
 CONFIG = {
     'rate_diff_pts': 8,        # hit rate must differ from the league rate by this many points...
@@ -231,39 +233,7 @@ GAME_MARKETS = {
 MARKET_FAMILY = {'O1.5': 'ou', 'U1.5': 'ou', 'BTTS Yes': 'btts', 'BTTS No': 'btts', 'ML': 'ml'}
 
 
-def _market_rate_words(tag, pct, phrase, window):
-    if tag == 'O1.5':
-        return f'Over 1.5 has hit {pct}% in {phrase} {window}'
-    if tag == 'U1.5':
-        return f'Under 1.5 has hit {pct}% in {phrase} {window}'
-    if tag == 'BTTS Yes':
-        return f'BTTS has hit {pct}% in {phrase} {window}'
-    return f'BTTS has missed {pct}% in {phrase} {window}'
-
-
-def _market_streak_words(tag, n, phrase):
-    return {
-        'O1.5': f'The Over 1.5 has hit in {n} straight {phrase}',
-        'U1.5': f'The Under 1.5 has hit in {n} straight {phrase}',
-        'BTTS Yes': f'BTTS has hit in {n} straight {phrase}',
-        'BTTS No': f'BTTS has missed in {n} straight {phrase}',
-    }[tag]
-
-
 # ---------------------------------------------------------------- generator
-
-def _tonight_side(G, c):
-    opp = _other(G, c)
-    price = fmt_price(c['price'])
-    return {'key': G['key'], 'kind': 'side', 'side': c['side'], 'market': 'ML',
-            'label': f"{c['team']}{' ' + price if price else ''} {'vs' if c['side'] == 'home' else '@'} {opp['team']}"}
-
-
-def _tonight_game(G, tag):
-    price = fmt_price(G['price'][GAME_MARKETS[tag][1]])
-    short = {'O1.5': 'O', 'U1.5': 'U', 'BTTS Yes': 'Y', 'BTTS No': 'N'}[tag]
-    return {'key': G['key'], 'kind': 'game', 'market': tag,
-            'label': f"{G['away']['team']}–{G['home']['team']}" + (f' ({short} {price})' if price else '')}
 
 
 def _pick_sig(g):
@@ -273,8 +243,42 @@ def _pick_sig(g):
     return (g['key'] + ':' + MARKET_FAMILY[g['market']], g['market'])
 
 
+# Plain words for each side angle: what a team in the spot "is", and the
+# group's name. A bettor-side record names the opposite group when the
+# angle comes in a pair (road favorites <-> home underdogs).
+ANGLE_WORDS = {
+    'home_fav': ('is a home favorite', 'Home favorites'),
+    'road_dog': ('is a road underdog', 'Road underdogs'),
+    'home_dog': ('is a home underdog', 'Home underdogs'),
+    'road_fav': ('is a road favorite', 'Road favorites'),
+    'tier1': ('is priced -150 or shorter', 'Sides at -150 or shorter'),
+    'tier2': ('is priced -149 to -101', 'Sides priced -149 to -101'),
+    'tier3': ('is priced +100 to +149', 'Sides priced +100 to +149'),
+    'tier4': ('is priced +150 or longer', 'Sides at +150 or longer'),
+    'b2b': ('is on a back-to-back', 'Teams on a back-to-back'),
+    'b2b_opp': ('is facing a team on a back-to-back', 'Opponents of a back-to-back team'),
+    'rested': ('has the rest edge', 'Rested teams'),
+    'tired': ('is on less rest', 'Tired teams'),
+    'off_loss': ('is coming off a loss', 'Teams off a loss'),
+    'off_loss3': ('lost by 3+ last game', 'Teams off a 3+ goal loss'),
+    'off_shutout': ('was shut out last game', 'Teams off a shutout loss'),
+}
+OPPOSITE = {'home_fav': 'road_dog', 'road_dog': 'home_fav', 'home_dog': 'road_fav', 'road_fav': 'home_dog',
+            'b2b': 'b2b_opp', 'b2b_opp': 'b2b', 'rested': 'tired', 'tired': 'rested'}
+TAG_WORD = {'O1.5': 'Over 1.5', 'U1.5': 'Under 1.5', 'BTTS Yes': 'BTTS Yes', 'BTTS No': 'BTTS No'}
+TAG_CHIP = {'O1.5': 'Over', 'U1.5': 'Under', 'BTTS Yes': 'Yes', 'BTTS No': 'No'}
+LOG_VERSION = 2   # entries in an older format are rebuilt once
+
+
+def _lower_phrase(p):
+    return (p[0].lower() + p[1:]).replace('Home Favorite', 'home favorite').replace('Home Underdog', 'home underdog')
+
+
 def generate_for_date(games, d):
-    """Candidates for date d using only games before d; returns the top list."""
+    """League trends for date d, using only this season's games before d.
+    Every trend is the side to bet: the record, units and rate are from
+    that side; strength and minimum samples come from trend_rules."""
+    R = trend_rules.RULES
     before = [G for G in games if G['date'] < d and G['graded']]
     cur_before = [G for G in before if G['season'] == '2026-27']
     tonight = [G for G in games if G['date'] == d and G['season'] == '2026-27']
@@ -284,124 +288,97 @@ def generate_for_date(games, d):
 
     # ---- side angles on the 1P moneyline
     for key, noun, test, pair, priced_only in SIDE_ANGLES:
-        # A game where both teams fit the angle would mean betting both sides.
-        sides_tonight = [(G, c) for G in tonight for c in G['sides'] if test(G, c) and not test(G, _other(G, c))]
+        # Only games where exactly one team fits: a game where both (or
+        # neither) do has no side.
+        def one_side(G):
+            fit = [c for c in G['sides'] if test(G, c)]
+            return fit[0] if len(fit) == 1 else None
+        sides_tonight = [(G, one_side(G)) for G in tonight if one_side(G)]
         if not sides_tonight:
             continue
-        tonight_list = [_tonight_side(G, c) for G, c in sides_tonight]
-
-        def tally(pool):
-            r = Rec()
-            for G in pool:
-                for c in G['sides']:
-                    if test(G, c):
-                        r.add(c['res'], c['price'])
-            return r
-
-        cur = tally(cur_before)
-        since = False
-        rec = cur
-        if CONFIG['combine_2025_26'] and cur.n < CONFIG['current_min_games'] and not priced_only:
-            rec, since = tally(before), True
-        rate, units = rec.rate, rec.unit_total
-        if rec.decisions >= CONFIG['min_games'] and rate is not None:
-            diff = (rate - 0.5) * 100
-            if abs(diff) >= CONFIG['rate_diff_pts'] or (units is not None and abs(units) >= CONFIG['units_threshold']):
-                window = 'since 2025–26' if since else 'this season'
-                u_txt = f' ({fmt_units(units)})' if units is not None else ''
-                # A losing angle is shown as a fade (bet against it).
-                fade = (units is not None and units <= -CONFIG['units_threshold']) or \
-                    (diff < 0 and not (units is not None and units >= CONFIG['units_threshold']))
-                sentence = (f'Fade: {noun} are' if fade else f'{noun} are') + f' {rec.w}-{rec.l}-{rec.t}{u_txt} in the 1st period {window}'
-                score = abs(diff) * math.sqrt(rec.decisions)
-                if units is not None and rec.priced:
-                    score = max(score, abs(units / rec.priced) * 100 * math.sqrt(rec.priced))
-                picks = [_tonight_side(G, _other(G, c)) for G, c in sides_tonight] if fade else tonight_list
-                cands.append({'id': f'rate:{key}:ML', 'family': pair or key, 'market': 'ML', 'sentence': sentence,
-                              'record': f'{rec.w}-{rec.l}-{rec.t}', 'units': units, 'n': rec.decisions, 'fade': fade,
-                              'small': rec.decisions < CONFIG['small_rate'], 'score': score, 'games': picks})
-
-        # streak: consecutive won / lost 1P for this angle, current season, newest first
-        seq = [c['res'] for G in reversed(cur_before) for c in G['sides'] if test(G, c)]
-        if seq and seq[0] in ('W', 'L'):
-            n = 0
-            for r in seq:
-                if r != seq[0]:
-                    break
-                n += 1
-            if n >= CONFIG['min_streak']:
-                verb = 'won' if seq[0] == 'W' else 'lost'
-                cands.append({'id': f'streak:{key}:ML', 'family': pair or key, 'market': 'ML',
-                              'sentence': f'{noun} have {verb} the 1P in {n} straight', 'record': f'{n} straight',
-                              'units': None, 'n': n, 'small': n < CONFIG['min_streak'],
-                              'score': n * CONFIG['streak_weight'], 'games': tonight_list})
+        mine, theirs = Rec(), Rec()
+        for G in cur_before:
+            c = one_side(G)
+            if c:
+                mine.add(c['res'], c['price'])
+                o = _other(G, c)
+                theirs.add(o['res'], o['price'])
+        if mine.rate is None:
+            continue
+        bet_self = mine.rate >= 0.5
+        rec = mine if bet_self else theirs
+        n = rec.decisions
+        if n < R['league_min']:
+            continue
+        units = rec.unit_total
+        if units is not None and units < R['min_units']:
+            continue
+        z = trend_rules.strength(rec.rate, 0.5, n)
+        phrase, group = ANGLE_WORDS.get(key, ('fits this spot', noun))
+        lower = group[0].lower() + group[1:]
+        if bet_self:
+            title, rec_group = f'Bet {lower}', group
+        else:
+            title = f'Bet against {lower}'
+            rec_group = ANGLE_WORDS[OPPOSITE[key]][1] if key in OPPOSITE else 'Their opponents'
+        picks = []
+        for G, c in sides_tonight:
+            bet = c if bet_self else _other(G, c)
+            price = fmt_price(bet['price'])
+            picks.append({'key': G['key'], 'kind': 'side', 'side': bet['side'], 'market': 'ML',
+                          'team': bet['team'], 'chip': f"Bet {bet['team']}",
+                          'label': f"Bet {bet['team']}{' ' + price if price else ''}",
+                          'why': f"{c['team']} {phrase}", 'matchup': f"{G['away']['team']} @ {G['home']['team']}"})
+        cands.append({'id': f'side:{key}', 'family': (pair or key) + ':ml', 'kind': 'side', 'market': 'ML',
+                      'title': title, 'sentence': title, 'group': rec_group,
+                      'w': rec.w, 'l': rec.l, 't': rec.t, 'record': trend_rules.record_text(rec.w, rec.l, rec.t),
+                      'rate': round(rec.rate, 4), 'base': 0.5, 'n': n, 'units': units,
+                      'z': round(z, 2), 'strength': trend_rules.label(z), 'score': abs(z), 'games': picks})
 
     # ---- game angles on Over/Under 1.5 and BTTS
     for key, phrase, streak_phrase, test, priced_only in GAME_ANGLES:
         games_tonight = [G for G in tonight if test(G)]
         if not games_tonight:
             continue
-        cur_pool = [G for G in cur_before if test(G)]
-        since = CONFIG['combine_2025_26'] and len(cur_pool) < CONFIG['current_min_games'] and not priced_only
-        pool = [G for G in before if test(G)] if since else cur_pool
-        league = before if since else cur_before
+        pool = [G for G in cur_before if test(G)]
+        n = len(pool)   # these markets can't push: every game is a decision
+        if n < R['league_min'] or not cur_before:
+            continue
         for fam, (hit_tag, miss_tag) in (('ou', ('O1.5', 'U1.5')), ('btts', ('BTTS Yes', 'BTTS No'))):
-            best = None
-            for tag in (hit_tag, miss_tag):
-                res_fn, pkey = GAME_MARKETS[tag]
-                r = Rec()
-                for G in pool:
-                    r.add(res_fn(G), G['price'][pkey])
-                lg = Rec()
-                for G in league:
-                    lg.add(res_fn(G), None)
-                if r.decisions < CONFIG['min_games'] or not lg.n:
-                    continue
-                rate, lrate, units = r.w / r.n, lg.w / lg.n, r.unit_total
-                diff = (rate - lrate) * 100
-                if diff < 0 and not (units is not None and units >= CONFIG['units_threshold']):
-                    continue  # the other side of this angle is the one to show
-                if diff >= CONFIG['rate_diff_pts'] or (units is not None and abs(units) >= CONFIG['units_threshold']):
-                    window = 'since 2025–26' if since else 'this season'
-                    # Qualified only on losing units: say it's a fade.
-                    fade = diff < CONFIG['rate_diff_pts'] and units is not None and units <= -CONFIG['units_threshold']
-                    sentence = ('Fade: ' if fade else '') + _market_rate_words(tag, round(rate * 100), phrase, window) + \
-                        f' (league {round(lrate * 100)}%)'
-                    score = abs(diff) * math.sqrt(r.decisions)
-                    pick_tag = (miss_tag if tag == hit_tag else hit_tag) if fade else tag
-                    c = {'id': f'rate:{key}:{tag}', 'family': f'{key}:{fam}', 'market': pick_tag, 'sentence': sentence,
-                         'record': f'{r.w}/{r.n} ({round(rate * 100)}%)', 'units': units, 'n': r.decisions, 'fade': fade,
-                         'small': r.decisions < CONFIG['small_rate'], 'score': score,
-                         'games': [_tonight_game(G, pick_tag) for G in games_tonight]}
-                    if best is None or c['score'] > best['score']:
-                        best = c
-            if best:
-                cands.append(best)
+            hit_fn = GAME_MARKETS[hit_tag][0]
+            hits = sum(1 for G in pool if hit_fn(G) == 'W')
+            base_hit = sum(1 for G in cur_before if hit_fn(G) == 'W') / len(cur_before)
+            rate_hit = hits / n
+            tag = hit_tag if rate_hit >= base_hit else miss_tag
+            rate, base = (rate_hit, base_hit) if tag == hit_tag else (1 - rate_hit, 1 - base_hit)
+            r = Rec()
+            for G in pool:
+                r.add(GAME_MARKETS[tag][0](G), G['price'][GAME_MARKETS[tag][1]])
+            units = r.unit_total
+            if units is not None and units < R['min_units']:
+                continue
+            z = trend_rules.strength(rate, base, n)
+            title = f"{TAG_WORD[tag]} in {_lower_phrase(phrase)}"
+            picks = []
+            for G in games_tonight:
+                price = fmt_price(G['price'][GAME_MARKETS[tag][1]])
+                chip = TAG_CHIP[tag]
+                word = TAG_WORD[tag]
+                picks.append({'key': G['key'], 'kind': 'game', 'market': tag, 'chip': chip,
+                              'label': f"{word}{' ' + price if price else ''}",
+                              'matchup': f"{G['away']['team']} @ {G['home']['team']}"})
+            cands.append({'id': f'game:{key}:{tag}', 'family': f'{key}:{fam}', 'kind': 'game', 'market': tag,
+                          'title': title, 'sentence': title, 'hits': r.w, 'n': n,
+                          'record': f'{r.w}/{n}', 'rate': round(rate, 4), 'base': round(base, 4), 'units': units,
+                          'z': round(z, 2), 'strength': trend_rules.label(z), 'score': abs(z), 'games': picks})
 
-            # streak, current season only
-            seq = [G for G in reversed(cur_before) if test(G)]
-            if seq:
-                first_hit = GAME_MARKETS[hit_tag][0](seq[0]) == 'W'
-                tag = hit_tag if first_hit else miss_tag
-                n = 0
-                for G in seq:
-                    if (GAME_MARKETS[hit_tag][0](G) == 'W') != first_hit:
-                        break
-                    n += 1
-                if n >= CONFIG['min_streak']:
-                    cands.append({'id': f'streak:{key}:{tag}', 'family': f'{key}:{fam}', 'market': tag,
-                                  'sentence': _market_streak_words(tag, n, streak_phrase), 'record': f'{n} straight',
-                                  'units': None, 'n': n, 'small': False,
-                                  'score': n * CONFIG['streak_weight'],
-                                  'games': [_tonight_game(G, tag) for G in games_tonight]})
-
-    # ---- rank: one trend per angle family (never both sides), max per market, top N
+    # ---- rank by strength: one per angle family, a few per market, and never
+    # two trends on opposite sides of the same game
     cands.sort(key=lambda c: (-c['score'], -len(c['games'])))
     picked, families, per_market, taken = [], set(), {}, {}
     for c in cands:
         if c['family'] in families or per_market.get(c['market'], 0) >= CONFIG['max_per_market']:
             continue
-        # Never let two trends pick opposite sides of the same game.
         sigs = [_pick_sig(g) for g in c['games']]
         if any(taken.get(k, v) != v for k, v in sigs):
             continue
@@ -410,11 +387,13 @@ def generate_for_date(games, d):
         picked.append(c)
         families.add(c['family'])
         per_market[c['market']] = per_market.get(c['market'], 0) + 1
-        if len(picked) >= CONFIG['shown']:
+        if len(picked) >= R['shown']:
             break
     for c in picked:
         c.pop('family', None)
-        c['score'] = round(c['score'], 1)
+        c['score'] = round(c['score'], 2)
+        if c.get('units') is not None:
+            c['units'] = round(c['units'], 2)
     return picked
 
 
@@ -447,8 +426,11 @@ def update_log(log, games, today_et, now_utc):
         first = min(starts) if starts else None
         started = d < today_et or (first is not None and now_utc >= datetime.fromisoformat(first.replace('Z', '+00:00')))
         entry = log.get(d)
-        if entry is None or not entry.get('frozen'):
-            entry = {'trends': generate_for_date(games, d), 'frozen': started}
+        # Open dates regenerate; an entry from an older format is rebuilt
+        # once (from games before its date only, so its picks are the ones
+        # that date would have shown).
+        if entry is None or not entry.get('frozen') or entry.get('v') != LOG_VERSION:
+            entry = {'trends': generate_for_date(games, d), 'frozen': started, 'v': LOG_VERSION}
             log[d] = entry
         elif started:
             entry['frozen'] = True
