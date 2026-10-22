@@ -553,17 +553,31 @@
     return (s.kind === 'W' ? 'Won' : 'Lost') + ' ' + s.n + ' straight SU' + where;
   }
 
+  // One league trend, from the side to bet (scripts/sport_build.py +
+  // trend_rules.py): plain-English title, strength label with n, the
+  // bettor-side record, and pick chips that name team, market, period and
+  // line. Hit / miss / push shows only once a pick is graded. A trend that
+  // covers (nearly) the whole slate collapses to "Applies to all N games".
+  var PICK_STATUS = { W: ['Hit', 'lt-w'], L: ['Miss', 'lt-l'], P: ['Push', 'lt-pending'], NA: ['No Action', 'lt-pending'] };
   function trendRow(t) {
+    if (!t.kind) return '';   // an entry in the old format
     var chips = t.games.map(function(p) {
-      var st = p.status || 'PENDING';
-      var cls = st === 'W' ? 'lt-w' : st === 'L' ? 'lt-l' : 'lt-pending';
-      var txt = st === 'PENDING' ? 'Pending' : st === 'NA' ? 'No Action' : st === 'P' ? 'Push' : st;
-      return '<span class="lt-game">' + esc(p.label) + ' <span class="lt-chip ' + cls + '">' + txt + '</span></span>';
+      var st = PICK_STATUS[p.status];
+      return '<span class="lt-game"><span class="lt-pick">' + esc(p.chip || p.label) + '</span>' +
+        (p.why ? ' <span class="lt-why">' + esc(p.matchup) + ' · ' + esc(p.why) + '</span>' : ' <span class="lt-why">' + esc(p.matchup || '') + '</span>') +
+        (st ? ' <span class="lt-chip ' + st[1] + '">' + st[0] + '</span>' : '') + '</span>';
     }).join('');
-    var sub = t.record + (t.units != null ? ' &middot; ' + fmtUnits(t.units) : '') +
-      (t.odds_based && t.priced != null ? ' &middot; ' + oddsNote(t.priced) : '') + (t.small ? ' &middot; <span class="small-sample">small sample</span>' : '');
-    return '<div class="lt-row"><div class="lt-top"><span class="lt-tag">' + esc(t.market) + '</span><span class="lt-sentence">' + esc(t.sentence) + '</span></div>' +
-      '<div class="lt-rec">' + sub + '</div><div class="lt-games"><span class="lt-when">Picks</span>' + chips + '</div></div>';
+    var n = t.games.length, all = t.slate_n && n >= Math.max(6, Math.ceil(t.slate_n * 0.8));
+    var picks = all
+      ? '<details class="lt-all"><summary>' + (n === t.slate_n ? 'Applies to all ' + n + ' games' : 'Applies to ' + n + ' of ' + t.slate_n + ' games') + '</summary><div class="lt-games">' + chips + '</div></details>'
+      : '<div class="lt-games"><span class="lt-when">Picks</span>' + chips + '</div>';
+    var rec = t.kind === 'side'
+      ? esc(t.group) + ' are <b class="mono">' + esc(t.record) + '</b>'
+      : '<b class="mono">' + Math.round(t.rate * 100) + '%</b> hit (' + esc(t.record) + ', league ' + Math.round(t.base * 100) + '%)';
+    return '<div class="lt-row' + (t.strength === 'weak' ? ' weak' : '') + '"><div class="lt-top"><span class="lt-tag">' + esc(t.market) + '</span>' +
+      '<span class="lt-sentence">' + esc(t.title) + '</span>' +
+      '<span class="lt-str ' + t.strength + '">' + t.strength + '</span><span class="lt-n">n = ' + t.n + '</span></div>' +
+      '<div class="lt-rec">' + rec + (t.units != null ? ' &middot; ' + fmtUnits(t.units) : '') + '</div>' + picks + '</div>';
   }
 
   // League Trends + Team Streaks for one slate: a date, or (football) a week.
@@ -573,7 +587,7 @@
     var playing = {};
     games.forEach(function(g) { playing[g.away] = g; playing[g.home] = g; });
     var html = '<section class="trends-page-section"><div class="tp-head"><div><h2>League Trends</h2>' +
-      '<p class="tp-sub">League-wide angles that apply to ' + when + ' games, ranked by edge. Locked in when the first game starts.</p></div></div>';
+      '<p class="tp-sub">League-wide angles for ' + when + ' games, strongest first. Records are from the side to bet; ties and pushes don\'t count. Weak trends are muted. Locked in when the first game starts.</p></div></div>';
     if (e && e.trends.length) {
       var r = e.record || { w: 0, l: 0 };
       if (r.w + r.l) html += '<p class="lt-summary">League Trends went <b>' + r.w + '-' + r.l + '</b> ' + noun + '.</p>';
