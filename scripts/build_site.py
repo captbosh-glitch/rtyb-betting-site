@@ -638,7 +638,7 @@ def team_detail_html(sport, team):
             + section('Season Markets', f'Records and units will appear here once games are graded.<span class="empty-tags">{tags}</span>')
             + section('Home / Away Splits', no_games)
             + section('Current Trends', 'No trends yet.')
-            + section(f'Last 10 Games &mdash; {esc(sports.segment_summary(sport))}', no_games)
+            + section('Season Game Log', no_games)
             + '</div>')
 
 
@@ -678,8 +678,12 @@ def build_other_sports(template):
                     'desc': f'{sp["label"]} {sports.segment_summary(sp)} {EMPTY_COPY[section][1]}.', 'section': section}
             if section == 'teams' and teams:
                 meta['desc'] = (f'Every {sp["label"]} team, '
-                                + ('A–Z with a conference filter.' if sp['key'] in ('ncaaf', 'ncaab') else 'grouped by division.'))
-                html = render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=teams_index_html(sp, teams))
+                                + ('by conference, with records by period.' if sp['key'] == 'ncaaf' else 'A–Z with a conference filter.' if sp['key'] == 'ncaab' else 'grouped by division, with records by period.'))
+                body = teams_index_html(sp, teams)
+                if sport_has_data(sp['key']):
+                    # assets/sport.js swaps the plain list for record cards
+                    body = f'<div id="sportApp" data-section="teams">{body}</div>'
+                html = render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=body)
             elif section != 'teams' and sport_has_data(sp['key']):
                 meta['desc'] = SECTION_DESC[section].format(label=sp['label'], segs=sports.segment_summary(sp))
                 if section == 'games' and sp.get('schedule') == 'week':

@@ -212,10 +212,13 @@ def season_stats(sp, games):
         k = seg['key']
         teams, lg = {}, None
         if rfi_seg and k == '1i':
-            lg = {'gp': 0, 'yrfi': Rec(), 'dist': {}}
+            lg = {'gp': 0, 'yrfi': Rec(), 'nrfi': Rec(), 'dist': {}}
         else:
-            lg = {'gp': 0, 'home': Rec(), 'fav_su': Rec(), 'fav_ats': Rec(), 'home_ats': Rec(),
-                  'over': Rec(), 'pts': 0, 'scored': 0, 'dist': {}, 'na': 0}
+            # Both sides of each market, so the Stats page's Season Results
+            # can show each side's record and units (ties / pushes kept).
+            lg = {'gp': 0, 'home': Rec(), 'away': Rec(), 'fav_su': Rec(), 'dog_su': Rec(),
+                  'fav_ats': Rec(), 'dog_ats': Rec(), 'home_ats': Rec(), 'away_ats': Rec(),
+                  'over': Rec(), 'under': Rec(), 'pts': 0, 'scored': 0, 'dist': {}, 'na': 0}
         for g in games:
             res = (g.get('_res') or {}).get(k)
             if not res:
@@ -260,17 +263,25 @@ def season_stats(sp, games):
             if rfi_seg and k == '1i':
                 yu = (res.get('u') or {}).get('rfi')
                 lg['yrfi'].add('W' if res['rfi'] == 'Y' else 'L', None if yu is None else yu[0])
+                lg['nrfi'].add('W' if res['rfi'] == 'N' else 'L', None if yu is None else yu[1])
             else:
                 lg['home'].add(flip(res['su']), side_units(res, 'su', 'home'))
+                lg['away'].add(res['su'], side_units(res, 'su', 'away'))
                 fav = favorite(g['_odds'].get(k))
                 if fav:
+                    dog = 'home' if fav == 'away' else 'away'
                     lg['fav_su'].add(side_res(res, 'su', fav), side_units(res, 'su', fav))
+                    lg['dog_su'].add(side_res(res, 'su', dog), side_units(res, 'su', dog))
                     if 'ats' in res:
                         lg['fav_ats'].add(side_res(res, 'ats', fav), side_units(res, 'ats', fav))
+                        lg['dog_ats'].add(side_res(res, 'ats', dog), side_units(res, 'ats', dog))
                 if 'ats' in res:
                     lg['home_ats'].add(flip(res['ats']), side_units(res, 'ats', 'home'))
+                    lg['away_ats'].add(res['ats'], side_units(res, 'ats', 'away'))
                 if 'tot' in res:
-                    lg['over'].add({'O': 'W', 'U': 'L', 'P': 'P'}.get(res['tot']), (res.get('u') or {}).get('tot', [None])[0])
+                    tu = (res.get('u') or {}).get('tot', [None, None])
+                    lg['over'].add({'O': 'W', 'U': 'L', 'P': 'P'}.get(res['tot']), tu[0])
+                    lg['under'].add({'O': 'L', 'U': 'W', 'P': 'P'}.get(res['tot']), tu[1])
                 lg['pts'] += total_pts
         # serialize
         seg_teams = {}
@@ -835,6 +846,7 @@ def build(sp, teams_list, now_utc=None):
         'games': by_date,
         'stats': stats,
         'streaks': team_streaks(sp, games),
+        'trendRules': trend_rules.for_page(),
         'trends': {d: e for d, e in trends.items()},
     }
     write_json(os.path.join(slug_dir, 'data.json'), doc)
