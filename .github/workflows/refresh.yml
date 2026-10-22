@@ -44,6 +44,9 @@ jobs:
       - name: Fetch NHL schedule and scores
         run: python3 scripts/fetch_schedule.py
 
+      - name: Backfill NHL 2nd/3rd-period scores (this season, up to 40 games a run)
+        run: python3 scripts/backfill_periods.py || echo "period backfill failed; will retry next run"
+
       - name: Fetch other sports' schedules and scores (ESPN, yesterday through next week)
         # A failed date is logged to data_seed/games/<sport>/failures.json and
         # retried on later runs; it never stops the NHL refresh.

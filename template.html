@@ -1282,6 +1282,7 @@
   <section id="advSituational"></section>
   <section id="advGoals"></section>
   <section id="advBoard"></section>
+  <section id="advIntermission"></section>
   <p class="adv-teams-link"><a href="/nhl/teams/">See team breakdowns on the Teams page &rarr;</a></p>
   <!-- /PAGE:hitrates -->
 
@@ -2690,6 +2691,59 @@
     ];
   }
 
+  // ---- Intermission Edge (Stats page): games 0-0 after the 1st period ----
+  // Card 1 uses every finished 0-0 game; cards 2-4 need the saved 2nd / 3rd
+  // period scores (fetch_schedule.py / backfill_periods.py). Full-game
+  // totals include OT goals and the shootout winner (the final score), the
+  // way sportsbooks grade them. "1P favorite" = shorter closing 1P moneyline.
+  function intermissionPool() {
+    var done = rtybStats().current.filter(function(G) { return G.done && G.src.awayFinal != null && G.src.homeFinal != null; });
+    var zero = done.filter(function(G) { return G.aP1 === 0 && G.hP1 === 0; });
+    return { all: done, zero: zero, p2: zero.filter(function(G) { return G.src.awayP2 != null && G.src.homeP2 != null; }) };
+  }
+  function intermissionCards(P) {
+    var z = P.zero, n1 = z.length, p2 = P.p2, n2 = p2.length;
+    var priced = p2.filter(function(G) { return G.favSide; }), np = priced.length;
+    function fin(G) { return G.src.awayFinal + G.src.homeFinal; }
+    function g2(G) { return G.src.awayP2 + G.src.homeP2; }
+    function gamesTxt(n) { return n + ' game' + (n === 1 ? '' : 's'); }
+    var pricedNote = gamesTxt(np) + ' with a saved 1P moneyline';
+    var sum2 = p2.reduce(function(t, G) { return t + g2(G); }, 0);
+    var o15 = countWhere(p2, function(G) { return g2(G) > 1; });
+    return [
+      { title: 'Full Game Total', subtitle: 'Full-game goals after a 0-0 1st', n: n1, bars: true,
+        rows: [3.5, 4.5, 5.5, 6.5].map(function(l) { return { label: 'Over ' + l, count: countWhere(z, function(G) { return fin(G) > l; }), of: n1 }; }),
+        note: 'Totals include OT goals and the shootout winner, the way sportsbooks grade them. · ' + gamesTxt(n1) },
+      { title: '2nd Period Goals', subtitle: 'Total goals in the 2nd period', n: n2, bars: true,
+        rows: [['0 goals', 0], ['1 goal', 1], ['2 goals', 2], ['3 goals', 3], ['4+ goals', 4]].map(function(r) {
+          return { label: r[0], count: countWhere(p2, function(G) { return r[1] === 4 ? g2(G) >= 4 : g2(G) === r[1]; }), of: n2 };
+        }),
+        note: '2P Over 1.5: ' + pctStr(o15, n2) + ' · Avg 2P goals: ' + (n2 ? (sum2 / n2).toFixed(2) : '&mdash;') + ' · ' + gamesTxt(n2) },
+      { title: '2nd Period Scoring', subtitle: 'Who breaks it open', n: n2, bars: true,
+        rows: [
+          { label: '2P Over 0.5', count: countWhere(p2, function(G) { return g2(G) > 0; }), of: n2 },
+          { label: '2P Over 1.5', count: o15, of: n2 },
+          { label: '2P BTTS', count: countWhere(p2, function(G) { return G.src.awayP2 >= 1 && G.src.homeP2 >= 1; }), of: n2 },
+          { label: 'First 2P goal: Home', count: countWhere(p2, function(G) { return G.src.firstGoal2P === 'home'; }), of: n2 },
+          { label: 'First 2P goal: Road', count: countWhere(p2, function(G) { return G.src.firstGoal2P === 'away'; }), of: n2 },
+          { label: 'No 2P goal', count: countWhere(p2, function(G) { return !G.src.firstGoal2P; }), of: n2 },
+          { label: 'First 2P goal: 1P Favorite', count: countWhere(priced, function(G) { return G.src.firstGoal2P === G.favSide; }), of: np },
+          { label: 'First 2P goal: 1P Underdog', count: countWhere(priced, function(G) { return G.src.firstGoal2P && G.src.firstGoal2P !== G.favSide; }), of: np }
+        ],
+        note: gamesTxt(n2) + ' · favorite rows: ' + pricedNote },
+      { title: 'Finish', subtitle: 'How 0-0 starts end', n: n2, bars: true,
+        rows: [
+          { label: 'Decided in regulation', count: countWhere(p2, function(G) { return !G.src.ot; }), of: n2 },
+          { label: 'Went to OT', count: countWhere(p2, function(G) { return G.src.ot === 'OT'; }), of: n2 },
+          { label: 'Went to a shootout', count: countWhere(p2, function(G) { return G.src.ot === 'SO'; }), of: n2 },
+          { label: 'Home team won', count: countWhere(p2, function(G) { return G.src.homeFinal > G.src.awayFinal; }), of: n2 },
+          { label: '1P favorite won', count: countWhere(priced, function(G) {
+            return (G.favSide === 'home') === (G.src.homeFinal > G.src.awayFinal); }), of: np }
+        ],
+        note: gamesTxt(n2) + ' · favorite row: ' + pricedNote }
+    ];
+  }
+
   function pctStr(count, of) { return of ? Math.round((count / of) * 100) + '%' : '&mdash;'; }
 
   // ---- Stats page rendering ----
@@ -2698,6 +2752,7 @@
     advSituational: ['Unlock Situational Results', 'Rest edges, back-to-backs, bounce-backs and divisional trends for every market.'],
     advGoals: ['Unlock Goal Stats', 'Overs ladder, goal splits and shutout bounce-backs for 1st-period totals.'],
     advBoard: ['Unlock the Money Board', '1st-period units by home/road, favorite/underdog and price.'],
+    advIntermission: ['Unlock Intermission Edge', 'What happens after a 0-0 1st period, for live 2nd-period and full-game bets.'],
     leagueTrendsSection: ['Unlock League Trends', 'League-wide angles for every game on today’s slate.'],
     trendsSection: ['Unlock Trends to Watch', 'Back-to-backs, bounce-backs and situational spots for every game on the slate.']
   };
@@ -2757,6 +2812,11 @@
     renderAdvSection('advBoard',
       advHead('Money Board', '1P moneyline at closing prices', pillGroup('View', 'data-board-view', [['pct', 'Win %'], ['units', 'Profit']], advState.boardView)),
       moneyBoardCards());
+    var IP = intermissionPool();
+    renderAdvSection('advIntermission',
+      advHead('Intermission Edge', 'After a 0-0 1st period · bet the 2nd live') +
+        '<div class="adv-card-sub">' + IP.zero.length + ' games were 0-0 after one this season (' + pctStr(IP.zero.length, IP.all.length) + ' of all games).</div>',
+      intermissionCards(IP));
     document.querySelectorAll('[data-situ-market]').forEach(function(b) {
       b.onclick = function() { advState.situMarket = b.getAttribute('data-situ-market'); renderAdvancedStats(); };
     });

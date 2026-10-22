@@ -54,6 +54,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import league_trends  # noqa: E402
+import periods  # noqa: E402
 import home  # noqa: E402
 import icons  # noqa: E402
 import sport_build  # noqa: E402
@@ -105,7 +106,7 @@ TEAM_DIVISIONS = {
 # First day of the 2026-27 regular season. Stats, trends, team pages and
 # the Games-page calendar only cover games from this date on -- anything
 # earlier is preseason.
-SEASON_START = '2026-09-29'
+SEASON_START = periods.SEASON_START
 
 # Short opponent names for team-page game logs (same style the archived
 # season file used).
@@ -789,6 +790,13 @@ def main():
             if odds:
                 g = dict(g)
                 g['odds'] = odds
+            # Period scores saved earlier (or by backfill_periods.py) stay
+            # when this fetch didn't produce them for the game.
+            prev = prev_games_by_id.get(g.get('id'))
+            if prev:
+                keep = {k: prev[k] for k in ('awayP1', 'homeP1') + periods.PERIOD_FIELDS if k in prev and k not in g}
+                if keep:
+                    g = dict(g, **keep)
             merged_list.append(g)
         merged_games[date_str] = merged_list
 

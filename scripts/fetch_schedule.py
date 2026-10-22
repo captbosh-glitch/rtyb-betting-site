@@ -5,7 +5,12 @@ shape RTYB's front end expects:
 
   { "gameCounts": {"YYYY-MM-DD": <int>, ...},
     "games": {"YYYY-MM-DD": [ {id, away, home, startTimeUTC, state,
-                                awayFinal, homeFinal, ot, awayP1, homeP1}, ... ] } }
+                                awayFinal, homeFinal, ot, awayP1, homeP1,
+                                awayP2, homeP2, awayP3, homeP3, firstGoal2P}, ... ] } }
+
+Period scores come from the goal list (scripts/periods.py), with the sanity
+rule there; a game that fails it is logged and keeps its 2P / 3P fields
+None. Games older than the window are filled in by backfill_periods.py.
 
 Only dates within WINDOW_DAYS_BACK..WINDOW_DAYS_FWD of "today" (UTC) are
 covered -- that matches what the date bar in the UI lets people reach without
@@ -32,6 +37,8 @@ import time
 import urllib.request
 import urllib.error
 from datetime import datetime, timedelta, timezone
+
+import periods
 
 WINDOW_DAYS_BACK = 10
 WINDOW_DAYS_FWD = 10
@@ -65,6 +72,16 @@ def first_period_score(goals):
             away_p1 = g.get('awayScore', away_p1)
             home_p1 = g.get('homeScore', home_p1)
     return away_p1, home_p1
+
+
+def set_periods(entry, goals, source):
+    """Save 1P / 2P / 3P scores on a FINAL game from its goal list; a game
+    failing the sanity rule is logged and keeps its 2P / 3P fields None."""
+    fields, err = periods.parse(goals, entry.get('awayFinal'), entry.get('homeFinal'), entry.get('ot') or '')
+    if err:
+        print(f"WARN: {entry.get('id')} {entry.get('away')}@{entry.get('home')} ({source}): {err}; 2P/3P left empty", file=sys.stderr)
+    entry.update(fields)
+    return err
 
 
 def main():
@@ -126,6 +143,8 @@ def main():
                     away_p1, home_p1 = first_period_score(goals)
                     entry['awayP1'] = away_p1
                     entry['homeP1'] = home_p1
+                    if state in ('FINAL', 'OFF'):
+                        set_periods(entry, periods.goals_from_score(goals), 'score')
             day_games.append(entry)
 
         games_by_date[d] = day_games
@@ -139,15 +158,14 @@ def main():
                 landing = fetch_json(f'https://api-web.nhle.com/v1/gamecenter/{entry["id"]}/landing')
                 if not landing:
                     continue
-                periods = (landing.get('summary') or {}).get('scoring') or []
-                away_p1 = home_p1 = 0
-                for p in periods:
-                    if p.get('periodDescriptor', {}).get('number') == 1:
-                        away_p1 = p.get('awayScore', 0)
-                        home_p1 = p.get('homeScore', 0)
-                        break
-                entry['awayP1'] = away_p1
-                entry['homeP1'] = home_p1
+                # The landing's period entries carry no score of their own
+                # (an earlier version read awayScore/homeScore there and
+                # saved 0-0 for every game that came through this path);
+                # the running score is on each goal.
+                goals = periods.goals_from_landing(landing)
+                if goals is None:
+                    continue
+                set_periods(entry, goals, 'landing')
 
     out = {'gameCounts': game_counts, 'games': games_by_date}
     with open('schedule_fresh.json', 'w', encoding='utf-8') as f:
