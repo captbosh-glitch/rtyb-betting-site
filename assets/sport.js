@@ -17,7 +17,11 @@
   var SECTION = app.getAttribute('data-section');
   var TEAM = app.getAttribute('data-team');
   var D = null;
-  var SEG_KEY = 'rtyb-seg-' + SPORT_SLUG;
+  // The selected segment pill (1st Quarter / 1st Half / ...). Every page
+  // load starts on the sport's first segment -- its order in
+  // scripts/sports.py, 1st Quarter first -- and nothing is remembered
+  // between visits, so a new sport gets the right default automatically.
+  var SEG_CUR = null;
 
   // ---------------------------------------------------------------- utils
   function esc(s) {
@@ -90,12 +94,8 @@
   function segs() { return D.segments; }
   function seg(k) { return D.segments.filter(function(s) { return s.key === k; })[0]; }
   function isRfi(k) { return D.sportType === 'baseball' && k === '1i'; }
-  function getSeg() {
-    var s = null;
-    try { s = localStorage.getItem(SEG_KEY); } catch (e) {}
-    return seg(s) ? s : D.segments[0].key;
-  }
-  function setSeg(k) { try { localStorage.setItem(SEG_KEY, k); } catch (e) {} }
+  function getSeg() { return seg(SEG_CUR) ? SEG_CUR : D.segments[0].key; }
+  function setSeg(k) { SEG_CUR = k; }
   function segToggle(id, cur, attr) {
     if (D.segments.length < 2) return '';
     return '<div class="seg-toggle" id="' + id + '">' + D.segments.map(function(s) {
