@@ -1585,7 +1585,7 @@
   function isPartySpot(c) { return c.side === 'away' && c.prev && c.prev.home !== c.team && !!partyCityOf(c.prev.home); }
   function recLine(r) {
     var u = recUnits(r);
-    return r.w + '-' + r.l + '-' + r.t + ' in the 1P' + (u !== null ? ' (' + fmtUnits(u) + ')' : '');
+    return r.w + 'W · ' + r.l + 'L · ' + r.t + 'T in the 1P' + (u !== null ? ' (' + fmtUnits(u) + ')' : '');
   }
   function spotFlagsForGame(g) {
     var S = rtybStats(), st = spotStats();
@@ -1602,7 +1602,7 @@
     G.sides.forEach(function(c) {
       if (c.rest === 0) {
         var p = recWinPct(st.b2b) || 0, fu = recUnits(st.fade);
-        flag(c, p > 0.5, 'On a back-to-back · B2B teams are ' + recLine(st.b2b) + (fu !== null ? ' · Fade B2B ' + fmtUnits(fu) : ''), p, st.b2b.n);
+        flag(c, p > 0.5, 'On a back-to-back · B2B teams are ' + recLine(st.b2b) + (fu !== null ? ' · Fade B2B ' + fmtUnits(fu) : ''), p, st.b2b.w + st.b2b.l);
       }
       if (c.prev && c.prev.shutout) {
         var sr = st.shut.n ? st.shut.scored / st.shut.n : 0;
@@ -1610,12 +1610,12 @@
       }
       if (c.prev && c.prev.lost) {
         var r = c.prev.lostBy3 ? st.offLoss3 : st.offLoss, lp = recWinPct(r) || 0;
-        flag(c, lp > 0.5, (c.prev.lostBy3 ? 'Off a ' + c.prev.score + ' loss (by 3+) · teams off a 3+ goal loss are ' : 'Off a ' + c.prev.score + ' loss · teams off a loss are ') + recLine(r), lp, r.n);
+        flag(c, lp > 0.5, (c.prev.lostBy3 ? 'Off a ' + c.prev.score + ' loss (by 3+) · teams off a 3+ goal loss are ' : 'Off a ' + c.prev.score + ' loss · teams off a loss are ') + recLine(r), lp, r.w + r.l);
       }
       if (isPartySpot(c)) {
         var pp = recWinPct(st.party) || 0;
         flag(c, pp > 0.5, 'Party City spot: first game after ' + partyCityOf(c.prev.home) + (c.rest >= 1 ? ', with an off day there' : ', no off day') +
-          ' · road teams in this spot are ' + recLine(st.party), pp, st.party.n);
+          ' · road teams in this spot are ' + recLine(st.party), pp, st.party.w + st.party.l);
       }
     });
     return flags;
@@ -2833,18 +2833,22 @@
     btts: { hit: 'BTTS',      miss: 'No BTTS',   streakKey: 'btts', rateKey: 'btts' }
   };
   var TREND3_MIN_STREAK = 4;
-  var TREND3_RATE_MIN_GP = 5;
+  var TREND3_RATE_MIN_GP = 5;   // games for Over 1.5 / BTTS; decisions (W + L) for the moneyline
   var TREND3_RATE_HIGH = 0.75;
   var TREND3_RATE_LOW = 0.25;
   var TREND3_MATCHUP_THRESHOLD = 0.60;
   var TREND3_MATCHUP_MIN_GP = 5; // both teams need this many games before a Matchup Angle shows
 
+  // Moneyline rates are over decisions (W + L): a 1st-period tie is a push,
+  // never a loss. Over 1.5 / BTTS have no push, so they're over games.
   function marketRateFrac(code, marketKey) {
     var sp = DATA.summary[code] && DATA.summary[code].splits.Both;
     if (!sp || !sp.gp) return null;
-    var hit = marketKey === 'win' ? sp.w : sp[marketKey];
-    return hit / sp.gp;
+    if (marketKey === 'win') return (sp.w + sp.l) ? sp.w / (sp.w + sp.l) : null;
+    return sp[marketKey] / sp.gp;
   }
+  // "1W · 4L · 4T": the record behind a moneyline rate, ties shown.
+  function wltText(sp) { return sp.w + 'W · ' + sp.l + 'L · ' + sp.t + 'T'; }
 
   function buildTrend3Cards() {
     var cards = [];
@@ -2882,7 +2886,23 @@
       if (both.gp < TREND3_RATE_MIN_GP) return;
       Object.keys(TREND3_WORDS).forEach(function(mk) {
         var meta = TREND3_WORDS[mk];
-        var hit = mk === 'win' ? both.w : both[mk];
+        if (mk === 'win') {
+          // Moneyline: rate over decisions (W + L); ties are pushes, shown
+          // in the record and never counted as losses.
+          var dec = both.w + both.l;
+          if (dec < TREND3_RATE_MIN_GP) return;
+          var wr = both.w / dec;
+          if (wr >= TREND3_RATE_HIGH || wr <= TREND3_RATE_LOW) {
+            var won = wr >= TREND3_RATE_HIGH;
+            cards.push({
+              code: code, name: s.name, market: mk, good: won,
+              text: (won ? 'Won ' + both.w : 'Lost ' + both.l) + ' of ' + dec + ' decisions in the 1st period (' + wltText(both) + ')',
+              strength: Math.abs(wr - 0.5) * 200
+            });
+          }
+          return;
+        }
+        var hit = both[mk];
         var pct = hit / both.gp;
         if (pct >= TREND3_RATE_HIGH) {
           cards.push({
@@ -2950,6 +2970,10 @@
         if (DATA.summary[g.away].splits.Both.gp < TREND3_MATCHUP_MIN_GP || DATA.summary[g.home].splits.Both.gp < TREND3_MATCHUP_MIN_GP) return;
         Object.keys(TREND3_WORDS).forEach(function(mk) {
           if (trendState.market !== 'all' && trendState.market !== mk) return;
+          if (mk === 'win') {
+            var da = DATA.summary[g.away].splits.Both, dh = DATA.summary[g.home].splits.Both;
+            if (da.w + da.l < TREND3_MATCHUP_MIN_GP || dh.w + dh.l < TREND3_MATCHUP_MIN_GP) return;
+          }
           var awayRate = marketRateFrac(g.away, mk);
           var homeRate = marketRateFrac(g.home, mk);
           if (awayRate == null || homeRate == null) return;
