@@ -158,6 +158,12 @@ class Rec:
         return self.w + self.l + self.t
 
     @property
+    def decisions(self):
+        """W + L: ties and pushes aren't decisions (they're 0u and left
+        out of rates, and minimum samples count decisions, not games)."""
+        return self.w + self.l
+
+    @property
     def rate(self):
         return self.w / (self.w + self.l) if (self.w + self.l) else None
 
@@ -534,7 +540,7 @@ def generate_for_date(sp, teams, games, d, slate=None):
                         out.append(side_pick(teams, G, k, market, cc, lab))
                     return out
                 rate, units = r.rate, (r.units if r.priced else None)
-                if r.n >= CONFIG['min_games'] and rate is not None:
+                if r.decisions >= CONFIG['min_games'] and rate is not None:
                     diff = (rate - 0.5) * 100
                     if abs(diff) >= CONFIG['rate_diff_pts'] or (units is not None and abs(units) >= CONFIG['units_threshold']):
                         fade = (units is not None and units <= -CONFIG['units_threshold']) or \
@@ -542,13 +548,13 @@ def generate_for_date(sp, teams, games, d, slate=None):
                         u_txt = f' ({fmt_units(units)})' if units is not None else ''
                         sentence = (f'Fade: {noun} are' if fade else f'{noun} are') + \
                             f' {r.w}-{r.l}-{r.t} {mword} in {seg_label(sp, k)} this season{u_txt}'
-                        score = abs(diff) * math.sqrt(r.n)
+                        score = abs(diff) * math.sqrt(r.decisions)
                         if units is not None and r.priced:
                             score = max(score, abs(units / r.priced) * 100 * math.sqrt(r.priced))
                         cands.append({'id': f'rate:{key}:{k}:{market}', 'family': f'{pair or key}:{market}', 'market': tag,
-                                      'sentence': sentence, 'record': f'{r.w}-{r.l}-{r.t}', 'units': units, 'n': r.n,
+                                      'sentence': sentence, 'record': f'{r.w}-{r.l}-{r.t}', 'units': units, 'n': r.decisions,
                                       'priced': r.priced, 'odds_based': market == 'ats' or priced_only,
-                                      'fade': fade, 'small': r.n < CONFIG['small_rate'], 'score': score, 'games': picks(fade)})
+                                      'fade': fade, 'small': r.decisions < CONFIG['small_rate'], 'score': score, 'games': picks(fade)})
                 seq.reverse()
                 if seq and seq[0] in ('W', 'L'):
                     n = 0
@@ -583,7 +589,7 @@ def generate_for_date(sp, teams, games, d, slate=None):
                         r.add(fn(res), None if u is None else u[ui])
                     for G in fam_pool:
                         lg.add(fn(G['g']['_res'][k]), None)
-                    if r.n < CONFIG['min_games'] or not lg.n or r.rate is None or lg.rate is None:
+                    if r.decisions < CONFIG['min_games'] or not lg.n or r.rate is None or lg.rate is None:
                         continue
                     rate, lrate = r.rate, lg.rate
                     units = r.units if r.priced else None
@@ -599,8 +605,8 @@ def generate_for_date(sp, teams, games, d, slate=None):
                         c = {'id': f'rate:{key}:{k}:{tag}', 'family': f'{key}:{fam}',
                              'market': 'NRFI/YRFI' if fam == 'rfi' else seg_tag(sp, k, 'tot'),
                              'sentence': sentence, 'record': f'{r.w}-{r.l}' + (f'-{r.t}' if r.t else '') + f' ({round(rate * 100)}%)',
-                             'units': units, 'n': r.n, 'priced': r.priced, 'odds_based': fam == 'tot' or priced_only,
-                             'fade': fade, 'small': r.n < CONFIG['small_rate'], 'score': abs(diff) * math.sqrt(r.n),
+                             'units': units, 'n': r.decisions, 'priced': r.priced, 'odds_based': fam == 'tot' or priced_only,
+                             'fade': fade, 'small': r.decisions < CONFIG['small_rate'], 'score': abs(diff) * math.sqrt(r.decisions),
                              'games': [game_pick(sp, teams, G, k, pick_tag) for G in games_tonight]}
                         if best is None or c['score'] > best['score']:
                             best = c
