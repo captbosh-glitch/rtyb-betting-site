@@ -1226,6 +1226,21 @@
   .dist-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; min-width: 0; }
   .dist-bar { width: 100%; background: var(--accent); opacity: 0.75; border-radius: 3px 3px 0 0; }
   .dist-lbl { font-size: 0.58rem; color: var(--text-muted); margin-top: 3px; white-space: nowrap; font-family: 'JetBrains Mono', monospace; }
+  /* Scoring distribution, horizontal (other sports' Stats page) */
+  .hdist { display: flex; flex-direction: column; gap: 5px; }
+  .hd-row { display: grid; grid-template-columns: 52px 1fr; gap: 8px; align-items: center; }
+  .hd-lbl { font-size: 0.72rem; color: var(--text-muted); text-align: right; white-space: nowrap; }
+  .hd-track { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .hd-bar { height: 22px; background: var(--accent); border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; min-width: 3px; }
+  .hd-val { font: 600 0.74rem 'JetBrains Mono', monospace; white-space: nowrap; }
+  .hd-val.in { color: #fff; padding: 0 7px; }
+  .hd-val.in .hd-sub { color: rgba(255, 255, 255, 0.72); }
+  .hd-val.out { color: var(--text); }
+  .hd-sub { color: var(--text-muted); font-weight: 500; }
+  .tf-week { min-height: 34px; }
+  #statsSeason .sc-right { flex-wrap: wrap; justify-content: flex-end; }
+  #statsScoring { margin-top: 14px; }
+  @media (max-width: 480px) { .hd-row { grid-template-columns: 40px 1fr; } .hd-val { font-size: 0.68rem; } }
   .lt-top .gm-team { display: inline-flex; flex-shrink: 0; }
 
   /* ---------- Team detail page ---------- */
