@@ -24,7 +24,13 @@ Saved game:
    "periods_done", "final", "season", "season_type" (2 regular, 3 post),
    "week", "week_label" (football: ESPN's week number and its calendar
    label, e.g. 6 / "Week 6", or 1 / "Wild Card" in the postseason),
-   "conf_game", "neutral", "note"}
+   "conf_game", "neutral", "note", "country" (venue country, e.g. "USA" /
+   "England"), "away_rank", "home_rank" (college: the AP / CFP rank ESPN
+   shows for the game, i.e. at kickoff; None when unranked)}
+
+Games saved before a field existed are refetched by date in daily runs
+(backfill_fields: up to BACKFILL_DATES dates per sport per run), so new
+fields fill in across the season without a manual reload.
 """
 import json
 import os
@@ -154,6 +160,10 @@ def parse_event(sport, ev, team_slugs, labels=None):
     n_played = min(len(side['away']['ls']), len(side['home']['ls']))
     notes = [n.get('headline') for n in comp.get('notes') or [] if n.get('headline')]
     week = (ev.get('week') or {}).get('number')
+    ranks = {}
+    for c in comp['competitors']:
+        r = (c.get('curatedRank') or {}).get('current')
+        ranks[c['homeAway']] = r if isinstance(r, int) and 1 <= r <= 25 else None
     return {
         'id': ev['id'],
         'date': local,
@@ -173,6 +183,8 @@ def parse_event(sport, ev, team_slugs, labels=None):
         'note': notes[0] if notes else None,
         'week': week,
         'week_label': (labels or {}).get((season.get('type'), week)) if week else None,
+        'country': ((comp.get('venue') or {}).get('address') or {}).get('country'),
+        'away_rank': ranks.get('away'), 'home_rank': ranks.get('home'),
     }
 
 
@@ -258,13 +270,32 @@ def date_range(start, end):
     return out
 
 
+# Saved-game fields added after games were first loaded; a game without
+# one has its date refetched (BACKFILL_DATES per sport per run).
+NEW_FIELDS = ('country', 'away_rank')
+BACKFILL_DATES = 20
+
+
+def backfill_dates(sport):
+    """Dates in the sport's latest season with a game missing a NEW_FIELDS
+    key, oldest first, capped."""
+    d = os.path.join(GAMES_DIR, sport)
+    seasons = sorted(n for n in os.listdir(d) if n[:4].isdigit()) if os.path.isdir(d) else []
+    if not seasons:
+        return []
+    games = read_json(os.path.join(d, seasons[-1]), {}).get('games', {}).values()
+    return sorted({g['date'] for g in games if any(f not in g for f in NEW_FIELDS)})[:BACKFILL_DATES]
+
+
 def daily():
     today = datetime.now(ET).date()
     dates = date_range((today - timedelta(days=1)).isoformat(), (today + timedelta(days=7)).isoformat())
     for sport in SOURCES:
         fails = sorted(read_json(os.path.join(GAMES_DIR, sport, 'failures.json'), {}))
-        saved, failed = fetch_dates(sport, sorted(set(dates) | set(fails[-14:])), verbose=False)
-        print(f'{sport}: {saved} games' + (f', {len(failed)} dates failed' if failed else ''))
+        back = backfill_dates(sport)
+        saved, failed = fetch_dates(sport, sorted(set(dates) | set(fails[-14:]) | set(back)), verbose=False)
+        print(f'{sport}: {saved} games' + (f' ({len(back)} older dates refetched for new fields)' if back else '')
+              + (f', {len(failed)} dates failed' if failed else ''))
 
 
 # Periods a final needs for every segment to grade (MLB: 5 innings for F5).

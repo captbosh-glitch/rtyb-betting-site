@@ -439,6 +439,10 @@ def lighten(html, page_dir):
     html = STYLE_RE.sub(lambda m: f'<link rel="stylesheet" href="{prefix}assets/site.css">', html, count=1)
     shell = SHELL_JS.replace('__SPORT_SLUGS_JSON__', json.dumps([sp['slug'] for sp in sports.SPORTS]))
     if 'id="sportApp"' in html:
+        # the sport's Situational Results registry (assets/splits/), if it has one
+        key = next((sp['key'] for sp in sports.SPORTS if sp['slug'] == page_dir.split('/')[0]), '')
+        if os.path.exists(os.path.join(ROOT, 'assets', 'splits', f'{key}.js')):
+            shell += f'\n<script src="{prefix}assets/splits/{key}.js"></script>'
         shell += f'\n<script src="{prefix}assets/sport.js"></script>'
         html = html.replace('<body ', f'<body data-sport-slug="{page_dir.split("/")[0]}" ', 1)
     html = html.replace('__ROOT__/', prefix)   # team logo paths (icons.team_logo)

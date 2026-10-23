@@ -772,6 +772,9 @@ def game_out(g):
         'note': g.get('note'), 'post': g.get('season_type') == 3, 'neutral': g.get('neutral') or False,
         'odds': g['_odds'] or None, 'res': {k: v for k, v in g['_res'].items() if v} or None,
         'wk': week_key(g),
+        # outside the US (International games); None = not known yet
+        'intl': None if g.get('country') is None else g['country'] not in ('USA', 'United States'),
+        'ar': g.get('away_rank'), 'hr': g.get('home_rank'),
     }
 
 
