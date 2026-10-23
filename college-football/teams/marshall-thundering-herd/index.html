@@ -29,13 +29,26 @@
       <a class="nav-link" href="/college-football/stats/" >Stats</a>
       <a class="nav-link" href="/college-football/trends/" >Trends</a>
       <a class="nav-link" href="/college-football/teams/" >Teams</a>
-      <a class="nav-link nav-mobile-only" href="/#premium">Sign in</a>
-      <a class="nav-premium nav-mobile-only" href="/#premium">Go Premium</a>
+      <a class="nav-link nav-mobile-only acct-menu-signin" href="/#premium">Sign in</a>
+      <a class="nav-premium nav-mobile-only acct-menu-premium" href="/#premium">Go Premium</a>
     </nav>
 
     <div class="nav-account">
       <a class="nav-link" href="/#premium">Sign in</a>
       <a class="nav-premium" href="/#premium">Go Premium</a>
+    </div>
+    <div class="acct-m" id="acctM">
+      <a class="acct-pill acct-signin" href="/#premium"><span>Sign In</span></a>
+      <a class="acct-pill acct-gold" href="/#premium"><span>Go Premium</span></a>
+      <div class="acct-user" hidden>
+        <button class="acct-avatar" id="acctAvatar" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="acctMenu" aria-label="Account menu"><span class="acct-face" id="acctFace"></span></button>
+        <div class="acct-menu" id="acctMenu" hidden>
+          <div class="acct-name" id="acctName"></div>
+          <a class="acct-item" href="/#premium">Profile</a>
+          <a class="acct-item" id="acctSub" href="/#premium">Go Premium</a>
+          <button class="acct-item" id="acctSignOut" type="button">Sign Out</button>
+        </div>
+      </div>
     </div>
 
     <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
@@ -44,6 +57,63 @@
     </button>
   </div>
 </header>
+<script>
+(function() {
+  'use strict';
+  var KEY = 'rtyb-user', preview = null;
+  try {
+    var m = /[?&]user=([^&#]*)/.exec(window.location.search);
+    if (m) preview = { name: 'Test User', premium: m[1] === 'premium' };
+  } catch (e) {}
+  function current() {
+    if (preview) return preview;
+    try { var u = JSON.parse(localStorage.getItem(KEY) || 'null'); return u && u.name ? u : null; } catch (e) { return null; }
+  }
+  function initials(name) {
+    var p = String(name).trim().split(/\s+/);
+    return ((p[0] || '').charAt(0) + (p.length > 1 ? p[p.length - 1].charAt(0) : '')).toUpperCase() || '?';
+  }
+  function render() {
+    var box = document.getElementById('acctM');
+    if (!box) return;
+    var u = current(), signedIn = !!u;
+    document.documentElement.classList.toggle('rtyb-signed-in', signedIn);
+    box.querySelector('.acct-user').hidden = !signedIn;
+    [].forEach.call(box.querySelectorAll('.acct-pill'), function(a) { a.hidden = signedIn; });
+    if (!signedIn) return;
+    var face = document.getElementById('acctFace');
+    face.innerHTML = '';
+    if (u.photo) { var img = document.createElement('img'); img.src = u.photo; img.alt = ''; face.appendChild(img); }
+    else face.textContent = initials(u.name);
+    document.getElementById('acctName').textContent = u.name;
+    document.getElementById('acctSub').textContent = u.premium ? 'Subscription' : 'Go Premium';
+  }
+  function setMenu(open) {
+    var menu = document.getElementById('acctMenu'), btn = document.getElementById('acctAvatar');
+    if (!menu) return;
+    menu.hidden = !open;
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  window.rtybAccount = {
+    get: current,
+    set: function(u) {
+      preview = null;
+      try { if (u) localStorage.setItem(KEY, JSON.stringify(u)); else localStorage.removeItem(KEY); } catch (e) {}
+      setMenu(false); render();
+    }
+  };
+  function init() {
+    render();
+    var btn = document.getElementById('acctAvatar');
+    if (!btn) return;
+    btn.addEventListener('click', function(e) { e.stopPropagation(); setMenu(document.getElementById('acctMenu').hidden); });
+    document.getElementById('acctSignOut').addEventListener('click', function() { window.rtybAccount.set(null); });
+    document.addEventListener('click', function(e) { if (!e.target.closest('.acct-user')) setMenu(false); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') setMenu(false); });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
 
 <main>
   <div class="page-head">

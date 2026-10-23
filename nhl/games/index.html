@@ -350,6 +350,55 @@
     font: 800 1.05rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.05em;
   }
   .nav-mobile-only { display: none; }
+
+  /* ---------- Phone account controls (scripts/account.py), below 640px ---------- */
+  .acct-m { display: none; align-items: center; gap: 2px; flex-shrink: 0; }
+  .acct-pill { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0 2px; text-decoration: none; }
+  .acct-pill[hidden] { display: none; }
+  .acct-pill span {
+    display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 999px; white-space: nowrap;
+    font: 800 0.9rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .acct-signin span { border: 1px solid var(--border); color: var(--text); background: transparent; }
+  .acct-gold span { background: var(--gold); color: var(--on-gold); }
+  .acct-user { position: relative; }
+  .acct-user[hidden] { display: none; }
+  .acct-avatar { width: 44px; height: 44px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .acct-face {
+    width: 36px; height: 36px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;
+    background: var(--accent); color: #fff; font: 800 0.95rem 'Barlow Condensed', sans-serif; letter-spacing: 0.04em;
+    box-shadow: 0 0 0 2px var(--panel-2);
+  }
+  .acct-face img { width: 100%; height: 100%; object-fit: cover; }
+  .acct-menu {
+    position: absolute; right: 0; top: calc(100% + 6px); min-width: 190px; z-index: 60;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 6px;
+    box-shadow: 0 12px 32px var(--shadow); display: flex; flex-direction: column;
+  }
+  .acct-menu[hidden] { display: none; }
+  .acct-name { padding: 8px 10px 6px; font-size: 0.78rem; color: var(--text-muted); border-bottom: 1px solid var(--border-soft); margin-bottom: 4px; }
+  .acct-item {
+    display: flex; align-items: center; min-height: 44px; padding: 0 10px; border-radius: 7px; border: 0; background: none;
+    color: var(--text); font: 600 0.92rem 'Source Sans 3', sans-serif; text-decoration: none; text-align: left; cursor: pointer;
+  }
+  .acct-item:hover { background: var(--panel-2); }
+  #acctSub { color: var(--gold); }
+  @media (max-width: 640px) {
+    .acct-m { display: flex; margin-left: auto; }
+    .top-inner { gap: 6px; padding-left: 16px; padding-right: 16px; }
+    .top-inner .theme-toggle { margin-left: 0; width: 44px; height: 44px; }
+    .hamburger { width: 44px; height: 44px; }
+    /* the pills (or the avatar) replace the menu's account links */
+    .main-nav .acct-menu-premium { display: none; }
+    html.rtyb-signed-in .main-nav .acct-menu-signin { display: none; }
+  }
+  @media (max-width: 480px) {
+    /* tight: Go Premium stays, Sign In is in the menu */
+    .acct-signin { display: none; }
+  }
+  @media (min-width: 481px) and (max-width: 640px) {
+    .main-nav .acct-menu-signin { display: none; }
+  }
   .nav-dropdown-item .soon { margin-left: auto; padding-left: 12px; font-size: 0.68rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.04em; }
 
   /* ---------- Team logos (light/dark SVG, w/ circle+abbrev fallback) ---------- */
@@ -1216,13 +1265,26 @@
       <a class="nav-link" href="/nhl/1st-period-stats/" >Stats</a>
       <a class="nav-link" href="/nhl/trends/" >Trends</a>
       <a class="nav-link" href="/nhl/teams/" >Teams</a>
-      <a class="nav-link nav-mobile-only" href="/#premium">Sign in</a>
-      <a class="nav-premium nav-mobile-only" href="/#premium">Go Premium</a>
+      <a class="nav-link nav-mobile-only acct-menu-signin" href="/#premium">Sign in</a>
+      <a class="nav-premium nav-mobile-only acct-menu-premium" href="/#premium">Go Premium</a>
     </nav>
 
     <div class="nav-account">
       <a class="nav-link" href="/#premium">Sign in</a>
       <a class="nav-premium" href="/#premium">Go Premium</a>
+    </div>
+    <div class="acct-m" id="acctM">
+      <a class="acct-pill acct-signin" href="/#premium"><span>Sign In</span></a>
+      <a class="acct-pill acct-gold" href="/#premium"><span>Go Premium</span></a>
+      <div class="acct-user" hidden>
+        <button class="acct-avatar" id="acctAvatar" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="acctMenu" aria-label="Account menu"><span class="acct-face" id="acctFace"></span></button>
+        <div class="acct-menu" id="acctMenu" hidden>
+          <div class="acct-name" id="acctName"></div>
+          <a class="acct-item" href="/#premium">Profile</a>
+          <a class="acct-item" id="acctSub" href="/#premium">Go Premium</a>
+          <button class="acct-item" id="acctSignOut" type="button">Sign Out</button>
+        </div>
+      </div>
     </div>
 
     <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
@@ -1231,6 +1293,63 @@
     </button>
   </div>
 </header>
+<script>
+(function() {
+  'use strict';
+  var KEY = 'rtyb-user', preview = null;
+  try {
+    var m = /[?&]user=([^&#]*)/.exec(window.location.search);
+    if (m) preview = { name: 'Test User', premium: m[1] === 'premium' };
+  } catch (e) {}
+  function current() {
+    if (preview) return preview;
+    try { var u = JSON.parse(localStorage.getItem(KEY) || 'null'); return u && u.name ? u : null; } catch (e) { return null; }
+  }
+  function initials(name) {
+    var p = String(name).trim().split(/\s+/);
+    return ((p[0] || '').charAt(0) + (p.length > 1 ? p[p.length - 1].charAt(0) : '')).toUpperCase() || '?';
+  }
+  function render() {
+    var box = document.getElementById('acctM');
+    if (!box) return;
+    var u = current(), signedIn = !!u;
+    document.documentElement.classList.toggle('rtyb-signed-in', signedIn);
+    box.querySelector('.acct-user').hidden = !signedIn;
+    [].forEach.call(box.querySelectorAll('.acct-pill'), function(a) { a.hidden = signedIn; });
+    if (!signedIn) return;
+    var face = document.getElementById('acctFace');
+    face.innerHTML = '';
+    if (u.photo) { var img = document.createElement('img'); img.src = u.photo; img.alt = ''; face.appendChild(img); }
+    else face.textContent = initials(u.name);
+    document.getElementById('acctName').textContent = u.name;
+    document.getElementById('acctSub').textContent = u.premium ? 'Subscription' : 'Go Premium';
+  }
+  function setMenu(open) {
+    var menu = document.getElementById('acctMenu'), btn = document.getElementById('acctAvatar');
+    if (!menu) return;
+    menu.hidden = !open;
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  window.rtybAccount = {
+    get: current,
+    set: function(u) {
+      preview = null;
+      try { if (u) localStorage.setItem(KEY, JSON.stringify(u)); else localStorage.removeItem(KEY); } catch (e) {}
+      setMenu(false); render();
+    }
+  };
+  function init() {
+    render();
+    var btn = document.getElementById('acctAvatar');
+    if (!btn) return;
+    btn.addEventListener('click', function(e) { e.stopPropagation(); setMenu(document.getElementById('acctMenu').hidden); });
+    document.getElementById('acctSignOut').addEventListener('click', function() { window.rtybAccount.set(null); });
+    document.addEventListener('click', function(e) { if (!e.target.closest('.acct-user')) setMenu(false); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') setMenu(false); });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
 
 <main>
   <div class="page-head">
