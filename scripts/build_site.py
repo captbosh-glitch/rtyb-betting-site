@@ -926,7 +926,7 @@ def main():
     # Home page + Learn, last: they read every sport's data.json.
     home_info = home.build(template, full_data, LOGO_SVG)
 
-    print(f"wrote index.html (home: {home_info['tonight']} games today, {home_info['trends']} trends), learn/, nhl/data.json ({len(data_json)} bytes), "
+    print(f"wrote index.html (home: {home_info['today']} games today, {home_info['trends']} trends), learn/, nhl/data.json ({len(data_json)} bytes), "
           f"nhl/games/index.html ({len(games_html)} bytes), "
           f"nhl/1st-period-stats/index.html ({len(hitrates_html)} bytes), "
           f"nhl/hit-rates/index.html (redirect stub), "

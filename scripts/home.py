@@ -3,11 +3,11 @@ Home page (index.html) and Learn page (learn/index.html), generated at
 build time from the same data every sport page uses: NHL's merged data
 (build_site.py) and each other sport's {slug}/data.json (sport_build.py).
 Static -- the refresh job rebuilds them every run, so "Today" and
-"Last night" are as fresh as the rest of the site.
+"Yesterday" are as fresh as the rest of the site.
 
 Sections, top to bottom: nav (Sports, Today, Trends to Watch, Learn,
 Sign in, Go Premium, theme toggle; full-screen menu on phones), sport
-chips, hero with "Last night on RTYB", Today grid, yesterday's results,
+chips, hero with "Yesterday on RTYB", Today grid, yesterday's results,
 Trends to Watch (first one open, the rest behind the Premium overlay),
 Premium + email signup, Learn links, footer.
 
@@ -26,7 +26,7 @@ import sports
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ET = ZoneInfo('America/New_York')
 PRICE = '[PRICE]'   # Premium price placeholder until it's set
-TONIGHT_SHOWN = 6
+TODAY_SHOWN = 6
 RESULTS_SHOWN = 6
 TRENDS_SHOWN = 5
 
@@ -47,7 +47,7 @@ def signed(n):
 
 
 def units_cell(u):
-    """'Last night' units, after the record: red when negative, green when
+    """'Yesterday' units, after the record: red when negative, green when
     positive."""
     if not u:
         return ''
@@ -175,7 +175,7 @@ def sport_games(doc):
 # ---------------------------------------------------------------- summary
 
 def nhl_recap(games):
-    """'Last night' lines for NHL: 1P favorites and Over 1.5."""
+    """'Yesterday' lines for NHL: 1P favorites and Over 1.5."""
     done = [g for g in games if g['state'] == 'final' and g['segScore']]
     if not done:
         return []
@@ -240,13 +240,13 @@ def game_card(g, kind):
             seg += f' <span class="hc-chip {"w" if r["rfi"] == "N" else "l"}">{"NRFI" if r["rfi"] == "N" else "YRFI"}</span>'
         seg += '</div>'
     lines = ''.join(f'<div class="hc-line">{esc(x)}</div>' for x in (g.get('lines') or []) + (g.get('extra') or []))
-    if kind == 'tonight' and not lines:
+    if kind == 'today' and not lines:
         lines = f'<div class="hc-line muted">{esc(g["seg"])} odds pending</div>'
     team = lambda t: f'<span class="hc-team">{t.get("logo") or badge(t["code"], t["color"], 24)}<span>{esc(t["name"])}</span></span>'
     return (f'<a class="hc-card" href="{esc(g["href"])}">'
             f'<div class="hc-top"><span class="hc-sport">{icons.sport_icon(g["sport"])}{esc(g["label"])}</span><span class="hc-when">{esc(when)}</span></div>'
             f'<div class="hc-teams">{team(g["away"])}<span class="hc-at">@</span>{team(g["home"])}{score}</div>'
-            f'{seg if kind == "results" else ""}{lines if kind == "tonight" else ""}</a>')
+            f'{seg if kind == "results" else ""}{lines if kind == "today" else ""}</a>')
 
 
 def trend_row(t, label):
@@ -473,10 +473,10 @@ def build(template, nhl_data, logo_svg, now_utc=None):
         chip, live, short = sport_status(sp, by_sport.get(sp['key'], {}), today)
         status.append((sp, chip, live, short))
 
-    # tonight: every sport's games today, by start time
-    tonight = sorted((g for k in by_sport for g in by_sport[k].get(today, [])),
+    # today: every sport's games today, by start time
+    today_games = sorted((g for k in by_sport for g in by_sport[k].get(today, [])),
                      key=lambda g: (g.get('start') or '', g['label']))
-    # last night: the latest date before today with finals in any sport
+    # yesterday: the latest date before today with finals in any sport
     past = sorted({d for k in by_sport for d in by_sport[k] if d < today
                    and any(g['state'] == 'final' for g in by_sport[k][d])})
     yday = past[-1] if past else None
@@ -516,28 +516,28 @@ def build(template, nhl_data, logo_svg, now_utc=None):
         rows = ''.join(f'<div class="ln-row"><span class="ln-sport">{esc(s)}</span><span class="ln-what">{esc(w)}</span>'
                        f'<span class="ln-val"><span class="ln-rec">{esc(r)}</span>{units_cell(u)}</span></div>'
                        for s, w, r, u in recap[:6])
-        last = (f'<div class="ln-card"><div class="ln-head"><span>Last night on RTYB</span><span>{esc(day_label(yday))}</span></div>'
+        last = (f'<div class="ln-card"><div class="ln-head"><span>Yesterday on RTYB</span><span>{esc(day_label(yday))}</span></div>'
                 f'{rows}<div class="ln-foot">{len(yday_games)} games graded &middot; <a href="#results">See results</a></div></div>')
     else:
-        last = '<div class="ln-card"><div class="ln-head"><span>Last night on RTYB</span></div><p class="muted">No graded games yet.</p></div>'
+        last = '<div class="ln-card"><div class="ln-head"><span>Yesterday on RTYB</span></div><p class="muted">No graded games yet.</p></div>'
 
     hero = (f'<section class="hh"><div class="hh-copy"><h1><span class="hh-a">The first</span> <span class="hh-b">period.</span><br><span class="hh-a">The first</span> <span class="hh-b">quarter.</span><br><span class="hh-a">The first</span> <span class="hh-b">inning.</span></h1>'
-            f'<p>Records, results and trends for the opening segment of every game &mdash; NHL, NFL, NBA, WNBA, MLB and college.</p>'
+            f'<p>Records, results and trends for the opening segment of every game &mdash; NHL, NBA, WNBA, MLB and NCAA sports.</p>'
             f'<div class="hh-cta"><a class="btn-primary" href="#today">Today&rsquo;s games</a>'
             f'<a class="btn-ghost" href="#premium">Go Premium</a></div></div>{last}</section>')
 
     def grid(games, kind, gid):
         if not games:
             return ''
-        cards = ''.join(game_card(g, kind).replace('class="hc-card"', 'class="hc-card is-extra"', 1) if i >= TONIGHT_SHOWN else game_card(g, kind)
+        cards = ''.join(game_card(g, kind).replace('class="hc-card"', 'class="hc-card is-extra"', 1) if i >= TODAY_SHOWN else game_card(g, kind)
                         for i, g in enumerate(games))
         more = (f'<button class="btn-ghost hp-more" type="button" data-expand="{gid}">All {len(games)} games &rarr;</button>'
-                if len(games) > TONIGHT_SHOWN else '')
+                if len(games) > TODAY_SHOWN else '')
         return f'<div class="hc-grid" id="{gid}">{cards}</div>{more}'
 
-    tonight_html = (f'<section class="hp-sec" id="today"><div class="hp-head"><h2>Today</h2>'
-                    f'<span class="muted">{esc(day_label(today))} &middot; {len(tonight)} game{"s" if len(tonight) != 1 else ""}</span></div>'
-                    + (grid(tonight, 'tonight', 'tonightGrid') or '<p class="hp-empty">No games on the board today.</p>') + '</section>')
+    today_html = (f'<section class="hp-sec" id="today"><div class="hp-head"><h2>Today</h2>'
+                    f'<span class="muted">{esc(day_label(today))} &middot; {len(today_games)} game{"s" if len(today_games) != 1 else ""}</span></div>'
+                    + (grid(today_games, 'today', 'todayGrid') or '<p class="hp-empty">No games on the board today.</p>') + '</section>')
     results_html = ''
     if yday_games:
         results_html = (f'<section class="hp-sec" id="results"><div class="hp-head"><h2>Yesterday&rsquo;s results</h2>'
@@ -576,7 +576,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
                 f'<button class="hs-arrow prev" type="button" aria-label="Scroll leagues left" hidden>&lsaquo;</button>'
                 f'<div class="hs-row" id="hsRow">{chips}</div>'
                 f'<button class="hs-arrow next" type="button" aria-label="Scroll leagues right" hidden>&rsaquo;</button></div>')
-    body = (f'{chip_row}{hero}{tonight_html}{results_html}{trends_html}{premium}{learn_html}')
+    body = (f'{chip_row}{hero}{today_html}{results_html}{trends_html}{premium}{learn_html}')
     home = page('RTYB — Run to Your Bets', 'First period, first quarter and first inning betting stats, results and trends for NHL, NFL, NBA, WNBA, MLB and college.',
                 body, status).replace('__LOGO_SVG__', logo_svg)
     with open(os.path.join(ROOT, 'index.html'), 'w', encoding='utf-8') as f:
@@ -587,7 +587,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
     os.makedirs(os.path.join(ROOT, 'learn'), exist_ok=True)
     with open(os.path.join(ROOT, 'learn', 'index.html'), 'w', encoding='utf-8') as f:
         f.write(learn_page)
-    return {'tonight': len(tonight), 'yesterday': len(yday_games), 'trends': len(trends)}
+    return {'today': len(today_games), 'yesterday': len(yday_games), 'trends': len(trends)}
 
 
 LEARN_LINKS = [
