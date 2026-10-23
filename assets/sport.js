@@ -562,13 +562,158 @@
   // ---------------------------------------------------------- Teams index
   // Every team with its headline records for the selected period, linking
   // to its page. NCAAF groups by conference; NCAAB A-Z; pro leagues by division.
+  // ------------------------------------------------- per-game aggregation
+  // Records from the graded games themselves (res + per-side units on each
+  // game), so any side, market or date range can be counted in the browser.
+  // res is from the away side: su / ats W-L-T(P); tot O-U-P; rfi Y / N.
+  // u[market] = [away units, home units] ([over, under] for totals).
+  // Games with any graded period (a live game counts once its 1st quarter /
+  // half / inning is final, the same as the build's season stats).
+  function finalGames(from, to) {
+    var out = [];
+    allDates().forEach(function(d) {
+      if ((from && d < from) || (to && d > to)) return;
+      D.games[d].forEach(function(g) { if (g.res) out.push(g); });
+    });
+    return out;
+  }
+  // One bet's result on a game for `slug` ('W' / 'L' / 'T', or null when
+  // the game has no grade in that market) and its units (null = no price).
+  function betResult(g, k, market, slug) {
+    var r = (g.res || {})[k];
+    if (!r) return null;
+    var home = g.home === slug, i = home ? 1 : 0, u = r.u || {};
+    if (market === 'su' || market === 'ats') {
+      var x = r[market];
+      if (!x || x === 'NA') return null;
+      x = home ? flipRes(x) : x;
+      return { res: x === 'P' ? 'T' : x, u: u[market] ? u[market][i] : null };
+    }
+    if (market === 'tot') {
+      if (!r.tot || r.tot === 'NA') return null;
+      return { res: { O: 'W', U: 'L', P: 'T' }[r.tot], u: u.tot ? u.tot[0] : null };
+    }
+    if (market === 'rfi') {
+      if (r.rfi !== 'Y' && r.rfi !== 'N') return null;
+      return { res: r.rfi === 'Y' ? 'W' : 'L', u: u.rfi ? u.rfi[0] : null };
+    }
+    return null;
+  }
+  function newAgg() { return { w: 0, l: 0, t: 0, gp: 0, units: 0, priced: 0 }; }
+  function addAgg(a, b) {
+    if (!b) return;
+    a.gp++;
+    if (b.res === 'W') a.w++; else if (b.res === 'L') a.l++; else a.t++;
+    if (b.u != null) { a.units += b.u; a.priced++; }
+  }
+  // side: 'all' | 'home' | 'away'
+  function teamAgg(slug, k, market, side, games) {
+    var a = newAgg();
+    games.forEach(function(g) {
+      if (g.away !== slug && g.home !== slug) return;
+      if (side === 'home' && g.home !== slug) return;
+      if (side === 'away' && g.away !== slug) return;
+      addAgg(a, betResult(g, k, market, slug));
+    });
+    a.pct = (a.w + a.l) ? a.w / (a.w + a.l) : null;   // ties / pushes left out
+    return a;
+  }
+  function marketsFor(k) {
+    return isRfi(k) ? [['rfi', 'YRFI']] : [['su', 'Moneyline'], ['ats', 'ATS'], ['tot', 'Over']];
+  }
+
+  // ----------------------------------------------------------- Teams page
+  // The NHL Teams table (same markup and classes): one row per team with
+  // logo, name, record, win % bar and units, for a period, market and side;
+  // sortable, with search. College sports group the rows by conference.
+  var tlState = { market: 'su', side: 'all', q: '', sortKey: 'units', sortDir: -1 };
+  function confOrder(a, b) {
+    if (/Independent/.test(a) !== /Independent/.test(b)) return /Independent/.test(a) ? 1 : -1;
+    return a < b ? -1 : a > b ? 1 : 0;
+  }
   function renderTeamsIndex() {
     if (!D.season) return;   // keep the plain list
-    var group = D.sport === 'ncaaf' ? 'conf' : D.sport === 'ncaab' ? 'letter' : 'division';
+    var college = D.sport === 'ncaaf' || D.sport === 'ncaab';
+    var games = finalGames();
+    function pills(attr, opts, cur) {
+      return opts.map(function(o) { return '<button class="seg-btn" ' + attr + '="' + o[0] + '" aria-pressed="' + (o[0] === cur) + '">' + o[1] + '</button>'; }).join('');
+    }
+    function rows(k) {
+      return Object.keys(D.teams).filter(function(s) {
+        var t = D.teams[s];
+        return !tlState.q || (t.name + ' ' + (t.code || '') + ' ' + (t.short || '')).toLowerCase().indexOf(tlState.q) !== -1;
+      }).map(function(s) {
+        var a = teamAgg(s, k, tlState.market, tlState.side, games);
+        a.slug = s; a.name = D.teams[s].name; a.conf = D.teams[s].conference || 'Other';
+        a.wins = a.w; a.u = a.priced ? a.units : null;
+        return a;
+      });
+    }
+    function sortRows(list) {
+      var key = tlState.sortKey === 'units' ? 'u' : tlState.sortKey, dir = tlState.sortDir;
+      return list.sort(function(a, b) {
+        if (key === 'name') return a.name.localeCompare(b.name) * dir;
+        var va = a[key], vb = b[key];
+        if (va === vb || (va == null && vb == null)) return (b.w + b.l) - (a.w + a.l) || a.name.localeCompare(b.name);
+        if (va == null) return 1;
+        if (vb == null) return -1;
+        return (va - vb) * dir;
+      });
+    }
+    function rowHtml(r) {
+      var p = r.pct == null ? null : Math.round(r.pct * 100);
+      return '<tr data-href="' + teamUrl(r.slug) + '">' +
+        '<td class="team-cell">' + badge(r.slug, 24) + '<a class="tl-name" href="' + teamUrl(r.slug) + '">' + esc(r.name) + '</a></td>' +
+        '<td class="num rec-cell mono col-rec"><b>' + (r.gp ? r.w + '-' + r.l + '-' + r.t : '&mdash;') + '</b></td>' +
+        '<td class="num col-pct"><div class="pct-cell"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div></td>' +
+        '<td class="num col-units">' + unitsPill(r.units, r.priced) + '</td></tr>';
+    }
     function draw() {
-      var k = getSeg();
-      app.innerHTML = teamControlsHtml(k, { group: group }) + teamCardsHtml(k, { group: group, compact: true });
-      wireTeamControls(draw);
+      var k = getSeg(), mk = marketsFor(k);
+      if (!mk.some(function(m) { return m[0] === tlState.market; })) tlState.market = mk[0][0];
+      var list = sortRows(rows(k)), body;
+      if (!list.length) body = '<tr><td colspan="4"><div class="empty-state">No teams match &ldquo;' + esc(tlState.q) + '&rdquo;.</div></td></tr>';
+      else if (college) {
+        var groups = {};
+        list.forEach(function(r) { (groups[r.conf] = groups[r.conf] || []).push(r); });
+        body = Object.keys(groups).sort(confOrder).map(function(c) {
+          return '<tr class="tl-group"><td colspan="4">' + esc(c) + ' <span class="tc-count">' + groups[c].length + '</span></td></tr>' + groups[c].map(rowHtml).join('');
+        }).join('');
+      } else body = list.map(rowHtml).join('');
+      var recLabel = { su: 'Record', ats: 'ATS', tot: 'O-U-P', rfi: 'Y-N' }[tlState.market];
+      var pctLabel = { su: 'Win %', ats: 'Cover %', tot: 'Over %', rfi: 'YRFI %' }[tlState.market];
+      function th(key, label, cls) {
+        var on = tlState.sortKey === key;
+        return '<th class="' + (cls || '') + '" data-sort="' + key + '">' + label + '<span class="arrow">' + (on ? (tlState.sortDir < 0 ? '▼' : '▲') : '') + '</span></th>';
+      }
+      app.innerHTML = '<div id="teamView"><div class="controls">' +
+        (D.segments.length > 1 ? '<div class="control-group"><span class="control-label">Period</span>' + pills('data-tl-seg', D.segments.map(function(s) { return [s.key, esc(s.label)]; }), k) + '</div>' : '') +
+        (mk.length > 1 ? '<div class="control-group"><span class="control-label">Market</span>' + pills('data-tl-market', mk, tlState.market) + '</div>' : '') +
+        '<div class="control-group"><span class="control-label">Side</span>' + pills('data-tl-side', [['all', 'All'], ['home', 'Home'], ['away', 'Away']], tlState.side) + '</div>' +
+        '<div class="control-group"><input class="search-box" id="tlSearch" type="search" placeholder="Search team&hellip;" value="' + esc(tlState.q) + '"></div></div>' +
+        '<div class="table-wrap"><div class="table-scroll"><table id="leagueTable"><thead><tr>' +
+        th('name', 'Team') + th('wins', recLabel, 'num col-rec') + th('pct', pctLabel, 'num col-pct') + th('units', 'Units', 'num col-units') +
+        '</tr></thead><tbody id="leagueBody">' + body + '</tbody></table></div></div>' +
+        '<p class="tl-note">' + esc(seg(k).label) + ' &middot; ' + esc(D.seasonLabel) + ' season &middot; ties and pushes count in the record but not the %' +
+        (tlState.market !== 'su' && tlState.market !== 'rfi' ? ' &middot; ATS and totals need saved odds' : '') + '</p></div>';
+      app.querySelectorAll('[data-tl-seg]').forEach(function(b) { b.onclick = function() { setSeg(b.getAttribute('data-tl-seg')); draw(); }; });
+      app.querySelectorAll('[data-tl-market]').forEach(function(b) { b.onclick = function() { tlState.market = b.getAttribute('data-tl-market'); draw(); }; });
+      app.querySelectorAll('[data-tl-side]').forEach(function(b) { b.onclick = function() { tlState.side = b.getAttribute('data-tl-side'); draw(); }; });
+      app.querySelectorAll('th[data-sort]').forEach(function(h) {
+        h.onclick = function() {
+          var key = h.getAttribute('data-sort');
+          if (tlState.sortKey === key) tlState.sortDir *= -1; else { tlState.sortKey = key; tlState.sortDir = key === 'name' ? 1 : -1; }
+          draw();
+        };
+      });
+      app.querySelectorAll('tr[data-href]').forEach(function(tr) {
+        tr.onclick = function(e) { if (!e.target.closest('a')) window.location.href = tr.getAttribute('data-href'); };
+      });
+      var q = document.getElementById('tlSearch');
+      q.oninput = function() {
+        tlState.q = q.value.trim().toLowerCase(); var pos = q.selectionStart; draw();
+        var q2 = document.getElementById('tlSearch'); q2.focus(); q2.setSelectionRange(pos, pos);
+      };
     }
     draw();
   }
