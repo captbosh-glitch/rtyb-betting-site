@@ -816,6 +816,10 @@
   .rec-cell b { color: var(--text); }
   /* Stats team table: fixed stat columns so values line up under their headers. */
   #leagueTable { table-layout: fixed; }
+  #leagueTable tr[data-href] { cursor: pointer; }
+  #leagueTable .tl-name { color: var(--text); text-decoration: none; }
+  #leagueTable tr.tl-group td { background: var(--panel-2); font: 700 0.95rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; padding-top: 14px; }
+  .tl-note { margin-top: 8px; font-size: 0.74rem; color: var(--text-muted); }
   #leagueTable .col-rec { width: 110px; }
   #leagueTable .col-pct { width: 150px; }
   #leagueTable .col-units { width: 120px; }
