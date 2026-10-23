@@ -205,3 +205,10 @@ body.hm-open { overflow: hidden; }
 .hf-rg { margin: 0 0 6px; }
 .hf-rg a { color: var(--accent); font-weight: 700; }
 .hf-small { margin: 0; color: var(--text-muted); font-size: 0.82rem; line-height: 1.5; }
+
+/* phone account controls (scripts/account.py; base styles in site.css) */
+@media (max-width: 640px) {
+  .hn-right { gap: 6px; }
+  html.rtyb-signed-in .hm-signin { display: none; }
+}
+@media (min-width: 481px) and (max-width: 640px) { .hm-signin { display: none; } }

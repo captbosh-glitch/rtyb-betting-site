@@ -53,6 +53,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import account  # noqa: E402
 import league_trends  # noqa: E402
 import periods  # noqa: E402
 import home  # noqa: E402
@@ -351,6 +352,8 @@ def apply_sport(out, sport, section):
     out = out.replace('__SPORT_LABEL__', sport['label'])
     out = out.replace('__SPORT_MENU_ITEMS__', sport_menu_html(sport, section or 'games'))
     out = out.replace('__BRAND_HREF__', '/')  # the home page (prefixed with SITE_ROOT at load)
+    out = out.replace('__ACCOUNT__', account.account_html('/'))
+    out = out.replace('__ACCOUNT_JS__', account.ACCOUNT_JS)
     for sec in ('games', 'stats', 'trends', 'teams'):
         out = out.replace(f'__NAV_HREF_{sec.upper()}__', sports.section_path(sport, sec))
     if is_nhl:

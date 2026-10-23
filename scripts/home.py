@@ -20,6 +20,7 @@ import re
 from datetime import date as Date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
+import account
 import icons
 import sports
 
@@ -283,6 +284,7 @@ def nav_html(status, depth=''):
     <div class="hn-right">
       <a class="hn-link hn-signin" href="{depth}#premium">Sign in</a>
       <a class="hn-premium" href="{depth}#premium">Go Premium</a>
+      {account.account_html(depth)}
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light/dark theme">&#9681;</button>
       <button class="hn-burger" id="hnBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="hnMenu">
         <span></span><span></span><span></span></button>
@@ -301,7 +303,7 @@ def nav_html(status, depth=''):
     <a class="hm-item" href="{depth}#today">Today</a>
     <a class="hm-item" href="{depth}#trends">Trends to Watch</a>
     <a class="hm-item" href="{depth}learn/">Learn</a>
-    <a class="hm-item" href="{depth}#premium">Sign in</a>
+    <a class="hm-item hm-signin" href="{depth}#premium">Sign in</a>
     <button class="hm-item hm-theme" id="hmTheme" type="button">Light / dark theme</button>
   </div>
   <a class="hm-premium" href="{depth}#premium">Go Premium</a>
@@ -404,7 +406,7 @@ def page(title, desc, body, status, depth=''):
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width,initial-scale=1"><title>{esc(title)}</title>'
             f'<meta name="description" content="{esc(desc)}">{FONTS}{css}</head>'
-            f'<body class="home">{nav_html(status, depth)}<main class="hp">{body}</main>{FOOTER}{PAGE_JS}</body></html>')
+            f'<body class="home">{nav_html(status, depth)}<main class="hp">{body}</main>{FOOTER}{PAGE_JS}{account.ACCOUNT_JS}</body></html>')
 
 
 # ------------------------------------------------------------------- build
