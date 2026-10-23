@@ -1,0 +1,370 @@
+{
+ "note": "Rivalry pairs (team slugs from data_seed/teams/ncaaf.json) for the NCAAF Lookahead and Letdown splits. Add pairs freely.",
+ "pairs": [
+  [
+   "alabama-crimson-tide",
+   "auburn-tigers",
+   "Iron Bowl"
+  ],
+  [
+   "ohio-state-buckeyes",
+   "michigan-wolverines",
+   "The Game"
+  ],
+  [
+   "texas-longhorns",
+   "oklahoma-sooners",
+   "Red River Rivalry"
+  ],
+  [
+   "georgia-bulldogs",
+   "florida-gators",
+   "Florida-Georgia"
+  ],
+  [
+   "usc-trojans",
+   "ucla-bruins",
+   "Crosstown Showdown"
+  ],
+  [
+   "usc-trojans",
+   "notre-dame-fighting-irish",
+   "Jeweled Shillelagh"
+  ],
+  [
+   "army-black-knights",
+   "navy-midshipmen",
+   "Army-Navy"
+  ],
+  [
+   "clemson-tigers",
+   "south-carolina-gamecocks",
+   "Palmetto Bowl"
+  ],
+  [
+   "florida-state-seminoles",
+   "florida-gators",
+   "Sunshine Showdown"
+  ],
+  [
+   "florida-state-seminoles",
+   "miami-hurricanes",
+   "FSU-Miami"
+  ],
+  [
+   "georgia-bulldogs",
+   "georgia-tech-yellow-jackets",
+   "Clean, Old-Fashioned Hate"
+  ],
+  [
+   "ole-miss-rebels",
+   "mississippi-state-bulldogs",
+   "Egg Bowl"
+  ],
+  [
+   "alabama-crimson-tide",
+   "tennessee-volunteers",
+   "Third Saturday in October"
+  ],
+  [
+   "alabama-crimson-tide",
+   "lsu-tigers",
+   "Alabama-LSU"
+  ],
+  [
+   "oregon-ducks",
+   "oregon-state-beavers",
+   "Civil War"
+  ],
+  [
+   "washington-huskies",
+   "washington-state-cougars",
+   "Apple Cup"
+  ],
+  [
+   "michigan-wolverines",
+   "michigan-state-spartans",
+   "Paul Bunyan Trophy"
+  ],
+  [
+   "minnesota-golden-gophers",
+   "wisconsin-badgers",
+   "Paul Bunyan's Axe"
+  ],
+  [
+   "iowa-hawkeyes",
+   "iowa-state-cyclones",
+   "Cy-Hawk"
+  ],
+  [
+   "kansas-jayhawks",
+   "kansas-state-wildcats",
+   "Sunflower Showdown"
+  ],
+  [
+   "texas-longhorns",
+   "texas-aandm-aggies",
+   "Lone Star Showdown"
+  ],
+  [
+   "utah-utes",
+   "byu-cougars",
+   "Holy War"
+  ],
+  [
+   "north-carolina-tar-heels",
+   "nc-state-wolfpack",
+   "North Carolina-NC State"
+  ],
+  [
+   "north-carolina-tar-heels",
+   "duke-blue-devils",
+   "Victory Bell"
+  ],
+  [
+   "virginia-cavaliers",
+   "virginia-tech-hokies",
+   "Commonwealth Clash"
+  ],
+  [
+   "louisville-cardinals",
+   "kentucky-wildcats",
+   "Governor's Cup"
+  ],
+  [
+   "arizona-wildcats",
+   "arizona-state-sun-devils",
+   "Territorial Cup"
+  ],
+  [
+   "stanford-cardinal",
+   "california-golden-bears",
+   "Big Game"
+  ],
+  [
+   "oklahoma-sooners",
+   "oklahoma-state-cowboys",
+   "Bedlam"
+  ],
+  [
+   "indiana-hoosiers",
+   "purdue-boilermakers",
+   "Old Oaken Bucket"
+  ],
+  [
+   "illinois-fighting-illini",
+   "northwestern-wildcats",
+   "Land of Lincoln Trophy"
+  ],
+  [
+   "penn-state-nittany-lions",
+   "ohio-state-buckeyes",
+   "Penn State-Ohio State"
+  ],
+  [
+   "nebraska-cornhuskers",
+   "iowa-hawkeyes",
+   "Heroes Game"
+  ],
+  [
+   "auburn-tigers",
+   "georgia-bulldogs",
+   "Deep South's Oldest Rivalry"
+  ],
+  [
+   "tennessee-volunteers",
+   "florida-gators",
+   "Tennessee-Florida"
+  ],
+  [
+   "lsu-tigers",
+   "texas-aandm-aggies",
+   "LSU-Texas A&M"
+  ],
+  [
+   "missouri-tigers",
+   "kansas-jayhawks",
+   "Border War"
+  ],
+  [
+   "pittsburgh-panthers",
+   "west-virginia-mountaineers",
+   "Backyard Brawl"
+  ],
+  [
+   "colorado-buffaloes",
+   "colorado-state-rams",
+   "Rocky Mountain Showdown"
+  ],
+  [
+   "boise-state-broncos",
+   "fresno-state-bulldogs",
+   "Milk Can"
+  ],
+  [
+   "byu-cougars",
+   "utah-state-aggies",
+   "Old Wagon Wheel"
+  ],
+  [
+   "utah-utes",
+   "utah-state-aggies",
+   "Battle of the Brothers"
+  ],
+  [
+   "smu-mustangs",
+   "tcu-horned-frogs",
+   "Iron Skillet"
+  ],
+  [
+   "baylor-bears",
+   "tcu-horned-frogs",
+   "Revivalry"
+  ],
+  [
+   "texas-tech-red-raiders",
+   "texas-longhorns",
+   "Chancellor's Spurs"
+  ],
+  [
+   "houston-cougars",
+   "rice-owls",
+   "Bayou Bucket"
+  ],
+  [
+   "tulane-green-wave",
+   "southern-miss-golden-eagles",
+   "Battle for the Bell"
+  ],
+  [
+   "memphis-tigers",
+   "ole-miss-rebels",
+   "Memphis-Ole Miss"
+  ],
+  [
+   "app-state-mountaineers",
+   "georgia-southern-eagles",
+   "Deeper Than Hate"
+  ],
+  [
+   "louisiana-ragin-cajuns",
+   "ul-monroe-warhawks",
+   "Battle on the Bayou"
+  ],
+  [
+   "toledo-rockets",
+   "bowling-green-falcons",
+   "Battle of I-75"
+  ],
+  [
+   "miami-oh-redhawks",
+   "ohio-bobcats",
+   "Battle of the Bricks"
+  ],
+  [
+   "navy-midshipmen",
+   "air-force-falcons",
+   "Commander-in-Chief's Trophy"
+  ],
+  [
+   "army-black-knights",
+   "air-force-falcons",
+   "Commander-in-Chief's Trophy"
+  ],
+  [
+   "notre-dame-fighting-irish",
+   "navy-midshipmen",
+   "Notre Dame-Navy"
+  ],
+  [
+   "ucf-knights",
+   "south-florida-bulls",
+   "War on I-4"
+  ],
+  [
+   "hawaii-rainbow-warriors",
+   "wyoming-cowboys",
+   "Paniolo Trophy"
+  ],
+  [
+   "nevada-wolf-pack",
+   "unlv-rebels",
+   "Fremont Cannon"
+  ],
+  [
+   "new-mexico-lobos",
+   "new-mexico-state-aggies",
+   "Rio Grande Rivalry"
+  ],
+  [
+   "cincinnati-bearcats",
+   "louisville-cardinals",
+   "Keg of Nails"
+  ],
+  [
+   "maryland-terrapins",
+   "virginia-cavaliers",
+   "Maryland-Virginia"
+  ],
+  [
+   "wake-forest-demon-deacons",
+   "north-carolina-tar-heels",
+   "Wake Forest-North Carolina"
+  ],
+  [
+   "vanderbilt-commodores",
+   "tennessee-volunteers",
+   "Tennessee-Vanderbilt"
+  ],
+  [
+   "arkansas-razorbacks",
+   "lsu-tigers",
+   "Battle for the Golden Boot"
+  ],
+  [
+   "arkansas-razorbacks",
+   "missouri-tigers",
+   "Battle Line Rivalry"
+  ],
+  [
+   "mississippi-state-bulldogs",
+   "alabama-crimson-tide",
+   "Alabama-Mississippi State"
+  ],
+  [
+   "kentucky-wildcats",
+   "tennessee-volunteers",
+   "Kentucky-Tennessee"
+  ],
+  [
+   "wisconsin-badgers",
+   "iowa-hawkeyes",
+   "Heartland Trophy"
+  ],
+  [
+   "minnesota-golden-gophers",
+   "iowa-hawkeyes",
+   "Floyd of Rosedale"
+  ],
+  [
+   "michigan-wolverines",
+   "minnesota-golden-gophers",
+   "Little Brown Jug"
+  ],
+  [
+   "rutgers-scarlet-knights",
+   "maryland-terrapins",
+   "Rutgers-Maryland"
+  ],
+  [
+   "syracuse-orange",
+   "boston-college-eagles",
+   "Syracuse-Boston College"
+  ],
+  [
+   "clemson-tigers",
+   "georgia-tech-yellow-jackets",
+   "Clemson-Georgia Tech"
+  ]
+ ]
+}

@@ -775,7 +775,36 @@ def game_out(g):
         # outside the US (International games); None = not known yet
         'intl': None if g.get('country') is None else g['country'] not in ('USA', 'United States'),
         'ar': g.get('away_rank'), 'hr': g.get('home_rank'),
+        # closing full-game line (home team's spread; negative = home favored)
+        'fs': g.get('fg_spread'), 'ft': g.get('fg_total'),
     }
+
+
+def season_file(kind, sport, season):
+    """data_seed/{kind}/{sport}/{season}.json, else the latest earlier
+    season's file (membership carries over until a new file is added)."""
+    d = os.path.join(ROOT, 'data_seed', kind, sport)
+    if not os.path.isdir(d) or season is None:
+        return None
+    names = sorted((n for n in os.listdir(d) if n[:4].isdigit() and int(n[:4]) <= season), reverse=True)
+    return read_json(os.path.join(d, names[0]), None) if names else None
+
+
+def apply_ap_ranks(sport, season, games):
+    """College football: each team's AP rank from the poll current at
+    kickoff (the latest poll released before it), when the season's polls
+    are saved (fetch_rankings.py); otherwise ESPN's rank on the game stays."""
+    doc = season_file('rankings', sport, season)
+    polls = sorted((doc or {}).get('polls') or [], key=lambda p: p.get('date') or '')
+    if not polls or (doc or {}).get('season') != season:
+        return
+    for g in games:
+        poll = None
+        for p in polls:
+            if (p.get('date') or '') <= (g.get('start') or ''):
+                poll = p
+        ranks = (poll or {}).get('ranks') or {}
+        g['away_rank'], g['home_rank'] = ranks.get(g['away']), ranks.get(g['home'])
 
 
 def week_key(g):
@@ -824,6 +853,8 @@ def build(sp, teams_list, now_utc=None):
     current = max(seasons) if seasons else None
     games = seasons.get(current, [])
     grade_all(sp, games, odds)
+    if sp['key'] == 'ncaaf':
+        apply_ap_ranks(sp['key'], current, games)
     by_date = {}
     for g in games:
         by_date.setdefault(g['date'], []).append(game_out(g))
@@ -852,6 +883,10 @@ def build(sp, teams_list, now_utc=None):
         'trendRules': trend_rules.for_page(),
         'trends': {d: e for d, e in trends.items()},
     }
+    if sp['key'] == 'ncaaf':
+        # Situational Results: conference membership by season, rivalries
+        doc['conf'] = season_file('conferences', 'ncaaf', current)
+        doc['rivals'] = (read_json(os.path.join(ROOT, 'data_seed', 'rivalries', 'ncaaf.json'), {}) or {}).get('pairs') or []
     write_json(os.path.join(slug_dir, 'data.json'), doc)
     today = now_utc.astimezone(ET).date().isoformat()
     return {'season': current, 'games': len(games), 'graded': sum(1 for g in games if g.get('final')),

@@ -1152,6 +1152,23 @@
   function regWeek(g) { var m = /^2-(\d+)$/.exec(g.wk || ''); return m ? +m[1] : null; }
   function etDate(iso) { var p = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(iso)); return p; }
   function dayDiff(a, b) { return Math.round((new Date(b + 'T12:00:00Z') - new Date(a + 'T12:00:00Z')) / 864e5); }
+  // the side's closing full-game spread (g.fs is the home line), or null
+  function fgLine(g, side) { return g.fs == null ? null : side === 'home' ? g.fs : -g.fs; }
+  // college: conference by season (D.conf), Power 4, rivalries (D.rivals)
+  function confOf(slug) {
+    var m = (D.conf || {}).members;
+    if (m) { for (var c in m) if (m[c].indexOf(slug) !== -1) return c; return null; }
+    return (D.teams[slug] || {}).conference || null;
+  }
+  function isP4(slug) {
+    var cf = D.conf || {}, c = confOf(slug);
+    return (cf.power4 || []).indexOf(c) !== -1 || (cf.power4_teams || []).indexOf(slug) !== -1;
+  }
+  var RIVAL = null;
+  function isRival(a, b) {
+    if (!RIVAL) { RIVAL = {}; (D.rivals || []).forEach(function(p) { RIVAL[p[0] + '|' + p[1]] = RIVAL[p[1] + '|' + p[0]] = 1; }); }
+    return !!RIVAL[a + '|' + b];
+  }
   function fbU(res) { return res === 'W' ? 0.9091 : res === 'L' ? -1 : 0; }   // -110 when no price was saved
   var SIT_CACHE = {};
   // Every team-game graded in period k: {c (row context), r (results)}.
@@ -1172,11 +1189,13 @@
         if (p && p.g.state === 'final' && p.g.as != null && p.g.hs != null) {
           var pf = p.side === 'away' ? p.g.as : p.g.hs, pa = p.side === 'away' ? p.g.hs : p.g.as, pe = etParts(p.g.start);
           prev = { res: pf > pa ? 'W' : pf < pa ? 'L' : 'T', pf: pf, pa: pa, side: p.side, dow: pe.dow, mins: pe.mins,
-                   ot: Math.max((p.g.als || []).length, (p.g.hls || []).length) > 4 };
+                   ot: Math.max((p.g.als || []).length, (p.g.hls || []).length) > 4, neutral: !!p.g.neutral,
+                   fs: fgLine(p.g, p.side), rival: isRival(p.g.away, p.g.home) };
         }
         info[e.g.id + '|' + slug] = {
           prev: prev, rest: p ? dayDiff(etDate(p.g.start), etDate(e.g.start)) : null,
-          prevWk: p ? regWeek(p.g) : null, nextWk: n ? regWeek(n.g) : null
+          prevWk: p ? regWeek(p.g) : null, nextWk: n ? regWeek(n.g) : null,
+          next: n ? { rival: isRival(n.g.away, n.g.home), oppRank: n.side === 'away' ? n.g.hr : n.g.ar } : null
         };
       });
     });
@@ -1185,7 +1204,9 @@
       D.games[d].forEach(function(g) {
         var r = (g.res || {})[k];
         if (!r || !r.sc || r.na) return;
-        var fav = favSide((g.odds || {})[k]), et = etParts(g.start), o = (g.odds || {})[k] || {};
+        // favorite by the period's line; the full-game line when the period has none
+        var fav = favSide((g.odds || {})[k]) || (g.fs ? (g.fs < 0 ? 'home' : 'away') : null);
+        var et = etParts(g.start), o = (g.odds || {})[k] || {};
         ['away', 'home'].forEach(function(side) {
           var team = g[side], opp = side === 'away' ? g.home : g.away, i = side === 'away' ? 0 : 1;
           var mi = info[g.id + '|' + team] || {}, oi = info[g.id + '|' + opp] || {};
@@ -1193,7 +1214,8 @@
             fav: fav ? fav === side : null, dow: et.dow, mins: et.mins, ti: D.teams[team] || null, oi: D.teams[opp] || null,
             wk: regWeek(g), prevWk: mi.prevWk, nextWk: mi.nextWk, rest: mi.rest, oppRest: oi.rest, prev: mi.prev,
             rank: side === 'away' ? g.ar : g.hr, oppRank: side === 'away' ? g.hr : g.ar,
-            oppPrev: oi.prev, spread: ((o.ats || {})[side] || {}).line };
+            oppPrev: oi.prev, next: mi.next, fs: fgLine(g, side),
+            teamConf: confOf(team), oppConf: confOf(opp), oppFcs: !D.teams[opp], oppP4: isP4(opp), rival: isRival(g.away, g.home) };
           var su = side === 'away' ? r.su : flipRes(r.su);
           var res = { su: su, margin: r.sc[i] - r.sc[1 - i], lined: !!(o.ats || o.total || o.ml) };
           if (r.ats && r.ats !== 'NA') {
@@ -1228,7 +1250,8 @@
   // {mode: 'league', persp: 'home' | 'fav'} or {mode: 'team', slug}
   function sitTable(k, view) {
     var REG = splitReg(), all = sitContexts(k), C = REG.config;
-    var pool = view.mode === 'team' ? all.filter(function(e) { return e.c.team === view.slug; }) : all;
+    var pool = view.mode === 'team' ? all.filter(function(e) { return e.c.team === view.slug; })
+      : view.conf ? all.filter(function(e) { return e.c.teamConf === view.conf; }) : all;
     return REG.groups.map(function(gr) {
       var rows = [], hidden = [];
       REG.rows.forEach(function(row) {
@@ -1236,7 +1259,7 @@
         if (view.mode === 'league' && row.teamOnly) return;
         if (view.mode === 'team' && row.applies && !row.applies(view.slug, C)) return;
         var list = pool.filter(function(e) {
-          if (view.mode === 'league' && !row.own) {
+          if (view.mode === 'league' && !row.own && !view.conf) {
             if (view.persp === 'fav' ? e.c.fav !== true : !e.c.home) return false;
           }
           return !!row.test(e.c, C);
@@ -1257,20 +1280,28 @@
   function sitMarg(a) { if (!a.gp) return '&mdash;'; var m = Math.round(10 * a.marg / a.gp) / 10; return (m > 0 ? '+' : '') + m.toFixed(1); }
   function sitPct(a) { return a.pct == null ? null : Math.round(100 * a.pct); }
 
-  var sitState = { k: null, persp: 'home', market: 'su', logK: null, logAll: false };
+  var sitState = { k: null, persp: 'home', market: 'su', logK: null, logAll: false, conf: '' };
   // Renders into #<boxId>: view = {mode: 'league'} or {mode: 'team', slug}
   function renderSit(boxId, view) {
     var REG = splitReg(), box = document.getElementById(boxId);
     if (!REG || !box) return;
     var k = sitState.k && seg(sitState.k) ? sitState.k : D.segments[0].key;
-    var v = view.mode === 'league' ? { mode: 'league', persp: sitState.persp } : view;
+    var conf = view.mode === 'league' && REG.conferences ? sitState.conf : '';
+    var v = view.mode === 'league' ? { mode: 'league', persp: sitState.persp, conf: conf } : view;
     var groups = sitTable(k, v);
     var gp = view.mode === 'team'
       ? sitContexts(k).filter(function(e) { return e.c.team === view.slug; }).length
+      : conf ? sitContexts(k).filter(function(e) { return e.c.teamConf === conf; }).length
       : sitContexts(k).length / 2;
-    var who = view.mode === 'league' ? 'as ' + (sitState.persp === 'fav' ? 'favorite' : 'home team') : '';
-    var perspHtml = view.mode === 'league' ? '<div class="seg-toggle sit-persp" role="group" aria-label="View as"><span class="control-label">View as</span>' +
+    var confShort = conf ? (((D.conf || {}).short || {})[conf] || conf) : '';
+    var who = view.mode !== 'league' ? '' : conf ? 'as ' + confShort + ' teams' : 'as ' + (sitState.persp === 'fav' ? 'favorite' : 'home team');
+    var perspHtml = view.mode === 'league' && !conf ? '<div class="seg-toggle sit-persp" role="group" aria-label="View as"><span class="control-label">View as</span>' +
       REG.perspectives.map(function(p) { return '<button class="seg-btn" data-sit-persp="' + p[0] + '" aria-pressed="' + (sitState.persp === p[0]) + '">' + p[1] + '</button>'; }).join('') + '</div>' : '';
+    if (view.mode === 'league' && REG.conferences) {
+      perspHtml = '<select class="conf-select" id="sitConf" aria-label="Conference"><option value="">All FBS</option>' +
+        REG.conferences.map(function(c) { return '<option value="' + esc(c) + '"' + (c === conf ? ' selected' : '') + '>' + esc(((D.conf || {}).short || {})[c] || c) + '</option>'; }).join('') +
+        '</select>' + perspHtml;
+    }
     var head = '<div class="season-card-head"><h3>Situational Results</h3><div class="sc-right">' +
       '<div class="seg-toggle">' + D.segments.map(function(s) { return '<button class="seg-btn" data-sit-seg="' + s.key + '" aria-pressed="' + (s.key === k) + '">' + esc(s.label) + '</button>'; }).join('') + '</div>' +
       perspHtml + '<span class="sc-gp">' + esc(D.seasonLabel) + ' season &middot; ' + gp + ' GP</span></div></div>';
@@ -1279,7 +1310,7 @@
     function cells(row, a) {
       var p = sitPct(a), lowGp = a.gp < 5, cov = a.gp ? a.lined / a.gp : 0;
       return '<td class="sit-label' + (row.indent ? ' ind' : '') + '"><span title="' + esc(row.def) + '">' + esc(row.label) + '</span>' +
-          (who && !row.own ? '<span class="sit-who">' + who + '</span>' : '') + '</td>' +
+          (who && (conf || !row.own) ? '<span class="sit-who">' + who + '</span>' : '') + '</td>' +
         '<td class="num mono' + (lowGp ? ' amber' : '') + '">' + a.gp + '</td>' +
         '<td class="num mono">' + (a.gp ? a.w + '-' + a.l + '-' + a.t : '&mdash;') + '</td>' +
         '<td class="num"><div class="pct-cell"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div></td>' +
@@ -1294,7 +1325,7 @@
       '<th class="num">ATS W-L-P</th><th class="num">ATS Units</th><th class="num">O/U O-U-P</th><th class="num">O/U Units</th><th class="num">Avg Margin</th><th class="num">Odds</th></tr></thead><tbody>' +
       groups.map(function(G) {
         return '<tr class="sit-group"><td colspan="10">' + esc(G.group.label) +
-            (view.mode === 'league' && G.group.note ? '<div class="sit-note">' + esc(G.group.note) + '</div>' : '') + '</td></tr>' +
+            (view.mode === 'league' && !conf && G.group.note ? '<div class="sit-note">' + esc(G.group.note) + '</div>' : '') + '</td></tr>' +
           G.rows.map(function(x) { return '<tr>' + cells(x.row, x.agg) + '</tr>'; }).join('') +
           (G.hidden.length ? '<tr class="sit-notyet"><td colspan="10">Not yet: ' + G.hidden.map(function(r) { return esc(r.label); }).join(' &middot; ') + '</td></tr>' : '');
       }).join('') + '</tbody></table></div></div>';
@@ -1305,14 +1336,14 @@
       [['su', 'SU'], ['ats', 'ATS'], ['ou', 'O/U']].map(function(m) { return '<button class="seg-btn" data-sit-mk="' + m[0] + '" aria-pressed="' + (mk === m[0]) + '">' + m[1] + '</button>'; }).join('') + '</div>' +
       groups.map(function(G) {
         return '<div class="sit-mgroup"><div class="sit-mtitle">' + esc(G.group.label) + '</div>' +
-          (view.mode === 'league' && G.group.note ? '<div class="sit-note">' + esc(G.group.note) + '</div>' : '') +
+          (view.mode === 'league' && !conf && G.group.note ? '<div class="sit-note">' + esc(G.group.note) + '</div>' : '') +
           G.rows.map(function(x) {
             var a = x.agg, p = sitPct(a), recTxt, val;
             if (mk === 'su') { recTxt = a.gp ? a.w + '-' + a.l + '-' + a.t : '&mdash;'; val = '<span class="mono">' + (p == null ? '&mdash;' : p + '%') + '</span>'; }
             else if (mk === 'ats') { recTxt = a.atsN ? a.aw + '-' + a.al + '-' + a.ap : '&mdash;'; val = sitPill(a.au, a.atsN); }
             else { recTxt = a.ouN ? a.o + '-' + a.u + '-' + a.p : '&mdash;'; val = sitOuPill(a); }
             return '<details class="sit-mrow"><summary><span class="sit-mlabel' + (x.row.indent ? ' ind' : '') + '">' + esc(x.row.short) +
-                (who && !x.row.own ? '<span class="sit-who">' + who + '</span>' : '') + '</span>' +
+                (who && (conf || !x.row.own) ? '<span class="sit-who">' + who + '</span>' : '') + '</span>' +
               '<span class="mono sit-mrec">' + recTxt + '</span><span class="sit-mval">' + val + '</span><span class="sit-chev" aria-hidden="true">&#9662;</span></summary>' +
               '<div class="sit-mbody"><p>' + esc(x.row.def) + '</p>' +
                 '<div class="pct-cell"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div>' +
@@ -1329,6 +1360,8 @@
       '<div class="sit-foot">ATS and O/U count games with closing lines only; units at the saved price, else &minus;110. GP in amber under 5; Odds in amber under 80% coverage.</div></div>';
     box.querySelectorAll('[data-sit-seg]').forEach(function(b) { b.onclick = function() { sitState.k = b.getAttribute('data-sit-seg'); renderSit(boxId, view); }; });
     box.querySelectorAll('[data-sit-persp]').forEach(function(b) { b.onclick = function() { sitState.persp = b.getAttribute('data-sit-persp'); renderSit(boxId, view); }; });
+    var cs = document.getElementById('sitConf');
+    if (cs) cs.onchange = function() { sitState.conf = cs.value; renderSit(boxId, view); };
     box.querySelectorAll('[data-sit-mk]').forEach(function(b) { b.onclick = function() { sitState.market = b.getAttribute('data-sit-mk'); renderSit(boxId, view); }; });
   }
 

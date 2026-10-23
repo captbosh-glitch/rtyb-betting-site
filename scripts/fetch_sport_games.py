@@ -28,6 +28,11 @@ Saved game:
    "England"), "away_rank", "home_rank" (college: the AP / CFP rank ESPN
    shows for the game, i.e. at kickoff; None when unranked)}
 
+Football finals also get "fg_spread" (the home team's closing full-game
+spread; negative = home favored) and "fg_total" from ESPN's game summary
+(DraftKings close), fetched once per game, LINES_PER_RUN per sport per
+run; None when ESPN has no line.
+
 Games saved before a field existed are refetched by date in daily runs
 (backfill_fields: up to BACKFILL_DATES dates per sport per run), so new
 fields fill in across the season without a manual reload.
@@ -246,6 +251,11 @@ def fetch_dates(sport, dates, keep=None, verbose=True):
     for season, games in by_season.items():
         p = season_path(sport, season)
         doc = read_json(p, {'sport': sport, 'season': season, 'games': {}})
+        for gid, g in games.items():
+            old = doc['games'].get(gid) or {}
+            for f in ('fg_spread', 'fg_total'):
+                if f in old:
+                    g[f] = old[f]
         doc['games'].update(games)
         doc['updated'] = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
         write_json(p, doc)
@@ -287,6 +297,38 @@ def backfill_dates(sport):
     return sorted({g['date'] for g in games if any(f not in g for f in NEW_FIELDS)})[:BACKFILL_DATES]
 
 
+LINE_SPORTS = {'nfl': 'football/nfl', 'ncaaf': 'football/college-football'}
+LINES_PER_RUN = 60
+
+
+def fetch_lines(sport, cap=LINES_PER_RUN):
+    """Closing full-game spread / total for finals that don't have them yet."""
+    d = os.path.join(GAMES_DIR, sport)
+    seasons = sorted(n for n in os.listdir(d) if n[:4].isdigit()) if os.path.isdir(d) else []
+    if sport not in LINE_SPORTS or not seasons:
+        return 0
+    p = os.path.join(d, seasons[-1])
+    doc = read_json(p, {})
+    todo = [g for g in doc.get('games', {}).values() if g.get('final') and 'fg_spread' not in g][:cap]
+
+    def get(g):
+        url = f'https://site.api.espn.com/apis/site/v2/sports/{LINE_SPORTS[sport]}/summary?event={g["id"]}'
+        return g, fetch_json(url)
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        results = list(pool.map(get, todo))
+    done = 0
+    for g, (data, err) in results:
+        if data is None:
+            continue
+        pc = next(iter(data.get('pickcenter') or []), {}) or {}
+        g['fg_spread'] = pc.get('spread') if isinstance(pc.get('spread'), (int, float)) else None
+        g['fg_total'] = pc.get('overUnder') if isinstance(pc.get('overUnder'), (int, float)) else None
+        done += 1
+    if done:
+        write_json(p, doc)
+    return done
+
+
 def daily():
     today = datetime.now(ET).date()
     dates = date_range((today - timedelta(days=1)).isoformat(), (today + timedelta(days=7)).isoformat())
@@ -294,8 +336,9 @@ def daily():
         fails = sorted(read_json(os.path.join(GAMES_DIR, sport, 'failures.json'), {}))
         back = backfill_dates(sport)
         saved, failed = fetch_dates(sport, sorted(set(dates) | set(fails[-14:]) | set(back)), verbose=False)
+        lines = fetch_lines(sport)
         print(f'{sport}: {saved} games' + (f' ({len(back)} older dates refetched for new fields)' if back else '')
-              + (f', {len(failed)} dates failed' if failed else ''))
+              + (f', closing lines for {lines}' if lines else '') + (f', {len(failed)} dates failed' if failed else ''))
 
 
 # Periods a final needs for every segment to grade (MLB: 5 innings for F5).
@@ -332,6 +375,8 @@ def main(argv):
         coverage()
     elif not argv or argv[0] == 'daily':
         daily()
+    elif argv[0] == 'lines':   # e.g. lines ncaaf 1000
+        print(argv[1], fetch_lines(argv[1], int(argv[2]) if len(argv) > 2 else LINES_PER_RUN))
     elif argv[0] == 'retry':
         for sport in SOURCES:
             fails = sorted(read_json(os.path.join(GAMES_DIR, sport, 'failures.json'), {}))
