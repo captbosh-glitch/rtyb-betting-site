@@ -229,8 +229,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 1.12,
     "streakTeamName": "Virginia Tech"
    },
    {
@@ -317,8 +317,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "San Jos\u00e9 St"
    },
    {
