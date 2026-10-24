@@ -1050,25 +1050,8 @@
   .sc-flag { margin-top: 6px; font-size: 0.7rem; color: var(--warn); }
   .sc-sub { font-size: 0.7rem; color: var(--text-faint); margin: -3px 0 6px; }
   .sc-note { margin-top: 6px; font-size: 0.68rem; color: var(--text-muted); }
-  /* ---------- Team record cards (other sports: Stats + Teams pages) ---------- */
-  .tc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
-  .tc-card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 10px 12px; min-width: 0; }
-  .tc-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .tc-head a { display: inline-flex; align-items: center; gap: 8px; min-width: 0; color: var(--text); text-decoration: none; }
-  .tc-name { font-weight: 700; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .tc-gp { margin-left: auto; font-size: 0.72rem; color: var(--text-muted); }
-  .tc-row { display: grid; grid-template-columns: 74px 1fr auto auto; gap: 8px; align-items: center; font-size: 0.8rem; padding: 3px 0; border-top: 1px solid var(--border-soft); }
-  .tc-label { font: 700 0.66rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
-  .tc-rec { font-weight: 600; }
-  .tc-pct { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; }
-  .tc-u { min-width: 0; text-align: right; }
-  .tc-none { color: var(--text-muted); font-size: 0.8rem; padding: 6px 0; }
-  .tc-group { margin-top: 18px; }
-  .tc-group-title { font: 700 1.05rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
   .tc-count { font: 600 0.72rem 'JetBrains Mono', monospace; color: var(--text-muted); }
-  #statsTeams, #statsScoring { margin-top: 18px; }
-  #statsTeams .tp-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
-  @media (max-width: 480px) { .tc-grid { grid-template-columns: 1fr; } .tc-row { grid-template-columns: 64px 1fr auto auto; gap: 6px; } }
+  #statsScoring { margin-top: 18px; }
 
   /* ---------- Advanced Stats sections (Stats page, premium) ---------- */
   .adv-section { position: relative; }
