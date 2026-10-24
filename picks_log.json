@@ -1,0 +1,414 @@
+{
+ "2026-10-24": {
+  "plays": [
+   {
+    "id": "mlb|401908043|f5|total|over",
+    "game": "mlb|401908043",
+    "date": "2026-10-24",
+    "sport": "mlb",
+    "label": "MLB",
+    "slug": "mlb",
+    "start": "2026-10-25T00:00Z",
+    "seg": "f5",
+    "segTag": "F5",
+    "matchup": "Rays @ Brewers",
+    "href": "mlb/games/",
+    "market": "total",
+    "side": "over",
+    "line": 3.5,
+    "price": -105,
+    "title": "F5 Over 3.5",
+    "est": 0.5636,
+    "edge": 0.0514,
+    "agree": 3,
+    "sample": 172,
+    "tier": "B",
+    "tags": [
+     "Over Lover",
+     "Contrarian"
+    ],
+    "streak": -4,
+    "streakTeam": "tb",
+    "angles": [
+     [
+      "Brewers F5 overs at home (3.5)",
+      "57-29"
+     ],
+     [
+      "Brewers F5 overs, season (3.5)",
+      "106-65"
+     ],
+     [
+      "Rays F5 overs, season (3.5)",
+      "94-78"
+     ]
+    ],
+    "info": "Avg F5 total in their games: Brewers 4.9 \u00b7 Rays 4.6",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Rays"
+   },
+   {
+    "id": "nhl|2026020173|1p|btts|yes",
+    "game": "nhl|2026020173",
+    "date": "2026-10-24",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-10-24T23:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Buffalo @ Washington",
+    "href": "nhl/games/?date=2026-10-24",
+    "market": "btts",
+    "side": "yes",
+    "line": null,
+    "price": 160,
+    "title": "1P BTTS Yes",
+    "est": 0.4351,
+    "edge": 0.0505,
+    "agree": 6,
+    "sample": 10,
+    "tier": "B",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": 3,
+    "streakTeam": "WSH",
+    "angles": [
+     [
+      "Buffalo 1P BTTS on the road",
+      "4-0"
+     ],
+     [
+      "Washington 1P BTTS at home",
+      "5-1"
+     ],
+     [
+      "Buffalo 1P BTTS, season",
+      "7-3"
+     ],
+     [
+      "Washington 1P BTTS, last 8",
+      "5-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Washington"
+   },
+   {
+    "id": "ncaaf|401858276|1h|ml|away",
+    "game": "ncaaf|401858276",
+    "date": "2026-10-24",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-24T23:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Virginia Tech @ Clemson",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 114,
+    "title": "Virginia Tech 1H ML",
+    "est": 0.5144,
+    "edge": 0.0471,
+    "agree": 3,
+    "sample": 7,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 7,
+    "streakTeam": "virginia-tech-hokies",
+    "angles": [
+     [
+      "Virginia Tech 1H ML, season",
+      "7-0"
+     ],
+     [
+      "Virginia Tech 1H ML, last 8",
+      "7-0"
+     ],
+     [
+      "Virginia Tech 1H ML on the road",
+      "3-0"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Virginia Tech"
+   },
+   {
+    "id": "ncaaf|401856836|1q|ml|away",
+    "game": "ncaaf|401856836",
+    "date": "2026-10-24",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-24T23:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Colorado @ Oklahoma St",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 215,
+    "title": "Colorado 1Q ML",
+    "est": 0.3644,
+    "edge": 0.047,
+    "agree": 3,
+    "sample": 5,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "colorado-buffaloes",
+    "angles": [
+     [
+      "Oklahoma St\u2019s opponents 1Q ML, Oklahoma St at home",
+      "2-1"
+     ],
+     [
+      "Colorado 1Q ML, season",
+      "3-2-1"
+     ],
+     [
+      "Colorado 1Q ML, last 8",
+      "3-2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Colorado"
+   },
+   {
+    "id": "ncaaf|401858276|1q|ml|away",
+    "game": "ncaaf|401858276",
+    "date": "2026-10-24",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-24T23:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Virginia Tech @ Clemson",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 112,
+    "title": "Virginia Tech 1Q ML",
+    "est": 0.5083,
+    "edge": 0.0366,
+    "agree": 2,
+    "sample": 5,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "virginia-tech-hokies",
+    "angles": [
+     [
+      "Virginia Tech 1Q ML, season",
+      "5-0-2"
+     ],
+     [
+      "Virginia Tech 1Q ML, last 8",
+      "5-0-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Virginia Tech"
+   },
+   {
+    "id": "ncaaf|401864527|1h|ml|away",
+    "game": "ncaaf|401864527",
+    "date": "2026-10-24",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-25T02:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "N Dakota St @ New Mexico",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 140,
+    "title": "N Dakota St 1H ML",
+    "est": 0.4525,
+    "edge": 0.0358,
+    "agree": 2,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "north-dakota-state-bison",
+    "angles": [
+     [
+      "N Dakota St 1H ML, season",
+      "6-0-1"
+     ],
+     [
+      "N Dakota St 1H ML, last 8",
+      "6-0-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "N Dakota St"
+   },
+   {
+    "id": "ncaaf|401864528|1h|ml|away",
+    "game": "ncaaf|401864528",
+    "date": "2026-10-24",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-24T21:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "San Jos\u00e9 St @ Nevada",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 140,
+    "title": "San Jos\u00e9 St 1H ML",
+    "est": 0.4507,
+    "edge": 0.034,
+    "agree": 3,
+    "sample": 7,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 3,
+    "streakTeam": "san-jos-state-spartans",
+    "angles": [
+     [
+      "San Jos\u00e9 St 1H ML on the road",
+      "3-1"
+     ],
+     [
+      "San Jos\u00e9 St 1H ML, season",
+      "5-2"
+     ],
+     [
+      "San Jos\u00e9 St 1H ML, last 8",
+      "5-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "San Jos\u00e9 St"
+   },
+   {
+    "id": "mlb|401908043|f5|ats|home",
+    "game": "mlb|401908043",
+    "date": "2026-10-24",
+    "sport": "mlb",
+    "label": "MLB",
+    "slug": "mlb",
+    "start": "2026-10-25T00:00Z",
+    "seg": "f5",
+    "segTag": "F5",
+    "matchup": "Rays @ Brewers",
+    "href": "mlb/games/",
+    "market": "ats",
+    "side": "home",
+    "line": -0.5,
+    "price": 125,
+    "title": "Brewers F5 -0.5",
+    "est": 0.4774,
+    "edge": 0.033,
+    "agree": 2,
+    "sample": 171,
+    "tier": "C",
+    "tags": [
+     "Chalk Eater"
+    ],
+    "streak": 1,
+    "streakTeam": "mil",
+    "angles": [
+     [
+      "Brewers F5 ATS at -0.5 at home",
+      "49-37"
+     ],
+     [
+      "Brewers F5 ATS at -0.5, season",
+      "87-84"
+     ]
+    ],
+    "info": "Brewers avg F5 margin at home: +1.3",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Brewers"
+   },
+   {
+    "id": "nhl|2026020175|1p|ml|home",
+    "game": "nhl|2026020175",
+    "date": "2026-10-24",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-10-24T23:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Carolina @ St. Louis",
+    "href": "nhl/games/?date=2026-10-24",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 110,
+    "title": "St. Louis 1P ML",
+    "est": 0.5073,
+    "edge": 0.0311,
+    "agree": 3,
+    "sample": 10,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 2,
+    "streakTeam": "STL",
+    "angles": [
+     [
+      "St. Louis 1P ML at home",
+      "3-1"
+     ],
+     [
+      "St. Louis 1P ML, last 8",
+      "5-3"
+     ],
+     [
+      "St. Louis 1P ML, season",
+      "6-4"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "St. Louis"
+   }
+  ]
+ }
+}
