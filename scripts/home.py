@@ -277,6 +277,7 @@ def nav_html(status, depth=''):
         <button class="hn-link hn-drop-btn" id="hnSportsBtn" aria-expanded="false" aria-haspopup="true">Sports <span aria-hidden="true">&#9662;</span></button>
         <div class="hn-drop-menu" id="hnSportsMenu">{sport_items}</div>
       </div>
+      <a class="hn-link" href="{depth}picks/">Picks</a>
       <a class="hn-link" href="{depth}#today">Today</a>
       <a class="hn-link" href="{depth}#trends">Trends to Watch</a>
       <a class="hn-link" href="{depth}learn/">Learn</a>
@@ -300,6 +301,7 @@ def nav_html(status, depth=''):
     <button class="hm-acc" id="hmSportsBtn" type="button" aria-expanded="true" aria-controls="hmSports">Sports <span aria-hidden="true">&#9662;</span></button>
     <div class="hm-sports" id="hmSports">{sport_items}</div>
     <div class="hm-label">Everything</div>
+    <a class="hm-item" href="{depth}picks/">Picks</a>
     <a class="hm-item" href="{depth}#today">Today</a>
     <a class="hm-item" href="{depth}#trends">Trends to Watch</a>
     <a class="hm-item" href="{depth}learn/">Learn</a>
@@ -599,7 +601,21 @@ LEARN_LINKS = [
     ('totals', 'Totals (O/U)', 'Overs, unders and whole-number pushes.'),
     ('nrfi', 'NRFI / YRFI and F5', 'Baseball’s first inning and first five.'),
     ('units', 'Units', 'How RTYB counts profit and loss.'),
+    ('confidence', 'How confidence works', 'How Today’s Picks are scored, tiered and graded.'),
 ]
+
+
+def write_picks(template, nhl_data, logo_svg, body, now_utc=None):
+    """picks/index.html around the body from picks.py, with the site nav."""
+    now_utc = now_utc or datetime.now(timezone.utc)
+    today = now_utc.astimezone(ET).date().isoformat()
+    by_sport, _ = collect(template, nhl_data)
+    status = [(sp,) + sport_status(sp, by_sport.get(sp['key'], {}), today) for sp in sports.SPORTS]
+    html = page('RTYB — Today’s Picks', 'Trend-based plays for the first quarter, half, period and inning, ranked by confidence, with every tier’s record public.',
+                body, status, depth='../').replace('__LOGO_SVG__', logo_svg)
+    os.makedirs(os.path.join(ROOT, 'picks'), exist_ok=True)
+    with open(os.path.join(ROOT, 'picks', 'index.html'), 'w', encoding='utf-8') as f:
+        f.write(html)
 
 LEARN_BODY = '''
 <section class="hp-sec learn">
@@ -630,6 +646,19 @@ LEARN_BODY = '''
   price (+0.91u at &minus;110). Pushes, ties and No Action are 0. Records that need odds &mdash; spreads, totals,
   favorites and units &mdash; only count games with saved odds, and say how many (&ldquo;based on N games with
   odds&rdquo;).</p>
+  <h2 id="confidence">How confidence works (Today&rsquo;s Picks)</h2>
+  <p>Every play on <a href="../picks/">Today&rsquo;s Picks</a> starts from a saved line: a moneyline price, a spread or a
+  total. For each side, RTYB collects angles from this season&rsquo;s graded games played before it, at <em>today&rsquo;s</em>
+  line: the team&rsquo;s record this season, over its last 8 and at this venue, and the opponent&rsquo;s record at its venue
+  (for totals, both teams&rsquo; games). Each angle&rsquo;s hit rate is pulled toward 50% by 8 imaginary games, so small samples
+  move less, and the angles are averaged by sample size. The <b>edge</b> is that estimate minus the chance the price
+  implies (&minus;110 when no price was saved).</p>
+  <p>A play needs at least two angles that agree and an edge of 3% or more. <b>A-tier</b>: edge 6%+ on a sample of 15+ with a
+  saved price. <b>B-tier</b>: edge 4%+ on 10+. Everything else is <b>C</b>, and a sample under 10 can&rsquo;t rank above C.
+  Personalities tag the style of each play (Chalk Eater, Dog Hunter, Streak Rider, Contrarian, Over Lover, Under Grinder,
+  Early Bird).</p>
+  <p>Plays lock when the game starts and are graded on the saved line and price: wins at the price, losses &minus;1u, pushes
+  and tied moneyline segments 0u. Records start from the first day Picks went live; nothing is backfilled.</p>
   <h2 id="responsible">Bet responsibly</h2>
   <p>Only bet what you can afford to lose. If gambling stops being fun, call 1-800-GAMBLER for free, confidential help.</p>
 </section>'''

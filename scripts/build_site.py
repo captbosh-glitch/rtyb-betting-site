@@ -56,6 +56,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import account  # noqa: E402
 import league_trends  # noqa: E402
 import periods  # noqa: E402
+import picks  # noqa: E402
 import home  # noqa: E402
 import icons  # noqa: E402
 import sport_build  # noqa: E402
@@ -931,8 +932,11 @@ def main():
     other = build_other_sports(template)
     # Home page + Learn, last: they read every sport's data.json.
     home_info = home.build(template, full_data, LOGO_SVG)
+    # Today's Picks: after every data.json is written (picks.py reads them)
+    picks_body, picks_info = picks.build(full_data, TEAM_CITY)
+    home.write_picks(template, full_data, LOGO_SVG, picks_body)
 
-    print(f"wrote index.html (home: {home_info['today']} games today, {home_info['trends']} trends), learn/, nhl/data.json ({len(data_json)} bytes), "
+    print(f"wrote index.html (home: {home_info['today']} games today, {home_info['trends']} trends), picks/ ({picks_info['plays']} plays today), learn/, nhl/data.json ({len(data_json)} bytes), "
           f"nhl/games/index.html ({len(games_html)} bytes), "
           f"nhl/1st-period-stats/index.html ({len(hitrates_html)} bytes), "
           f"nhl/hit-rates/index.html (redirect stub), "
