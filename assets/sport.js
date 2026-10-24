@@ -382,8 +382,8 @@
   }
 
   // ---------------------------------------------------------- Stats page
-  // Built like NHL's Stats page: a Season Results card for the selected
-  // period, then one card per team. Records are W-L-T (SU), W-L-P (ATS)
+  // Built like NHL's Stats page: league-level cards only (team records
+  // live on the Teams page and team pages). Records are W-L-T (SU), W-L-P (ATS)
   // and O-U-P (totals) -- ties and pushes always shown, never folded into
   // losses -- with units wherever odds were saved. Each block sits in its
   // own section so premium sections can be added later.
@@ -422,114 +422,6 @@
           scUnits([['Over', o], ['Under', lg.under || [0, 0, 0, 0, 0]]]), on ? oddsNote(on) : '');
     }
     return '<div class="season-card">' + head + '<div class="sc-grid">' + blocks + '</div></div>';
-  }
-
-  // One team's card: records for the period (W-L-T / W-L-P / O-U-P), the
-  // rate (ties and pushes left out) and units where odds were saved.
-  function recRow(label, r, rateOf, priced) {
-    var n = r[0] + r[1] + r[2];
-    return '<div class="tc-row"><span class="tc-label">' + label + '</span>' +
-      '<span class="tc-rec mono">' + (n ? r[0] + '–' + r[1] + '–' + r[2] : '&mdash;') + '</span>' +
-      '<span class="tc-pct">' + (n ? pctTxt(r[0], r[1]) : '') + '</span>' +
-      '<span class="tc-u">' + (priced ? unitsPill(r[3], r[4]) : '') + '</span></div>';
-  }
-  function teamCard(slug, k, compact) {
-    var t = team(slug), st = ((STATS.teams || {})[slug] || {})[k];
-    var head = '<div class="tc-head">' + teamLink(slug, badge(slug, compact ? 26 : 30) + '<span class="tc-name">' + esc(t.name) + '</span>') +
-      '<span class="tc-gp mono">' + (st ? st.gp + ' GP' : '') + '</span></div>';
-    if (!st) return '<div class="tc-card">' + head + '<div class="tc-none">No ' + esc(seg(k).label) + ' results yet.</div></div>';
-    var rows;
-    if (isRfi(k)) {
-      rows = recRow('YRFI', st.yrfi, true, true) +
-        '<div class="tc-row"><span class="tc-label">Scored 1st</span><span class="tc-rec mono">' + st.scored + '/' + st.gp + '</span><span class="tc-pct">' + pctTxt(st.scored, st.gp - st.scored) + '</span><span class="tc-u"></span></div>' +
-        '<div class="tc-row"><span class="tc-label">Allowed 1st</span><span class="tc-rec mono">' + st.allowed + '/' + st.gp + '</span><span class="tc-pct">' + pctTxt(st.allowed, st.gp - st.allowed) + '</span><span class="tc-u"></span></div>';
-    } else {
-      rows = recRow('SU', st.su, true, true) + recRow('ATS', st.ats, true, true) + recRow('O/U', st.over, true, true) +
-        (compact ? '' : recRow('Home SU', st.home, true, false) + recRow('Away SU', st.away, true, false));
-    }
-    return '<div class="tc-card">' + head + rows + '</div>';
-  }
-
-  // Sort keys for the team cards (rates leave ties / pushes out).
-  var TC_SORTS = [
-    ['su', 'SU win %', function(st) { return st.su ? pct(st.su[0], st.su[1]) : pct(st.yrfi[1], st.yrfi[0]); }],
-    ['ats', 'ATS cover %', function(st) { return st.ats ? pct(st.ats[0], st.ats[1]) : null; }],
-    ['over', 'Over %', function(st) { return st.over ? pct(st.over[0], st.over[1]) : st.yrfi ? pct(st.yrfi[0], st.yrfi[1]) : null; }],
-    ['suu', 'SU units', function(st) { return st.su && st.su[4] ? st.su[3] : null; }],
-    ['atsu', 'ATS units', function(st) { return st.ats && st.ats[4] ? st.ats[3] : null; }],
-  ];
-  var tcState = { sort: 'su', view: 'conf', conf: '', q: '' };
-
-  // Team cards with search, sort and (NCAAF) conference grouping. `opts`:
-  // {compact, group: 'conf' | 'division' | 'letter' | null}
-  function teamCardsHtml(k, opts) {
-    var sortFn = (TC_SORTS.filter(function(s) { return s[0] === tcState.sort; })[0] || TC_SORTS[0])[2];
-    var slugs = Object.keys(D.teams).filter(function(s) {
-      var t = D.teams[s];
-      if (tcState.q && (t.name + ' ' + (t.code || '') + ' ' + (t.short || '')).toLowerCase().indexOf(tcState.q) === -1) return false;
-      if (tcState.conf && t.conference !== tcState.conf) return false;
-      return true;
-    });
-    function val(s) { var st = ((STATS.teams || {})[s] || {})[k]; return st ? sortFn(st) : null; }
-    slugs.sort(function(a, b) {
-      var va = val(a), vb = val(b);
-      if (va == null && vb == null) return D.teams[a].name < D.teams[b].name ? -1 : 1;
-      if (va == null) return 1; if (vb == null) return -1;
-      if (va !== vb) return vb - va;
-      // same rate: the bigger sample first (6-0 above 3-0-3)
-      var ra = STATS.teams[a][k], rb = STATS.teams[b][k], ma = ra.su || ra.yrfi, mb = rb.su || rb.yrfi;
-      return (mb[0] + mb[1]) - (ma[0] + ma[1]) || (D.teams[a].name < D.teams[b].name ? -1 : 1);
-    });
-    if (!slugs.length) return '<div class="tc-none">No teams match.</div>';
-    var group = opts.group;
-    if (group === 'conf' && tcState.view === 'all') group = null;
-    if (!group) return '<div class="tc-grid">' + slugs.map(function(s) { return teamCard(s, k, opts.compact); }).join('') + '</div>';
-    var groups = {};
-    slugs.forEach(function(s) {
-      var t = D.teams[s];
-      var g = group === 'conf' ? (t.conference || 'Other') : group === 'letter' ? t.name.charAt(0).toUpperCase()
-        : (t.division || t.conference || 'Teams').replace('American League', 'AL').replace('National League', 'NL');
-      (groups[g] = groups[g] || []).push(s);
-    });
-    // Conference headers A-Z (independents last); divisions in league order.
-    var names = Object.keys(groups).sort(function(a, b) {
-      if (/Independent/.test(a) !== /Independent/.test(b)) return /Independent/.test(a) ? 1 : -1;
-      return a < b ? -1 : a > b ? 1 : 0;
-    });
-    return names.map(function(g) {
-      return '<section class="tc-group"><h3 class="tc-group-title">' + esc(g) + ' <span class="tc-count">' + groups[g].length + '</span></h3>' +
-        '<div class="tc-grid">' + groups[g].map(function(s) { return teamCard(s, k, opts.compact); }).join('') + '</div></section>';
-    }).join('');
-  }
-  function teamControlsHtml(k, opts) {
-    var confs = {};
-    Object.keys(D.teams).forEach(function(s) { if (D.teams[s].conference) confs[D.teams[s].conference] = 1; });
-    var college = opts.group === 'conf';
-    return '<div class="controls"><div class="control-group">' +
-      (college ? '<div class="seg-toggle" id="tcView"><button class="seg-btn" data-view="conf" aria-pressed="' + (tcState.view === 'conf') + '">By conference</button>' +
-        '<button class="seg-btn" data-view="all" aria-pressed="' + (tcState.view === 'all') + '">All</button></div>' : '') + '</div>' +
-      '<div class="control-group">' +
-      (college ? '<select class="conf-select" id="tcConf"><option value="">All conferences</option>' +
-        Object.keys(confs).sort().map(function(c) { return '<option' + (c === tcState.conf ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') + '</select>' : '') +
-      '<select class="conf-select" id="tcSort" aria-label="Sort teams">' + TC_SORTS.map(function(s) {
-        return '<option value="' + s[0] + '"' + (s[0] === tcState.sort ? ' selected' : '') + '>Sort: ' + s[1] + '</option>';
-      }).join('') + '</select>' +
-      '<input class="search-box" id="tcSearch" type="search" placeholder="Search team&hellip;" value="' + esc(tcState.q) + '"></div></div>';
-  }
-  function wireTeamControls(draw) {
-    var segEl = document.getElementById('tcSeg');
-    if (segEl) segEl.onclick = function(e) { var b = e.target.closest('[data-seg]'); if (b) { setSeg(b.getAttribute('data-seg')); draw(); } };
-    var v = document.getElementById('tcView');
-    if (v) v.onclick = function(e) { var b = e.target.closest('[data-view]'); if (b) { tcState.view = b.getAttribute('data-view'); draw(); } };
-    var c = document.getElementById('tcConf');
-    if (c) c.onchange = function() { tcState.conf = c.value; draw(); };
-    var so = document.getElementById('tcSort');
-    if (so) so.onchange = function() { tcState.sort = so.value; draw(); };
-    var q = document.getElementById('tcSearch');
-    if (q) q.oninput = function() {
-      tcState.q = q.value.trim().toLowerCase(); var pos = q.selectionStart; draw();
-      var q2 = document.getElementById('tcSearch'); q2.focus(); q2.setSelectionRange(pos, pos);
-    };
   }
 
   // ------------------------------------------------- per-game aggregation
@@ -691,7 +583,7 @@
   // Stats for any set of graded games, in the same shape as the build's
   // season stats (sport_build.season_stats): records [W, L, T/P, units,
   // priced games] per team and league-wide, per period.
-  var STATS = null;   // what the Stats page shows (the time filter's games)
+  var STATS = null;   // the Stats page's numbers (the time filter's games)
   function favSide(o) {
     var ml = (o || {}).ml || {}, a = ml.away, h = ml.home;
     function imp(p) { return p < 0 ? -p / (-p + 100) : 100 / (p + 100); }
@@ -821,7 +713,6 @@
 
   function renderStats() {
     if (!D.season) { app.innerHTML = emptyNote('No ' + esc(D.label) + ' games loaded yet &mdash; stats appear once games are played.'); return; }
-    var group = D.sport === 'ncaaf' ? 'conf' : null;
     function draw() {
       var k = getSeg(), range = tfRange();
       STATS = computeStats(range.games);
@@ -831,14 +722,10 @@
         '<section id="statsSeason">' + seasonResultsHtml(lg, k, controls, range.line) + '</section>' +
         '<section id="statsScoring">' + distHtml(lg, k) + '</section>' +
         (splitReg() ? '<section id="statsSit"></section>' : '') +
-        '<section id="statsTeams"><div class="tp-head"><h2>Teams</h2><span class="sc-gp">' + esc(seg(k).label) + ' &middot; ' +
-          (tf.mode === 'all' ? esc(D.seasonLabel) + ' season' : 'selected range') + '</span></div>' +
-          teamControlsHtml(k, { group: group }) + teamCardsHtml(k, { group: group }) + '</section>' +
         '<section id="statsPremium"></section>';   // premium sections slot in here later
       var segEl = document.getElementById('statsSeg');
       if (segEl) segEl.onclick = function(e) { var b = e.target.closest('[data-seg]'); if (b) { setSeg(b.getAttribute('data-seg')); draw(); } };
       wireTf(draw);
-      wireTeamControls(draw);
       wireDist(draw);
       renderSit('statsSit', { mode: 'league' });
     }

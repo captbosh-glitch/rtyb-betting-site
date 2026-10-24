@@ -652,7 +652,7 @@ def team_detail_html(sport, team):
 
 SECTION_DESC = {
     'games': '{label} games by date with {segs} odds, scores and results.',
-    'stats': '{label} {segs} records: SU, ATS and totals by team, with units.',
+    'stats': '{label} {segs} results league-wide: SU, ATS and totals with units, scoring and situational splits.',
     'trends': '{label} League Trends for each slate and current team streaks.',
 }
 
