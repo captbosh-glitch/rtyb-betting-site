@@ -644,8 +644,6 @@ def team_detail_html(sport, team):
             + section('Next Game', 'No upcoming game scheduled yet.')
             + section('Last Game', no_games)
             + section('Season Markets', f'Records and units will appear here once games are graded.<span class="empty-tags">{tags}</span>')
-            + section('Home / Away Splits', no_games)
-            + section('Current Trends', 'No trends yet.')
             + section('Season Game Log', no_games)
             + '</div>')
 

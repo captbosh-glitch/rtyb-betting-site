@@ -950,11 +950,9 @@
       return '<h3 class="team-section-title">' + title + '</h3>' + (extra || '') + body;
     }
     function draw() {
-      var st = ((D.stats.teams || {})[slug] || {})[k];
       var html = '';
       html += section('Next Game', next ? '<div class="games-list">' + gameCard(next, k, { noToggle: true }) + '</div>' : emptyNote('No upcoming game scheduled.'));
       html += section('Last Game', last ? '<div class="games-list">' + gameCard(last, k, { noToggle: true }) + '</div>' : emptyNote('No games played yet.'));
-      if (splitReg()) html += '<div id="teamSit" class="team-sit"></div><div id="teamSitLog"></div>';
       // season markets for every segment
       var cards = D.segments.map(function(s) {
         var r = ((D.stats.teams || {})[slug] || {})[s.key];
@@ -977,27 +975,21 @@
               '</span><span class="ds-col-pct">' + x[2] + '</span><span class="ds-col-units">' + (x[3] || '') + '</span></span></div>';
           }).join('') + '</div>';
       }).join('');
-      html += section('Season Markets', cards || emptyNote('Records appear once games are graded.'));
-      // splits
-      if (st) {
-        var splits = isRfi(k)
-          ? [['Home', st.home[0] + ' YRFI of ' + (st.home[0] + st.home[1]), pctTxt(st.home[0], st.home[1])], ['Away', st.away[0] + ' YRFI of ' + (st.away[0] + st.away[1]), pctTxt(st.away[0], st.away[1])]]
-          : [['Home SU', rec(st.home), pctTxt(st.home[0], st.home[1])], ['Away SU', rec(st.away), pctTxt(st.away[0], st.away[1])]];
-        html += section('Home / Away Splits', '<div class="daily-summary">' + splits.map(function(x) {
-          return '<div class="ds-row"><span class="ds-label">' + x[0] + '</span><span class="ds-right"><span class="ds-record">' + x[1] + '</span><span class="ds-col-pct">' + x[2] + '</span></span></div>';
-        }).join('') + '</div>', segToggle('teamSeg', k));
-      }
+      var marketsHtml = section('Season Markets', cards || emptyNote('Records appear once games are graded.'));
       var tl = teamTrendLines(slug);
-      html += section('Current Trends', tl.length ? '<div class="tr-game">' + tl.map(function(l) {
+      var trendsHtml = !tl.length ? '' : section('Current Trends', '<div class="tr-game">' + tl.map(function(l) {
         return '<div class="tr-row' + (l.label === 'weak' ? ' weak' : '') + '"><span class="tr-chip ' + (l.label === 'weak' ? 'muted' : 'good') + '">' + esc(l.chip) + '</span>' +
           '<span class="tr-mk">' + esc(l.tag) + '</span><span class="tr-text">' + esc(l.text) + '</span>' +
           '<span class="tr-meta"><span class="tr-str ' + l.label + '">' + l.label + '</span> n = ' + l.n + '</span></div>';
-      }).join('') + '</div>' : emptyNote('No active trends: no streak of ' + TRR().streak_min + '+ and no season rate that clears the bar yet.'));
-      // the season's game log, every period, newest first
+      }).join('') + '</div>');
+      // the season's game log, every period, newest first: the last 5,
+      // then Show all (NFL / NCAAF use the Situational Results log)
       var log = splitReg() ? [] : finals.slice().reverse();
-      if (!splitReg()) html += section('Season Game Log &mdash; ' + esc(seg(k).label) + ' results', log.length ? '<div class="gamelog-scroll"><table class="gamelog"><thead><tr><th>Date</th><th>Opp</th>' +
+      var shownLog = sitState.logAll ? log : log.slice(0, 5);
+      var moreBtn = log.length > 5 ? '<button class="seg-btn sit-more" id="teamLogMore" type="button">' + (sitState.logAll ? 'Show last 5 games' : 'Show all ' + log.length + ' games') + '</button>' : '';
+      var logHtml = splitReg() ? '<div id="teamSitLog"></div>' : section('Season Game Log &mdash; ' + esc(seg(k).label) + ' results', log.length ? '<div class="gamelog-scroll"><table class="gamelog"><thead><tr><th>Date</th><th>Opp</th>' +
         D.segments.map(function(s) { return '<th>' + (isRfi(s.key) ? '1st Inn' : esc(s.tag)) + '</th>'; }).join('') +
-        (isRfi(k) ? '<th>NRFI/YRFI</th>' : '<th>SU</th><th>ATS</th><th>O/U</th>') + '<th>Final</th></tr></thead><tbody>' + log.map(function(g) {
+        (isRfi(k) ? '<th>NRFI/YRFI</th>' : '<th>SU</th><th>ATS</th><th>O/U</th>') + '<th>Final</th></tr></thead><tbody>' + shownLog.map(function(g) {
           var home = g.home === slug, opp = home ? g.away : g.home;
           var scores = D.segments.map(function(s) {
             var rr = (g.res || {})[s.key] || {};
@@ -1010,11 +1002,16 @@
             : '<td class="num">' + (r.su ? chip(home ? flipRes(r.su) : r.su) : '') + '</td><td class="num">' + (r.ats ? chip(home ? flipRes(r.ats) : r.ats) : '&mdash;') + '</td><td class="num">' + (r.tot ? chip(r.tot) : '&mdash;') + '</td>';
           return '<tr><td>' + esc(new Date(g.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' })) + '</td><td>' + (home ? 'vs ' : '@ ') +
             (teamUrl(opp) ? '<a href="' + teamUrl(opp) + '">' + esc(shortName(opp)) + '</a>' : esc(shortName(opp))) + '</td>' + scores + cells + '<td class="num">' + fin + '</td></tr>';
-        }).join('') + '</tbody></table></div>' : emptyNote('No games played yet.'), segToggle('teamSeg2', k));
+        }).join('') + '</tbody></table></div>' + moreBtn : emptyNote('No games played yet.'), segToggle('teamSeg2', k));
+      // Next, Last, Current Trends (if any), Season Markets, Season Game Log,
+      // Situational Results (NFL / NCAAF)
+      html += trendsHtml + marketsHtml + logHtml + (splitReg() ? '<div id="teamSit" class="team-sit"></div>' : '');
       app.innerHTML = html;
+      var lm = document.getElementById('teamLogMore');
+      if (lm) lm.onclick = function() { sitState.logAll = !sitState.logAll; draw(); };
       renderSit('teamSit', { mode: 'team', slug: slug });
       renderSitLog('teamSitLog', slug);
-      ['teamSeg', 'teamSeg2'].forEach(function(id) {
+      ['teamSeg2'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.onclick = function(e) { var b = e.target.closest('[data-seg]'); if (b) { k = b.getAttribute('data-seg'); setSeg(k); draw(); } };
       });
