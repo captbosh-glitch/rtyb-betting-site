@@ -17,6 +17,13 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fetch_schedule import fetch_json  # noqa: E402
+import fetch_sport_games  # noqa: E402
+
+
+def espn_json(url):
+    """ESPN turns away fetch_schedule's request (403), so use the ESPN
+    fetcher the other sports use."""
+    return fetch_sport_games.fetch_json(url)[0]
 
 ESPN_CODE = {'ANA': 'ANH', 'MTL': 'MON', 'UTAH': 'UTA', 'TBL': 'TB', 'NJD': 'NJ', 'SJS': 'SJ', 'LAK': 'LA'}
 ESPN = 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl'
@@ -39,7 +46,7 @@ def espn_moneylines(date):
     """{(away, home): {"away": ml, "home": ml} or None} for one date (ET);
     None when ESPN didn't answer (try again later; don't save "no line").
     A game whose summary didn't load is left out of the dict."""
-    sb = fetch_json(f'{ESPN}/scoreboard?dates={date.replace("-", "")}')
+    sb = espn_json(f'{ESPN}/scoreboard?dates={date.replace("-", "")}')
     if not sb:
         return None
     events = []
@@ -50,7 +57,7 @@ def espn_moneylines(date):
             events.append((ESPN_CODE.get(teams['away'], teams['away']), ESPN_CODE.get(teams['home'], teams['home']), ev['id']))
 
     def line(e):
-        s = fetch_json(f'{ESPN}/summary?event={e[2]}')
+        s = espn_json(f'{ESPN}/summary?event={e[2]}')
         if s is None:
             return (e[0], e[1]), 'retry'
         pc = next(iter(s.get('pickcenter') or []), {}) or {}
