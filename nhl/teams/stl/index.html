@@ -1288,6 +1288,23 @@
   #statsSeason .sc-right { flex-wrap: wrap; justify-content: flex-end; }
   #statsScoring { margin-top: 14px; }
   @media (max-width: 480px) { .hd-row { grid-template-columns: 40px 1fr; } .hd-val { font-size: 0.68rem; } }
+  /* Football scoring: Most Common Scores + Scoring Distribution (NFL / NCAAF) */
+  .fb-head { margin-bottom: 10px; }
+  .fb-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: stretch; }
+  .fb-card { margin: 0; display: flex; flex-direction: column; }
+  .fb-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+  .fb-card-head h3 { font-size: 0.95rem; }
+  .fb-sub { font: 500 0.74rem 'JetBrains Mono', monospace; color: var(--text-muted); margin-top: 3px; }
+  .fb-missing { font-family: 'Source Sans 3', sans-serif; color: var(--text-faint); }
+  .fb-sorts { font-size: 0.76rem; color: var(--text-muted); white-space: nowrap; }
+  .fb-sort { background: none; border: 0; padding: 4px 2px; min-height: 32px; font: inherit; color: var(--text-muted); cursor: pointer; }
+  .fb-sort:hover { text-decoration: underline; }
+  .fb-sort.on { color: var(--text); font-weight: 700; text-decoration: none; cursor: default; }
+  .fb-more { align-self: flex-start; background: none; border: 0; padding: 8px 0 0; min-height: 36px; font: 600 0.78rem 'Source Sans 3', sans-serif; color: var(--accent); cursor: pointer; }
+  .fb-more:hover { text-decoration: underline; }
+  .fb-card .hdist { flex: 1; }
+  #fbDist .hd-row { will-change: transform; }
+  @media (max-width: 767px) { .fb-cards { grid-template-columns: 1fr; } }
   .lt-top .gm-team { display: inline-flex; flex-shrink: 0; }
 
   /* ---------- Team detail page ---------- */
