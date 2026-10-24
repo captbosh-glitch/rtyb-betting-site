@@ -711,6 +711,128 @@
     if (sel) sel.onchange = function() { if (sel.value) { tf.mode = 'wk'; tf.wk = sel.value; } else tf.mode = 'all'; draw(); };
   }
 
+  // ---- Football scoring (NFL / NCAAF Stats page) ----
+  // Two cards on one game sample (the time filter's graded games with a
+  // score for the period): Most Common Scores (exact score, higher first)
+  // and Scoring Distribution (combined points in fixed buckets, sortable by
+  // count or range). One 1Q / 1H toggle drives both; period and sort live in
+  // the URL (?period=1q|1h, ?sort=common|range) so a view can be linked.
+  var FB_BUCKETS = {
+    '1q': [[0, 0], [1, 3], [4, 7], [8, 10], [11, 14], [15, 17], [18, 21], [22, null]],
+    '1h': [[0, 0], [1, 3], [4, 7], [8, 10], [11, 14], [15, 17], [18, 21], [22, 24], [25, 28], [29, 31], [32, 35], [36, null]],
+  };
+  var fbState = null;
+  function isFootball() { return D.sport === 'nfl' || D.sport === 'ncaaf'; }
+  function fbInit() {
+    if (fbState) return;
+    var q = {};
+    try { new URLSearchParams(window.location.search).forEach(function(v, key) { q[key] = v; }); } catch (e) {}
+    fbState = { k: seg(q.period) ? q.period : D.segments[0].key, sort: q.sort === 'range' ? 'range' : 'common', open: false };
+  }
+  function fbSaveUrl() {
+    try {
+      var u = new URL(window.location.href);
+      u.searchParams.set('period', fbState.k);
+      u.searchParams.set('sort', fbState.sort);
+      history.replaceState(null, '', u.toString());
+    } catch (e) {}
+  }
+  function fbPct(n, of) {
+    if (!of) return '0%';
+    var p = 100 * n / of;
+    return (p > 0 && p < 1 ? p.toFixed(1) : String(Math.round(p))) + '%';
+  }
+  // one bar row: label, bar (width vs the largest row), "count · %" inside
+  // the bar when it fits, else just past its end; no bar for 0 games
+  function fbRow(label, n, of, max, key) {
+    var w = n && max ? Math.min(100, Math.max(1, Math.round(100 * n / max))) : 0;
+    var val = '<b>' + n + '</b> <span class="hd-sub">&middot; ' + fbPct(n, of) + '</span>';
+    var inside = w >= 38;
+    return '<div class="hd-row"' + (key != null ? ' data-fb-key="' + esc(key) + '"' : '') + '><span class="hd-lbl mono">' + esc(label) + '</span>' +
+      '<div class="hd-track">' + (w ? '<div class="hd-bar" style="width:' + w + '%">' + (inside ? '<span class="hd-val in">' + val + '</span>' : '') + '</div>' : '') +
+      (inside ? '' : '<span class="hd-val out">' + val + '</span>') + '</div></div>';
+  }
+  function fbScoringHtml(games) {
+    var k = fbState.k, sample = [], missing = 0;
+    games.forEach(function(g) {
+      var r = (g.res || {})[k];
+      if (r && r.sc && !r.na) sample.push(r.sc);
+      else if (g.state === 'final') missing++;
+    });
+    var n = sample.length;
+    // card 1: exact scores, order-agnostic
+    var scores = {};
+    sample.forEach(function(sc) {
+      var hi = Math.max(sc[0], sc[1]), lo = Math.min(sc[0], sc[1]), key = hi + '-' + lo;
+      (scores[key] = scores[key] || { label: key, n: 0, tot: hi + lo, hi: hi }).n++;
+    });
+    var ranked = Object.keys(scores).map(function(x) { return scores[x]; }).sort(function(a, b) {
+      return b.n - a.n || a.tot - b.tot || a.hi - b.hi;
+    });
+    var top = fbState.open ? ranked : ranked.slice(0, 5), rest = ranked.slice(5);
+    var other = rest.reduce(function(t, x) { return t + x.n; }, 0);
+    // bars scale to the most common score; "Other" (many scores pooled) caps at full width
+    var max1 = Math.max.apply(null, top.map(function(x) { return x.n; }).concat([0]));
+    var card1 = top.map(function(x) { return fbRow(x.label, x.n, n, max1); }).join('') +
+      (!fbState.open && rest.length ? fbRow('Other', other, n, max1) : '') +
+      (rest.length ? '<button type="button" class="fb-more" id="fbMore">' + (fbState.open ? 'Show less &#9652;' : 'Show all (' + rest.length + ' more) &#9662;') + '</button>' : '');
+    // card 2: combined points in buckets
+    var buckets = FB_BUCKETS[k] || FB_BUCKETS['1q'];
+    var rows = buckets.map(function(b, i) {
+      var c = sample.filter(function(sc) { var t = sc[0] + sc[1]; return t >= b[0] && (b[1] == null || t <= b[1]); }).length;
+      return { i: i, label: b[1] == null ? b[0] + '+' : b[0] === b[1] ? String(b[0]) : b[0] + '–' + b[1], n: c };
+    });
+    if (fbState.sort === 'common') rows.sort(function(a, b) { return b.n - a.n || a.i - b.i; });
+    var max2 = Math.max.apply(null, rows.map(function(r) { return r.n; }).concat([0]));
+    var card2 = rows.map(function(r) { return fbRow(r.label, r.n, n, max2, r.label); }).join('');
+    var sub = n + ' game' + (n === 1 ? '' : 's') + (missing ? '<span class="fb-missing"> &middot; ' + missing + ' game' + (missing === 1 ? '' : 's') + ' missing period data</span>' : '');
+    function sortLink(v, label) {
+      return '<button type="button" class="fb-sort' + (fbState.sort === v ? ' on' : '') + '" data-fb-sort="' + v + '" aria-pressed="' + (fbState.sort === v) + '">' + label + '</button>';
+    }
+    return '<div class="fb-scoring"><div class="season-card-head fb-head"><h3>Scoring</h3><div class="seg-toggle" role="group" aria-label="Period">' +
+      D.segments.map(function(sg) { return '<button class="seg-btn" data-fb-seg="' + sg.key + '" aria-pressed="' + (sg.key === k) + '">' + esc(sg.label) + '</button>'; }).join('') +
+      '</div></div><div class="fb-cards">' +
+      '<div class="season-card fb-card"><div class="fb-card-head"><div><h3>Most Common Scores</h3><div class="fb-sub">' + sub + '</div></div></div>' +
+        '<div class="hdist">' + (n ? card1 : emptyNote('No games with ' + esc(seg(k).label) + ' scores in this range.')) + '</div></div>' +
+      '<div class="season-card fb-card"><div class="fb-card-head"><div><h3>Scoring Distribution</h3><div class="fb-sub">' + sub + '</div></div>' +
+        '<div class="fb-sorts">Sort: ' + sortLink('common', 'Common') + ' <span aria-hidden="true">|</span> ' + sortLink('range', 'Range') + '</div></div>' +
+        '<div class="hdist" id="fbDist">' + (n ? card2 : emptyNote('No games with ' + esc(seg(k).label) + ' scores in this range.')) + '</div></div>' +
+      '</div></div>';
+  }
+  function renderFbScoring(games) {
+    var box = document.getElementById('statsScoring');
+    if (!box) return;
+    fbInit();
+    // FLIP: remember where each bucket row was, re-render, then slide rows
+    // from their old spots to the new ones (~200ms), unless reduced motion
+    var before = {};
+    box.querySelectorAll('#fbDist [data-fb-key]').forEach(function(el) { before[el.getAttribute('data-fb-key')] = el.getBoundingClientRect().top; });
+    box.innerHTML = fbScoringHtml(games);
+    var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!still) {
+      box.querySelectorAll('#fbDist [data-fb-key]').forEach(function(el) {
+        var was = before[el.getAttribute('data-fb-key')];
+        if (was == null) return;
+        var dy = was - el.getBoundingClientRect().top;
+        if (!dy) return;
+        el.style.transform = 'translateY(' + dy + 'px)';
+        el.style.transition = 'none';
+        requestAnimationFrame(function() {
+          el.style.transition = 'transform 200ms ease';
+          el.style.transform = '';
+        });
+      });
+    }
+    box.querySelectorAll('[data-fb-seg]').forEach(function(b) {
+      b.onclick = function() { fbState.k = b.getAttribute('data-fb-seg'); fbState.open = false; fbSaveUrl(); renderFbScoring(games); };
+    });
+    box.querySelectorAll('[data-fb-sort]').forEach(function(b) {
+      b.onclick = function() { fbState.sort = b.getAttribute('data-fb-sort'); fbSaveUrl(); renderFbScoring(games); };
+    });
+    var more = document.getElementById('fbMore');
+    if (more) more.onclick = function() { fbState.open = !fbState.open; renderFbScoring(games); };
+  }
+
   function renderStats() {
     if (!D.season) { app.innerHTML = emptyNote('No ' + esc(D.label) + ' games loaded yet &mdash; stats appear once games are played.'); return; }
     function draw() {
@@ -720,13 +842,13 @@
       var controls = segToggle('statsSeg', k) + tfControls();
       app.innerHTML =
         '<section id="statsSeason">' + seasonResultsHtml(lg, k, controls, range.line) + '</section>' +
-        '<section id="statsScoring">' + distHtml(lg, k) + '</section>' +
+        '<section id="statsScoring">' + (isFootball() ? '' : distHtml(lg, k)) + '</section>' +
         (splitReg() ? '<section id="statsSit"></section>' : '') +
         '<section id="statsPremium"></section>';   // premium sections slot in here later
       var segEl = document.getElementById('statsSeg');
       if (segEl) segEl.onclick = function(e) { var b = e.target.closest('[data-seg]'); if (b) { setSeg(b.getAttribute('data-seg')); draw(); } };
       wireTf(draw);
-      wireDist(draw);
+      if (isFootball()) renderFbScoring(range.games); else wireDist(draw);
       renderSit('statsSit', { mode: 'league' });
     }
     draw();
