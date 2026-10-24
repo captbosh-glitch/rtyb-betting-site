@@ -347,6 +347,9 @@ def apply_sport(out, sport, section):
     out = out.replace('__META_DESC__', NHL_META_DESC if is_nhl else
                       f'RTYB — Run to Your Bets: {sport["label"]} {sports.segment_summary(sport)} betting stats and trends.')
     out = out.replace('__LOGO_SVG__', LOGO_SVG)
+    if '__SIT_JS__' in out:   # NHL Stats page: the shared split table, inlined
+        js = ''.join(open(os.path.join(ROOT, 'assets', p), encoding='utf-8').read() for p in ('splits/nhl.js', 'situational.js'))
+        out = out.replace('__SIT_JS__', f'<script>\n{js}</script>')
     out = out.replace('__SPORT_ICON__', icons.sport_icon(sport))
     out = out.replace('__PAGE_ICON__', icons.sport_icon(sport))
     out = out.replace('__SPORT_KEY__', sport['key'])
@@ -432,6 +435,10 @@ def site_css(template):
     return STYLE_RE.search(template).group(1)
 
 
+# split registries built from a shared file (assets/splits/{dep}.js), loaded first
+SPLIT_DEPS = {'nba': ['basketball'], 'wnba': ['basketball']}
+
+
 def lighten(html, page_dir):
     """Swap the inline styles for the shared stylesheet and NHL's page code
     for SHELL_JS. page_dir is the page's folder relative to the site root."""
@@ -443,7 +450,9 @@ def lighten(html, page_dir):
         # the sport's Situational Results registry (assets/splits/), if it has one
         key = next((sp['key'] for sp in sports.SPORTS if sp['slug'] == page_dir.split('/')[0]), '')
         if os.path.exists(os.path.join(ROOT, 'assets', 'splits', f'{key}.js')):
-            shell += f'\n<script src="{prefix}assets/splits/{key}.js"></script>'
+            for dep in SPLIT_DEPS.get(key, []) + [key]:
+                shell += f'\n<script src="{prefix}assets/splits/{dep}.js"></script>'
+            shell += f'\n<script src="{prefix}assets/situational.js"></script>'
         shell += f'\n<script src="{prefix}assets/sport.js"></script>'
         html = html.replace('<body ', f'<body data-sport-slug="{page_dir.split("/")[0]}" ', 1)
     html = html.replace('__ROOT__/', prefix)   # team logo paths (icons.team_logo)
@@ -801,7 +810,8 @@ def main():
             # when this fetch didn't produce them for the game.
             prev = prev_games_by_id.get(g.get('id'))
             if prev:
-                keep = {k: prev[k] for k in ('awayP1', 'homeP1') + periods.PERIOD_FIELDS if k in prev and k not in g}
+                keep = {k: prev[k] for k in ('awayP1', 'homeP1', 'awayGoalie', 'homeGoalie', 'fgMl') + periods.PERIOD_FIELDS
+                        if k in prev and k not in g}
                 if keep:
                     g = dict(g, **keep)
             merged_list.append(g)
@@ -839,6 +849,15 @@ def main():
         'games': {d: gs for d, gs in merged_games.items() if d >= SEASON_START},
     }
     full_data['seasonStart'] = SEASON_START
+    full_data['seasonLabel'] = f'{SEASON_START[:4]}–{str(int(SEASON_START[:4]) + 1)[2:]}'
+    # Situational Results: arena time zones, and 2025-26 for "Since last season"
+    # (nhl/history.json, loaded only when picked)
+    full_data['tz'] = (load('data_seed/conferences/nhl_timezones.json', {}) or {}).get('zones')
+    archive = load('data_seed/nhl_2025_26_games.json', [])
+    if archive:
+        with open(os.path.join(ROOT, 'nhl', 'history.json'), 'w', encoding='utf-8') as f:
+            json.dump({'season': 2026, 'seasonLabel': '2025–26', 'games': archive}, f, separators=(',', ':'))
+        full_data['historyInfo'] = {'season': 2026, 'label': '2025–26'}
     # Stats and Trends use this season only (from SEASON_START). The 2025-26
     # backfill (data_seed/nhl_2025_26_games.json, scripts/backfill_2025_26.py)
     # stays in the repo but isn't published; pass it below to bring it back.

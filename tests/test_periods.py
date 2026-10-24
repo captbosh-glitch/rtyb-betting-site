@@ -30,7 +30,8 @@ class ParseTest(unittest.TestCase):
         g = p.goals_from_score(score_goals((1, 0, 1), (1, 0, 2), (1, 0, 3), (2, 0, 4), (2, 0, 5), (2, 0, 6), (3, 1, 6)))
         f, err = p.parse(g, 1, 6, '')
         self.assertIsNone(err)
-        self.assertEqual(f, {'awayP1': 0, 'homeP1': 3, 'awayP2': 0, 'homeP2': 3, 'awayP3': 1, 'homeP3': 0, 'firstGoal2P': 'home'})
+        self.assertEqual(f, {'awayP1': 0, 'homeP1': 3, 'awayP2': 0, 'homeP2': 3, 'awayP3': 1, 'homeP3': 0, 'firstGoal2P': 'home',
+                             'firstGoal': 'home'})
 
     def test_overtime(self):
         # SJ @ STL: 0-1, 1-0, 1-1, OT winner -> 3-2
@@ -44,9 +45,16 @@ class ParseTest(unittest.TestCase):
         run = ((1, 1, 0), (1, 2, 0), (1, 3, 0), (1, 3, 1), (2, 3, 2), (2, 3, 3), (5, 3, 4))
         f, err = p.parse(p.goals_from_score(score_goals(*run)), 3, 4, 'SO')
         self.assertIsNone(err)
-        self.assertEqual(f, {'awayP1': 3, 'homeP1': 1, 'awayP2': 0, 'homeP2': 2, 'awayP3': 0, 'homeP3': 0, 'firstGoal2P': 'home'})
+        self.assertEqual(f, {'awayP1': 3, 'homeP1': 1, 'awayP2': 0, 'homeP2': 2, 'awayP3': 0, 'homeP3': 0, 'firstGoal2P': 'home',
+                             'firstGoal': 'away'})
         # the landing summary gives the same answer
         self.assertEqual(p.parse(p.goals_from_landing(landing(*run)), 3, 4, 'SO'), (f, None))
+
+    def test_first_goal_ignores_the_shootout(self):
+        g = p.goals_from_score(score_goals((5, 0, 1)))
+        f, err = p.parse(g, 0, 1, 'SO')
+        self.assertIsNone(err)
+        self.assertIsNone(f['firstGoal'])
 
     def test_no_second_period_goals(self):
         g = p.goals_from_score(score_goals((1, 1, 0), (3, 1, 1), (3, 2, 1)))

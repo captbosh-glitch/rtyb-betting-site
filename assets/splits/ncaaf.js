@@ -161,7 +161,7 @@
   ];
 
   window.RTYB_SPLITS = window.RTYB_SPLITS || {};
-  window.RTYB_SPLITS.ncaaf = { config: C, groups: groups, rows: rows, perspectives: [['home', 'Home team'], ['fav', 'Favorite']],
+  window.RTYB_SPLITS.ncaaf = { allLabel: 'All FBS', config: C, groups: groups, rows: rows, perspectives: [['home', 'Home team'], ['fav', 'Favorite']], mobileList: true,
     conferences: ['Big Ten Conference', 'Southeastern Conference', 'Atlantic Coast Conference', 'Big 12 Conference', 'American Conference',
       'Conference USA', 'Mid-American Conference', 'Mountain West Conference', 'Pac-12 Conference', 'Sun Belt Conference', 'FBS Independents'] };
 })();

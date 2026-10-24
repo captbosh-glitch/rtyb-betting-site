@@ -1,0 +1,10 @@
+{
+ "note": "Each NHL team's home arena time zone (UTC offset in standard time; only differences matter). Used for 'Crossed 2+ time zones since last game'. A game's venue is its home team's arena.",
+ "zones": {
+  "ANH": -8, "LA": -8, "SJ": -8, "SEA": -8, "VAN": -8, "VGK": -8,
+  "CGY": -7, "EDM": -7, "COL": -7, "UTA": -7,
+  "CHI": -6, "DAL": -6, "MIN": -6, "NSH": -6, "STL": -6, "WPG": -6,
+  "BOS": -5, "BUF": -5, "CAR": -5, "CBJ": -5, "DET": -5, "FLA": -5, "MON": -5, "NJ": -5, "NYI": -5,
+  "NYR": -5, "OTT": -5, "PHI": -5, "PIT": -5, "TB": -5, "TOR": -5, "WSH": -5
+ }
+}

@@ -13,6 +13,8 @@ parse(goals, away_final, home_final, ot) returns the fields saved on each
 schedule game:
   awayP1, homeP1, awayP2, homeP2, awayP3, homeP3   goals scored IN that period
   firstGoal2P                                      'away' / 'home' / None (no 2P goal)
+  firstGoal                                        the game's first goal: 'away' / 'home' /
+                                                   None (0-0 until a shootout, which doesn't count)
 
 Sanity rule (else the 2P / 3P fields are left None and the reason returned):
   regulation:  P1 + P2 + P3 == the final score, for each team
@@ -23,7 +25,7 @@ Sanity rule (else the 2P / 3P fields are left None and the reason returned):
 # First day of the 2026-27 regular season (build_site.py uses this too).
 SEASON_START = '2026-09-29'
 
-PERIOD_FIELDS = ('awayP2', 'homeP2', 'awayP3', 'homeP3', 'firstGoal2P')
+PERIOD_FIELDS = ('awayP2', 'homeP2', 'awayP3', 'homeP3', 'firstGoal2P', 'firstGoal')
 
 
 def goals_from_score(goals):
@@ -59,6 +61,9 @@ def parse(goals, away_final, home_final, ot):
     out = {'awayP1': s1[0], 'homeP1': s1[1]}
     p2 = (s2[0] - s1[0], s2[1] - s1[1])
     p3 = (s3[0] - s2[0], s3[1] - s2[1])
+    # the game's first goal (periods 1-4; a shootout goal isn't one)
+    opening = next(((ga, gh) for p, ga, gh in goals if p is not None and p <= 4 and (ga or gh)), None)
+    first_goal = None if opening is None else ('away' if opening[0] > 0 else 'home')
     first = None
     prev = s1
     for p, ga, gh in goals:
@@ -79,5 +84,6 @@ def parse(goals, away_final, home_final, ot):
     if err:
         out.update({k: None for k in PERIOD_FIELDS})
     else:
-        out.update({'awayP2': p2[0], 'homeP2': p2[1], 'awayP3': p3[0], 'homeP3': p3[1], 'firstGoal2P': first})
+        out.update({'awayP2': p2[0], 'homeP2': p2[1], 'awayP3': p3[0], 'homeP3': p3[1], 'firstGoal2P': first,
+                    'firstGoal': first_goal})
     return out, err

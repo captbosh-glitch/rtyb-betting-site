@@ -52,8 +52,10 @@ jobs:
         # retried on later runs; it never stops the NHL refresh.
         run: python3 scripts/fetch_sport_games.py daily || echo "other sports fetch failed; keeping saved games"
 
-      - name: College football AP polls by week (for the rank at kickoff)
-        run: python3 scripts/fetch_rankings.py || echo "AP poll fetch failed; keeping saved polls"
+      - name: College AP polls by week (for the rank at game time)
+        run: |
+          python3 scripts/fetch_rankings.py || echo "AP poll fetch failed; keeping saved polls"
+          python3 scripts/fetch_rankings.py ncaab || echo "NCAAB AP poll fetch failed; keeping saved polls"
 
       - name: Fetch team logos (cached, idempotent -- no API key needed)
         run: python3 scripts/fetch_team_logos.py

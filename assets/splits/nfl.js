@@ -129,5 +129,5 @@
   ];
 
   window.RTYB_SPLITS = window.RTYB_SPLITS || {};
-  window.RTYB_SPLITS.nfl = { config: C, groups: groups, rows: rows, perspectives: [['home', 'Home team'], ['fav', 'Favorite']] };
+  window.RTYB_SPLITS.nfl = { config: C, groups: groups, rows: rows, perspectives: [['home', 'Home team'], ['fav', 'Favorite']], mobileList: true };
 })();

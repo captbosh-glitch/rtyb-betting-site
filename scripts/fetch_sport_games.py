@@ -26,12 +26,14 @@ Saved game:
    label, e.g. 6 / "Week 6", or 1 / "Wild Card" in the postseason),
    "conf_game", "neutral", "note", "country" (venue country, e.g. "USA" /
    "England"), "away_rank", "home_rank" (college: the AP / CFP rank ESPN
-   shows for the game, i.e. at kickoff; None when unranked)}
+   shows for the game, i.e. at kickoff; None when unranked), "national_tv"
+   (on a national broadcast), "tv" (those networks)}
 
-Football finals also get "fg_spread" (the home team's closing full-game
-spread; negative = home favored) and "fg_total" from ESPN's game summary
-(DraftKings close), fetched once per game, LINES_PER_RUN per sport per
-run; None when ESPN has no line.
+Football and basketball finals also get "fg_spread" (the home team's
+closing full-game spread; negative = home favored), "fg_total" and
+"fg_ml" ({away, home} moneylines) from ESPN's game summary (DraftKings
+close), fetched once per game, LINES_PER_RUN per sport per run, newest
+season first; None when ESPN has no line.
 
 Games saved before a field existed are refetched by date in daily runs
 (backfill_fields: up to BACKFILL_DATES dates per sport per run), so new
@@ -165,6 +167,7 @@ def parse_event(sport, ev, team_slugs, labels=None):
     n_played = min(len(side['away']['ls']), len(side['home']['ls']))
     notes = [n.get('headline') for n in comp.get('notes') or [] if n.get('headline')]
     week = (ev.get('week') or {}).get('number')
+    national = sorted({n for b in comp.get('broadcasts') or [] if b.get('market') == 'national' for n in b.get('names') or []})
     ranks = {}
     for c in comp['competitors']:
         r = (c.get('curatedRank') or {}).get('current')
@@ -190,6 +193,8 @@ def parse_event(sport, ev, team_slugs, labels=None):
         'week_label': (labels or {}).get((season.get('type'), week)) if week else None,
         'country': ((comp.get('venue') or {}).get('address') or {}).get('country'),
         'away_rank': ranks.get('away'), 'home_rank': ranks.get('home'),
+        'national_tv': bool(national),
+        'tv': national,
     }
 
 
@@ -253,7 +258,7 @@ def fetch_dates(sport, dates, keep=None, verbose=True):
         doc = read_json(p, {'sport': sport, 'season': season, 'games': {}})
         for gid, g in games.items():
             old = doc['games'].get(gid) or {}
-            for f in ('fg_spread', 'fg_total'):
+            for f in ('fg_spread', 'fg_total', 'fg_ml'):
                 if f in old:
                     g[f] = old[f]
         doc['games'].update(games)
@@ -282,7 +287,7 @@ def date_range(start, end):
 
 # Saved-game fields added after games were first loaded; a game without
 # one has its date refetched (BACKFILL_DATES per sport per run).
-NEW_FIELDS = ('country', 'away_rank')
+NEW_FIELDS = ('country', 'away_rank', 'national_tv')
 BACKFILL_DATES = 20
 
 
@@ -297,19 +302,31 @@ def backfill_dates(sport):
     return sorted({g['date'] for g in games if any(f not in g for f in NEW_FIELDS)})[:BACKFILL_DATES]
 
 
-LINE_SPORTS = {'nfl': 'football/nfl', 'ncaaf': 'football/college-football'}
-LINES_PER_RUN = 60
+LINE_SPORTS = {'nfl': 'football/nfl', 'ncaaf': 'football/college-football', 'nba': 'basketball/nba',
+               'wnba': 'basketball/wnba', 'ncaab': 'basketball/mens-college-basketball'}
+LINES_PER_RUN = 150
 
 
 def fetch_lines(sport, cap=LINES_PER_RUN):
-    """Closing full-game spread / total for finals that don't have them yet."""
+    """Closing full-game spread / total / moneylines for finals that don't
+    have them yet, newest season first."""
     d = os.path.join(GAMES_DIR, sport)
-    seasons = sorted(n for n in os.listdir(d) if n[:4].isdigit()) if os.path.isdir(d) else []
+    seasons = sorted((n for n in os.listdir(d) if n[:4].isdigit()), reverse=True) if os.path.isdir(d) else []
     if sport not in LINE_SPORTS or not seasons:
         return 0
-    p = os.path.join(d, seasons[-1])
+    done = 0
+    for name in seasons:
+        if cap - done <= 0:
+            break
+        done += _fetch_lines_file(sport, os.path.join(d, name), cap - done)
+    return done
+
+
+def _fetch_lines_file(sport, p, cap):
     doc = read_json(p, {})
     todo = [g for g in doc.get('games', {}).values() if g.get('final') and 'fg_spread' not in g][:cap]
+    if not todo:
+        return 0
 
     def get(g):
         url = f'https://site.api.espn.com/apis/site/v2/sports/{LINE_SPORTS[sport]}/summary?event={g["id"]}'
@@ -323,6 +340,8 @@ def fetch_lines(sport, cap=LINES_PER_RUN):
         pc = next(iter(data.get('pickcenter') or []), {}) or {}
         g['fg_spread'] = pc.get('spread') if isinstance(pc.get('spread'), (int, float)) else None
         g['fg_total'] = pc.get('overUnder') if isinstance(pc.get('overUnder'), (int, float)) else None
+        ml = {s: (pc.get(f'{s}TeamOdds') or {}).get('moneyLine') for s in ('away', 'home')}
+        g['fg_ml'] = ml if all(isinstance(v, (int, float)) for v in ml.values()) else None
         done += 1
     if done:
         write_json(p, doc)

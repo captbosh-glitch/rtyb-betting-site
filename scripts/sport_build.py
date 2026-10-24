@@ -776,7 +776,8 @@ def game_out(g):
         'intl': None if g.get('country') is None else g['country'] not in ('USA', 'United States'),
         'ar': g.get('away_rank'), 'hr': g.get('home_rank'),
         # closing full-game line (home team's spread; negative = home favored)
-        'fs': g.get('fg_spread'), 'ft': g.get('fg_total'),
+        'fs': g.get('fg_spread'), 'ft': g.get('fg_total'), 'fml': g.get('fg_ml'),
+        'tvn': g.get('national_tv'),
     }
 
 
@@ -853,7 +854,7 @@ def build(sp, teams_list, now_utc=None):
     current = max(seasons) if seasons else None
     games = seasons.get(current, [])
     grade_all(sp, games, odds)
-    if sp['key'] == 'ncaaf':
+    if sp['key'] in ('ncaaf', 'ncaab'):
         apply_ap_ranks(sp['key'], current, games)
     by_date = {}
     for g in games:
@@ -887,6 +888,37 @@ def build(sp, teams_list, now_utc=None):
         # Situational Results: conference membership by season, rivalries
         doc['conf'] = season_file('conferences', 'ncaaf', current)
         doc['rivals'] = (read_json(os.path.join(ROOT, 'data_seed', 'rivalries', 'ncaaf.json'), {}) or {}).get('pairs') or []
+    if sp['key'] == 'ncaab':
+        doc['conf'] = season_file('conferences', 'ncaab', current)
+    # Situational Results "total size" rows: thirds of this season's posted
+    # segment totals (the cutoffs show in the row descriptions)
+    cuts = {}
+    for s in sp['segments']:
+        lines = sorted(((g.get('_odds') or {}).get(s['key']) or {}).get('total', {}).get('line')
+                       for g in games if isinstance((((g.get('_odds') or {}).get(s['key']) or {}).get('total') or {}).get('line'), (int, float)))
+        if len(lines) >= 6:
+            cuts[s['key']] = [lines[len(lines) // 3], lines[2 * len(lines) // 3]]
+    doc['totalCuts'] = cuts
+    # "Since last season": the previous season's games in their own file,
+    # loaded only when that option is picked
+    prev = max((y for y in seasons if current is not None and y < current), default=None)
+    hist_path = os.path.join(slug_dir, 'history.json')
+    if prev is not None:
+        pgames = seasons[prev]
+        grade_all(sp, pgames, odds)
+        if sp['key'] in ('ncaaf', 'ncaab'):
+            apply_ap_ranks(sp['key'], prev, pgames)
+        hist = {}
+        for g in pgames:
+            hist.setdefault(g['date'], []).append(game_out(g))
+        for g in pgames:
+            for side in ('away', 'home'):
+                if g[side] not in teams:
+                    extra.setdefault(g[side], g[side + '_name'])
+        write_json(hist_path, {'season': prev, 'seasonLabel': season_label(sp['key'], prev), 'games': hist})
+        doc['history'] = {'season': prev, 'label': season_label(sp['key'], prev)}
+    elif os.path.exists(hist_path):
+        os.remove(hist_path)
     write_json(os.path.join(slug_dir, 'data.json'), doc)
     today = now_utc.astimezone(ET).date().isoformat()
     return {'season': current, 'games': len(games), 'graded': sum(1 for g in games if g.get('final')),
