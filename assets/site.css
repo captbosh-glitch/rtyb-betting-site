@@ -816,9 +816,24 @@
   .sit .sc-right { flex-wrap: wrap; justify-content: flex-end; }
   .sit-persp { align-items: center; gap: 6px; }
   .sit-persp .control-label { margin-right: 2px; }
-  .sit-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 860px; }
+  .sit-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; min-width: 860px; }
   .sit-table th { text-align: left; color: var(--text-muted); font: 700 0.62rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; padding: 7px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
   .sit-table th.num, .sit-table td.num { text-align: right; }
+  .sit-desc { display: block; font-size: 0.68rem; color: var(--text-faint); white-space: normal; max-width: 300px; margin-top: 1px; }
+  .sit-name { font-weight: 600; }
+  .sit-small { font: 700 0.56rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint); border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
+  .sit-both { display: inline-flex; gap: 4px; }
+  .sit-seglabel { margin-left: 8px; font: 600 0.72rem 'JetBrains Mono', monospace; color: var(--accent); text-transform: none; letter-spacing: 0; }
+  .sit-loading { padding: 24px; color: var(--text-muted); }
+  .sit th.sit-sel, .sit td.sit-sel { font-weight: 700; }
+  .sit-wrap { position: relative; }
+  .sit-scroll .sit-wrap { overflow-x: auto; }
+  .sit-scroll .sit-table th.sit-label, .sit-scroll .sit-table td.sit-label { position: sticky; left: 0; z-index: 1; background: var(--panel); }
+  .sit-scroll .sit-table tr.sit-group td { background: var(--panel-2); }
+  .sit-table td.sit-label { white-space: normal; min-width: 210px; }
+  .sit-group .sit-note { max-width: 320px; }
+  .locked .sit-wrap, .locked .sit-mob { filter: blur(6px); user-select: none; pointer-events: none; }
+  .adv-section.locked .sit .sc-right { opacity: 0.4; pointer-events: none; }
   .sit-table td { padding: 7px 8px; border-bottom: 1px solid var(--border-soft); white-space: nowrap; }
   .sit-table .mono, .sit-log .mono { font-family: 'JetBrains Mono', monospace; }
   .sit-table .pct-cell { justify-content: flex-end; }
@@ -860,8 +875,10 @@
   #sitLogSeg { margin-bottom: 8px; }
   #sitLogSeg .seg-btn, .sit .seg-btn { min-height: 34px; }
   @media (max-width: 640px) {
-    .sit-desk { display: none; }
+    .sit-desk:not(.sit-scroll) { display: none; }
     .sit-mob { display: block; }
+    .sit-scroll .sit-table td.sit-label, .sit-scroll .sit-table th.sit-label { min-width: 150px; max-width: 170px; white-space: normal; }
+    .sit-desc { max-width: 160px; }
     .sit .seg-btn, #sitLogSeg .seg-btn, .sit-mk .seg-btn { min-height: 44px; }
   }
   #leagueTable .col-rec { width: 110px; }
