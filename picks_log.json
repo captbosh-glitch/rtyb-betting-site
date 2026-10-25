@@ -461,6 +461,53 @@
     "streakTeamName": "Giants"
    },
    {
+    "id": "nhl|2026020182|1p|btts|yes",
+    "game": "nhl|2026020182",
+    "date": "2026-10-25",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-10-25T23:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Montreal @ Winnipeg",
+    "href": "nhl/games/?date=2026-10-25",
+    "market": "btts",
+    "side": "yes",
+    "line": null,
+    "price": 180,
+    "title": "1P BTTS Yes",
+    "est": 0.3986,
+    "edge": 0.0414,
+    "agree": 3,
+    "sample": 10,
+    "tier": "B",
+    "tags": [
+     "Over Lover",
+     "Streak Rider"
+    ],
+    "streak": 5,
+    "streakTeam": "MON",
+    "angles": [
+     [
+      "Montreal 1P BTTS on the road",
+      "4-0"
+     ],
+     [
+      "Montreal 1P BTTS, season",
+      "8-2"
+     ],
+     [
+      "Montreal 1P BTTS, last 8",
+      "6-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Montreal"
+   },
+   {
     "id": "nfl|401873021|1h|ml|home",
     "game": "nfl|401873021",
     "date": "2026-10-25",
@@ -548,6 +595,52 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Colts"
+   },
+   {
+    "id": "nhl|2026020181|1p|ml|away",
+    "game": "nhl|2026020181",
+    "date": "2026-10-25",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-10-25T22:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "NY Islanders @ Dallas",
+    "href": "nhl/games/?date=2026-10-25",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 125,
+    "title": "NY Islanders 1P ML",
+    "est": 0.475,
+    "edge": 0.0306,
+    "agree": 3,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "NYI",
+    "angles": [
+     [
+      "Dallas\u2019s opponents 1P ML, Dallas at home",
+      "2-1-2"
+     ],
+     [
+      "NY Islanders 1P ML, last 8",
+      "5-3"
+     ],
+     [
+      "NY Islanders 1P ML, season",
+      "5-4-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "NY Islanders"
    }
   ]
  }
