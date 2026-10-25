@@ -44,8 +44,8 @@
      ]
     ],
     "info": "Avg F5 total in their games: Brewers 4.9 \u00b7 Rays 4.6",
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 0.9524,
     "streakTeamName": "Rays"
    },
    {
@@ -271,8 +271,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "N Dakota St"
    },
    {
@@ -359,8 +359,8 @@
      ]
     ],
     "info": "Brewers avg F5 margin at home: +1.3",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Brewers"
    },
    {
@@ -408,6 +408,146 @@
     "status": "P",
     "units": 0.0,
     "streakTeamName": "St. Louis"
+   }
+  ]
+ },
+ "2026-10-25": {
+  "plays": [
+   {
+    "id": "nfl|401873016|1h|ml|away",
+    "game": "nfl|401873016",
+    "date": "2026-10-25",
+    "sport": "nfl",
+    "label": "NFL",
+    "slug": "nfl",
+    "start": "2026-10-25T17:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Giants @ Texans",
+    "href": "nfl/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 280,
+    "title": "Giants 1H ML",
+    "est": 0.3046,
+    "edge": 0.0415,
+    "agree": 3,
+    "sample": 5,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Early Bird"
+    ],
+    "streak": 0,
+    "streakTeam": "nyg",
+    "angles": [
+     [
+      "Texans\u2019s opponents 1H ML, Texans at home",
+      "2-1"
+     ],
+     [
+      "Giants 1H ML, season",
+      "3-2-1"
+     ],
+     [
+      "Giants 1H ML, last 8",
+      "3-2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Giants"
+   },
+   {
+    "id": "nfl|401873021|1h|ml|home",
+    "game": "nfl|401873021",
+    "date": "2026-10-25",
+    "sport": "nfl",
+    "label": "NFL",
+    "slug": "nfl",
+    "start": "2026-10-25T20:25Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Rams @ Raiders",
+    "href": "nfl/games/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 144,
+    "title": "Raiders 1H ML",
+    "est": 0.4443,
+    "edge": 0.0345,
+    "agree": 2,
+    "sample": 5,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 0,
+    "streakTeam": "lv",
+    "angles": [
+     [
+      "Raiders 1H ML, season",
+      "4-1-1"
+     ],
+     [
+      "Raiders 1H ML, last 8",
+      "4-1-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Raiders"
+   },
+   {
+    "id": "nfl|401873014|1h|ml|away",
+    "game": "nfl|401873014",
+    "date": "2026-10-25",
+    "sport": "nfl",
+    "label": "NFL",
+    "slug": "nfl",
+    "start": "2026-10-25T17:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Colts @ Vikings",
+    "href": "nfl/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 192,
+    "title": "Colts 1H ML",
+    "est": 0.3734,
+    "edge": 0.0309,
+    "agree": 3,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Early Bird"
+    ],
+    "streak": 1,
+    "streakTeam": "ind",
+    "angles": [
+     [
+      "Colts 1H ML, season",
+      "4-2"
+     ],
+     [
+      "Colts 1H ML, last 8",
+      "4-2"
+     ],
+     [
+      "Colts 1H ML on the road",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Colts"
    }
   ]
  }
