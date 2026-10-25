@@ -94,8 +94,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 1.6,
     "streakTeamName": "Washington"
    },
    {
@@ -141,8 +141,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 1.14,
     "streakTeamName": "Virginia Tech"
    },
    {
@@ -187,8 +187,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 2.15,
     "streakTeamName": "Colorado"
    },
    {
@@ -405,8 +405,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "P",
+    "units": 0.0,
     "streakTeamName": "St. Louis"
    }
   ]
