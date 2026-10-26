@@ -503,8 +503,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Montreal"
    },
    {
@@ -641,6 +641,60 @@
     "status": "L",
     "units": -1.0,
     "streakTeamName": "NY Islanders"
+   }
+  ]
+ },
+ "2026-10-26": {
+  "plays": [
+   {
+    "id": "nfl|401873009|1h|ml|home",
+    "game": "nfl|401873009",
+    "date": "2026-10-26",
+    "sport": "nfl",
+    "label": "NFL",
+    "slug": "nfl",
+    "start": "2026-10-27T00:15Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Cowboys @ Eagles",
+    "href": "nfl/games/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 154,
+    "title": "Eagles 1H ML",
+    "est": 0.4373,
+    "edge": 0.0436,
+    "agree": 4,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "phi",
+    "angles": [
+     [
+      "Cowboys\u2019s opponents 1H ML, Cowboys on the road",
+      "3-0"
+     ],
+     [
+      "Eagles 1H ML, season",
+      "4-2"
+     ],
+     [
+      "Eagles 1H ML, last 8",
+      "4-2"
+     ],
+     [
+      "Eagles 1H ML at home",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Eagles"
    }
   ]
  }
