@@ -647,6 +647,106 @@
  "2026-10-26": {
   "plays": [
    {
+    "id": "wnba|401918309|1h|total|over",
+    "game": "wnba|401918309",
+    "date": "2026-10-26",
+    "sport": "wnba",
+    "label": "WNBA",
+    "slug": "wnba",
+    "start": "2026-10-27T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Dream @ Valkyries",
+    "href": "wnba/games/",
+    "market": "total",
+    "side": "over",
+    "line": 74.5,
+    "price": -110,
+    "title": "1H Over 74.5",
+    "est": 0.5913,
+    "edge": 0.0675,
+    "agree": 6,
+    "sample": 54,
+    "tier": "A",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": -1,
+    "streakTeam": "atl",
+    "angles": [
+     [
+      "Dream 1H overs, last 8 (74.5)",
+      "7-1"
+     ],
+     [
+      "Dream 1H overs, season (74.5)",
+      "43-10"
+     ],
+     [
+      "Dream 1H overs on the road (74.5)",
+      "17-9"
+     ],
+     [
+      "Valkyries 1H overs, last 8 (74.5)",
+      "5-3"
+     ]
+    ],
+    "info": "Avg 1H total in their games: Valkyries 75.8 \u00b7 Dream 85.2",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Dream"
+   },
+   {
+    "id": "wnba|401918309|1q|total|over",
+    "game": "wnba|401918309",
+    "date": "2026-10-26",
+    "sport": "wnba",
+    "label": "WNBA",
+    "slug": "wnba",
+    "start": "2026-10-27T00:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Dream @ Valkyries",
+    "href": "wnba/games/",
+    "market": "total",
+    "side": "over",
+    "line": 37.5,
+    "price": -110,
+    "title": "1Q Over 37.5",
+    "est": 0.5856,
+    "edge": 0.0618,
+    "agree": 5,
+    "sample": 54,
+    "tier": "A",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": -1,
+    "streakTeam": "atl",
+    "angles": [
+     [
+      "Dream 1Q overs, season (37.5)",
+      "40-13"
+     ],
+     [
+      "Dream 1Q overs, last 8 (37.5)",
+      "6-2"
+     ],
+     [
+      "Valkyries 1Q overs at home (37.5)",
+      "18-10"
+     ],
+     [
+      "Valkyries 1Q overs, season (37.5)",
+      "32-22"
+     ]
+    ],
+    "info": "Avg 1Q total in their games: Valkyries 38.0 \u00b7 Dream 42.5",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Dream"
+   },
+   {
     "id": "nfl|401873009|1h|ml|home",
     "game": "nfl|401873009",
     "date": "2026-10-26",
