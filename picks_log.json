@@ -899,6 +899,48 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "San Jose"
+   },
+   {
+    "id": "nba|401909879|1q|ml|away",
+    "game": "nba|401909879",
+    "date": "2026-10-27",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-10-28T00:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Kings @ Spurs",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 310,
+    "title": "Kings 1Q ML",
+    "est": 0.2754,
+    "edge": 0.0315,
+    "agree": 2,
+    "sample": 3,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 2,
+    "streakTeam": "sac",
+    "angles": [
+     [
+      "Kings 1Q ML, season",
+      "2-1"
+     ],
+     [
+      "Kings 1Q ML, last 8",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Kings"
    }
   ]
  }
