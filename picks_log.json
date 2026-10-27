@@ -692,8 +692,8 @@
      ]
     ],
     "info": "Avg 1H total in their games: Valkyries 75.8 \u00b7 Dream 85.2",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Dream"
    },
    {
@@ -742,8 +742,8 @@
      ]
     ],
     "info": "Avg 1Q total in their games: Valkyries 38.0 \u00b7 Dream 42.5",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Dream"
    },
    {
@@ -792,8 +792,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Eagles"
    }
   ]
