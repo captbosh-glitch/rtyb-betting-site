@@ -846,8 +846,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "P",
+    "units": 0.0,
     "streakTeamName": "Boston"
    },
    {
@@ -896,8 +896,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "San Jose"
    },
    {
@@ -943,5 +943,8 @@
     "streakTeamName": "Kings"
    }
   ]
+ },
+ "2026-10-28": {
+  "plays": []
  }
 }
