@@ -945,6 +945,107 @@
   ]
  },
  "2026-10-28": {
-  "plays": []
+  "plays": [
+   {
+    "id": "mlb|401908046|f5|total|over",
+    "game": "mlb|401908046",
+    "date": "2026-10-28",
+    "sport": "mlb",
+    "label": "MLB",
+    "slug": "mlb",
+    "start": "2026-10-29T00:00Z",
+    "seg": "f5",
+    "segTag": "F5",
+    "matchup": "Brewers @ Rays",
+    "href": "mlb/games/",
+    "market": "total",
+    "side": "over",
+    "line": 3.5,
+    "price": -105,
+    "title": "F5 Over 3.5",
+    "est": 0.5741,
+    "edge": 0.0619,
+    "agree": 5,
+    "sample": 175,
+    "tier": "A",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": 3,
+    "streakTeam": "mil",
+    "angles": [
+     [
+      "Brewers F5 overs, season (3.5)",
+      "109-65"
+     ],
+     [
+      "Brewers F5 overs, last 8 (3.5)",
+      "5-3"
+     ],
+     [
+      "Rays F5 overs at home (3.5)",
+      "53-35"
+     ],
+     [
+      "Brewers F5 overs on the road (3.5)",
+      "51-36"
+     ]
+    ],
+    "info": "Avg F5 total in their games: Rays 4.6 \u00b7 Brewers 5.0",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Brewers"
+   },
+   {
+    "id": "mlb|401908046|f5|ats|home",
+    "game": "mlb|401908046",
+    "date": "2026-10-28",
+    "sport": "mlb",
+    "label": "MLB",
+    "slug": "mlb",
+    "start": "2026-10-29T00:00Z",
+    "seg": "f5",
+    "segTag": "F5",
+    "matchup": "Brewers @ Rays",
+    "href": "mlb/games/",
+    "market": "ats",
+    "side": "home",
+    "line": 0.5,
+    "price": -135,
+    "title": "Rays F5 +0.5",
+    "est": 0.6086,
+    "edge": 0.0341,
+    "agree": 4,
+    "sample": 175,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "tb",
+    "angles": [
+     [
+      "Rays F5 ATS at +0.5, season",
+      "114-61"
+     ],
+     [
+      "Rays F5 ATS at +0.5 at home",
+      "56-32"
+     ],
+     [
+      "Rays F5 ATS at +0.5, last 8",
+      "5-3"
+     ],
+     [
+      "Brewers\u2019s opponents F5 ATS at +0.5, Brewers on the road",
+      "48-39"
+     ]
+    ],
+    "info": "Rays avg F5 margin at home: +0.5",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Rays"
+   }
+  ]
  }
 }
