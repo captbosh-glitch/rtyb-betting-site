@@ -992,8 +992,8 @@
      ]
     ],
     "info": "Avg F5 total in their games: Rays 4.6 \u00b7 Brewers 5.0",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Brewers"
    },
    {
@@ -1042,9 +1042,237 @@
      ]
     ],
     "info": "Rays avg F5 margin at home: +0.5",
+    "status": "L",
+    "units": -1.0,
+    "streakTeamName": "Rays"
+   }
+  ]
+ },
+ "2026-10-29": {
+  "plays": [
+   {
+    "id": "wnba|401918310|1h|ml|away",
+    "game": "wnba|401918310",
+    "date": "2026-10-29",
+    "sport": "wnba",
+    "label": "WNBA",
+    "slug": "wnba",
+    "start": "2026-10-29T16:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Valkyries @ Dream",
+    "href": "wnba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 120,
+    "title": "Valkyries 1H ML",
+    "est": 0.5518,
+    "edge": 0.0973,
+    "agree": 3,
+    "sample": 54,
+    "tier": "A",
+    "tags": [
+     "Dog Hunter",
+     "Early Bird"
+    ],
+    "streak": 2,
+    "streakTeam": "gs",
+    "angles": [
+     [
+      "Valkyries 1H ML, season",
+      "39-15-1"
+     ],
+     [
+      "Valkyries 1H ML on the road",
+      "18-8"
+     ],
+     [
+      "Valkyries 1H ML, last 8",
+      "5-3"
+     ]
+    ],
+    "info": null,
     "status": "pending",
     "units": null,
-    "streakTeamName": "Rays"
+    "streakTeamName": "Valkyries"
+   },
+   {
+    "id": "wnba|401918310|1h|total|over",
+    "game": "wnba|401918310",
+    "date": "2026-10-29",
+    "sport": "wnba",
+    "label": "WNBA",
+    "slug": "wnba",
+    "start": "2026-10-29T16:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Valkyries @ Dream",
+    "href": "wnba/games/",
+    "market": "total",
+    "side": "over",
+    "line": 73.5,
+    "price": -110,
+    "title": "1H Over 73.5",
+    "est": 0.6144,
+    "edge": 0.0906,
+    "agree": 5,
+    "sample": 55,
+    "tier": "A",
+    "tags": [
+     "Over Lover",
+     "Early Bird"
+    ],
+    "streak": -2,
+    "streakTeam": "gs",
+    "angles": [
+     [
+      "Dream 1H overs at home (73.5)",
+      "26-1"
+     ],
+     [
+      "Dream 1H overs, season (73.5)",
+      "43-11"
+     ],
+     [
+      "Dream 1H overs, last 8 (73.5)",
+      "6-2"
+     ],
+     [
+      "Valkyries 1H overs on the road (73.5)",
+      "15-11"
+     ]
+    ],
+    "info": "Avg 1H total in their games: Dream 84.5 \u00b7 Valkyries 75.3",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Valkyries"
+   },
+   {
+    "id": "ncaaf|401869963|1h|ml|away",
+    "game": "ncaaf|401869963",
+    "date": "2026-10-29",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-29T23:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Troy @ James Madison",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 610,
+    "title": "Troy 1H ML",
+    "est": 0.1778,
+    "edge": 0.037,
+    "agree": 2,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "troy-trojans",
+    "angles": [
+     [
+      "Troy 1H ML, season",
+      "4-2-1"
+     ],
+     [
+      "Troy 1H ML, last 8",
+      "4-2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Troy"
+   },
+   {
+    "id": "ncaaf|401862812|1h|ml|away",
+    "game": "ncaaf|401862812",
+    "date": "2026-10-29",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-29T23:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "FAU @ North Texas",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 250,
+    "title": "FAU 1H ML",
+    "est": 0.3226,
+    "edge": 0.0369,
+    "agree": 2,
+    "sample": 7,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "florida-atlantic-owls",
+    "angles": [
+     [
+      "FAU 1H ML, season",
+      "5-2"
+     ],
+     [
+      "FAU 1H ML, last 8",
+      "5-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "FAU"
+   },
+   {
+    "id": "ncaaf|401869963|1q|ml|away",
+    "game": "ncaaf|401869963",
+    "date": "2026-10-29",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-29T23:30Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Troy @ James Madison",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 370,
+    "title": "Troy 1Q ML",
+    "est": 0.2436,
+    "edge": 0.0309,
+    "agree": 2,
+    "sample": 5,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "troy-trojans",
+    "angles": [
+     [
+      "Troy 1Q ML, season",
+      "4-1-2"
+     ],
+     [
+      "Troy 1Q ML, last 8",
+      "4-1-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Troy"
    }
   ]
  }
