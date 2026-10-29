@@ -1241,6 +1241,53 @@
     "streakTeamName": "Anaheim"
    },
    {
+    "id": "nba|401909895|1h|ml|away",
+    "game": "nba|401909895",
+    "date": "2026-10-29",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-10-30T02:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Grizzlies @ Trail Blazers",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 170,
+    "title": "Grizzlies 1H ML",
+    "est": 0.4089,
+    "edge": 0.0386,
+    "agree": 3,
+    "sample": 4,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 4,
+    "streakTeam": "mem",
+    "angles": [
+     [
+      "Grizzlies 1H ML, season",
+      "4-0"
+     ],
+     [
+      "Grizzlies 1H ML, last 8",
+      "4-0"
+     ],
+     [
+      "Grizzlies 1H ML on the road",
+      "3-0"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Grizzlies"
+   },
+   {
     "id": "ncaaf|401869963|1h|ml|away",
     "game": "ncaaf|401869963",
     "date": "2026-10-29",
