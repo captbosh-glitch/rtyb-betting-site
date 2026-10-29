@@ -1149,6 +1149,98 @@
     "streakTeamName": "Valkyries"
    },
    {
+    "id": "nhl|2026020206|1p|ml|away",
+    "game": "nhl|2026020206",
+    "date": "2026-10-29",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-10-29T23:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Columbus @ Carolina",
+    "href": "nhl/games/?date=2026-10-29",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 150,
+    "title": "Columbus 1P ML",
+    "est": 0.4481,
+    "edge": 0.0481,
+    "agree": 3,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "CBJ",
+    "angles": [
+     [
+      "Columbus 1P ML, last 8",
+      "4-0-4"
+     ],
+     [
+      "Columbus 1P ML, season",
+      "5-1-4"
+     ],
+     [
+      "Carolina\u2019s opponents 1P ML, Carolina at home",
+      "2-1-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Columbus"
+   },
+   {
+    "id": "nhl|2026020211|1p|ml|home",
+    "game": "nhl|2026020211",
+    "date": "2026-10-29",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-10-30T02:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Buffalo @ Anaheim",
+    "href": "nhl/games/?date=2026-10-29",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 100,
+    "title": "Anaheim 1P ML",
+    "est": 0.5463,
+    "edge": 0.0463,
+    "agree": 3,
+    "sample": 11,
+    "tier": "B",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "ANH",
+    "angles": [
+     [
+      "Anaheim 1P ML at home",
+      "4-0-1"
+     ],
+     [
+      "Buffalo\u2019s opponents 1P ML, Buffalo on the road",
+      "3-1-2"
+     ],
+     [
+      "Anaheim 1P ML, season",
+      "7-4-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Anaheim"
+   },
+   {
     "id": "ncaaf|401869963|1h|ml|away",
     "game": "ncaaf|401869963",
     "date": "2026-10-29",
@@ -1233,6 +1325,52 @@
     "streakTeamName": "FAU"
    },
    {
+    "id": "nhl|2026020209|1p|btts|yes",
+    "game": "nhl|2026020209",
+    "date": "2026-10-29",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-10-30T00:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Montreal @ Dallas",
+    "href": "nhl/games/?date=2026-10-29",
+    "market": "btts",
+    "side": "yes",
+    "line": null,
+    "price": 180,
+    "title": "1P BTTS Yes",
+    "est": 0.3906,
+    "edge": 0.0334,
+    "agree": 3,
+    "sample": 12,
+    "tier": "C",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": -2,
+    "streakTeam": "MON",
+    "angles": [
+     [
+      "Montreal 1P BTTS, season",
+      "8-4"
+     ],
+     [
+      "Montreal 1P BTTS on the road",
+      "4-2"
+     ],
+     [
+      "Montreal 1P BTTS, last 8",
+      "5-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Montreal"
+   },
+   {
     "id": "ncaaf|401869963|1q|ml|away",
     "game": "ncaaf|401869963",
     "date": "2026-10-29",
@@ -1273,6 +1411,52 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Troy"
+   },
+   {
+    "id": "nhl|2026020211|1p|btts|yes",
+    "game": "nhl|2026020211",
+    "date": "2026-10-29",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-10-30T02:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Buffalo @ Anaheim",
+    "href": "nhl/games/?date=2026-10-29",
+    "market": "btts",
+    "side": "yes",
+    "line": null,
+    "price": 140,
+    "title": "1P BTTS Yes",
+    "est": 0.447,
+    "edge": 0.0303,
+    "agree": 3,
+    "sample": 12,
+    "tier": "C",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": -3,
+    "streakTeam": "ANH",
+    "angles": [
+     [
+      "Buffalo 1P BTTS on the road",
+      "5-1"
+     ],
+     [
+      "Buffalo 1P BTTS, last 8",
+      "6-2"
+     ],
+     [
+      "Buffalo 1P BTTS, season",
+      "8-4"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Anaheim"
    }
   ]
  }
