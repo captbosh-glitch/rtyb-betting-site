@@ -1236,8 +1236,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "P",
+    "units": 0.0,
     "streakTeamName": "Anaheim"
    },
    {
@@ -1283,8 +1283,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "P",
+    "units": 0.0,
     "streakTeamName": "Grizzlies"
    },
    {
@@ -1501,10 +1501,13 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 1.4,
     "streakTeamName": "Anaheim"
    }
   ]
+ },
+ "2026-10-30": {
+  "plays": []
  }
 }
