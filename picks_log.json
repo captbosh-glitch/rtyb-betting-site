@@ -1508,6 +1508,49 @@
   ]
  },
  "2026-10-30": {
-  "plays": []
+  "plays": [
+   {
+    "id": "nba|401909282|1h|ml|away",
+    "game": "nba|401909282",
+    "date": "2026-10-30",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-10-31T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Pacers @ Heat",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 176,
+    "title": "Pacers 1H ML",
+    "est": 0.397,
+    "edge": 0.0347,
+    "agree": 2,
+    "sample": 5,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "ind",
+    "angles": [
+     [
+      "Heat\u2019s opponents 1H ML, Heat at home",
+      "3-0"
+     ],
+     [
+      "Pacers 1H ML on the road",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Pacers"
+   }
+  ]
  }
 }
