@@ -2102,6 +2102,98 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Arizona St"
+   },
+   {
+    "id": "ncaaf|401856847|1q|ml|home",
+    "game": "ncaaf|401856847",
+    "date": "2026-10-31",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-31T23:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Oklahoma St @ Iowa State",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 192,
+    "title": "Iowa State 1Q ML",
+    "est": 0.385,
+    "edge": 0.0425,
+    "agree": 2,
+    "sample": 5,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -2,
+    "streakTeam": "iowa-state-cyclones",
+    "angles": [
+     [
+      "Oklahoma St\u2019s opponents 1Q ML, Oklahoma St on the road",
+      "3-0"
+     ],
+     [
+      "Iowa State 1Q ML at home",
+      "2-1-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Iowa State"
+   },
+   {
+    "id": "nhl|2026020221|1p|ml|home",
+    "game": "nhl|2026020221",
+    "date": "2026-10-31",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-10-31T20:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Buffalo @ Los Angeles",
+    "href": "nhl/games/?date=2026-10-31",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": -105,
+    "title": "Los Angeles 1P ML",
+    "est": 0.5535,
+    "edge": 0.0413,
+    "agree": 4,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 0,
+    "streakTeam": "LA",
+    "angles": [
+     [
+      "Los Angeles 1P ML, last 8",
+      "4-1-3"
+     ],
+     [
+      "Los Angeles 1P ML, season",
+      "6-2-4"
+     ],
+     [
+      "Buffalo\u2019s opponents 1P ML, Buffalo on the road",
+      "3-1-3"
+     ],
+     [
+      "Los Angeles 1P ML at home",
+      "2-1-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Los Angeles"
    }
   ]
  }
