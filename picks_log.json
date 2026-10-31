@@ -1748,6 +1748,52 @@
     "streakTeamName": "San Jos\u00e9 St"
    },
    {
+    "id": "nhl|2026020221|1p|btts|yes",
+    "game": "nhl|2026020221",
+    "date": "2026-10-31",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-10-31T20:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Buffalo @ Los Angeles",
+    "href": "nhl/games/?date=2026-10-31",
+    "market": "btts",
+    "side": "yes",
+    "line": null,
+    "price": 185,
+    "title": "1P BTTS Yes",
+    "est": 0.4057,
+    "edge": 0.0549,
+    "agree": 3,
+    "sample": 13,
+    "tier": "B",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": 1,
+    "streakTeam": "BUF",
+    "angles": [
+     [
+      "Buffalo 1P BTTS on the road",
+      "6-1"
+     ],
+     [
+      "Buffalo 1P BTTS, last 8",
+      "6-2"
+     ],
+     [
+      "Buffalo 1P BTTS, season",
+      "9-4"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Buffalo"
+   },
+   {
     "id": "ncaaf|401858501|1q|ml|away",
     "game": "ncaaf|401858501",
     "date": "2026-10-31",
@@ -2041,52 +2087,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Auburn"
-   },
-   {
-    "id": "ncaaf|401856736|1q|ml|away",
-    "game": "ncaaf|401856736",
-    "date": "2026-10-31",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-10-31T20:15Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "South Carolina @ Oklahoma",
-    "href": "college-football/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 118,
-    "title": "South Carolina 1Q ML",
-    "est": 0.4987,
-    "edge": 0.04,
-    "agree": 3,
-    "sample": 6,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 1,
-    "streakTeam": "south-carolina-gamecocks",
-    "angles": [
-     [
-      "South Carolina 1Q ML, season",
-      "5-1-1"
-     ],
-     [
-      "South Carolina 1Q ML, last 8",
-      "5-1-1"
-     ],
-     [
-      "Oklahoma\u2019s opponents 1Q ML, Oklahoma at home",
-      "2-1-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "South Carolina"
    }
   ]
  }
