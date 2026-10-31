@@ -1698,6 +1698,56 @@
     "streakTeamName": "Nevada"
    },
    {
+    "id": "nba|401909901|1q|ml|away",
+    "game": "nba|401909901",
+    "date": "2026-10-31",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-01T00:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Timberwolves @ Spurs",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 210,
+    "title": "Timberwolves 1Q ML",
+    "est": 0.3819,
+    "edge": 0.0593,
+    "agree": 4,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "min",
+    "angles": [
+     [
+      "Timberwolves 1Q ML on the road",
+      "3-0"
+     ],
+     [
+      "Timberwolves 1Q ML, season",
+      "5-1"
+     ],
+     [
+      "Timberwolves 1Q ML, last 8",
+      "5-1"
+     ],
+     [
+      "Spurs\u2019s opponents 1Q ML, Spurs at home",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Timberwolves"
+   },
+   {
     "id": "ncaaf|401864529|1h|ml|home",
     "game": "ncaaf|401864529",
     "date": "2026-10-31",
@@ -2044,49 +2094,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Iowa State"
-   },
-   {
-    "id": "ncaaf|401856735|1h|ml|away",
-    "game": "ncaaf|401856735",
-    "date": "2026-10-31",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-10-31T16:45Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Auburn @ Ole Miss",
-    "href": "college-football/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 290,
-    "title": "Auburn 1H ML",
-    "est": 0.2977,
-    "edge": 0.0413,
-    "agree": 2,
-    "sample": 7,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter",
-     "Early Bird"
-    ],
-    "streak": -1,
-    "streakTeam": "auburn-tigers",
-    "angles": [
-     [
-      "Auburn 1H ML, season",
-      "5-2"
-     ],
-     [
-      "Auburn 1H ML, last 8",
-      "5-2"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Auburn"
    }
   ]
  }
