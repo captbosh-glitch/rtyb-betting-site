@@ -1547,9 +1547,546 @@
      ]
     ],
     "info": null,
+    "status": "L",
+    "units": -1.0,
+    "streakTeamName": "Pacers"
+   }
+  ]
+ },
+ "2026-10-31": {
+  "plays": [
+   {
+    "id": "wnba|401918311|1h|total|over",
+    "game": "wnba|401918311",
+    "date": "2026-10-31",
+    "sport": "wnba",
+    "label": "WNBA",
+    "slug": "wnba",
+    "start": "2026-11-01T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Dream @ Valkyries",
+    "href": "wnba/games/",
+    "market": "total",
+    "side": "over",
+    "line": 69.5,
+    "price": -110,
+    "title": "1H Over 69.5",
+    "est": 0.6791,
+    "edge": 0.1553,
+    "agree": 6,
+    "sample": 56,
+    "tier": "A",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": 1,
+    "streakTeam": "atl",
+    "angles": [
+     [
+      "Dream 1H overs, season (69.5)",
+      "49-6"
+     ],
+     [
+      "Dream 1H overs on the road (69.5)",
+      "22-5"
+     ],
+     [
+      "Valkyries 1H overs at home (69.5)",
+      "23-6"
+     ],
+     [
+      "Valkyries 1H overs, season (69.5)",
+      "44-12"
+     ]
+    ],
+    "info": "Avg 1H total in their games: Valkyries 75.2 \u00b7 Dream 84.2",
     "status": "pending",
     "units": null,
-    "streakTeamName": "Pacers"
+    "streakTeamName": "Dream"
+   },
+   {
+    "id": "wnba|401918311|1q|total|over",
+    "game": "wnba|401918311",
+    "date": "2026-10-31",
+    "sport": "wnba",
+    "label": "WNBA",
+    "slug": "wnba",
+    "start": "2026-11-01T00:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Dream @ Valkyries",
+    "href": "wnba/games/",
+    "market": "total",
+    "side": "over",
+    "line": 34.5,
+    "price": -110,
+    "title": "1Q Over 34.5",
+    "est": 0.6621,
+    "edge": 0.1383,
+    "agree": 6,
+    "sample": 56,
+    "tier": "A",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": 1,
+    "streakTeam": "atl",
+    "angles": [
+     [
+      "Dream 1Q overs, season (34.5)",
+      "47-8"
+     ],
+     [
+      "Valkyries 1Q overs at home (34.5)",
+      "23-6"
+     ],
+     [
+      "Dream 1Q overs on the road (34.5)",
+      "21-6"
+     ],
+     [
+      "Valkyries 1Q overs, season (34.5)",
+      "42-14"
+     ]
+    ],
+    "info": "Avg 1Q total in their games: Valkyries 38.0 \u00b7 Dream 42.3",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Dream"
+   },
+   {
+    "id": "ncaaf|401858508|1q|ml|away",
+    "game": "ncaaf|401858508",
+    "date": "2026-10-31",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-31T20:15Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Nevada @ UCLA",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 460,
+    "title": "Nevada 1Q ML",
+    "est": 0.2383,
+    "edge": 0.0597,
+    "agree": 2,
+    "sample": 5,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "nevada-wolf-pack",
+    "angles": [
+     [
+      "Nevada 1Q ML, season",
+      "4-1-2"
+     ],
+     [
+      "Nevada 1Q ML, last 8",
+      "4-1-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Nevada"
+   },
+   {
+    "id": "ncaaf|401864529|1h|ml|home",
+    "game": "ncaaf|401864529",
+    "date": "2026-10-31",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-31T20:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "New Mexico @ San Jos\u00e9 St",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 350,
+    "title": "San Jos\u00e9 St 1H ML",
+    "est": 0.2814,
+    "edge": 0.0592,
+    "agree": 4,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "san-jos-state-spartans",
+    "angles": [
+     [
+      "San Jos\u00e9 St 1H ML at home",
+      "2-1"
+     ],
+     [
+      "New Mexico\u2019s opponents 1H ML, New Mexico on the road",
+      "2-1"
+     ],
+     [
+      "San Jos\u00e9 St 1H ML, season",
+      "5-3"
+     ],
+     [
+      "San Jos\u00e9 St 1H ML, last 8",
+      "5-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "San Jos\u00e9 St"
+   },
+   {
+    "id": "ncaaf|401858501|1q|ml|away",
+    "game": "ncaaf|401858501",
+    "date": "2026-10-31",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-31T19:30Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Minnesota @ Indiana",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 360,
+    "title": "Minnesota 1Q ML",
+    "est": 0.272,
+    "edge": 0.0547,
+    "agree": 2,
+    "sample": 7,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "minnesota-golden-gophers",
+    "angles": [
+     [
+      "Minnesota 1Q ML, season",
+      "5-2"
+     ],
+     [
+      "Minnesota 1Q ML, last 8",
+      "5-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Minnesota"
+   },
+   {
+    "id": "ncaaf|401856847|1h|ml|home",
+    "game": "ncaaf|401856847",
+    "date": "2026-10-31",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-31T23:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Oklahoma St @ Iowa State",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 235,
+    "title": "Iowa State 1H ML",
+    "est": 0.3509,
+    "edge": 0.0524,
+    "agree": 2,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -2,
+    "streakTeam": "iowa-state-cyclones",
+    "angles": [
+     [
+      "Oklahoma St\u2019s opponents 1H ML, Oklahoma St on the road",
+      "3-0"
+     ],
+     [
+      "Iowa State 1H ML at home",
+      "3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Iowa State"
+   },
+   {
+    "id": "ncaaf|401862814|1h|ml|away",
+    "game": "ncaaf|401862814",
+    "date": "2026-10-31",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-01T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Army @ Memphis",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 180,
+    "title": "Army 1H ML",
+    "est": 0.4048,
+    "edge": 0.0476,
+    "agree": 2,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 3,
+    "streakTeam": "army-black-knights",
+    "angles": [
+     [
+      "Army 1H ML, season",
+      "5-1-1"
+     ],
+     [
+      "Army 1H ML, last 8",
+      "5-1-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Army"
+   },
+   {
+    "id": "ncaaf|401858284|1q|ml|away",
+    "game": "ncaaf|401858284",
+    "date": "2026-10-31",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-31T19:45Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Virginia @ Wake Forest",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 260,
+    "title": "Virginia 1Q ML",
+    "est": 0.3252,
+    "edge": 0.0475,
+    "agree": 2,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 0,
+    "streakTeam": "virginia-cavaliers",
+    "angles": [
+     [
+      "Virginia 1Q ML, season",
+      "5-1-2"
+     ],
+     [
+      "Virginia 1Q ML, last 8",
+      "5-1-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Virginia"
+   },
+   {
+    "id": "ncaaf|401856843|1h|ml|away",
+    "game": "ncaaf|401856843",
+    "date": "2026-10-31",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-31T19:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Arizona St @ BYU",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 380,
+    "title": "Arizona St 1H ML",
+    "est": 0.2527,
+    "edge": 0.0444,
+    "agree": 2,
+    "sample": 7,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "arizona-state-sun-devils",
+    "angles": [
+     [
+      "Arizona St 1H ML, season",
+      "4-3"
+     ],
+     [
+      "Arizona St 1H ML, last 8",
+      "4-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Arizona St"
+   },
+   {
+    "id": "ncaaf|401856847|1q|ml|home",
+    "game": "ncaaf|401856847",
+    "date": "2026-10-31",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-31T23:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Oklahoma St @ Iowa State",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 192,
+    "title": "Iowa State 1Q ML",
+    "est": 0.385,
+    "edge": 0.0425,
+    "agree": 2,
+    "sample": 5,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -2,
+    "streakTeam": "iowa-state-cyclones",
+    "angles": [
+     [
+      "Oklahoma St\u2019s opponents 1Q ML, Oklahoma St on the road",
+      "3-0"
+     ],
+     [
+      "Iowa State 1Q ML at home",
+      "2-1-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Iowa State"
+   },
+   {
+    "id": "ncaaf|401856735|1h|ml|away",
+    "game": "ncaaf|401856735",
+    "date": "2026-10-31",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-31T16:45Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Auburn @ Ole Miss",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 290,
+    "title": "Auburn 1H ML",
+    "est": 0.2977,
+    "edge": 0.0413,
+    "agree": 2,
+    "sample": 7,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Early Bird"
+    ],
+    "streak": -1,
+    "streakTeam": "auburn-tigers",
+    "angles": [
+     [
+      "Auburn 1H ML, season",
+      "5-2"
+     ],
+     [
+      "Auburn 1H ML, last 8",
+      "5-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Auburn"
+   },
+   {
+    "id": "ncaaf|401856736|1q|ml|away",
+    "game": "ncaaf|401856736",
+    "date": "2026-10-31",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-10-31T20:15Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "South Carolina @ Oklahoma",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 118,
+    "title": "South Carolina 1Q ML",
+    "est": 0.4987,
+    "edge": 0.04,
+    "agree": 3,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "south-carolina-gamecocks",
+    "angles": [
+     [
+      "South Carolina 1Q ML, season",
+      "5-1-1"
+     ],
+     [
+      "South Carolina 1Q ML, last 8",
+      "5-1-1"
+     ],
+     [
+      "Oklahoma\u2019s opponents 1Q ML, Oklahoma at home",
+      "2-1-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "South Carolina"
    }
   ]
  }
