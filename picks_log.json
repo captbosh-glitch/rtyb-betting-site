@@ -1656,6 +1656,56 @@
     "streakTeamName": "Dream"
    },
    {
+    "id": "nba|401909901|1h|ml|away",
+    "game": "nba|401909901",
+    "date": "2026-10-31",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-01T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Timberwolves @ Spurs",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 250,
+    "title": "Timberwolves 1H ML",
+    "est": 0.3512,
+    "edge": 0.0655,
+    "agree": 4,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "min",
+    "angles": [
+     [
+      "Timberwolves 1H ML on the road",
+      "3-0"
+     ],
+     [
+      "Timberwolves 1H ML, season",
+      "5-1"
+     ],
+     [
+      "Timberwolves 1H ML, last 8",
+      "5-1"
+     ],
+     [
+      "Spurs\u2019s opponents 1H ML, Spurs at home",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Timberwolves"
+   },
+   {
     "id": "ncaaf|401858508|1q|ml|away",
     "game": "ncaaf|401858508",
     "date": "2026-10-31",
@@ -2052,48 +2102,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Arizona St"
-   },
-   {
-    "id": "ncaaf|401856847|1q|ml|home",
-    "game": "ncaaf|401856847",
-    "date": "2026-10-31",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-10-31T23:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Oklahoma St @ Iowa State",
-    "href": "college-football/games/",
-    "market": "ml",
-    "side": "home",
-    "line": null,
-    "price": 192,
-    "title": "Iowa State 1Q ML",
-    "est": 0.385,
-    "edge": 0.0425,
-    "agree": 2,
-    "sample": 5,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": -2,
-    "streakTeam": "iowa-state-cyclones",
-    "angles": [
-     [
-      "Oklahoma St\u2019s opponents 1Q ML, Oklahoma St on the road",
-      "3-0"
-     ],
-     [
-      "Iowa State 1Q ML at home",
-      "2-1-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Iowa State"
    }
   ]
  }
