@@ -1601,8 +1601,8 @@
      ]
     ],
     "info": "Avg 1H total in their games: Valkyries 75.2 \u00b7 Dream 84.2",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Dream"
    },
    {
@@ -1651,8 +1651,8 @@
      ]
     ],
     "info": "Avg 1Q total in their games: Valkyries 38.0 \u00b7 Dream 42.3",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Dream"
    },
    {
@@ -1701,8 +1701,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 2.5,
     "streakTeamName": "Timberwolves"
    },
    {
@@ -1793,8 +1793,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Timberwolves"
    },
    {
@@ -1973,8 +1973,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 2.35,
     "streakTeamName": "Iowa State"
    },
    {
@@ -2141,8 +2141,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Iowa State"
    },
    {
@@ -2333,8 +2333,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Kings"
    },
    {
@@ -2379,8 +2379,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "North Carolina"
    }
   ]
