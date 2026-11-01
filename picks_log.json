@@ -2015,8 +2015,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Army"
    },
    {
@@ -2241,8 +2241,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 1.5,
     "streakTeamName": "Pittsburgh"
    },
    {
@@ -2291,8 +2291,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Columbus"
    },
    {
@@ -2382,6 +2382,150 @@
     "status": "L",
     "units": -1.0,
     "streakTeamName": "North Carolina"
+   }
+  ]
+ },
+ "2026-11-01": {
+  "plays": [
+   {
+    "id": "nfl|401873028|1h|ml|away",
+    "game": "nfl|401873028",
+    "date": "2026-11-01",
+    "sport": "nfl",
+    "label": "NFL",
+    "slug": "nfl",
+    "start": "2026-11-01T18:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Colts @ Jaguars",
+    "href": "nfl/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 215,
+    "title": "Colts 1H ML",
+    "est": 0.3623,
+    "edge": 0.0448,
+    "agree": 3,
+    "sample": 7,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Early Bird"
+    ],
+    "streak": 2,
+    "streakTeam": "ind",
+    "angles": [
+     [
+      "Colts 1H ML on the road",
+      "3-1"
+     ],
+     [
+      "Colts 1H ML, season",
+      "5-2"
+     ],
+     [
+      "Colts 1H ML, last 8",
+      "5-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Colts"
+   },
+   {
+    "id": "nfl|401873035|1h|ml|away",
+    "game": "nfl|401873035",
+    "date": "2026-11-01",
+    "sport": "nfl",
+    "label": "NFL",
+    "slug": "nfl",
+    "start": "2026-11-02T01:20Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Eagles @ Commanders",
+    "href": "nfl/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 145,
+    "title": "Eagles 1H ML",
+    "est": 0.4383,
+    "edge": 0.0302,
+    "agree": 3,
+    "sample": 7,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -2,
+    "streakTeam": "phi",
+    "angles": [
+     [
+      "Eagles 1H ML on the road",
+      "2-1"
+     ],
+     [
+      "Eagles 1H ML, season",
+      "4-3"
+     ],
+     [
+      "Eagles 1H ML, last 8",
+      "4-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Eagles"
+   },
+   {
+    "id": "nfl|401873026|1q|ml|away",
+    "game": "nfl|401873026",
+    "date": "2026-11-01",
+    "sport": "nfl",
+    "label": "NFL",
+    "slug": "nfl",
+    "start": "2026-11-01T18:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Ravens @ Bills",
+    "href": "nfl/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 130,
+    "title": "Ravens 1Q ML",
+    "est": 0.4648,
+    "edge": 0.03,
+    "agree": 3,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Early Bird"
+    ],
+    "streak": 2,
+    "streakTeam": "bal",
+    "angles": [
+     [
+      "Ravens 1Q ML, season",
+      "4-2-1"
+     ],
+     [
+      "Ravens 1Q ML, last 8",
+      "4-2-1"
+     ],
+     [
+      "Bills\u2019s opponents 1Q ML, Bills at home",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Ravens"
    }
   ]
  }
