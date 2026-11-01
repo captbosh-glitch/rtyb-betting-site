@@ -2388,6 +2388,56 @@
  "2026-11-01": {
   "plays": [
    {
+    "id": "nhl|2026020228|1p|btts|yes",
+    "game": "nhl|2026020228",
+    "date": "2026-11-01",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-01T20:30:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Minnesota @ Washington",
+    "href": "nhl/games/?date=2026-11-01",
+    "market": "btts",
+    "side": "yes",
+    "line": null,
+    "price": 165,
+    "title": "1P BTTS Yes",
+    "est": 0.4238,
+    "edge": 0.0464,
+    "agree": 4,
+    "sample": 15,
+    "tier": "B",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": 1,
+    "streakTeam": "MIN",
+    "angles": [
+     [
+      "Washington 1P BTTS at home",
+      "6-2"
+     ],
+     [
+      "Washington 1P BTTS, last 8",
+      "6-2"
+     ],
+     [
+      "Minnesota 1P BTTS, last 8",
+      "5-3"
+     ],
+     [
+      "Washington 1P BTTS, season",
+      "7-5"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Minnesota"
+   },
+   {
     "id": "nfl|401873028|1h|ml|away",
     "game": "nfl|401873028",
     "date": "2026-11-01",
