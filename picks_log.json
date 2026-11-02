@@ -2582,6 +2582,48 @@
  "2026-11-02": {
   "plays": [
    {
+    "id": "nba|401909917|1q|ml|away",
+    "game": "nba|401909917",
+    "date": "2026-11-02",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-03T01:30Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Jazz @ Spurs",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 250,
+    "title": "Jazz 1Q ML",
+    "est": 0.3333,
+    "edge": 0.0476,
+    "agree": 2,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "utah",
+    "angles": [
+     [
+      "Jazz 1Q ML, season",
+      "4-2"
+     ],
+     [
+      "Jazz 1Q ML, last 8",
+      "4-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Jazz"
+   },
+   {
     "id": "nfl|401873036|1h|ml|away",
     "game": "nfl|401873036",
     "date": "2026-11-02",
@@ -2626,6 +2668,53 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Bears"
+   },
+   {
+    "id": "nba|401909910|1q|ml|away",
+    "game": "nba|401909910",
+    "date": "2026-11-02",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-03T00:30Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Nets @ Knicks",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 230,
+    "title": "Nets 1Q ML",
+    "est": 0.3364,
+    "edge": 0.0334,
+    "agree": 3,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 4,
+    "streakTeam": "bkn",
+    "angles": [
+     [
+      "Nets 1Q ML, season",
+      "4-2"
+     ],
+     [
+      "Nets 1Q ML, last 8",
+      "4-2"
+     ],
+     [
+      "Nets 1Q ML on the road",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Nets"
    }
   ]
  }
