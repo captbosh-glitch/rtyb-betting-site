@@ -129,7 +129,8 @@ def load_games(nhl_data, nhl_city):
                     else:
                         ats = o.get('ats') or {}
                         tot = o.get('total') or {}
-                        odds = {'ml': o.get('ml') or {},
+                        # no moneyline plays where the segment doesn't track it (NCAAB 1st half)
+                        odds = {'ml': (o.get('ml') or {}) if sports.has_ml(s) else {},
                                 'ats': {'line': (ats.get('away') or {}).get('line'), 'away': (ats.get('away') or {}).get('price'),
                                         'home': (ats.get('home') or {}).get('price')} if ats.get('away') else None,
                                 'total': {'line': tot.get('line'), 'over': tot.get('over'), 'under': tot.get('under')} if tot.get('line') is not None else None}

@@ -647,20 +647,26 @@
     spread: ['atsA', 'atsAP', 'atsH', 'atsHP', 'mlA', 'mlH', 'tot', 'ovP', 'unP'],
     f5: ['atsA', 'atsH', 'mlA', 'mlH', 'tot', 'ovP', 'unP'],
     rfi: ['yes', 'no'],
+    ats: ['atsA', 'atsAP', 'atsH', 'atsHP', 'tot', 'ovP', 'unP'],   // spread segment without a moneyline (NCAAB 1st half)
   };
   var HEADERS = {
     spread: ['Matchup', 'ATS Away', 'ATS Home', 'ML Away', 'ML Home', 'Total', ''],
     f5: ['Matchup', 'ATS Away', 'ATS Home', 'ML Away', 'ML Home', 'Total', ''],
     rfi: ['Matchup', 'Yes (YRFI)', 'No (NRFI)', ''],
+    ats: ['Matchup', 'ATS Away', 'ATS Home', 'Total', ''],
   };
   var HELP = {
     spread: 'One table per segment. ATS is the line (away and home must be opposites &mdash; type one and the other fills in); the small field under it is the price, &ndash;110 unless you change it. Total is the line with Over / Under prices underneath. Save pushes these odds to the site.',
     f5: 'First Five innings. The ATS columns are <b>prices</b> &mdash; the line is always 0.5, and the moneyline favorite (shorter ML) lays &ndash;0.5. Use the Fav menu under the matchup to override (or to pick a side when the moneylines are even or blank). Total can be a whole number or a .5; Over / Under prices default to &ndash;110.',
     rfi: 'Run in the 1st inning: Yes is the YRFI price, No is the NRFI price.',
+    ats: 'One table per segment. ATS is the line (away and home must be opposites &mdash; type one and the other fills in); the small field under it is the price, &ndash;110 unless you change it. Total is the line with Over / Under prices underneath. This segment tracks spread and total only, no moneyline. Save pushes these odds to the site.',
   };
 
   function segMode(seg) {
-    if (!SPORT || SPORT.sport_type !== 'baseball') return 'spread';
+    if (!SPORT) return 'spread';
+    var s = SPORT.segments.filter(function(x) { return x.key === seg; })[0];
+    if (s && s.markets && s.markets.indexOf('ML') === -1 && SPORT.sport_type !== 'baseball') return 'ats';
+    if (SPORT.sport_type !== 'baseball') return 'spread';
     return seg === '1i' ? 'rfi' : 'f5';
   }
   function mode() { return segMode(SEGMENT); }
@@ -853,7 +859,7 @@
       '<div class="price-pair">' + inp('o' + i + '_ovP', tot.over != null ? tot.over : DEFAULT_PRICE, 'price') + inp('o' + i + '_unP', tot.under != null ? tot.under : DEFAULT_PRICE, 'price') + '</div></td>';
     if (locked) {
       var atsCell = function(side) { return '<td>' + lockedVal(signed(side.line)) + (side.line != null ? lockedSub(signed(side.price)) : '') + '</td>'; };
-      return atsCell(aA) + atsCell(aH) + '<td>' + lockedVal(signed(ml.away)) + '</td><td>' + lockedVal(signed(ml.home)) + '</td>' + totLocked;
+      return atsCell(aA) + atsCell(aH) + (m === 'ats' ? '' : '<td>' + lockedVal(signed(ml.away)) + '</td><td>' + lockedVal(signed(ml.home)) + '</td>') + totLocked;
     }
     if (m === 'f5') {
       return '<td><span class="line-tag" id="o' + i + '_lineA"></span>' + inp('o' + i + '_atsA', aA.price) + '</td>' +
@@ -862,7 +868,7 @@
     }
     return '<td>' + inp('o' + i + '_atsA', aA.line) + inp('o' + i + '_atsAP', aA.price != null ? aA.price : DEFAULT_PRICE, 'price') + '</td>' +
       '<td>' + inp('o' + i + '_atsH', aH.line) + inp('o' + i + '_atsHP', aH.price != null ? aH.price : DEFAULT_PRICE, 'price') + '</td>' +
-      '<td>' + inp('o' + i + '_mlA', ml.away) + '</td><td>' + inp('o' + i + '_mlH', ml.home) + '</td>' + totInputs;
+      (m === 'ats' ? '' : '<td>' + inp('o' + i + '_mlA', ml.away) + '</td><td>' + inp('o' + i + '_mlH', ml.home) + '</td>') + totInputs;
   }
 
   function favSelect(i, v) {
@@ -1127,6 +1133,7 @@
     spread: { atsAway: 'atsA', atsAwayPrice: 'atsAP', atsHome: 'atsH', atsHomePrice: 'atsHP', mlAway: 'mlA', mlHome: 'mlH', total: 'tot', overPrice: 'ovP', underPrice: 'unP' },
     f5: { atsAwayPrice: 'atsA', atsHomePrice: 'atsH', mlAway: 'mlA', mlHome: 'mlH', total: 'tot', overPrice: 'ovP', underPrice: 'unP' },
     rfi: { yrfi: 'yes', nrfi: 'no' },
+    ats: { atsAway: 'atsA', atsAwayPrice: 'atsAP', atsHome: 'atsH', atsHomePrice: 'atsHP', total: 'tot', overPrice: 'ovP', underPrice: 'unP' },
   };
 
   document.getElementById('sportParseBtn').addEventListener('click', function() {
@@ -1137,7 +1144,7 @@
     if (!games.length) { status.className = 'status err'; status.textContent = 'No games ' + (isWeekly() ? 'this week' : 'on this date') + ' to match against.'; return; }
     var m = mode(), seg = SPORT.segments.filter(function(x) { return x.key === SEGMENT; })[0];
     var payload = {
-      sport: SPORT.key, label: SPORT.label, segment: SEGMENT, segmentLabel: seg.label, mode: m,
+      sport: SPORT.key, label: SPORT.label, segment: SEGMENT, segmentLabel: seg.label, mode: m === 'ats' ? 'spread' : m,   // the worker knows spread / f5 / rfi
       view: viewLabel(), text: text,
       games: games.map(function(g) { return { away: g.away, home: g.home, date: g.date, awayName: (TEAM_BY_SLUG[g.away] || {}).name || g.away, homeName: (TEAM_BY_SLUG[g.home] || {}).name || g.home }; }),
     };

@@ -94,6 +94,8 @@
   function segs() { return D.segments; }
   function seg(k) { return D.segments.filter(function(s) { return s.key === k; })[0]; }
   function isRfi(k) { return D.sportType === 'baseball' && k === '1i'; }
+  // Segments without 'ML' in their markets (NCAAB 1st half) show no moneyline / SU anywhere.
+  function hasMl(k) { var s = seg(k); return !s || !s.markets || s.markets.indexOf('ML') !== -1; }
   function getSeg() { return seg(SEG_CUR) ? SEG_CUR : D.segments[0].key; }
   function setSeg(k) { SEG_CUR = k; }
   function segToggle(id, cur, attr) {
@@ -131,9 +133,10 @@
     var atsBody = ats ? pb(a + ' ' + signed(ats.away.line), na || (r.ats || null)) + pb(h + ' ' + signed(ats.home.line), na || (r.ats ? flipRes(r.ats) : null)) : '';
     var suBody = (ml || r.su) ? pb(a + (ml ? ' ' + signed(ml.away) : ''), na || (r.su || null)) + pb(h + (ml ? ' ' + signed(ml.home) : ''), na || (r.su ? flipRes(r.su) : null)) : '';
     var totBody = tot ? pb('O/U ' + tot.line, na || (r.tot ? (r.tot === 'P' ? 'P' : r.tot) : null)) : '';
-    return '<div class="odds-grid">' +
+    var ml_ = hasMl(k);
+    return '<div class="odds-grid' + (ml_ ? '' : ' two') + '">' +
       '<div class="pill"><span class="pill-label">ATS</span><span class="pill-body">' + atsBody + '</span></div>' +
-      '<div class="pill"><span class="pill-label">SU</span><span class="pill-body">' + suBody + '</span></div>' +
+      (ml_ ? '<div class="pill"><span class="pill-label">SU</span><span class="pill-body">' + suBody + '</span></div>' : '') +
       '<div class="pill"><span class="pill-label">Total</span><span class="pill-body">' + totBody + '</span></div>' +
       '</div>';
   }
@@ -278,8 +281,8 @@
           if (r.u && r.u.tot) { ou[3] += r.u.tot[0]; ou[4]++; }
         }
       });
-      row('Home teams SU', rec(home), pct(home[0], home[1]), home[3], home[4], '');
-      if (fav[0] + fav[1] + fav[2]) row('Favorites SU', rec(fav), pct(fav[0], fav[1]), fav[3], fav[4], oddsNote(fav[0] + fav[1] + fav[2]));
+      if (hasMl(k)) row('Home teams SU', rec(home), pct(home[0], home[1]), home[3], home[4], '');
+      if (hasMl(k) && fav[0] + fav[1] + fav[2]) row('Favorites SU', rec(fav), pct(fav[0], fav[1]), fav[3], fav[4], oddsNote(fav[0] + fav[1] + fav[2]));
       if (favAts[0] + favAts[1] + favAts[2]) row('Favorites ATS', rec(favAts), pct(favAts[0], favAts[1]), favAts[3], favAts[4], oddsNote(favAts[0] + favAts[1] + favAts[2]));
       if (ou[0] + ou[1] + ou[2]) row('Overs (O-U-P)', rec(ou), pct(ou[0], ou[1]), ou[3], ou[4], oddsNote(ou[0] + ou[1] + ou[2]));
     }
@@ -411,11 +414,11 @@
     } else {
       var h = lg.home, gp = lg.gp, f = lg.fav_su, fa = lg.fav_ats, o = lg.over;
       var fn = f[0] + f[1] + f[2], an = fa[0] + fa[1] + fa[2], on = o[0] + o[1] + o[2];
-      blocks =
+      blocks = (!hasMl(k) ? '' :
         scBlock('SU (H/A)', 'Straight up, ties shown', scLine('Home', h, 0, gp) + scLine('Away', h, 1, gp) + scLine('Tie', h, 2, gp),
           scUnits([['Home', h], ['Away', lg.away || [0, 0, 0, 0, 0]]])) +
         scBlock('SU (F/D)', 'Favorite vs underdog', fn ? scLine('Favorite', f, 0, fn) + scLine('Underdog', f, 1, fn) + scLine('Tie', f, 2, fn) : emptyNote('Needs odds.'),
-          scUnits([['Fav', f], ['Dog', lg.dog_su || [0, 0, 0, 0, 0]]]), fn ? oddsNote(fn) : '') +
+          scUnits([['Fav', f], ['Dog', lg.dog_su || [0, 0, 0, 0, 0]]]), fn ? oddsNote(fn) : '')) +
         scBlock('ATS (F/D)', 'Against the spread, pushes shown', an ? scLine('Favorite', fa, 0, an) + scLine('Underdog', fa, 1, an) + scLine('Push', fa, 2, an) : emptyNote('Needs odds.'),
           scUnits([['Fav', fa], ['Dog', lg.dog_ats || [0, 0, 0, 0, 0]]]), an ? oddsNote(an) : '') +
         scBlock('Total (O/U)', 'Over-Under-Push', on ? scLine('Over', o, 0, on) + scLine('Under', o, 1, on) + scLine('Push', o, 2, on) : emptyNote('Needs odds.'),
@@ -481,7 +484,8 @@
     return a;
   }
   function marketsFor(k) {
-    return isRfi(k) ? [['rfi', 'YRFI']] : [['su', 'Moneyline'], ['ats', 'ATS'], ['tot', 'Over']];
+    if (isRfi(k)) return [['rfi', 'YRFI']];
+    return (hasMl(k) ? [['su', 'Moneyline']] : []).concat([['ats', 'ATS'], ['tot', 'Over']]);
   }
 
   // ----------------------------------------------------------- Teams page
@@ -1032,9 +1036,9 @@
       var st = ((D.stats.teams || {})[slug] || {})[s.key], lg = (D.stats.league || {})[s.key];
       if (!st || !lg) return;
       var markets = isRfi(s.key) ? [['rfi', st.yrfi, lg.yrfi, 'YRFI', 'NRFI', 'YRFI', 'NRFI']]
-        : [['su', st.su, null, 'W', 'L', 'Bet ' + code + ' ' + s.tag + ' ML', 'Bet against ' + code + ' ' + s.tag + ' ML'],
+        : (hasMl(s.key) ? [['su', st.su, null, 'W', 'L', 'Bet ' + code + ' ' + s.tag + ' ML', 'Bet against ' + code + ' ' + s.tag + ' ML']] : []).concat([
            ['ats', st.ats, null, 'W', 'L', code + ' ' + s.tag + ' ATS', 'Against ' + code + ' ' + s.tag + ' ATS'],
-           ['tot', st.over, lg.over, 'Over', 'Under', 'Over ' + s.tag, 'Under ' + s.tag]];
+           ['tot', st.over, lg.over, 'Over', 'Under', 'Over ' + s.tag, 'Under ' + s.tag]]);
       markets.forEach(function(m) {
         var r = m[1], dec = r[0] + r[1];
         var base = m[2] ? (m[2][0] + m[2][1] ? m[2][0] / (m[2][0] + m[2][1]) : 0.5) : 0.5;
@@ -1086,9 +1090,9 @@
                   ['Scored in the 1st', r.scored + ' of ' + r.gp, pctTxt(r.scored, r.gp - r.scored), null]];
         } else {
           var atsN = r.ats[0] + r.ats[1] + r.ats[2], ouN = r.over[0] + r.over[1] + r.over[2];
-          rows = [['SU <small>W–L–T</small>', rec(r.su), pctTxt(r.su[0], r.su[1]), unitsPill(r.su[3], r.su[4])],
+          rows = (hasMl(s.key) ? [['SU <small>W–L–T</small>', rec(r.su), pctTxt(r.su[0], r.su[1]), unitsPill(r.su[3], r.su[4])]] : []).concat([
                   ['ATS <small>W–L–P</small>' + (atsN ? ' ' + oddsNote(atsN) : ''), atsN ? rec(r.ats) : '&mdash;', atsN ? pctTxt(r.ats[0], r.ats[1]) : '&mdash;', unitsPill(r.ats[3], r.ats[4])],
-                  ['O/U <small>O–U–P</small>' + (ouN ? ' ' + oddsNote(ouN) : ''), ouN ? rec(r.over) : '&mdash;', ouN ? pctTxt(r.over[0], r.over[1]) + ' O' : '&mdash;', unitsPill(r.over[3], r.over[4])]];
+                  ['O/U <small>O–U–P</small>' + (ouN ? ' ' + oddsNote(ouN) : ''), ouN ? rec(r.over) : '&mdash;', ouN ? pctTxt(r.over[0], r.over[1]) + ' O' : '&mdash;', unitsPill(r.over[3], r.over[4])]]);
         }
         return '<div class="daily-summary season-markets"><h3>' + esc(s.label) + ' &middot; ' + r.gp + ' GP</h3>' +
           '<div class="ds-row ds-head"><span></span><span class="ds-right"><span class="ds-col-rec">Record</span><span class="ds-col-pct">Rate</span><span class="ds-col-units">Units</span></span></div>' +
@@ -1111,7 +1115,7 @@
       var moreBtn = log.length > 5 ? '<button class="seg-btn sit-more" id="teamLogMore" type="button">' + (sitState.logAll ? 'Show last 5 games' : 'Show all ' + log.length + ' games') + '</button>' : '';
       var logHtml = splitReg() ? '<div id="teamSitLog"></div>' : section('Season Game Log &mdash; ' + esc(seg(k).label) + ' results', log.length ? '<div class="gamelog-scroll"><table class="gamelog"><thead><tr><th>Date</th><th>Opp</th>' +
         D.segments.map(function(s) { return '<th>' + (isRfi(s.key) ? '1st Inn' : esc(s.tag)) + '</th>'; }).join('') +
-        (isRfi(k) ? '<th>NRFI/YRFI</th>' : '<th>SU</th><th>ATS</th><th>O/U</th>') + '<th>Final</th></tr></thead><tbody>' + shownLog.map(function(g) {
+        (isRfi(k) ? '<th>NRFI/YRFI</th>' : (hasMl(k) ? '<th>SU</th>' : '') + '<th>ATS</th><th>O/U</th>') + '<th>Final</th></tr></thead><tbody>' + shownLog.map(function(g) {
           var home = g.home === slug, opp = home ? g.away : g.home;
           var scores = D.segments.map(function(s) {
             var rr = (g.res || {})[s.key] || {};
@@ -1121,7 +1125,7 @@
           var fin = home ? g.hs + '–' + g.as : g.as + '–' + g.hs;
           var cells = isRfi(k)
             ? '<td class="num">' + (r.rfi ? chip(r.rfi === 'Y' ? 'Y' : r.rfi === 'N' ? 'N' : 'NA') : '') + '</td>'
-            : '<td class="num">' + (r.su ? chip(home ? flipRes(r.su) : r.su) : '') + '</td><td class="num">' + (r.ats ? chip(home ? flipRes(r.ats) : r.ats) : '&mdash;') + '</td><td class="num">' + (r.tot ? chip(r.tot) : '&mdash;') + '</td>';
+            : (hasMl(k) ? '<td class="num">' + (r.su ? chip(home ? flipRes(r.su) : r.su) : '') + '</td>' : '') + '<td class="num">' + (r.ats ? chip(home ? flipRes(r.ats) : r.ats) : '&mdash;') + '</td><td class="num">' + (r.tot ? chip(r.tot) : '&mdash;') + '</td>';
           return '<tr><td>' + esc(new Date(g.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' })) + '</td><td>' + (home ? 'vs ' : '@ ') +
             (teamUrl(opp) ? '<a href="' + teamUrl(opp) + '">' + esc(shortName(opp)) + '</a>' : esc(shortName(opp))) + '</td>' + scores + cells + '<td class="num">' + fin + '</td></tr>';
         }).join('') + '</tbody></table></div>' + moreBtn : emptyNote('No games played yet.'), segToggle('teamSeg2', k));
@@ -1191,17 +1195,17 @@
         return '<td class="num mono' + (s.key === k ? ' sit-hl' : '') + '">' + (rr.sc ? (home ? rr.sc[1] + '–' + rr.sc[0] : rr.sc[0] + '–' + rr.sc[1]) : '&mdash;') + '</td>';
       }).join('');
       var fin = home ? g.hs + '–' + g.as : g.as + '–' + g.hs;
-      var b3 = '<td class="num">' + badge(r.su) + '</td><td class="num">' + badge(r.ats) + '</td><td class="num">' + badge(r.tot) + '</td>';
+      var b3 = (hasMl(k) ? '<td class="num">' + badge(r.su) + '</td>' : '') + '<td class="num">' + badge(r.ats) + '</td><td class="num">' + badge(r.tot) + '</td>';
       return { desk: '<tr><td>' + date + '</td><td>' + oppHtml + '</td><td class="sit-tags">' + tags + '</td>' + per + b3 + '<td class="num mono">' + fin + '</td></tr>',
         mob: '<div class="sit-gcard"><div class="sit-gl1"><span>' + date + '</span><span>' + oppHtml + '</span><span class="mono">' + fin + '</span></div>' +
-          '<div class="sit-gl2"><span class="sit-tags">' + tags + '</span><span class="sit-gb">' + badge(r.su) + badge(r.ats) + badge(r.tot) + '</span></div></div>' };
+          '<div class="sit-gl2"><span class="sit-tags">' + tags + '</span><span class="sit-gb">' + (hasMl(k) ? badge(r.su) : '') + badge(r.ats) + badge(r.tot) + '</span></div></div>' };
     });
     var more = games.length > 5 ? '<button class="seg-btn sit-more" id="sitMore" type="button">' + (sitState.logAll ? 'Show last 5 games' : 'Show all ' + games.length + ' games') + '</button>' : '';
     box.innerHTML = '<h3 class="team-section-title">Season Game Log</h3><div class="seg-toggle" id="sitLogSeg">' +
       D.segments.map(function(s) { return '<button class="seg-btn" data-sit-logseg="' + s.key + '" aria-pressed="' + (s.key === k) + '">' + esc(s.label) + '</button>'; }).join('') + '</div>' +
       (games.length ? '<div class="sit-desk"><div class="gamelog-scroll"><table class="gamelog sit-log"><thead><tr><th>Date</th><th>Opp</th><th>Splits</th>' +
         D.segments.map(function(s) { return '<th class="num' + (s.key === k ? ' sit-hl' : '') + '">' + esc(s.tag) + '</th>'; }).join('') +
-        '<th class="num">SU</th><th class="num">ATS</th><th class="num">O/U</th><th class="num">Final</th></tr></thead><tbody>' +
+        (hasMl(k) ? '<th class="num">SU</th>' : '') + '<th class="num">ATS</th><th class="num">O/U</th><th class="num">Final</th></tr></thead><tbody>' +
         rowsHtml.map(function(x) { return x.desk; }).join('') + '</tbody></table></div></div>' +
         '<div class="sit-mob">' + rowsHtml.map(function(x) { return x.mob; }).join('') + '</div>' + more
         : emptyNote('No games played yet.'));

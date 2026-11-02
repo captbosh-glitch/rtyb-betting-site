@@ -13,6 +13,8 @@ Field reference
   sport_type     "period" (NHL), "spread" (football / basketball), "baseball" (MLB)
   segments       the bet windows tracked, in display order; each has a key,
                  a label, a short tag for chips and cards, and its markets
+                 (a segment without 'ML' shows no moneyline / SU anywhere:
+                 game cards, stats, teams, trends, picks, home, admin)
   season_start   month (1-12) the season starts, for "Soon" / return-month labels
   sections       URL folder for each section; only NHL's Stats differs
                  (its page lives at /nhl/1st-period-stats/)
@@ -21,6 +23,7 @@ Field reference
 """
 
 SPREAD_MARKETS = ['ATS', 'ML', 'Total']
+NO_ML_MARKETS = ['ATS', 'Total']
 
 SPORTS = [
     {
@@ -74,7 +77,7 @@ SPORTS = [
     {
         'key': 'ncaab', 'label': 'NCAAB', 'slug': 'college-basketball', 'sport_type': 'spread',
         'segments': [
-            {'key': '1h', 'label': '1st Half', 'tag': '1H', 'markets': SPREAD_MARKETS},
+            {'key': '1h', 'label': '1st Half', 'tag': '1H', 'markets': NO_ML_MARKETS},
         ],
         'season_start': 11,
     },
@@ -96,6 +99,11 @@ def section_path(sport, section):
     """Root-relative URL for a sport's section, e.g. ('nfl', 'stats') -> /nfl/stats/."""
     s = BY_KEY[sport] if isinstance(sport, str) else sport
     return f"/{s['slug']}/{s['sections'][section]}/"
+
+
+def has_ml(seg):
+    """Whether a segment tracks the moneyline (SU); NCAAB's 1st half doesn't."""
+    return 'ML' in (seg.get('markets') or ['ML'])
 
 
 def segment_summary(sport):

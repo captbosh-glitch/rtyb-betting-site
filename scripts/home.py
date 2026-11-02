@@ -216,10 +216,18 @@ def sport_recap(label, segs, games):
     if k == '1i':
         n = sum(1 for g in done if g['res'].get('rfi') == 'N')
         return [(label, 'NRFI', f'{n} of {len(done)}', None)]
+    seg = next((s for s in segs if s['key'] == k), {})
+    if not sports.has_ml(seg):
+        # no moneyline here (NCAAB 1st half): home teams against the spread instead
+        ats = [g for g in done if g['res'].get('ats') in ('W', 'L', 'P')]
+        if not ats:
+            return []
+        hw = sum(1 for g in ats if g['res']['ats'] == 'L')
+        hl = sum(1 for g in ats if g['res']['ats'] == 'W')
+        return [(label, f"Home teams, {seg.get('label', '').lower()} (ATS)", f'{hw}-{hl}-{len(ats) - hw - hl}', None)]
     hw = sum(1 for g in done if g['res'].get('su') == 'L')
     hl = sum(1 for g in done if g['res'].get('su') == 'W')
     ht = len(done) - hw - hl
-    seg = next((s for s in segs if s['key'] == k), {})
     return [(label, f"Home teams, {seg.get('label', '').lower()} (SU)", f'{hw}-{hl}-{ht}', None)]
 
 

@@ -660,7 +660,7 @@ def team_detail_html(sport, team):
 
 SECTION_DESC = {
     'games': '{label} games by date with {segs} odds, scores and results.',
-    'stats': '{label} {segs} results league-wide: SU, ATS and totals with units, scoring and situational splits.',
+    'stats': '{label} {segs} results league-wide: {markets} with units, scoring and situational splits.',
     'trends': '{label} League Trends for each slate and current team streaks.',
 }
 
@@ -702,7 +702,9 @@ def build_other_sports(template):
                     body = f'<div id="sportApp" data-section="teams">{body}</div>'
                 html = render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=body)
             elif section != 'teams' and sport_has_data(sp['key']):
-                meta['desc'] = SECTION_DESC[section].format(label=sp['label'], segs=sports.segment_summary(sp))
+                meta['desc'] = SECTION_DESC[section].format(
+                    label=sp['label'], segs=sports.segment_summary(sp),
+                    markets='SU, ATS and totals' if any(sports.has_ml(s) for s in sp['segments']) else 'ATS and totals')
                 if section == 'games' and sp.get('schedule') == 'week':
                     meta['desc'] = meta['desc'].replace('games by date', 'games by week')
                 body = (f'<div id="sportApp" data-section="{section}"><div class="no-games-note">Loading&hellip;</div>'

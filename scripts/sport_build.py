@@ -25,6 +25,7 @@ from zoneinfo import ZoneInfo
 
 import grading
 import icons
+import sports
 import trend_rules
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -317,6 +318,7 @@ def team_streaks(sp, games):
         found = []
         for seg in sp['segments']:
             k = seg['key']
+            no_ml = not sports.has_ml(seg)
             seq = [(g['_res'].get(k), side) for g, side in reversed(lst) if g['_res'].get(k) and not g['_res'][k].get('na')]
             markets = [('rfi', lambda r, s: {'Y': 'YRFI', 'N': 'NRFI'}.get(r['rfi']))] if k == '1i' and sp['sport_type'] == 'baseball' else [
                 ('su', lambda r, s: {'W': 'W', 'L': 'L'}.get(side_res(r, 'su', s))),
@@ -324,6 +326,8 @@ def team_streaks(sp, games):
                 ('tot', lambda r, s: {'O': 'Over', 'U': 'Under'}.get(r.get('tot')) if 'tot' in r else None),
             ]
             for market, fn in markets:
+                if market == 'su' and no_ml:
+                    continue
                 vals = [fn(r, s) for r, s in seq if market != 'ats' and market != 'tot' or market in r]
                 if not vals or vals[0] is None:
                     continue
@@ -563,7 +567,7 @@ def generate_for_date(sp, teams, games, d, slate=None):
     words = angle_words(sp)
     for seg in sp['segments']:
         k, tag = seg['key'], seg['tag']
-        side_markets = [] if (baseball and k == '1i') else ['su', 'ats']
+        side_markets = [] if (baseball and k == '1i') else ['su', 'ats'] if sports.has_ml(seg) else ['ats']
         game_fams = [('rfi', 'yrfi', 'nrfi')] if (baseball and k == '1i') else [('tot', 'over', 'under')]
         pool_k = [G for G in before if (G['g']['_res'].get(k) or {}) and not G['g']['_res'][k].get('na')]
         # ---- side angles (SU / ATS)

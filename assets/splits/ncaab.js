@@ -75,6 +75,6 @@
     { id: 'thigh', label: 'High 1H total', short: 'High total', group: 'size', def: cutDef(2), test: function(c) { return third(c, 2); } },
   ];
   window.RTYB_SPLITS = window.RTYB_SPLITS || {};
-  window.RTYB_SPLITS.ncaab = { config: C, groups: groups, rows: rows, markets: [{ id: 'ats' }, { id: 'tot' }, { id: 'su' }], favBy: 'fg-spread', periods: 2,
+  window.RTYB_SPLITS.ncaab = { config: C, groups: groups, rows: rows, markets: [{ id: 'ats' }, { id: 'tot' }], favBy: 'fg-spread', periods: 2,
     perspectives: [['home', 'Home team'], ['fav', 'Favorite']], smallSample: 10 };
 })();
