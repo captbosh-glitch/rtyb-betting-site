@@ -2619,8 +2619,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Jazz"
    },
    {
@@ -2665,8 +2665,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 1.3,
     "streakTeamName": "Bears"
    },
    {
@@ -2717,5 +2717,8 @@
     "streakTeamName": "Nets"
    }
   ]
+ },
+ "2026-11-03": {
+  "plays": []
  }
 }
