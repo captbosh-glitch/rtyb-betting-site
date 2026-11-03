@@ -2719,6 +2719,99 @@
   ]
  },
  "2026-11-03": {
-  "plays": []
+  "plays": [
+   {
+    "id": "nhl|2026020237|1p|btts|yes",
+    "game": "nhl|2026020237",
+    "date": "2026-11-03",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-04T00:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Winnipeg @ Montreal",
+    "href": "nhl/games/?date=2026-11-03",
+    "market": "btts",
+    "side": "yes",
+    "line": null,
+    "price": 175,
+    "title": "1P BTTS Yes",
+    "est": 0.4026,
+    "edge": 0.0389,
+    "agree": 3,
+    "sample": 15,
+    "tier": "C",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": -2,
+    "streakTeam": "WPG",
+    "angles": [
+     [
+      "Montreal 1P BTTS, last 8",
+      "6-2"
+     ],
+     [
+      "Montreal 1P BTTS, season",
+      "10-4"
+     ],
+     [
+      "Montreal 1P BTTS at home",
+      "5-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Winnipeg"
+   },
+   {
+    "id": "nhl|2026020243|1p|btts|yes",
+    "game": "nhl|2026020243",
+    "date": "2026-11-03",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-04T00:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Dallas @ Washington",
+    "href": "nhl/games/?date=2026-11-03",
+    "market": "btts",
+    "side": "yes",
+    "line": null,
+    "price": 180,
+    "title": "1P BTTS Yes",
+    "est": 0.3921,
+    "edge": 0.0349,
+    "agree": 3,
+    "sample": 14,
+    "tier": "C",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": -1,
+    "streakTeam": "DAL",
+    "angles": [
+     [
+      "Washington 1P BTTS at home",
+      "6-3"
+     ],
+     [
+      "Washington 1P BTTS, last 8",
+      "5-3"
+     ],
+     [
+      "Washington 1P BTTS, season",
+      "7-6"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Dallas"
+   }
+  ]
  }
 }
