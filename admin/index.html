@@ -266,12 +266,19 @@
   var oddsOverrides = {};
   var resultsDraft = {};
 
-  // Whichever table was last Saved stays "locked" (read-only, signed odds)
-  // until Edit is clicked, for *this date*. Switching dates resets both --
-  // each date's lock state is tracked separately so flipping back and forth
-  // doesn't lose it.
+  // A table that's already been Saved for a date opens "locked" (read-only,
+  // signed odds, only an Edit button) -- after a reload or days later too,
+  // since it's worked out from what's published. Save and Edit set it
+  // explicitly per date, which wins until the page is reloaded.
   var matchupsLocked = {};
   var resultsLocked = {};
+  var resultsOverrides = {};
+
+  function publishedFor(store, date) {
+    return Object.keys(store).some(function(k) { return k.indexOf(date + '|') === 0; });
+  }
+  function isMatchupsLocked(date) { return date in matchupsLocked ? matchupsLocked[date] : publishedFor(oddsOverrides, date); }
+  function isResultsLocked(date) { return date in resultsLocked ? resultsLocked[date] : publishedFor(resultsOverrides, date); }
 
   function fetchJson(path, fallback) {
     return fetch(path).then(function(r) { return r.ok ? r.json() : fallback; }).catch(function() { return fallback; });
@@ -283,11 +290,13 @@
       fetchJson('../data_admin/matchups_draft.json', {}),
       fetchJson('../data_admin/results_draft.json', {}),
       fetchJson('../data_admin/odds_overrides.json', {}),
+      fetchJson('../data_admin/results_overrides.json', {}),
     ]).then(function(results) {
       DATA = results[0];
       matchupsDraft = results[1] || {};
       resultsDraft = results[2] || {};
       oddsOverrides = results[3] || {};
+      resultsOverrides = results[4] || {};
       populateDateSelect();
     });
   }
@@ -348,8 +357,8 @@
 
     renderMatchupsBody(date, games);
     renderResultsBody(date, games);
-    setLockUI('matchups', !!matchupsLocked[date]);
-    setLockUI('results', !!resultsLocked[date]);
+    setLockUI('matchups', isMatchupsLocked(date));
+    setLockUI('results', isResultsLocked(date));
   }
 
   // Only values saved from this page (typed in or AI-parsed) fill the
@@ -374,7 +383,7 @@
 
   function renderMatchupsBody(date, games) {
     var mBody = document.getElementById('matchupsBody');
-    var locked = !!matchupsLocked[date];
+    var locked = isMatchupsLocked(date);
     mBody.innerHTML = games.map(function(g, i) {
       var v = matchupFieldValues(date, g);
       var cells;
@@ -400,7 +409,7 @@
 
   function renderResultsBody(date, games) {
     var rBody = document.getElementById('resultsBody');
-    var locked = !!resultsLocked[date];
+    var locked = isResultsLocked(date);
     var rDraft = resultsDraft[date] || {};
     rBody.innerHTML = games.map(function(g, i) {
       var key = g.away + '|' + g.home;
@@ -636,7 +645,7 @@
   var WEEKS = [];           // football: [{key, label, start, end}] from data.json
   var SEGMENT = null;
   var added = {};           // view (date or week) -> [{away, home, date}] not yet saved
-  var oddsLocked = {};      // view|segment -> bool
+  var oddsLocked = {};      // view|segment -> bool, set by Save / Edit; otherwise locked if any game here has saved odds
   var csvMatched = [];
   // Unsaved table entries (typed or AI-parsed), kept across redraws -- adding
   // a game, switching segment tabs or weeks -- until they're saved.
@@ -903,7 +912,11 @@
     keepDrafts();
     var games = gamesFor();
     var body = document.getElementById('oddsBody');
-    var locked = !!oddsLocked[viewKey() + '|' + SEGMENT];
+    var lockKey = viewKey() + '|' + SEGMENT;
+    var locked = lockKey in oddsLocked ? oddsLocked[lockKey] : games.some(function(g) {
+      var saved = ODDS[gameKey(g.date, g.away, g.home)];
+      return !!(saved && saved.segments && saved.segments[SEGMENT]);
+    });
     if (!games.length) {
       body.innerHTML = '<tr><td colspan="' + head.length + '" class="empty">No ' + escapeHtml(SPORT.label) + ' games ' + (isWeekly() ? 'this week' : 'on this date') + ' yet &mdash; add one below.</td></tr>';
     } else {
