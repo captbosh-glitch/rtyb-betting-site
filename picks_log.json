@@ -2817,6 +2817,94 @@
  "2026-11-04": {
   "plays": [
    {
+    "id": "nba|401909933|1h|ml|away",
+    "game": "nba|401909933",
+    "date": "2026-11-04",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-05T02:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Mavericks @ Spurs",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 250,
+    "title": "Mavericks 1H ML",
+    "est": 0.3293,
+    "edge": 0.0436,
+    "agree": 2,
+    "sample": 7,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -2,
+    "streakTeam": "dal",
+    "angles": [
+     [
+      "Mavericks 1H ML on the road",
+      "2-1"
+     ],
+     [
+      "Spurs\u2019s opponents 1H ML, Spurs at home",
+      "3-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Mavericks"
+   },
+   {
+    "id": "nba|401909930|1h|ml|away",
+    "game": "nba|401909930",
+    "date": "2026-11-04",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-05T01:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Timberwolves @ Rockets",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 180,
+    "title": "Timberwolves 1H ML",
+    "est": 0.3945,
+    "edge": 0.0373,
+    "agree": 3,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 3,
+    "streakTeam": "min",
+    "angles": [
+     [
+      "Timberwolves 1H ML on the road",
+      "4-0"
+     ],
+     [
+      "Timberwolves 1H ML, season",
+      "7-1"
+     ],
+     [
+      "Timberwolves 1H ML, last 8",
+      "7-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Timberwolves"
+   },
+   {
     "id": "nhl|2026020247|1p|ml|away",
     "game": "nhl|2026020247",
     "date": "2026-11-04",
