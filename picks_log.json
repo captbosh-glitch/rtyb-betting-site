@@ -2815,6 +2815,53 @@
   ]
  },
  "2026-11-04": {
-  "plays": []
+  "plays": [
+   {
+    "id": "nhl|2026020247|1p|ml|away",
+    "game": "nhl|2026020247",
+    "date": "2026-11-04",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-05T00:30:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Ottawa @ Buffalo",
+    "href": "nhl/games/?date=2026-11-04",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 100,
+    "title": "Ottawa 1P ML",
+    "est": 0.5301,
+    "edge": 0.0301,
+    "agree": 3,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "OTT",
+    "angles": [
+     [
+      "Ottawa 1P ML on the road",
+      "3-1-5"
+     ],
+     [
+      "Buffalo\u2019s opponents 1P ML, Buffalo at home",
+      "3-1-2"
+     ],
+     [
+      "Ottawa 1P ML, season",
+      "5-4-7"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Ottawa"
+   }
+  ]
  }
 }
