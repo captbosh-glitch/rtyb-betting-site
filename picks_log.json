@@ -2762,8 +2762,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Winnipeg"
    },
    {
@@ -2808,10 +2808,13 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Dallas"
    }
   ]
+ },
+ "2026-11-04": {
+  "plays": []
  }
 }
