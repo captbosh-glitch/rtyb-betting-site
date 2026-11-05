@@ -2969,15 +2969,15 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": -109,
+    "price": 100,
     "title": "Boston 1P ML",
-    "est": 0.573,
-    "edge": 0.0514,
+    "est": 0.5572,
+    "edge": 0.0572,
     "agree": 4,
     "sample": 11,
     "tier": "B",
     "tags": [
-     "Chalk Eater"
+     "Dog Hunter"
     ],
     "streak": 1,
     "streakTeam": "BOS",
@@ -3111,10 +3111,10 @@
     "market": "ml",
     "side": "home",
     "line": null,
-    "price": 135,
+    "price": 140,
     "title": "NY Islanders 1P ML",
-    "est": 0.4599,
-    "edge": 0.0344,
+    "est": 0.4534,
+    "edge": 0.0368,
     "agree": 4,
     "sample": 11,
     "tier": "C",
@@ -3145,6 +3145,52 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "NY Islanders"
+   },
+   {
+    "id": "nhl|2026020261|1p|ml|away",
+    "game": "nhl|2026020261",
+    "date": "2026-11-05",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-06T02:30:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Nashville @ Colorado",
+    "href": "nhl/games/?date=2026-11-05",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 150,
+    "title": "Nashville 1P ML",
+    "est": 0.4346,
+    "edge": 0.0346,
+    "agree": 3,
+    "sample": 12,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "NSH",
+    "angles": [
+     [
+      "Nashville 1P ML on the road",
+      "3-1-1"
+     ],
+     [
+      "Nashville 1P ML, last 8",
+      "4-2-2"
+     ],
+     [
+      "Nashville 1P ML, season",
+      "7-5-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Nashville"
    },
    {
     "id": "ncaaf|401862817|1h|ml|home",
@@ -3237,52 +3283,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Ravens"
-   },
-   {
-    "id": "nhl|2026020261|1p|ml|away",
-    "game": "nhl|2026020261",
-    "date": "2026-11-05",
-    "sport": "nhl",
-    "label": "NHL",
-    "slug": "nhl",
-    "start": "2026-11-06T02:30:00Z",
-    "seg": "1p",
-    "segTag": "1P",
-    "matchup": "Nashville @ Colorado",
-    "href": "nhl/games/?date=2026-11-05",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 143,
-    "title": "Nashville 1P ML",
-    "est": 0.4428,
-    "edge": 0.0313,
-    "agree": 3,
-    "sample": 12,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 1,
-    "streakTeam": "NSH",
-    "angles": [
-     [
-      "Nashville 1P ML on the road",
-      "3-1-1"
-     ],
-     [
-      "Nashville 1P ML, last 8",
-      "4-2-2"
-     ],
-     [
-      "Nashville 1P ML, season",
-      "7-5-3"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Nashville"
    }
   ]
  }
