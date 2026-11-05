@@ -626,6 +626,8 @@
      two halves (e.g. "NYR -100" / "DET -120") wrap inside the pill instead
      of the pills wrapping onto new rows. */
   .odds-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+  .gm-3way { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-muted); }
+  .gm-3way-label { font-family: inherit; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); }
   .pill { background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 7px 9px; display: flex; align-items: baseline; gap: 6px; min-width: 0; }
   .pill .pill-label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; flex-shrink: 0; }
   /* Light mode: market labels (ML / OU / BTTS) in the logo's blue. */
@@ -1380,7 +1382,7 @@
       <a class="nav-link" href="/nhl/games/" >Games</a>
       <a class="nav-link" href="/nhl/1st-period-stats/" >Stats</a>
       <a class="nav-link" href="/nhl/trends/" aria-current="page">Trends</a>
-      
+      <a class="nav-link" href="/nhl/odds/">Odds</a>
       <a class="nav-link" href="/nhl/teams/" >Teams</a>
       <a class="nav-link nav-mobile-only acct-menu-signin" href="/#premium">Sign in</a>
       <a class="nav-premium nav-mobile-only acct-menu-premium" href="/#premium">Go Premium</a>
@@ -3019,7 +3021,16 @@
         '<div class="tr-body">' + body + '</div></details>';
     }
 
-    return '<div class="game-card">' + timeLine + head + oddsGrid + trendsBlock + '</div>';
+    // 1st-period 3-way moneyline (tie included), from the Unabated feed; shown until the period's graded
+    var ml3 = odds.ml3, threeWay = '';
+    if (!isGraded && ml3 && oddsNum(ml3.away) !== null && oddsNum(ml3.home) !== null) {
+      threeWay = '<div class="gm-3way"><span class="gm-3way-label">3-way ML</span>' +
+        '<span>' + escapeHtml(g.away) + ' ' + fmtAmerican(ml3.away) + '</span>' +
+        '<span>Tie ' + fmtAmerican(ml3.draw) + '</span>' +
+        '<span>' + escapeHtml(g.home) + ' ' + fmtAmerican(ml3.home) + '</span></div>';
+    }
+
+    return '<div class="game-card">' + timeLine + head + oddsGrid + threeWay + trendsBlock + '</div>';
   }
 
   function renderGamesList(dateStr, games) {
