@@ -1264,6 +1264,32 @@
   /* ---------- Other sports: Games / Stats / Trends (assets/sport.js) ---------- */
   .sport-seg-row { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
   .sport-seg-row .seg-toggle { margin-bottom: 0; }
+  /* ---------- Odds page (assets/sport.js renderOdds) ---------- */
+  .odds-controls { flex-wrap: wrap; gap: 8px 12px; }
+  .odds-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .odds-teams { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; flex-wrap: wrap; }
+  .odds-at { color: var(--text-muted); font-weight: 500; }
+  .odds-when { font-size: 0.8rem; color: var(--text-muted); }
+  .odds-card { min-width: 0; }
+  .odds-table { width: 100%; min-width: 0; border-collapse: collapse; font-size: 0.86rem; table-layout: fixed; }
+  .odds-table th:first-child, .odds-table td:first-child { width: 40%; }
+  .odds-book { overflow: hidden; text-overflow: ellipsis; }
+  .odds-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600; text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border-soft); }
+  .odds-table td { padding: 6px 8px; border-bottom: 1px solid var(--border-soft); }
+  .odds-table tr:last-child td { border-bottom: 0; }
+  .odds-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .odds-book { white-space: nowrap; }
+  @media (max-width: 480px) { .odds-table td, .odds-table th { padding: 6px 4px; } .odds-cell a { padding: 2px 3px; } .odds-table { font-size: 0.8rem; } }
+  .odds-tag { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-left: 4px; }
+  .odds-cell a { color: var(--text); text-decoration: none; display: inline-block; padding: 2px 6px; border-radius: 6px; }
+  .odds-cell a:hover { background: var(--panel-2); text-decoration: underline; }
+  .odds-line { color: var(--text-muted); }
+  .odds-best a, .odds-best { color: var(--good); font-weight: 700; }
+  .odds-best a { background: var(--good-dim); }
+  .odds-best .odds-line { color: var(--good); }
+  .odds-na { color: var(--text-muted); }
+  .odds-empty { font-size: 0.85rem; color: var(--text-muted); padding: 4px 0; }
+  .odds-note { font-size: 0.78rem; color: var(--text-muted); margin-top: 16px; line-height: 1.5; }
   .game-matchup .gm-at { color: var(--text-faint); font-size: 0.9rem; }
   .card-seg { margin: 0 0 4px; }
   .gm-seg-line { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
@@ -1354,6 +1380,7 @@
       <a class="nav-link" href="/nhl/games/" aria-current="page">Games</a>
       <a class="nav-link" href="/nhl/1st-period-stats/" >Stats</a>
       <a class="nav-link" href="/nhl/trends/" >Trends</a>
+      
       <a class="nav-link" href="/nhl/teams/" >Teams</a>
       <a class="nav-link nav-mobile-only acct-menu-signin" href="/#premium">Sign in</a>
       <a class="nav-premium nav-mobile-only acct-menu-premium" href="/#premium">Go Premium</a>

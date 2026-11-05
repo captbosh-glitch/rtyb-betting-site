@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="RTYB — Run to Your Bets: MLB 1st Inning and First Five Innings betting stats and trends.">
+</head>
+<body data-sport-slug="mlb" data-team-code="" data-sport="mlb">
+<title>RTYB — MLB Odds</title>
+<link rel="stylesheet" href="../../assets/site.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap">
+
+<header class="top">
+  <div class="top-inner">
+    <a class="brand" href="/" aria-label="RTYB home">
+      <svg class="logo" viewBox="-8 19 176 72" role="img" aria-label="RTYB — Run to Your Bets"><g class="lg-ring" stroke-width="3" stroke-linecap="round"><line x1="-6" y1="46" x2="4" y2="46" opacity="0.6"/><line x1="-3" y1="58" x2="4" y2="58" opacity="0.35"/></g><rect class="lg-fill" x="25" y="21" width="10" height="6" rx="2"/><line class="lg-ring" x1="45.8" y1="36.2" x2="48.9" y2="33.1" stroke-width="3" stroke-linecap="round"/><circle class="lg-ring" cx="30" cy="52" r="22" fill="none" stroke-width="3"/><path class="lg-fill" d="M30 52 L30 36 A16 16 0 0 1 43.9 44.0 Z" opacity="0.85"/><line class="lg-hand" x1="30" y1="52" x2="40.8" y2="43.0" stroke-width="3" stroke-linecap="round"/><circle class="lg-dot" cx="30" cy="52" r="3"/><text class="lg-rty" x="62" y="68" font-size="50" letter-spacing="1">RTY</text><g transform="translate(132.9 68) skewX(-14)"><text class="lg-b" x="0" y="0" font-size="50">B</text></g><text class="lg-tag" x="62" y="87" font-size="13" font-weight="700" textLength="94.8" lengthAdjust="spacingAndGlyphs">RUN TO YOUR <tspan class="lg-bets" font-weight="800">BETS</tspan></text></svg>
+    </a>
+
+    <nav class="main-nav" id="mainNav">
+      <div class="nav-dropdown" id="sportDropdown">
+        <button type="button" class="nav-link nav-dropdown-btn" id="sportBtn" aria-haspopup="true" aria-expanded="false">
+          <svg class="sport-icon" viewBox="1 1 30 30" aria-hidden="true" focusable="false"><circle class="bi-baseball" cx="16" cy="16" r="13" stroke-width="1.1"/><g class="bi-stitch" fill="none" stroke-linecap="round"><path d="M8.6 5.4 Q14.2 16 8.6 26.6" stroke-width="1"/><path d="M23.4 5.4 Q17.8 16 23.4 26.6" stroke-width="1"/><path d="M8.6 5.4 Q14.2 16 8.6 26.6" stroke-width="2.6" stroke-dasharray="0.9 1.9" stroke-linecap="butt" opacity="0.9"/><path d="M23.4 5.4 Q17.8 16 23.4 26.6" stroke-width="2.6" stroke-dasharray="0.9 1.9" stroke-linecap="butt" opacity="0.9"/></g></svg> MLB <span class="nav-caret">&#9662;</span>
+        </button>
+        <div class="nav-dropdown-menu" id="sportMenu"><a class="nav-dropdown-item" href="/nhl/games/"><svg class="sport-icon" viewBox="1 1 30 30" aria-hidden="true" focusable="false"><ellipse class="bi-puck-side" cx="16" cy="21" rx="14.5" ry="6"/><rect class="bi-puck-side" x="1.5" y="12" width="29" height="9"/><g class="bi-puck-grip" stroke-width="1" stroke-linecap="round"><line x1="5" y1="15.2" x2="5" y2="20.6"/><line x1="8.7" y1="15.2" x2="8.7" y2="20.6"/><line x1="12.4" y1="15.2" x2="12.4" y2="20.6"/><line x1="16" y1="15.2" x2="16" y2="20.6"/><line x1="19.6" y1="15.2" x2="19.6" y2="20.6"/><line x1="23.3" y1="15.2" x2="23.3" y2="20.6"/><line x1="27" y1="15.2" x2="27" y2="20.6"/></g><ellipse class="bi-puck-top" cx="16" cy="12" rx="14.5" ry="6"/><ellipse class="bi-puck-shine" cx="12" cy="10.6" rx="5.5" ry="1.8"/><path class="bi-rim" d="M1.5 12 V21 A14.5 6 0 0 0 30.5 21 V12" fill="none" stroke-width="1"/></svg>NHL<span class="nav-status live">LIVE</span></a><a class="nav-dropdown-item" href="/nfl/odds/"><svg class="sport-icon" viewBox="1 1 30 30" aria-hidden="true" focusable="false"><g transform="rotate(-35 16 16) translate(16 16) scale(1.16) translate(-16 -16)"><path class="bi-leather-rim" d="M2.5 16 Q16 3 29.5 16 Q16 29 2.5 16 Z" fill="none" stroke-width="2.4" stroke-linejoin="round"/><path class="bi-leather" d="M2.5 16 Q16 3 29.5 16 Q16 29 2.5 16 Z" stroke-width="1" stroke-linejoin="round"/><g class="bi-lace" stroke-width="1.2" stroke-linecap="round"><line x1="11.3" y1="16" x2="20.7" y2="16"/><line x1="12.6" y1="14.4" x2="12.6" y2="17.6"/><line x1="14.9" y1="14.4" x2="14.9" y2="17.6"/><line x1="17.1" y1="14.4" x2="17.1" y2="17.6"/><line x1="19.4" y1="14.4" x2="19.4" y2="17.6"/></g></g></svg>NFL<span class="nav-status live">LIVE</span></a><a class="nav-dropdown-item" href="/nba/odds/"><svg class="sport-icon" viewBox="1 1 30 30" aria-hidden="true" focusable="false"><circle class="bi-basketball" cx="16" cy="16" r="13" stroke-width="1.1"/><g class="bi-seam" fill="none" stroke-width="1.3" stroke-linecap="round"><line x1="16" y1="3" x2="16" y2="29"/><line x1="3" y1="16" x2="29" y2="16"/><path d="M7.2 6.4 Q12.5 16 7.2 25.6"/><path d="M24.8 6.4 Q19.5 16 24.8 25.6"/></g></svg>NBA<span class="nav-status live">LIVE</span></a><a class="nav-dropdown-item" href="/wnba/odds/"><svg class="sport-icon" viewBox="1 1 30 30" aria-hidden="true" focusable="false"><circle class="bi-wnba-white" cx="16" cy="16" r="13"/><path class="bi-wnba-orange" d="M4 11 Q16 7 28 11 A13 13 0 0 1 29 16 L3 16 A13 13 0 0 1 4 11 Z"/><path class="bi-wnba-orange" d="M4 21 Q16 25 28 21 A13 13 0 0 1 4 21 Z"/><g class="bi-seam" fill="none" stroke-width="1.3" stroke-linecap="round"><line x1="3" y1="16" x2="29" y2="16"/><line x1="16" y1="3" x2="16" y2="29"/><path d="M4 11 Q16 7 28 11"/><path d="M4 21 Q16 25 28 21"/></g><circle class="bi-wnba-edge" cx="16" cy="16" r="13" fill="none" stroke-width="1.1"/></svg>WNBA<span class="nav-status live">LIVE</span></a><a class="nav-dropdown-item" href="/mlb/odds/" aria-current="true"><svg class="sport-icon" viewBox="1 1 30 30" aria-hidden="true" focusable="false"><circle class="bi-baseball" cx="16" cy="16" r="13" stroke-width="1.1"/><g class="bi-stitch" fill="none" stroke-linecap="round"><path d="M8.6 5.4 Q14.2 16 8.6 26.6" stroke-width="1"/><path d="M23.4 5.4 Q17.8 16 23.4 26.6" stroke-width="1"/><path d="M8.6 5.4 Q14.2 16 8.6 26.6" stroke-width="2.6" stroke-dasharray="0.9 1.9" stroke-linecap="butt" opacity="0.9"/><path d="M23.4 5.4 Q17.8 16 23.4 26.6" stroke-width="2.6" stroke-dasharray="0.9 1.9" stroke-linecap="butt" opacity="0.9"/></g></svg>MLB<span class="nav-status live">LIVE</span></a><a class="nav-dropdown-item" href="/college-football/odds/"><svg class="sport-icon" viewBox="1 1 30 30" aria-hidden="true" focusable="false"><g transform="rotate(-35 16 16) translate(16 16) scale(1.16) translate(-16 -16)"><path class="bi-leather-rim" d="M2.5 16 Q16 3 29.5 16 Q16 29 2.5 16 Z" fill="none" stroke-width="2.4" stroke-linejoin="round"/><path class="bi-leather" d="M2.5 16 Q16 3 29.5 16 Q16 29 2.5 16 Z" stroke-width="1" stroke-linejoin="round"/><path class="bi-stripe" d="M7.2 11.4 Q8.7 16 7.2 20.6 M24.8 11.4 Q23.3 16 24.8 20.6" fill="none" stroke-width="1.4"/><g class="bi-lace" stroke-width="1.2" stroke-linecap="round"><line x1="11.3" y1="16" x2="20.7" y2="16"/><line x1="12.6" y1="14.4" x2="12.6" y2="17.6"/><line x1="14.9" y1="14.4" x2="14.9" y2="17.6"/><line x1="17.1" y1="14.4" x2="17.1" y2="17.6"/><line x1="19.4" y1="14.4" x2="19.4" y2="17.6"/></g></g></svg>NCAAF<span class="nav-status live">LIVE</span></a><a class="nav-dropdown-item" href="/college-basketball/odds/"><svg class="sport-icon" viewBox="1 1 30 30" aria-hidden="true" focusable="false"><circle class="bi-cbb-dark" cx="16" cy="16" r="13"/><path class="bi-cbb-light" d="M7.2 6.4 Q12.5 16 7.2 25.6 A13 13 0 0 1 7.2 6.4 Z"/><path class="bi-cbb-light" d="M24.8 6.4 Q19.5 16 24.8 25.6 A13 13 0 0 0 24.8 6.4 Z"/><g class="bi-seam" fill="none" stroke-width="1.3" stroke-linecap="round"><line x1="16" y1="3" x2="16" y2="29"/><line x1="3" y1="16" x2="29" y2="16"/><path d="M7.2 6.4 Q12.5 16 7.2 25.6"/><path d="M24.8 6.4 Q19.5 16 24.8 25.6"/></g><circle class="bi-cbb-edge" cx="16" cy="16" r="13" fill="none" stroke-width="1.1"/></svg>NCAAB<span class="nav-status live">LIVE</span></a></div>
+      </div>
+      <a class="nav-link" href="/mlb/games/" >Games</a>
+      <a class="nav-link" href="/mlb/stats/" >Stats</a>
+      <a class="nav-link" href="/mlb/trends/" >Trends</a>
+      <a class="nav-link" href="/mlb/odds/" aria-current="page">Odds</a>
+      <a class="nav-link" href="/mlb/teams/" >Teams</a>
+      <a class="nav-link nav-mobile-only acct-menu-signin" href="/#premium">Sign in</a>
+      <a class="nav-premium nav-mobile-only acct-menu-premium" href="/#premium">Go Premium</a>
+    </nav>
+
+    <div class="nav-account">
+      <a class="nav-link" href="/#premium">Sign in</a>
+      <a class="nav-premium" href="/#premium">Go Premium</a>
+    </div>
+    <div class="acct-m" id="acctM">
+      <a class="acct-pill acct-signin" href="/#premium"><span>Sign In</span></a>
+      <a class="acct-pill acct-gold" href="/#premium"><span>Go Premium</span></a>
+      <div class="acct-user" hidden>
+        <button class="acct-avatar" id="acctAvatar" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="acctMenu" aria-label="Account menu"><span class="acct-face" id="acctFace"></span></button>
+        <div class="acct-menu" id="acctMenu" hidden>
+          <div class="acct-name" id="acctName"></div>
+          <a class="acct-item" href="/#premium">Profile</a>
+          <a class="acct-item" id="acctSub" href="/#premium">Go Premium</a>
+          <button class="acct-item" id="acctSignOut" type="button">Sign Out</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    <button class="hamburger" id="hamburgerBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<script>
+(function() {
+  'use strict';
+  var KEY = 'rtyb-user', preview = null;
+  try {
+    var m = /[?&]user=([^&#]*)/.exec(window.location.search);
+    if (m) preview = { name: 'Test User', premium: m[1] === 'premium' };
+  } catch (e) {}
+  function current() {
+    if (preview) return preview;
+    try { var u = JSON.parse(localStorage.getItem(KEY) || 'null'); return u && u.name ? u : null; } catch (e) { return null; }
+  }
+  function initials(name) {
+    var p = String(name).trim().split(/\s+/);
+    return ((p[0] || '').charAt(0) + (p.length > 1 ? p[p.length - 1].charAt(0) : '')).toUpperCase() || '?';
+  }
+  function render() {
+    var box = document.getElementById('acctM');
+    if (!box) return;
+    var u = current(), signedIn = !!u;
+    document.documentElement.classList.toggle('rtyb-signed-in', signedIn);
+    box.querySelector('.acct-user').hidden = !signedIn;
+    [].forEach.call(box.querySelectorAll('.acct-pill'), function(a) { a.hidden = signedIn; });
+    if (!signedIn) return;
+    var face = document.getElementById('acctFace');
+    face.innerHTML = '';
+    if (u.photo) { var img = document.createElement('img'); img.src = u.photo; img.alt = ''; face.appendChild(img); }
+    else face.textContent = initials(u.name);
+    document.getElementById('acctName').textContent = u.name;
+    document.getElementById('acctSub').textContent = u.premium ? 'Subscription' : 'Go Premium';
+  }
+  function setMenu(open) {
+    var menu = document.getElementById('acctMenu'), btn = document.getElementById('acctAvatar');
+    if (!menu) return;
+    menu.hidden = !open;
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  window.rtybAccount = {
+    get: current,
+    set: function(u) {
+      preview = null;
+      try { if (u) localStorage.setItem(KEY, JSON.stringify(u)); else localStorage.removeItem(KEY); } catch (e) {}
+      setMenu(false); render();
+    }
+  };
+  function init() {
+    render();
+    var btn = document.getElementById('acctAvatar');
+    if (!btn) return;
+    btn.addEventListener('click', function(e) { e.stopPropagation(); setMenu(document.getElementById('acctMenu').hidden); });
+    document.getElementById('acctSignOut').addEventListener('click', function() { window.rtybAccount.set(null); });
+    document.addEventListener('click', function(e) { if (!e.target.closest('.acct-user')) setMenu(false); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') setMenu(false); });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
+<main>
+  <div class="page-head">
+    <h1 class="page-title"><svg class="sport-icon" viewBox="1 1 30 30" aria-hidden="true" focusable="false"><circle class="bi-baseball" cx="16" cy="16" r="13" stroke-width="1.1"/><g class="bi-stitch" fill="none" stroke-linecap="round"><path d="M8.6 5.4 Q14.2 16 8.6 26.6" stroke-width="1"/><path d="M23.4 5.4 Q17.8 16 23.4 26.6" stroke-width="1"/><path d="M8.6 5.4 Q14.2 16 8.6 26.6" stroke-width="2.6" stroke-dasharray="0.9 1.9" stroke-linecap="butt" opacity="0.9"/><path d="M23.4 5.4 Q17.8 16 23.4 26.6" stroke-width="2.6" stroke-dasharray="0.9 1.9" stroke-linecap="butt" opacity="0.9"/></g></svg><span>MLB — Odds</span></h1>
+    <p>MLB 1st Inning and First Five Innings odds from every sportsbook side by side, with the best price highlighted.</p>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  <div id="sportApp" data-section="odds"><div class="no-games-note">Loading&hellip;</div><noscript>This page needs JavaScript.</noscript></div>
+  
+
+  
+</main>
+
+<footer>
+  RTYB &mdash; Run to Your Bets. MLB 1st Inning and First Five Innings results; odds-based records count only games with saved odds. Not affiliated with any league.
+</footer>
+
+<script>
+(function() {
+  'use strict';
+  var SPORT_SLUGS = ["nhl", "nfl", "nba", "wnba", "mlb", "college-football", "college-basketball"];
+  var SITE_ROOT = (function() {
+    var best = -1;
+    SPORT_SLUGS.forEach(function(slug) {
+      var i = location.pathname.indexOf('/' + slug + '/');
+      if (i >= 0 && (best < 0 || i < best)) best = i;
+    });
+    return best >= 0 ? location.pathname.slice(0, best) : '';
+  })();
+  if (SITE_ROOT) {
+    document.querySelectorAll('a[href^="/"]:not([href^="//"])').forEach(function(a) {
+      a.setAttribute('href', SITE_ROOT + a.getAttribute('href'));
+    });
+  }
+  try {
+    var saved = localStorage.getItem('rtyb-theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+  } catch (e) {}
+  document.getElementById('themeToggle').addEventListener('click', function() {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('rtyb-theme', next); } catch (e) {}
+  });
+  var btn = document.getElementById('sportBtn'), menu = document.getElementById('sportMenu');
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var opening = !menu.classList.contains('open');
+    menu.classList.toggle('open', opening);
+    btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  });
+  document.addEventListener('click', function(e) {
+    if (!menu.contains(e.target)) { menu.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+  });
+  var hamburger = document.getElementById('hamburgerBtn'), mainNav = document.getElementById('mainNav');
+  hamburger.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var opening = !mainNav.classList.contains('open');
+    mainNav.classList.toggle('open', opening);
+    hamburger.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  });
+})();
+</script>
+<script src="../../assets/sport.js"></script>
+
+</body>
+</html>
