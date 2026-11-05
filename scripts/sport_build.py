@@ -123,6 +123,26 @@ def load_games(sport):
     return out
 
 
+def merge_odds(admin, feed):
+    """Odds the pages grade against: the Unabated feed (fetch_odds_unabated.py,
+    auto-published) with the admin's saved odds on top. A market Chris saved
+    always wins; one he left blank, or never saved, comes from the feed."""
+    out = {}
+    for key in set(admin) | set(feed):
+        a, f = admin.get(key) or {}, feed.get(key) or {}
+        segs = {}
+        for seg in set(a.get('segments') or {}) | set(f.get('segments') or {}):
+            mine = (a.get('segments') or {}).get(seg) or {}
+            auto = (f.get('segments') or {}).get(seg) or {}
+            merged = {m: v for m, v in auto.items() if v is not None}
+            merged.update({m: v for m, v in mine.items() if v is not None})
+            if merged:
+                segs[seg] = merged
+        base = a or f
+        out[key] = {'date': base.get('date'), 'away': base.get('away'), 'home': base.get('home'), 'segments': segs}
+    return out
+
+
 def grade_all(sp, games, odds):
     segs = [s['key'] for s in sp['segments']]
     for g in games:
@@ -852,7 +872,8 @@ def build(sp, teams_list, now_utc=None):
     {season, games, graded, today}."""
     now_utc = now_utc or datetime.now(timezone.utc)
     seasons = load_games(sp['key'])
-    odds = read_json(os.path.join(ROOT, 'data_admin', 'odds', f"{sp['key']}.json"), {})
+    odds = merge_odds(read_json(os.path.join(ROOT, 'data_admin', 'odds', f"{sp['key']}.json"), {}),
+                      read_json(os.path.join(ROOT, 'data_feed', 'unabated', f"{sp['key']}.json"), {}).get('games') or {})
     teams = {t['slug']: t for t in teams_list}
     slug_dir = os.path.join(ROOT, sp['slug'])
     current = max(seasons) if seasons else None

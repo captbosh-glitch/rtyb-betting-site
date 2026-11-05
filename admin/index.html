@@ -83,6 +83,12 @@
   td .price { margin-top: 4px; font-size: 0.75rem; padding: 4px 6px; }
   td .price-pair { display: flex; gap: 4px; }
   td .price-pair input { max-width: 43px; }
+  .feed-status { font-size: 0.8rem; color: var(--text-muted); background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 9px 12px; margin: 12px 0 4px; line-height: 1.5; }
+  .feed-status b { color: var(--text); }
+  .feed-status .done { color: var(--good); font-weight: 600; }
+  .feed-status .gap { color: var(--bad); }
+  .feed-status ul { margin: 4px 0 0; padding-left: 18px; }
+  td .src-tag { display: inline-block; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-faint); margin-left: 6px; }
   td .game-when { display: block; font-weight: 400; font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
   td .line-tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
   td select.fav { font-size: 0.72rem; padding: 3px 4px; margin-top: 4px; display: block; }
@@ -139,6 +145,7 @@
         <h2 id="oddsTitle">Odds</h2>
         <p class="sub" style="margin-bottom:0" id="oddsHelp"></p>
         <div class="seg-tabs" id="segTabs"></div>
+        <div class="feed-status" id="feedStatus" hidden></div>
         <table id="oddsTable">
           <thead id="oddsHead"></thead>
           <tbody id="oddsBody"></tbody>
@@ -641,6 +648,7 @@
   var TEAM_BY_SLUG = {};
   var TEAM_INDEX = {};      // lowercased name / code / city -> [slugs]
   var ODDS = {};            // data_admin/odds/{sport}.json
+  var FEED = {};            // data_feed/unabated/{sport}.json -- auto-published odds (fetch_odds_unabated.py)
   var SCHEDULE = {};        // {slug}/data.json games by date, once loaded
   var WEEKS = [];           // football: [{key, label, start, end}] from data.json
   var SEGMENT = null;
@@ -665,10 +673,10 @@
     ats: ['Matchup', 'ATS Away', 'ATS Home', 'Total', ''],
   };
   var HELP = {
-    spread: 'One table per segment. ATS is the line (away and home must be opposites &mdash; type one and the other fills in); the small field under it is the price, &ndash;110 unless you change it. Total is the line with Over / Under prices underneath. Save pushes these odds to the site.',
+    spread: 'One table per segment. ATS is the line (away and home must be opposites &mdash; type one and the other fills in); the small field under it is the price, &ndash;110 unless you change it. Total is the line with Over / Under prices underneath. Rows marked Auto are already live from the odds feed; Save only what you add or change &mdash; a saved number always wins over the feed.',
     f5: 'First Five innings. The ATS columns are <b>prices</b> &mdash; the line is always 0.5, and the moneyline favorite (shorter ML) lays &ndash;0.5. Use the Fav menu under the matchup to override (or to pick a side when the moneylines are even or blank). Total can be a whole number or a .5; Over / Under prices default to &ndash;110.',
     rfi: 'Run in the 1st inning: Yes is the YRFI price, No is the NRFI price.',
-    ats: 'One table per segment. ATS is the line (away and home must be opposites &mdash; type one and the other fills in); the small field under it is the price, &ndash;110 unless you change it. Total is the line with Over / Under prices underneath. This segment tracks spread and total only, no moneyline. Save pushes these odds to the site.',
+    ats: 'One table per segment. ATS is the line (away and home must be opposites &mdash; type one and the other fills in); the small field under it is the price, &ndash;110 unless you change it. Total is the line with Over / Under prices underneath. This segment tracks spread and total only, no moneyline. Rows marked Auto are already live from the odds feed; Save only what you add or change &mdash; a saved number always wins over the feed.',
   };
 
   function segMode(seg) {
@@ -723,10 +731,12 @@
       fetchJson('../data_seed/teams/' + key + '.json', { teams: [] }),
       fetchJson('../data_admin/odds/' + key + '.json', {}),
       fetchJson('../' + SPORT.slug + '/data.json', {}),
+      fetchJson('../data_feed/unabated/' + key + '.json', {}),
     ]).then(function(r) {
       if (!SPORT || SPORT.key !== key) return;
       setTeams((r[0] && r[0].teams) || []);
       ODDS = r[1] || {};
+      FEED = r[3] || {};
       SCHEDULE = (r[2] && r[2].games) || {};   // {date: [{away, home, ...}]} from sport_build.py
       WEEKS = (r[2] && r[2].weeks) || [];
       if (isWeekly()) fillWeeks();
@@ -831,9 +841,62 @@
     document.getElementById('oddsTitle').textContent = SPORT.label + ' odds';
   }
 
-  function segValues(g) {
+  // What's live for a game + segment, the way sport_build.py merges it:
+  // the feed's odds, with any market Chris saved on top.
+  function savedSeg(g, seg) {
     var game = ODDS[gameKey(g.date, g.away, g.home)];
-    return (game && game.segments && game.segments[SEGMENT]) || {};
+    return (game && game.segments && game.segments[seg || SEGMENT]) || null;
+  }
+  function feedSeg(g, seg) {
+    var game = (FEED.games || {})[gameKey(g.date, g.away, g.home)];
+    return (game && game.segments && game.segments[seg || SEGMENT]) || null;
+  }
+  function segValues(g, seg) {
+    var out = {}, auto = feedSeg(g, seg) || {}, mine = savedSeg(g, seg) || {};
+    Object.keys(auto).forEach(function(m) { if (auto[m] != null) out[m] = auto[m]; });
+    Object.keys(mine).forEach(function(m) { if (mine[m] != null) out[m] = mine[m]; });
+    return out;
+  }
+
+  // Markets a segment needs before it counts as complete.
+  function neededMarkets(seg) {
+    var m = segMode(seg);
+    return m === 'rfi' ? [['nrfi_yrfi', 'YRFI / NRFI']] : m === 'ats' ? [['ats', 'ATS'], ['total', 'Total']]
+      : [['ats', 'ATS'], ['ml', 'ML'], ['total', 'Total']];
+  }
+
+  function timeET(iso) {
+    return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }) + ' ET';
+  }
+
+  // The "what's missing" box above the table: how many games in this view
+  // have every market live (from the feed or saved here), and which don't.
+  function renderFeedStatus(games) {
+    var el = document.getElementById('feedStatus');
+    if (!games.length) { el.hidden = true; return; }
+    var segLabel = SPORT.segments.filter(function(x) { return x.key === SEGMENT; })[0].label;
+    var need = neededMarkets(SEGMENT), missing = [];
+    games.forEach(function(g) {
+      var v = segValues(g), gaps = need.filter(function(n) { return v[n[0]] == null; }).map(function(n) { return n[1]; });
+      if (gaps.length) missing.push(escapeHtml(teamLabel(g.away) + ' @ ' + teamLabel(g.home)) + ' &mdash; ' + (gaps.length === need.length ? 'no odds yet' : gaps.join(', ')));
+    });
+    var done = games.length - missing.length;
+    var html = '<b>' + escapeHtml(segLabel) + ':</b> ' + (missing.length
+      ? done + ' of ' + games.length + ' games complete'
+      : '<span class="done">all ' + games.length + ' games complete</span>');
+    if (FEED.updated) {
+      html += ' &middot; auto odds last changed ' + escapeHtml(timeET(FEED.updated));
+      var failed = Object.keys(FEED.status || {}).filter(function(k) { return String(FEED.status[k]).indexOf('ok') !== 0; });
+      if (failed.length) html += ' <span class="gap">(' + failed.map(function(k) { return { 1: 'ML', 2: 'spreads', 3: 'totals' }[k] || k; }).join(', ') + ' didn&rsquo;t load that time &mdash; earlier numbers kept)</span>';
+    } else {
+      html += ' &middot; no auto odds pulled yet';
+    }
+    if (missing.length) html += '<div class="gap">Missing:</div><ul><li>' + missing.join('</li><li>') + '</li></ul>';
+    if ((FEED.unmatched || []).length) {
+      html += '<div>Unabated games RTYB couldn&rsquo;t match to a game here: ' + FEED.unmatched.map(escapeHtml).join('; ') + '</div>';
+    }
+    el.innerHTML = html;
+    el.hidden = false;
   }
 
   function inp(id, value, cls) {
@@ -925,6 +988,7 @@
         var remove = locked ? '' : '<td><button type="button" class="remove" data-remove="' + i + '" title="Remove this game">&times;</button></td>';
         return '<tr data-away="' + g.away + '" data-home="' + g.home + '" data-date="' + g.date + '" data-seg="' + SEGMENT + '">' +
           '<td class="matchup">' + escapeHtml(teamLabel(g.away)) + ' @ ' + escapeHtml(teamLabel(g.home)) +
+          (savedSeg(g) ? '' : feedSeg(g) ? '<span class="src-tag" title="Live from the Unabated feed; Save only if you change something">Auto</span>' : '') +
           (isWeekly() ? '<span class="game-when">' + escapeHtml(whenLabel(g)) + '</span>' : '') +
           (m === 'f5' && !locked ? favSelect(i, v) : '') +
           '<div class="row-err" id="o' + i + '_err"></div></td>' + rowCells(i, v, locked) + remove + '</tr>';
@@ -932,6 +996,7 @@
     }
     if (!locked) restoreDrafts();
     refreshF5Lines();
+    renderFeedStatus(games);
     document.getElementById('oddsSave').hidden = locked;
     document.getElementById('oddsEdit').hidden = !locked;
     document.querySelector('.add-game').hidden = locked;
@@ -1110,6 +1175,20 @@
     return segMode(r.segment) === 'rfi' ? { nrfi_yrfi: r.nrfi_yrfi } : { ats: r.ats, ml: r.ml, total: r.total };
   }
 
+  function canon(seg) {
+    seg = seg || {};
+    var ats = seg.ats, ml = seg.ml, tot = seg.total, r = seg.nrfi_yrfi;
+    return JSON.stringify([
+      ats ? [ats.away && ats.away.line, ats.away && ats.away.price, ats.home && ats.home.line, ats.home && ats.home.price, ats.fav_override || null] : null,
+      ml ? [ml.away, ml.home] : null, tot ? [tot.line, tot.over, tot.under] : null, r ? [r.yrfi, r.nrfi] : null]);
+  }
+  function sameAsFeed(r) {
+    var g = { date: r.date, away: r.away, home: r.home };
+    if (savedSeg(g, r.segment)) return false;
+    var f = feedSeg(g, r.segment);
+    return !!f && canon(segStore(r)) === canon(f);
+  }
+
   function applySaved(rows) {
     rows.forEach(function(r) {
       var k = gameKey(r.date, r.away, r.home);
@@ -1124,6 +1203,14 @@
     if (!rows) { status.className = 'status err'; status.textContent = 'Fix the highlighted rows first.'; return; }
     if (!rows.length) { status.className = 'status err'; status.textContent = 'No games to save.'; return; }
     var view = viewKey(), seg = SEGMENT;
+    // Rows still showing exactly what the feed published aren't saved, so
+    // the feed can keep updating them until the game starts.
+    rows = rows.filter(function(r) { return !sameAsFeed(r); });
+    if (!rows.length) {
+      status.className = 'status ok';
+      status.textContent = 'Nothing changed — these odds are already live from the auto feed.';
+      return;
+    }
     callWorker('/odds/save', { sport: SPORT.key, rows: rows, removes: [] }, status, this, 'Saving', SAVED_MSG)
       .then(function() {
         applySaved(rows);

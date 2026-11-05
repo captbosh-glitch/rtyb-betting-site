@@ -91,6 +91,19 @@ jobs:
           SPORTSGAMEODDS_API_KEY: ${{ secrets.SPORTSGAMEODDS_API_KEY }}
         run: python3 scripts/fetch_odds_sportsgameodds.py
 
+      - name: Fetch 1Q / 1H / F5 odds for the other sports (Unabated, auto-published)
+        # Every run, not just hourly: the free tier has no quota, only a
+        # one-request-per-5-seconds limit the script keeps to. A failure
+        # keeps the last good odds instead of stopping the refresh.
+        env:
+          UNABATED_API_KEY: ${{ secrets.UNABATED_API_KEY }}
+        run: python3 scripts/fetch_odds_unabated.py || echo "Unabated fetch failed; keeping saved odds"
+
+      - name: Check every sportsbook link carries the partner code
+        # Unabated's free API is only kept while every Gambly link we publish
+        # has ?utm_campaign=rtyb -- stop before committing if one doesn't.
+        run: python3 -m unittest tests.test_unabated
+
       - name: Build site
         run: python3 scripts/build_site.py
 
@@ -99,7 +112,7 @@ jobs:
           git config user.name "rtyb-bot"
           git config user.email "actions@users.noreply.github.com"
           # One folder per sport in scripts/sports.py -- add new sports here too.
-          git add index.html learn picks picks_log.json nhl nfl nba wnba mlb college-football college-basketball schedule_data.json assets/logos assets/site.css assets/sports.json league_trends_log.json data_seed/games data_seed/rankings trends_log
+          git add index.html learn picks picks_log.json nhl nfl nba wnba mlb college-football college-basketball schedule_data.json assets/logos assets/site.css assets/sports.json league_trends_log.json data_seed/games data_seed/rankings trends_log data_feed
           if git diff --cached --quiet; then
             echo "No changes, skipping commit."
             exit 0
