@@ -3097,6 +3097,56 @@
     "streakTeamName": "Utah"
    },
    {
+    "id": "nhl|2026020255|1p|ml|home",
+    "game": "nhl|2026020255",
+    "date": "2026-11-05",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-06T00:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Carolina @ NY Islanders",
+    "href": "nhl/games/?date=2026-11-05",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 135,
+    "title": "NY Islanders 1P ML",
+    "est": 0.4599,
+    "edge": 0.0344,
+    "agree": 4,
+    "sample": 11,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 0,
+    "streakTeam": "NYI",
+    "angles": [
+     [
+      "NY Islanders 1P ML, last 8",
+      "4-2-2"
+     ],
+     [
+      "Carolina\u2019s opponents 1P ML, Carolina on the road",
+      "2-1-7"
+     ],
+     [
+      "NY Islanders 1P ML at home",
+      "3-2-2"
+     ],
+     [
+      "NY Islanders 1P ML, season",
+      "6-5-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "NY Islanders"
+   },
+   {
     "id": "ncaaf|401862817|1h|ml|home",
     "game": "ncaaf|401862817",
     "date": "2026-11-05",
@@ -3187,56 +3237,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Ravens"
-   },
-   {
-    "id": "nhl|2026020255|1p|ml|home",
-    "game": "nhl|2026020255",
-    "date": "2026-11-05",
-    "sport": "nhl",
-    "label": "NHL",
-    "slug": "nhl",
-    "start": "2026-11-06T00:00:00Z",
-    "seg": "1p",
-    "segTag": "1P",
-    "matchup": "Carolina @ NY Islanders",
-    "href": "nhl/games/?date=2026-11-05",
-    "market": "ml",
-    "side": "home",
-    "line": null,
-    "price": 130,
-    "title": "NY Islanders 1P ML",
-    "est": 0.4667,
-    "edge": 0.0319,
-    "agree": 4,
-    "sample": 11,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 0,
-    "streakTeam": "NYI",
-    "angles": [
-     [
-      "NY Islanders 1P ML, last 8",
-      "4-2-2"
-     ],
-     [
-      "Carolina\u2019s opponents 1P ML, Carolina on the road",
-      "2-1-7"
-     ],
-     [
-      "NY Islanders 1P ML at home",
-      "3-2-2"
-     ],
-     [
-      "NY Islanders 1P ML, season",
-      "6-5-3"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "NY Islanders"
    },
    {
     "id": "nhl|2026020261|1p|ml|away",
