@@ -17,6 +17,7 @@ Odds-based numbers (ATS, Totals, favorites, units) only count games that
 have odds; records say how many ("based on N games with odds"). Games
 without odds still grade SU and NRFI/YRFI.
 """
+import glob
 import json
 import math
 import os
@@ -121,6 +122,57 @@ def load_games(sport):
         if games:
             out[int(doc.get('season') or name[:4])] = sorted(games, key=lambda g: (g['start'] or '', g['id']))
     return out
+
+
+# Book names when the feed's /sources lookup hasn't loaded (ids are the
+# same across leagues). Exchanges and pick'em apps never set the best
+# price and are left off the Odds page.
+BOOK_NAMES = {'1': 'DraftKings', '2': 'FanDuel', '4': 'BetMGM', '20': 'Caesars', '36': 'theScore',
+              '60': 'theScore CA', '118': 'theScore', '86': 'Fanatics', '80': 'BetMGM', '89': 'Novig',
+              '66': 'ProphetX', '105': 'Kalshi', '107': 'Polymarket', '111': 'Polymarket US',
+              '121': 'Underdog', '73': 'Underdog Fantasy', '72': 'PrizePicks', '84': 'DK Pick6'}
+EXCHANGES = {'89', '66', '105', '107', '111', '121', '73', '72', '84'}
+
+
+def book_names():
+    names = dict(BOOK_NAMES)
+    for path in sorted(glob.glob(os.path.join(ROOT, 'data_feed', 'unabated', 'lookups', 'sources_*.json'))):
+        for src in read_json(path, {}).get('data') or []:
+            names.setdefault(str(src.get('id')), src.get('name'))
+    return names
+
+
+def write_odds_page(sp, slug_dir, now_utc):
+    """{slug}/odds.json for the Odds page (assets/sport.js): every book's
+    price for games that haven't started, from the Unabated feed. Links
+    already carry the partner code (fetch_odds_unabated.tag_link)."""
+    feed = read_json(os.path.join(ROOT, 'data_feed', 'unabated', f"{sp['key']}.json"), {})
+    path = os.path.join(slug_dir, 'odds.json')
+    games = {}
+    for g in (feed.get('games') or {}).values():
+        start = g.get('start')
+        try:
+            started = start and datetime.fromisoformat(start.replace('Z', '+00:00')) <= now_utc
+        except ValueError:
+            started = False
+        if started or not g.get('books'):
+            continue
+        # sportsbooks only: exchange prices don't read like sportsbook odds
+        books = {seg: {m: {b: v for b, v in by.items() if b not in EXCHANGES} for m, by in mk.items()}
+                 for seg, mk in g['books'].items()}
+        games.setdefault(g['date'], []).append({'away': g['away'], 'home': g['home'], 'start': start,
+                                                'best': g.get('segments') or {}, 'books': books})
+    if not games:
+        if os.path.exists(path):
+            os.remove(path)
+        return
+    for day in games.values():
+        day.sort(key=lambda x: (x['start'] or '', x['away']))
+    used = {b for day in games.values() for g in day for seg in g['books'].values() for m in seg.values() for b in m}
+    names = book_names()
+    write_json(path, {'updated': feed.get('updated'), 'games': games,
+                      'books': {b: names.get(b, f'Book {b}') for b in used},
+                      'exchanges': sorted(b for b in used if b in EXCHANGES)})
 
 
 def merge_odds(admin, feed):
@@ -945,6 +997,7 @@ def build(sp, teams_list, now_utc=None):
     elif os.path.exists(hist_path):
         os.remove(hist_path)
     write_json(os.path.join(slug_dir, 'data.json'), doc)
+    write_odds_page(sp, slug_dir, now_utc)
     today = now_utc.astimezone(ET).date().isoformat()
     return {'season': current, 'games': len(games), 'graded': sum(1 for g in games if g.get('final')),
             'today': len(by_date.get(today, []))}

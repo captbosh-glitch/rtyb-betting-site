@@ -2,7 +2,7 @@
  * Games, Stats, Trends and team pages for every sport except NHL (NHL's
  * pages run their own code in template.html). Reads {slug}/data.json,
  * written by scripts/sport_build.py, and renders into #sportApp:
- *   <div id="sportApp" data-section="games|stats|trends|team" data-team="slug">
+ *   <div id="sportApp" data-section="games|stats|trends|odds|team" data-team="slug">
  *
  * Wording rules: the straight-up market is "SU" (never "ML"); records are
  * ATS W-L-P, SU W-L-T, O-U-P. Anything that needs odds counts only games
@@ -1214,6 +1214,94 @@
     if (m) m.onclick = function() { sitState.logAll = !sitState.logAll; renderSitLog(boxId, slug); };
   }
 
+  // ------------------------------------------------------------ Odds page
+  // Every book's price for games that haven't started, from {slug}/odds.json
+  // (sport_build.write_odds_page, fed by the Unabated feed). The highlighted
+  // price is the one Games and Trends use: best moneyline at the regular
+  // sportsbooks; for spreads and totals, the line most books post and the
+  // best price at it. Links carry RTYB's partner code already.
+  var MKT_CUR = null;
+  var MKT_LABEL = { ml: 'Moneyline', ats: 'Spread', total: 'Total' };
+  function renderOdds() {
+    fetch(ROOT + SPORT_SLUG + '/odds.json').then(function(r) { return r.ok ? r.json() : null; }).then(function(O) {
+      var dates = O ? Object.keys(O.games || {}).sort() : [];
+      if (!dates.length) {
+        app.innerHTML = emptyNote('No ' + esc(D.label) + ' odds posted right now. Lines usually show up a day or two before games.');
+        return;
+      }
+      var want = urlDate();
+      var cur = dates.indexOf(want) !== -1 ? want : (dates.filter(function(d) { return d >= todayET(); })[0] || dates[0]);
+      var exch = {};
+      (O.exchanges || []).forEach(function(b) { exch[b] = true; });
+      function go(d) { cur = d; setUrlDate(d); draw(); }
+      function markets(k) { return (hasMl(k) ? ['ml'] : []).concat(['ats', 'total']); }
+      function price(n) { return n == null ? '' : signed(n); }
+      function cell(v, best, isBest) {
+        if (!v) return '<td class="num odds-na">&ndash;</td>';
+        var txt = (v.line != null ? '<span class="odds-line">' + esc(signed(v.line)) + '</span> ' : '') + esc(price(v.price));
+        var inner = v.link ? '<a href="' + esc(v.link) + '" target="_blank" rel="sponsored noopener">' + txt + '</a>' : txt;
+        return '<td class="num odds-cell' + (isBest ? ' odds-best' : '') + '">' + inner + '</td>';
+      }
+      function gameTable(g, k, m) {
+        var books = ((g.books || {})[k] || {})[m];
+        var best = ((g.best || {})[k] || {})[m];
+        if (!books || !Object.keys(books).length) return '<div class="odds-empty">No ' + MKT_LABEL[m].toLowerCase() + ' posted yet.</div>';
+        var cols = m === 'total' ? ['over', 'under'] : ['away', 'home'];
+        var heads = m === 'total' ? ['Over', 'Under'] : [team(g.away).code || shortName(g.away), team(g.home).code || shortName(g.home)];
+        function isBest(b, col, v) {
+          if (!best || exch[b] || !v) return false;
+          if (m === 'ml') return v.price === best[col];
+          if (m === 'ats') return !!best[col] && v.line === best[col].line && v.price === best[col].price;
+          return v.line === best.line && v.price === best[col];
+        }
+        var ids = Object.keys(books).sort(function(a, b) {
+          return (exch[a] ? 1 : 0) - (exch[b] ? 1 : 0) || String(O.books[a]).localeCompare(String(O.books[b]));
+        });
+        var rows = ids.map(function(b) {
+          var row = books[b];
+          var vals = cols.map(function(c) { return m === 'total' && row[c] ? { line: (c === 'over' ? 'o' : 'u') + row.line, price: row[c].price, link: row[c].link } : row[c]; });
+          return '<tr><td class="odds-book">' + esc(O.books[b] || 'Book ' + b) + (exch[b] ? ' <span class="odds-tag">exchange</span>' : '') + '</td>' +
+            vals.map(function(v, i) { return cell(v, best, isBest(b, cols[i], m === 'total' ? { line: row.line, price: row[cols[i]] && row[cols[i]].price } : v)); }).join('') + '</tr>';
+        }).join('');
+        return '<table class="odds-table"><thead><tr><th>Book</th>' + heads.map(function(h) { return '<th class="num">' + esc(h) + '</th>'; }).join('') +
+          '</tr></thead><tbody>' + rows + '</tbody></table>';
+      }
+      function card(g, k, m) {
+        var when = g.start ? timeET(g.start) : '';
+        return '<div class="game-card odds-card"><div class="odds-head">' +
+          '<span class="odds-teams">' + badge(g.away, 22) + teamLink(g.away, esc(shortName(g.away))) + ' <span class="odds-at">@</span> ' +
+          badge(g.home, 22) + teamLink(g.home, esc(shortName(g.home))) + '</span><span class="odds-when">' + esc(when) + '</span></div>' +
+          gameTable(g, k, m) + '</div>';
+      }
+      function draw() {
+        var k = getSeg(), ms = markets(k);
+        if (ms.indexOf(MKT_CUR) === -1) MKT_CUR = ms[0];
+        var m = MKT_CUR;
+        var html = dateBar(cur, dates);
+        html += '<div class="sport-seg-row odds-controls">' + (D.segments.length > 1 ? segToggle('pageSeg', k) : '') +
+          '<div class="seg-toggle" id="oddsMkt">' + ms.map(function(x) {
+            return '<button class="seg-btn" data-mkt="' + x + '" aria-pressed="' + (x === m) + '">' + MKT_LABEL[x] + '</button>';
+          }).join('') + '</div></div>';
+        var games = (O.games[cur] || []).filter(function(g) { return (g.books || {})[k]; });
+        html += games.length ? '<div class="games-list">' + games.map(function(g) { return card(g, k, m); }).join('') + '</div>'
+          : '<div class="no-games-note">No ' + esc(seg(k).label) + ' odds posted for ' + esc(dateLabel(cur)) + ' yet.</div>';
+        html += '<p class="odds-note">Highlighted: the best price at the regular sportsbooks, and the odds Games and Trends use. ' +
+          'For spreads and totals that&rsquo;s the line most books post, at its best price. Odds via Unabated, refreshed every 10 minutes' +
+          (O.updated ? ' (last change ' + esc(timeET(O.updated)) + ')' : '') + '; prices can move before you open a link. ' +
+          '21+. Gambling problem? Call 1-800-GAMBLER.</p>';
+        app.innerHTML = html;
+        wireDateBar(dates, cur, go);
+        var ps = document.getElementById('pageSeg');
+        if (ps) ps.onclick = function(e) { var b = e.target.closest('[data-seg]'); if (b) { setSeg(b.getAttribute('data-seg')); draw(); } };
+        document.getElementById('oddsMkt').onclick = function(e) { var b = e.target.closest('[data-mkt]'); if (b) { MKT_CUR = b.getAttribute('data-mkt'); draw(); } };
+      }
+      draw();
+    }).catch(function(e) {
+      app.innerHTML = emptyNote('Couldn&rsquo;t load the odds. Try reloading.');
+      if (window.console) console.error(e);
+    });
+  }
+
   // ---------------------------------------------------------------- boot
   fetch(ROOT + SPORT_SLUG + '/data.json').then(function(r) { return r.json(); }).then(function(data) {
     D = data;
@@ -1223,6 +1311,7 @@
     else if (SECTION === 'trends') renderTrends();
     else if (SECTION === 'team') renderTeam();
     else if (SECTION === 'teams') renderTeamsIndex();
+    else if (SECTION === 'odds') renderOdds();
   }).catch(function(e) {
     if (SECTION !== 'team' && SECTION !== 'teams') app.innerHTML = emptyNote('Couldn&rsquo;t load ' + esc(SPORT_SLUG) + ' data. Try reloading.');
     if (window.console) console.error(e);

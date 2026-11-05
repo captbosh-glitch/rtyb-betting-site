@@ -83,8 +83,10 @@ SPORTS = [
     },
 ]
 
-DEFAULT_SECTIONS = {'games': 'games', 'stats': 'stats', 'trends': 'trends', 'teams': 'teams'}
-SECTION_LABELS = {'games': 'Games', 'stats': 'Stats', 'trends': 'Trends', 'teams': 'Teams'}
+# 'odds' is the book-by-book comparison page (Unabated feed); NHL's own
+# sections don't include it yet.
+DEFAULT_SECTIONS = {'games': 'games', 'stats': 'stats', 'trends': 'trends', 'odds': 'odds', 'teams': 'teams'}
+SECTION_LABELS = {'games': 'Games', 'stats': 'Stats', 'trends': 'Trends', 'odds': 'Odds', 'teams': 'Teams'}
 MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
           'August', 'September', 'October', 'November', 'December']
 

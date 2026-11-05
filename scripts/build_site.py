@@ -316,7 +316,9 @@ def sport_menu_html(current, section):
                     f'{"LIVE" if st["live"] else html_lib.escape(st["short"])}</span>')
         else:
             soon = '' if sport_has_data(sp['key']) else '<span class="soon">Soon</span>'
-        items.append(f'<a class="nav-dropdown-item" href="{sports.section_path(sp, section)}"{cur}>'
+        # a sport without this section (NHL has no Odds page yet) links to its Games
+        sec = section if section in sp['sections'] else 'games'
+        items.append(f'<a class="nav-dropdown-item" href="{sports.section_path(sp, sec)}"{cur}>'
                      f'{icons.sport_icon(sp)}{sp["label"]}{soon}</a>')
     return ''.join(items)
 
@@ -360,6 +362,11 @@ def apply_sport(out, sport, section):
     out = out.replace('__ACCOUNT_JS__', account.ACCOUNT_JS)
     for sec in ('games', 'stats', 'trends', 'teams'):
         out = out.replace(f'__NAV_HREF_{sec.upper()}__', sports.section_path(sport, sec))
+    odds_link = ''
+    if 'odds' in sport['sections'] and sport_has_data(sport['key']):
+        cur = ' aria-current="page"' if section == 'odds' else ''
+        odds_link = f'<a class="nav-link" href="{sports.section_path(sport, "odds")}"{cur}>Odds</a>'
+    out = out.replace('__NAV_ODDS_LINK__', odds_link)
     if is_nhl:
         footer = NHL_FOOTER
     elif sport_has_data(sport['key']):
@@ -511,6 +518,7 @@ EMPTY_COPY = {
     'stats': ('No {label} stats yet', 'records, hit rates and units'),
     'trends': ('No {label} trends yet', 'streaks and league trends'),
     'teams': ('No {label} teams yet', 'team pages with records and splits'),
+    'odds': ('No {label} odds yet', 'sportsbook odds side by side'),
 }
 
 
@@ -662,6 +670,7 @@ SECTION_DESC = {
     'games': '{label} games by date with {segs} odds, scores and results.',
     'stats': '{label} {segs} results league-wide: {markets} with units, scoring and situational splits.',
     'trends': '{label} League Trends for each slate and current team streaks.',
+    'odds': '{label} {segs} odds from every sportsbook side by side, with the best price highlighted.',
 }
 
 
@@ -688,7 +697,7 @@ def build_other_sports(template):
         if sp['key'] == 'nhl':
             continue
         teams = load_teams(sp)
-        for section in ('games', 'stats', 'trends', 'teams'):
+        for section in ('games', 'stats', 'trends', 'odds', 'teams'):
             label = sports.SECTION_LABELS[section]
             meta = {'title': f'RTYB — {sp["label"]} {label}', 'h1': f'{sp["label"]} — {label}',
                     'desc': f'{sp["label"]} {sports.segment_summary(sp)} {EMPTY_COPY[section][1]}.', 'section': section}
