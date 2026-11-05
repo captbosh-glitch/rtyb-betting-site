@@ -69,6 +69,9 @@ BT_ML, BT_SPREAD, BT_TOTAL = 1, 2, 3
 PERIOD_SEG = {'spread': {4: '1q', 2: '1h'}, 'baseball': {20: 'f5'}}
 # Sportsbooks that set the best price (matched against /sources names)
 SPORTSBOOKS = ('draftkings', 'fanduel', 'mgm', 'caesars', 'thescore', 'fanatics')
+# Their ids, for when /sources fails (DraftKings, FanDuel, BetMGM, Caesars,
+# theScore US / CA / Fast, Fanatics, BetMGM Direct)
+SPORTSBOOK_IDS = {'1', '2', '4', '20', '36', '60', '118', '86', '80'}
 
 # Unabated team name -> RTYB team location, where the names don't line up
 ALIASES = {
@@ -82,7 +85,8 @@ ALIASES = {
     'etsu': 'east tennessee state', 'semo': 'southeast missouri state', 'se missouri state': 'southeast missouri state',
     'md eastern shore': 'maryland eastern shore', 'ark pine bluff': 'arkansas pine bluff',
     'nicholls state': 'nicholls', 'cs fullerton': 'cal state fullerton', 'unc charlotte': 'charlotte',
-    'new orleans': 'lsu new orleans',
+    'new orleans': 'lsu new orleans', 'connecticut': 'uconn', 'central florida': 'ucf',
+    'appalachian state': 'app state', 'albany ny': 'ualbany',
 }
 
 
@@ -380,6 +384,7 @@ def run_sport(sport, sport_type, segments, has_ml, now):
     teams = {t.get('id'): t.get('name') for t in cached(f'teams_{league}', f'/team/{league}', TEAMS_MAX_AGE)}
     sources = cached(f'sources_{league}', f'/market/{league}/straight/sources', SOURCES_MAX_AGE)
     sharp = {str(s.get('id')) for s in sources if any(w in norm(s.get('name')).replace(' ', '') for w in SPORTSBOOKS)}
+    sharp = sharp or SPORTSBOOK_IDS
     aliases = team_aliases(sport)
     last_start = max(g['_start'] for g in upcoming)
 
@@ -397,7 +402,8 @@ def run_sport(sport, sport_type, segments, has_ml, now):
             an, hn = teams.get(grp['teams'].get(0)), teams.get(grp['teams'].get(1))
             g, flipped = match_event(an, hn, grp['start'], upcoming, aliases)
             if not g:
-                if grp['start'] <= last_start:   # later games aren't on RTYB's schedule yet
+                # started games aren't looked for; later ones aren't on RTYB's schedule yet
+                if now < grp['start'] <= last_start:
                     unmatched.add(f'{an} @ {hn}')
                 continue
             books = books_for(bet, grp['sides'], flipped)
