@@ -77,7 +77,7 @@ SPORTS = [
     {
         'key': 'ncaab', 'label': 'NCAAB', 'slug': 'college-basketball', 'sport_type': 'spread',
         'segments': [
-            {'key': '1h', 'label': '1st Half', 'tag': '1H', 'markets': NO_ML_MARKETS},
+            {'key': '1h', 'label': '1st Half', 'tag': '1H', 'markets': SPREAD_MARKETS},
         ],
         'season_start': 11,
     },
@@ -103,7 +103,7 @@ def section_path(sport, section):
 
 
 def has_ml(seg):
-    """Whether a segment tracks the moneyline (SU); NCAAB's 1st half doesn't."""
+    """Whether a segment tracks the moneyline (SU); one with NO_ML_MARKETS doesn't."""
     return 'ML' in (seg.get('markets') or ['ML'])
 
 
