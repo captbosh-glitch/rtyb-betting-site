@@ -51,6 +51,7 @@ import json
 import os
 import re
 import sys
+from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import account  # noqa: E402
@@ -456,7 +457,7 @@ def lighten(html, page_dir):
     if 'id="sportApp"' in html:
         # the sport's Situational Results registry (assets/splits/), if it has one
         key = next((sp['key'] for sp in sports.SPORTS if sp['slug'] == page_dir.split('/')[0]), '')
-        if os.path.exists(os.path.join(ROOT, 'assets', 'splits', f'{key}.js')):
+        if os.path.exists(os.path.join(ROOT, 'assets', 'splits', f'{key}.js')) and 'data-section="odds"' not in html:
             for dep in SPLIT_DEPS.get(key, []) + [key]:
                 shell += f'\n<script src="{prefix}assets/splits/{dep}.js"></script>'
             shell += f'\n<script src="{prefix}assets/situational.js"></script>'
@@ -771,6 +772,7 @@ def main():
     prev_schedule = load('schedule_data.json', {'gameCounts': {}, 'games': {}})
     odds_oddsapi = load('odds_theoddsapi.json', {})
     odds_sgo = load('odds_sportsgameodds.json', {})
+    odds_unabated = (load('data_feed/unabated/nhl.json', {}) or {}).get('games') or {}
     odds_overrides = load('data_admin/odds_overrides.json', {})
     results_overrides = load('data_admin/results_overrides.json', {})
 
@@ -805,6 +807,16 @@ def main():
                 odds['btts_yes'] = sgo['btts_yes']
             if sgo and sgo.get('btts_no') is not None:
                 odds['btts_no'] = sgo['btts_no']
+            # Unabated (fetch_odds_unabated.py): the 1st-period 3-way
+            # moneyline, and the 2-way ML / total when The Odds API had none
+            un = ((odds_unabated.get(key) or {}).get('segments') or {}).get('1p') or {}
+            if un.get('ml3'):
+                odds['ml3'] = un['ml3']
+            if not odds.get('ml') and un.get('ml'):
+                odds['ml'] = {g['away']: un['ml']['away'], g['home']: un['ml']['home']}
+            if not odds.get('totals') and un.get('total'):
+                t = un['total']
+                odds['totals'] = {f"{t['line']:g}": {'over': t['over'], 'under': t['under']}}
 
             # Carry forward previously-saved odds for a now-completed game if
             # this run's odds fetch didn't return anything fresh for it (the
@@ -952,6 +964,21 @@ def main():
         with open(os.path.join(team_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(team_html)
         team_bytes += len(team_html)
+
+    # /nhl/odds/: the book-by-book Odds page, rendered by assets/sport.js
+    # like the other sports' (nhl/odds.json carries the team names and logos)
+    nhl = sports.BY_KEY['nhl']
+    sport_build.write_odds_page(nhl, nhl_dir, datetime.now(timezone.utc), meta={
+        'sport': 'nhl', 'label': 'NHL', 'sportType': 'period', 'segments': nhl['segments'],
+        'markets': {'1p': ['ml', 'ml3', 'total']},
+        'teams': {code: {'name': info['name'], 'short': info['name'].split(' ')[-1], 'code': code,
+                         'color': (team_colors.get(code) or '').lstrip('#') or None, 'svg': 1}
+                  for code, info in full_data.get('summary', {}).items()}})
+    odds_meta = {'title': 'RTYB — NHL Odds', 'h1': 'NHL — Odds', 'section': 'odds',
+                 'desc': SECTION_DESC['odds'].format(label='NHL', segs='1st Period')}
+    write_light(render_page(template, 'sport', teams_menu_html, meta=odds_meta, sport=nhl,
+                            sport_body='<div id="sportApp" data-section="odds"><div class="no-games-note">Loading&hellip;</div>'
+                                       '<noscript>This page needs JavaScript.</noscript></div>'), 'nhl/odds')
 
     # /nhl/stats/ -> NHL's Stats page, so /{slug}/stats/ works for every sport.
     nhl_stats_alias = os.path.join(ROOT, 'nhl', 'stats')

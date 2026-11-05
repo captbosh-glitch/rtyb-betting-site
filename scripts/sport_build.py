@@ -142,10 +142,12 @@ def book_names():
     return names
 
 
-def write_odds_page(sp, slug_dir, now_utc):
+def write_odds_page(sp, slug_dir, now_utc, meta=None):
     """{slug}/odds.json for the Odds page (assets/sport.js): every book's
     price for games that haven't started, from the Unabated feed. Links
-    already carry the partner code (fetch_odds_unabated.tag_link)."""
+    already carry the partner code (fetch_odds_unabated.tag_link). `meta`
+    (NHL, whose data.json has a different shape) carries what the page
+    otherwise reads from data.json: label, segments, teams, markets."""
     feed = read_json(os.path.join(ROOT, 'data_feed', 'unabated', f"{sp['key']}.json"), {})
     path = os.path.join(slug_dir, 'odds.json')
     games = {}
@@ -157,8 +159,9 @@ def write_odds_page(sp, slug_dir, now_utc):
             started = False
         if started or not g.get('books'):
             continue
-        # sportsbooks only: exchange prices don't read like sportsbook odds
-        books = {seg: {m: {b: v for b, v in by.items() if b not in EXCHANGES} for m, by in mk.items()}
+        # sportsbooks only: exchange prices don't read like sportsbook odds --
+        # except NHL's 3-way, which only an exchange offers on the free tier
+        books = {seg: {m: {b: v for b, v in by.items() if m == 'ml3' or b not in EXCHANGES} for m, by in mk.items()}
                  for seg, mk in g['books'].items()}
         games.setdefault(g['date'], []).append({'away': g['away'], 'home': g['home'], 'start': start,
                                                 'best': g.get('segments') or {}, 'books': books})
@@ -170,9 +173,9 @@ def write_odds_page(sp, slug_dir, now_utc):
         day.sort(key=lambda x: (x['start'] or '', x['away']))
     used = {b for day in games.values() for g in day for seg in g['books'].values() for m in seg.values() for b in m}
     names = book_names()
-    write_json(path, {'updated': feed.get('updated'), 'games': games,
-                      'books': {b: names.get(b, f'Book {b}') for b in used},
-                      'exchanges': sorted(b for b in used if b in EXCHANGES)})
+    write_json(path, dict(meta or {}, updated=feed.get('updated'), games=games,
+                          books={b: names.get(b, f'Book {b}') for b in used},
+                          exchanges=sorted(b for b in used if b in EXCHANGES)))
 
 
 def merge_odds(admin, feed):

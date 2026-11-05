@@ -66,12 +66,16 @@
   function team(slug) {
     return D.teams[slug] || { name: (D.otherTeams || {})[slug] || slug, short: (D.otherTeams || {})[slug] || slug, code: '', color: null };
   }
-  function teamUrl(slug) { return D.teams[slug] ? ROOT + SPORT_SLUG + '/teams/' + slug + '/' : null; }
+  function teamUrl(slug) { return D.teams[slug] ? ROOT + SPORT_SLUG + '/teams/' + (D.sport === 'nhl' ? slug.toLowerCase() : slug) + '/' : null; }
   // The team's logo (assets/logos/{sport}/, light + dark versions switched
   // by CSS with the theme), or a team-color circle when there isn't one.
   function badge(slug, size) {
     var t = team(slug);
     size = size || 26;
+    if (t.svg) {   // NHL's logos: assets/logos/{CODE}_light.svg / _dark.svg
+      var sv = ROOT + 'assets/logos/' + slug + '_', sst = ' style="width:' + size + 'px;height:' + size + 'px"';
+      return '<span class="tlogo"' + sst + '><img class="tl-light" src="' + sv + 'light.svg" alt="" loading="lazy"><img class="tl-dark" src="' + sv + 'dark.svg" alt="" loading="lazy"></span>';
+    }
     if (t.logo) {
       var base = ROOT + 'assets/logos/' + D.sport + '/' + slug;
       var st = ' style="width:' + size + 'px;height:' + size + 'px"';
@@ -1221,9 +1225,12 @@
   // sportsbooks; for spreads and totals, the line most books post and the
   // best price at it. Links carry RTYB's partner code already.
   var MKT_CUR = null;
-  var MKT_LABEL = { ml: 'Moneyline', ats: 'Spread', total: 'Total' };
+  var MKT_LABEL = { ml: 'Moneyline', ml3: '3-way ML', ats: 'Spread', total: 'Total' };
   function renderOdds() {
     fetch(ROOT + SPORT_SLUG + '/odds.json').then(function(r) { return r.ok ? r.json() : null; }).then(function(O) {
+      // NHL's data.json has its own shape: its odds.json carries what this page needs
+      if (O && O.segments && !(D && D.segments)) D = { sport: O.sport, label: O.label, sportType: O.sportType, segments: O.segments, teams: O.teams || {}, otherTeams: {} };
+      if (!D) return;
       var dates = O ? Object.keys(O.games || {}).sort() : [];
       if (!dates.length) {
         app.innerHTML = emptyNote('No ' + esc(D.label) + ' odds posted right now. Lines usually show up a day or two before games.');
@@ -1234,7 +1241,7 @@
       var exch = {};
       (O.exchanges || []).forEach(function(b) { exch[b] = true; });
       function go(d) { cur = d; setUrlDate(d); draw(); }
-      function markets(k) { return (hasMl(k) ? ['ml'] : []).concat(['ats', 'total']); }
+      function markets(k) { return (O.markets && O.markets[k]) || (hasMl(k) ? ['ml'] : []).concat(['ats', 'total']); }
       function price(n) { return n == null ? '' : signed(n); }
       function cell(v, best, isBest) {
         if (!v) return '<td class="num odds-na">&ndash;</td>';
@@ -1246,10 +1253,13 @@
         var books = ((g.books || {})[k] || {})[m];
         var best = ((g.best || {})[k] || {})[m];
         if (!books || !Object.keys(books).length) return '<div class="odds-empty">No ' + MKT_LABEL[m].toLowerCase() + ' posted yet.</div>';
-        var cols = m === 'total' ? ['over', 'under'] : ['away', 'home'];
-        var heads = m === 'total' ? ['Over', 'Under'] : [team(g.away).code || shortName(g.away), team(g.home).code || shortName(g.home)];
+        var code = function(x) { return team(x).code || shortName(x); };
+        var cols = m === 'total' ? ['over', 'under'] : m === 'ml3' ? ['away', 'draw', 'home'] : ['away', 'home'];
+        var heads = m === 'total' ? ['Over', 'Under'] : m === 'ml3' ? [code(g.away), 'Tie', code(g.home)] : [code(g.away), code(g.home)];
         function isBest(b, col, v) {
-          if (!best || exch[b] || !v) return false;
+          if (!best || !v) return false;
+          if (m === 'ml3') return v.price === best[col];   // the 3-way is exchange-only on the free tier
+          if (exch[b]) return false;
           if (m === 'ml') return v.price === best[col];
           if (m === 'ats') return !!best[col] && v.line === best[col].line && v.price === best[col].price;
           return v.line === best.line && v.price === best[col];
@@ -1275,7 +1285,12 @@
       }
       function draw() {
         var k = getSeg(), ms = markets(k);
-        if (ms.indexOf(MKT_CUR) === -1) MKT_CUR = ms[0];
+        if (ms.indexOf(MKT_CUR) === -1) {
+          // start on the first market with odds posted for this date
+          MKT_CUR = ms.filter(function(x) {
+            return (O.games[cur] || []).some(function(g) { var b = ((g.books || {})[k] || {})[x]; return b && Object.keys(b).length; });
+          })[0] || ms[0];
+        }
         var m = MKT_CUR;
         var html = dateBar(cur, dates);
         html += '<div class="sport-seg-row odds-controls">' + (D.segments.length > 1 ? segToggle('pageSeg', k) : '') +
@@ -1285,6 +1300,7 @@
         var games = (O.games[cur] || []).filter(function(g) { return (g.books || {})[k]; });
         html += games.length ? '<div class="games-list">' + games.map(function(g) { return card(g, k, m); }).join('') + '</div>'
           : '<div class="no-games-note">No ' + esc(seg(k).label) + ' odds posted for ' + esc(dateLabel(cur)) + ' yet.</div>';
+        if (m === 'ml3') html += '<p class="odds-note">The 3-way line (tie included) comes from Underdog&rsquo;s prediction market, the only book offering it on our odds feed.</p>';
         html += '<p class="odds-note">Highlighted: the best price at the regular sportsbooks, and the odds Games and Trends use. ' +
           'For spreads and totals that&rsquo;s the line most books post, at its best price. Odds via Unabated, refreshed every 10 minutes' +
           (O.updated ? ' (last change ' + esc(timeET(O.updated)) + ')' : '') + '; prices can move before you open a link. ' +
@@ -1305,6 +1321,7 @@
   // ---------------------------------------------------------------- boot
   fetch(ROOT + SPORT_SLUG + '/data.json').then(function(r) { return r.json(); }).then(function(data) {
     D = data;
+    if (SECTION === 'odds') { renderOdds(); return; }   // works from odds.json alone for NHL
     if (!D.segments || !D.segments.length) return;
     if (SECTION === 'games') renderGames();
     else if (SECTION === 'stats') renderStats();

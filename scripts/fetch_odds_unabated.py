@@ -62,11 +62,13 @@ TEAMS_MAX_AGE = timedelta(days=7)
 SOURCES_MAX_AGE = timedelta(days=1)
 
 # RTYB sport -> Unabated league route
-LEAGUE = {'nfl': 'nfl', 'nba': 'nba', 'wnba': 'wnba', 'mlb': 'mlb', 'ncaaf': 'cfb', 'ncaab': 'cbb'}
-# Unabated bet type ids
-BT_ML, BT_SPREAD, BT_TOTAL = 1, 2, 3
+LEAGUE = {'nhl': 'nhl', 'nfl': 'nfl', 'nba': 'nba', 'wnba': 'wnba', 'mlb': 'mlb', 'ncaaf': 'cfb', 'ncaab': 'cbb'}
+# Unabated bet type ids (98: 3-way moneyline, home / away / tie)
+BT_ML, BT_SPREAD, BT_TOTAL, BT_ML3 = 1, 2, 3, 98
 # Unabated period type id -> RTYB segment, per sport type
-PERIOD_SEG = {'spread': {4: '1q', 2: '1h'}, 'baseball': {20: 'f5'}}
+PERIOD_SEG = {'period': {8: '1p'}, 'spread': {4: '1q', 2: '1h'}, 'baseball': {20: 'f5'}}
+# NHL's 1st period: 2-way and 3-way moneyline and the total (no spread)
+NHL_BETS = (BT_ML, BT_ML3, BT_TOTAL)
 # Sportsbooks that set the best price (matched against /sources names)
 SPORTSBOOKS = ('draftkings', 'fanduel', 'mgm', 'caesars', 'thescore', 'fanatics')
 # Their ids, for when /sources fails (DraftKings, FanDuel, BetMGM, Caesars,
@@ -186,8 +188,24 @@ def cached(name, path, max_age):
 
 # ------------------------------------------------------------- RTYB games
 
+def upcoming_nhl(now):
+    """NHL games from the schedule files (build_site.py's, not data_seed):
+    this run's fetch (schedule_fresh.json) over the last merged one."""
+    seen = {}
+    for name in ('schedule_data.json', 'schedule_fresh.json'):
+        for date, games in (read_json(os.path.join(ROOT, name), {}).get('games') or {}).items():
+            for g in games:
+                start = parse_time(g.get('startTimeUTC'))
+                if start and now < start <= now + timedelta(days=LOOKAHEAD_DAYS) and g.get('away') and g.get('home'):
+                    seen[g.get('id') or f"{date}|{g['away']}|{g['home']}"] = {
+                        'date': date, 'away': g['away'], 'home': g['home'], 'start': g['startTimeUTC'], '_start': start}
+    return list(seen.values())
+
+
 def upcoming_games(sport, now):
     """RTYB games that haven't started and start within the lookahead."""
+    if sport == 'nhl':
+        return upcoming_nhl(now)
     d = os.path.join(ROOT, 'data_seed', 'games', sport)
     out = []
     if not os.path.isdir(d):
@@ -203,6 +221,13 @@ def upcoming_games(sport, now):
 
 def team_aliases(sport):
     """RTYB slug -> set of normalized names it goes by."""
+    if sport == 'nhl':
+        sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+        from fetch_odds_theoddsapi import TEAM_NAME_TO_ABBREV
+        out = {}
+        for name, code in TEAM_NAME_TO_ABBREV.items():
+            out.setdefault(code, {norm(code)}).add(norm(name))
+        return out
     doc = read_json(os.path.join(ROOT, 'data_seed', 'teams', sport + '.json'), {})
     out = {}
     for t in doc.get('teams') or []:
@@ -318,6 +343,13 @@ def books_for(bet, sides, flipped):
     if not a or not h:
         return out
     la, lh = lines_of(a), lines_of(h)
+    if bet == BT_ML3:
+        ld = lines_of(sides[2]) if sides.get(2) else {}
+        for b in la.keys() & lh.keys() & ld.keys():
+            out[b] = {'away': {'price': la[b]['price'], 'link': link(la[b])},
+                      'draw': {'price': ld[b]['price'], 'link': link(ld[b])},
+                      'home': {'price': lh[b]['price'], 'link': link(lh[b])}}
+        return out
     for b in la.keys() & lh.keys():
         if bet == BT_ML:
             out[b] = {'away': {'price': la[b]['price'], 'link': link(la[b])},
@@ -334,11 +366,12 @@ def books_for(bet, sides, flipped):
 def best_of(market, books, sharp):
     """Best odds from the sportsbooks in `sharp` (all books if that's empty)."""
     use = {b: v for b, v in books.items() if not sharp or b in sharp}
+    if not use and market == 'ml3':
+        use = books   # the free tier's 3-way comes only from exchanges (Underdog)
     if not use:
         return None
-    if market == 'ml':
-        return {'away': max(v['away']['price'] for v in use.values()),
-                'home': max(v['home']['price'] for v in use.values())}
+    if market in ('ml', 'ml3'):
+        return {side: max(v[side]['price'] for v in use.values()) for side in next(iter(use.values()))}
     key = (lambda v: v['away']['line']) if market == 'ats' else (lambda v: v['line'])
     counts = {}
     for v in use.values():
@@ -355,7 +388,7 @@ def best_of(market, books, sharp):
             'under': max(v['under']['price'] for v in at)}
 
 
-MARKET = {BT_ML: 'ml', BT_SPREAD: 'ats', BT_TOTAL: 'total'}
+MARKET = {BT_ML: 'ml', BT_SPREAD: 'ats', BT_TOTAL: 'total', BT_ML3: 'ml3'}
 
 
 # ------------------------------------------------------------------ main
@@ -389,7 +422,7 @@ def run_sport(sport, sport_type, segments, has_ml, now):
     last_start = max(g['_start'] for g in upcoming)
 
     status, unmatched, filled = {}, set(), 0
-    bets = [b for b in (BT_ML, BT_SPREAD, BT_TOTAL) if b != BT_ML or has_ml]
+    bets = NHL_BETS if sport == 'nhl' else [b for b in (BT_ML, BT_SPREAD, BT_TOTAL) if b != BT_ML or has_ml]
     for bet in bets:
         data, err = get_retry(f'/market/{league}/straight/odds?betTypeId={bet}')
         status[str(bet)] = 'ok' if err is None else f'failed: {err}'

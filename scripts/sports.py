@@ -32,7 +32,7 @@ SPORTS = [
             {'key': '1p', 'label': '1st Period', 'tag': '1P', 'markets': ['ML', 'O/U 1.5', 'BTTS']},
         ],
         'season_start': 10,
-        'sections': {'games': 'games', 'stats': '1st-period-stats', 'trends': 'trends', 'teams': 'teams'},
+        'sections': {'games': 'games', 'stats': '1st-period-stats', 'trends': 'trends', 'odds': 'odds', 'teams': 'teams'},
     },
     {
         'key': 'nfl', 'label': 'NFL', 'slug': 'nfl', 'sport_type': 'spread', 'schedule': 'week',
@@ -83,8 +83,7 @@ SPORTS = [
     },
 ]
 
-# 'odds' is the book-by-book comparison page (Unabated feed); NHL's own
-# sections don't include it yet.
+# 'odds' is the book-by-book comparison page (Unabated feed).
 DEFAULT_SECTIONS = {'games': 'games', 'stats': 'stats', 'trends': 'trends', 'odds': 'odds', 'teams': 'teams'}
 SECTION_LABELS = {'games': 'Games', 'stats': 'Stats', 'trends': 'Trends', 'odds': 'Odds', 'teams': 'Teams'}
 MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
