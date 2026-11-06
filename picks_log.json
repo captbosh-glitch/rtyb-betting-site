@@ -3000,8 +3000,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 1.0,
     "streakTeamName": "Boston"
    },
    {
@@ -3046,8 +3046,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Ravens"
    },
    {
@@ -3092,8 +3092,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 1.55,
     "streakTeamName": "Utah"
    },
    {
@@ -3142,8 +3142,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "NY Islanders"
    },
    {
@@ -3234,8 +3234,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 1.54,
     "streakTeamName": "FAU"
    },
    {
@@ -3280,8 +3280,8 @@
      ]
     ],
     "info": "Ravens avg 1H margin at home: +12.7",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Ravens"
    }
   ]
