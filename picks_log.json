@@ -3420,6 +3420,136 @@
     "streakTeamName": "Columbus"
    },
    {
+    "id": "nba|401909295|1q|ml|home",
+    "game": "nba|401909295",
+    "date": "2026-11-06",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-07T03:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Spurs @ Kings",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 300,
+    "title": "Kings 1Q ML",
+    "est": 0.2917,
+    "edge": 0.0417,
+    "agree": 2,
+    "sample": 7,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 0,
+    "streakTeam": "sac",
+    "angles": [
+     [
+      "Kings 1Q ML, season",
+      "4-3-1"
+     ],
+     [
+      "Kings 1Q ML, last 8",
+      "4-3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Kings"
+   },
+   {
+    "id": "nba|401909291|1h|ml|home",
+    "game": "nba|401909291",
+    "date": "2026-11-06",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-07T01:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Thunder @ Grizzlies",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 130,
+    "title": "Grizzlies 1H ML",
+    "est": 0.4751,
+    "edge": 0.0404,
+    "agree": 3,
+    "sample": 7,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "mem",
+    "angles": [
+     [
+      "Grizzlies 1H ML, season",
+      "6-1-1"
+     ],
+     [
+      "Grizzlies 1H ML, last 8",
+      "6-1-1"
+     ],
+     [
+      "Grizzlies 1H ML at home",
+      "3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Grizzlies"
+   },
+   {
+    "id": "nba|401909287|1q|ml|away",
+    "game": "nba|401909287",
+    "date": "2026-11-06",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-07T00:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Wizards @ Hawks",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 160,
+    "title": "Wizards 1Q ML",
+    "est": 0.4242,
+    "edge": 0.0396,
+    "agree": 2,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -3,
+    "streakTeam": "wsh",
+    "angles": [
+     [
+      "Hawks\u2019s opponents 1Q ML, Hawks at home",
+      "3-0"
+     ],
+     [
+      "Wizards 1Q ML on the road",
+      "3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Wizards"
+   },
+   {
     "id": "ncaaf|401864533|1q|ml|home",
     "game": "ncaaf|401864533",
     "date": "2026-11-06",
@@ -3470,49 +3600,7 @@
     "streakTeamName": "Nevada"
    },
    {
-    "id": "nba|401909295|1q|ml|home",
-    "game": "nba|401909295",
-    "date": "2026-11-06",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-07T03:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Spurs @ Kings",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "home",
-    "line": null,
-    "price": 260,
-    "title": "Kings 1Q ML",
-    "est": 0.3143,
-    "edge": 0.0365,
-    "agree": 2,
-    "sample": 7,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 0,
-    "streakTeam": "sac",
-    "angles": [
-     [
-      "Kings 1Q ML, season",
-      "4-3-1"
-     ],
-     [
-      "Kings 1Q ML, last 8",
-      "4-3-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Kings"
-   },
-   {
-    "id": "nba|401909291|1h|ml|home",
+    "id": "nba|401909291|1h|ats|home",
     "game": "nba|401909291",
     "date": "2026-11-06",
     "sport": "nba",
@@ -3523,81 +3611,40 @@
     "segTag": "1H",
     "matchup": "Thunder @ Grizzlies",
     "href": "nba/games/",
-    "market": "ml",
+    "market": "ats",
     "side": "home",
-    "line": null,
-    "price": 115,
-    "title": "Grizzlies 1H ML",
-    "est": 0.4997,
-    "edge": 0.0346,
+    "line": 2.5,
+    "price": -114,
+    "title": "Grizzlies 1H +2.5",
+    "est": 0.5668,
+    "edge": 0.034,
     "agree": 3,
-    "sample": 7,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": -1,
-    "streakTeam": "mem",
-    "angles": [
-     [
-      "Grizzlies 1H ML, season",
-      "6-1-1"
-     ],
-     [
-      "Grizzlies 1H ML, last 8",
-      "6-1-1"
-     ],
-     [
-      "Grizzlies 1H ML at home",
-      "3-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Grizzlies"
-   },
-   {
-    "id": "nba|401909287|1q|ml|away",
-    "game": "nba|401909287",
-    "date": "2026-11-06",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-07T00:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Wizards @ Hawks",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 134,
-    "title": "Wizards 1Q ML",
-    "est": 0.4579,
-    "edge": 0.0306,
-    "agree": 2,
     "sample": 8,
     "tier": "C",
     "tags": [
-     "Dog Hunter"
+     "Dog Hunter",
+     "Streak Rider"
     ],
-    "streak": -3,
-    "streakTeam": "wsh",
+    "streak": 8,
+    "streakTeam": "mem",
     "angles": [
      [
-      "Hawks\u2019s opponents 1Q ML, Hawks at home",
-      "3-0"
+      "Grizzlies 1H ATS at +2.5, season",
+      "8-0"
      ],
      [
-      "Wizards 1Q ML on the road",
-      "3-1"
+      "Grizzlies 1H ATS at +2.5, last 8",
+      "8-0"
+     ],
+     [
+      "Grizzlies 1H ATS at +2.5 at home",
+      "4-0"
      ]
     ],
-    "info": null,
+    "info": "Grizzlies avg 1H margin at home: +6.2",
     "status": "pending",
     "units": null,
-    "streakTeamName": "Wizards"
+    "streakTeamName": "Grizzlies"
    }
   ]
  }
