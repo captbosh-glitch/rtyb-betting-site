@@ -967,10 +967,23 @@ def main():
 
     # /nhl/odds/: the book-by-book Odds page, rendered by assets/sport.js
     # like the other sports' (nhl/odds.json carries the team names and logos)
+    # BTTS isn't on the feed: it's the price entered in the admin (or
+    # SportsGameOdds), shown as one "Consensus" row
     nhl = sports.BY_KEY['nhl']
-    sport_build.write_odds_page(nhl, nhl_dir, datetime.now(timezone.utc), meta={
+    btts = []
+    for date_str, games in merged_games.items():
+        for g in games:
+            o = g.get('odds') or {}
+            if o.get('btts_yes') is None and o.get('btts_no') is None:
+                continue
+            row = {'yes': {'price': o['btts_yes']} if o.get('btts_yes') is not None else None,
+                   'no': {'price': o['btts_no']} if o.get('btts_no') is not None else None}
+            btts.append({'date': date_str, 'away': g['away'], 'home': g['home'], 'start': g.get('startTimeUTC'),
+                         'books': {'1p': {'btts': {'consensus': row}}},
+                         'best': {'1p': {'btts': {'yes': o.get('btts_yes'), 'no': o.get('btts_no')}}}})
+    sport_build.write_odds_page(nhl, nhl_dir, datetime.now(timezone.utc), extra=btts, meta={
         'sport': 'nhl', 'label': 'NHL', 'sportType': 'period', 'segments': nhl['segments'],
-        'markets': {'1p': ['ml', 'ml3', 'total']},
+        'markets': {'1p': ['ml', 'ml3', 'total', 'btts']},
         'teams': {code: {'name': info['name'], 'short': info['name'].split(' ')[-1], 'code': code,
                          'color': (team_colors.get(code) or '').lstrip('#') or None, 'svg': 1}
                   for code, info in full_data.get('summary', {}).items()}})

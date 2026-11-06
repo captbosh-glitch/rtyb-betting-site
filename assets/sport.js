@@ -1225,7 +1225,7 @@
   // sportsbooks; for spreads and totals, the line most books post and the
   // best price at it. Links carry RTYB's partner code already.
   var MKT_CUR = null;
-  var MKT_LABEL = { ml: 'Moneyline', ml3: '3-way ML', ats: 'Spread', total: 'Total' };
+  var MKT_LABEL = { ml: 'Moneyline', ml3: '3-way ML', ats: 'Spread', total: 'Total', btts: 'BTTS' };
   function renderOdds() {
     fetch(ROOT + SPORT_SLUG + '/odds.json').then(function(r) { return r.ok ? r.json() : null; }).then(function(O) {
       // NHL's data.json has its own shape: its odds.json carries what this page needs
@@ -1252,12 +1252,13 @@
       function gameTable(g, k, m) {
         var books = ((g.books || {})[k] || {})[m];
         var best = ((g.best || {})[k] || {})[m];
-        if (!books || !Object.keys(books).length) return '<div class="odds-empty">No ' + MKT_LABEL[m].toLowerCase() + ' posted yet.</div>';
+        if (!books || !Object.keys(books).length) return '<div class="odds-empty">No ' + (m === 'btts' ? 'BTTS' : MKT_LABEL[m].toLowerCase()) + ' posted yet.</div>';
         var code = function(x) { return team(x).code || shortName(x); };
-        var cols = m === 'total' ? ['over', 'under'] : m === 'ml3' ? ['away', 'draw', 'home'] : ['away', 'home'];
-        var heads = m === 'total' ? ['Over', 'Under'] : m === 'ml3' ? [code(g.away), 'Tie', code(g.home)] : [code(g.away), code(g.home)];
+        var cols = m === 'total' ? ['over', 'under'] : m === 'ml3' ? ['away', 'draw', 'home'] : m === 'btts' ? ['yes', 'no'] : ['away', 'home'];
+        var heads = m === 'total' ? ['Over', 'Under'] : m === 'ml3' ? [code(g.away), 'Tie', code(g.home)] : m === 'btts' ? ['Yes', 'No'] : [code(g.away), code(g.home)];
         function isBest(b, col, v) {
           if (!best || !v) return false;
+          if (m === 'btts') return false;   // one consensus row: nothing to compare
           if (m === 'ml3') return v.price === best[col];   // the 3-way is exchange-only on the free tier
           if (exch[b]) return false;
           if (m === 'ml') return v.price === best[col];
@@ -1300,6 +1301,7 @@
         var games = (O.games[cur] || []).filter(function(g) { return (g.books || {})[k]; });
         html += games.length ? '<div class="games-list">' + games.map(function(g) { return card(g, k, m); }).join('') + '</div>'
           : '<div class="no-games-note">No ' + esc(seg(k).label) + ' odds posted for ' + esc(dateLabel(cur)) + ' yet.</div>';
+        if (m === 'btts') html += '<p class="odds-note">Both teams to score in the 1st period. BTTS isn&rsquo;t on our odds feed, so this is a consensus price across the books, entered by our team.</p>';
         if (m === 'ml3') html += '<p class="odds-note">The 3-way line (tie included) comes from Underdog&rsquo;s prediction market, the only book offering it on our odds feed.</p>';
         html += '<p class="odds-note">Highlighted: the best price at the regular sportsbooks, and the odds Games and Trends use. ' +
           'For spreads and totals that&rsquo;s the line most books post, at its best price. Odds via Unabated, refreshed every 10 minutes' +

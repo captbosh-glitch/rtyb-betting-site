@@ -142,12 +142,20 @@ def book_names():
     return names
 
 
-def write_odds_page(sp, slug_dir, now_utc, meta=None):
+# Odds page "books" that aren't sportsbooks on the feed: NHL's BTTS is
+# entered in the admin as a consensus price across books
+EXTRA_BOOKS = {'consensus': 'Consensus'}
+
+
+def write_odds_page(sp, slug_dir, now_utc, meta=None, extra=None):
     """{slug}/odds.json for the Odds page (assets/sport.js): every book's
     price for games that haven't started, from the Unabated feed. Links
     already carry the partner code (fetch_odds_unabated.tag_link). `meta`
     (NHL, whose data.json has a different shape) carries what the page
-    otherwise reads from data.json: label, segments, teams, markets."""
+    otherwise reads from data.json: label, segments, teams, markets.
+    `extra` (NHL's admin-entered BTTS) adds markets the feed doesn't carry:
+    [{date, away, home, start, books: {seg: {m: {book: row}}}, best: {seg: {m: ...}}}]
+    under book ids that EXTRA_BOOKS names."""
     feed = read_json(os.path.join(ROOT, 'data_feed', 'unabated', f"{sp['key']}.json"), {})
     path = os.path.join(slug_dir, 'odds.json')
     games = {}
@@ -165,6 +173,21 @@ def write_odds_page(sp, slug_dir, now_utc, meta=None):
                  for seg, mk in g['books'].items()}
         games.setdefault(g['date'], []).append({'away': g['away'], 'home': g['home'], 'start': start,
                                                 'best': g.get('segments') or {}, 'books': books})
+    for x in extra or []:
+        try:
+            if x.get('start') and datetime.fromisoformat(x['start'].replace('Z', '+00:00')) <= now_utc:
+                continue
+        except ValueError:
+            pass
+        day = games.setdefault(x['date'], [])
+        g = next((y for y in day if y['away'] == x['away'] and y['home'] == x['home']), None)
+        if g is None:
+            g = {'away': x['away'], 'home': x['home'], 'start': x.get('start'), 'best': {}, 'books': {}}
+            day.append(g)
+        for seg, mk in x['books'].items():
+            g['books'].setdefault(seg, {}).update(mk)
+        for seg, mk in (x.get('best') or {}).items():
+            g['best'].setdefault(seg, {}).update(mk)
     if not games:
         if os.path.exists(path):
             os.remove(path)
@@ -172,7 +195,7 @@ def write_odds_page(sp, slug_dir, now_utc, meta=None):
     for day in games.values():
         day.sort(key=lambda x: (x['start'] or '', x['away']))
     used = {b for day in games.values() for g in day for seg in g['books'].values() for m in seg.values() for b in m}
-    names = book_names()
+    names = dict(book_names(), **EXTRA_BOOKS)
     write_json(path, dict(meta or {}, updated=feed.get('updated'), games=games,
                           books={b: names.get(b, f'Book {b}') for b in used},
                           exchanges=sorted(b for b in used if b in EXCHANGES)))
