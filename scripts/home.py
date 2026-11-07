@@ -286,6 +286,7 @@ def nav_html(status, depth=''):
         <div class="hn-drop-menu" id="hnSportsMenu">{sport_items}</div>
       </div>
       <a class="hn-link" href="{depth}picks/">Picks</a>
+      <a class="hn-link" href="{depth}streaks/">Streaks</a>
       <a class="hn-link" href="{depth}#today">Today</a>
       <a class="hn-link" href="{depth}#trends">Trends to Watch</a>
       <a class="hn-link" href="{depth}learn/">Learn</a>
@@ -310,6 +311,7 @@ def nav_html(status, depth=''):
     <div class="hm-sports" id="hmSports">{sport_items}</div>
     <div class="hm-label">Everything</div>
     <a class="hm-item" href="{depth}picks/">Picks</a>
+    <a class="hm-item" href="{depth}streaks/">Streaks</a>
     <a class="hm-item" href="{depth}#today">Today</a>
     <a class="hm-item" href="{depth}#trends">Trends to Watch</a>
     <a class="hm-item" href="{depth}learn/">Learn</a>
