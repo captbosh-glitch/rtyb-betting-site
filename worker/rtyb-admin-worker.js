@@ -18,11 +18,17 @@
  * Deploy:
  *   cd worker
  *   npm install -g wrangler      # if you don't have it
- *   wrangler secret put GITHUB_TOKEN      # fine-grained PAT, "Contents: write" only, scoped to this repo
+ *   wrangler secret put GITHUB_TOKEN      # fine-grained PAT scoped to this repo: "Contents: write" and "Actions: write"
  *   wrangler secret put ADMIN_SECRET      # the password the admin page prompts for
  *   wrangler secret put ANTHROPIC_API_KEY # only needed for the "Parse Odds Data with AI" field -- console.anthropic.com
  *   wrangler deploy
  * Then put the deployed URL into admin/index.html's WORKER_URL constant.
+ *
+ * Timer: a Cron Trigger (wrangler.toml [triggers], or the dashboard's
+ * Settings > Triggers) calls scheduled() every 10 minutes, which starts
+ * refresh.yml. GitHub's own schedule is best-effort and under load skips
+ * runs for hours (Nov 6-7, 2026: nothing between 10pm and 5am ET, so
+ * Friday's results waited until morning); its cron stays on as a backup.
  *
  * Endpoints (all POST, all require header "X-Admin-Secret"):
  *   /matchups/save     body: {date, matchups: [{away,home,mlAway,mlHome,totalOver,totalUnder,bttsYes,bttsNo}, ...]}
@@ -507,7 +513,30 @@ Rules:
   return { ok: true, matchups: parsed.matchups };
 }
 
+// --- the 10-minute timer: start a refresh unless one is already queued or running ---
+const REFRESH_WORKFLOW = "refresh.yml";
+
+async function startRefresh(env) {
+  for (const status of ["in_progress", "queued"]) {
+    const r = await ghRequest(env, `actions/workflows/${REFRESH_WORKFLOW}/runs?status=${status}&per_page=1`);
+    if (r.ok && (await r.json()).total_count > 0) {
+      console.log(`refresh already ${status}; skipping`);
+      return;
+    }
+  }
+  const r = await ghRequest(env, `actions/workflows/${REFRESH_WORKFLOW}/dispatches`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ref: BRANCH }),
+  });
+  if (r.status !== 204) console.log(`refresh dispatch failed: ${r.status} ${await r.text()}`);
+}
+
 export default {
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(startRefresh(env));
+  },
+
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: CORS_HEADERS });

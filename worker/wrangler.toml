@@ -5,3 +5,9 @@ compatibility_date = "2024-09-01"
 # Secrets (set these with `wrangler secret put <NAME>`, not here):
 #   GITHUB_TOKEN   fine-grained PAT, Contents:write only, scoped to the rtyb-betting-site repo
 #   ADMIN_SECRET   the password the admin page prompts for before calling this worker
+
+# Every 10 minutes: scheduled() starts refresh.yml (GitHub's own cron skips
+# runs under load). Deployed from the dashboard? Add the same schedule under
+# Settings > Triggers > Cron Triggers.
+[triggers]
+crons = ["*/10 * * * *"]
