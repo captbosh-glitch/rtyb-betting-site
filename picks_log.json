@@ -4033,6 +4033,48 @@
     "streakTeamName": "Los Angeles"
    },
    {
+    "id": "nba|401909941|1q|ml|away",
+    "game": "nba|401909941",
+    "date": "2026-11-07",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-08T01:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Wizards @ Thunder",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 220,
+    "title": "Wizards 1Q ML",
+    "est": 0.354,
+    "edge": 0.0415,
+    "agree": 2,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "wsh",
+    "angles": [
+     [
+      "Wizards 1Q ML on the road",
+      "4-1"
+     ],
+     [
+      "Wizards 1Q ML, season",
+      "5-4"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Wizards"
+   },
+   {
     "id": "ncaaf|401858287|1q|ml|home",
     "game": "ncaaf|401858287",
     "date": "2026-11-07",
@@ -4167,48 +4209,6 @@
     "status": "L",
     "units": -1.0,
     "streakTeamName": "UConn"
-   },
-   {
-    "id": "nba|401909941|1q|ml|away",
-    "game": "nba|401909941",
-    "date": "2026-11-07",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-08T01:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Wizards @ Thunder",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 200,
-    "title": "Wizards 1Q ML",
-    "est": 0.37,
-    "edge": 0.0367,
-    "agree": 2,
-    "sample": 9,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 1,
-    "streakTeam": "wsh",
-    "angles": [
-     [
-      "Wizards 1Q ML on the road",
-      "4-1"
-     ],
-     [
-      "Wizards 1Q ML, season",
-      "5-4"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Wizards"
    },
    {
     "id": "ncaaf|401856856|1h|ats|away",
