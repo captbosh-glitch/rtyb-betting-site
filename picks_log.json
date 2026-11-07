@@ -3746,8 +3746,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Temple"
    },
    {
@@ -4262,6 +4262,56 @@
     "streakTeamName": "West Virginia"
    },
    {
+    "id": "nhl|2026020272|1p|total|under",
+    "game": "nhl|2026020272",
+    "date": "2026-11-07",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-08T01:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "San Jose @ Dallas",
+    "href": "nhl/games/?date=2026-11-07",
+    "market": "total",
+    "side": "under",
+    "line": 1.5,
+    "price": 114,
+    "title": "1P Under 1.5",
+    "est": 0.5021,
+    "edge": 0.0348,
+    "agree": 4,
+    "sample": 18,
+    "tier": "C",
+    "tags": [
+     "Under Grinder"
+    ],
+    "streak": 2,
+    "streakTeam": "DAL",
+    "angles": [
+     [
+      "Dallas 1P unders, season (1.5)",
+      "11-5"
+     ],
+     [
+      "Dallas 1P unders, last 8 (1.5)",
+      "5-3"
+     ],
+     [
+      "San Jose 1P unders, season (1.5)",
+      "11-7"
+     ],
+     [
+      "Dallas 1P unders at home (1.5)",
+      "5-4"
+     ]
+    ],
+    "info": "Avg 1P total in their games: Dallas 1.2 \u00b7 San Jose 1.4",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Dallas"
+   },
+   {
     "id": "ncaaf|401858290|1h|total|under",
     "game": "ncaaf|401858290",
     "date": "2026-11-07",
@@ -4307,56 +4357,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Wake Forest"
-   },
-   {
-    "id": "nhl|2026020272|1p|total|under",
-    "game": "nhl|2026020272",
-    "date": "2026-11-07",
-    "sport": "nhl",
-    "label": "NHL",
-    "slug": "nhl",
-    "start": "2026-11-08T01:00:00Z",
-    "seg": "1p",
-    "segTag": "1P",
-    "matchup": "San Jose @ Dallas",
-    "href": "nhl/games/?date=2026-11-07",
-    "market": "total",
-    "side": "under",
-    "line": 1.5,
-    "price": 112,
-    "title": "1P Under 1.5",
-    "est": 0.5049,
-    "edge": 0.0332,
-    "agree": 4,
-    "sample": 18,
-    "tier": "C",
-    "tags": [
-     "Under Grinder"
-    ],
-    "streak": 2,
-    "streakTeam": "DAL",
-    "angles": [
-     [
-      "Dallas 1P unders, season (1.5)",
-      "11-5"
-     ],
-     [
-      "Dallas 1P unders, last 8 (1.5)",
-      "5-3"
-     ],
-     [
-      "San Jose 1P unders, season (1.5)",
-      "11-7"
-     ],
-     [
-      "Dallas 1P unders at home (1.5)",
-      "5-4"
-     ]
-    ],
-    "info": "Avg 1P total in their games: Dallas 1.2 \u00b7 San Jose 1.4",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Dallas"
    },
    {
     "id": "ncaaf|401858291|1h|ats|away",
