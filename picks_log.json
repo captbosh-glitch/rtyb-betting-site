@@ -4117,8 +4117,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "W",
+    "units": 1.65,
     "streakTeamName": "Washington"
    },
    {
@@ -4401,6 +4401,100 @@
      ]
     ],
     "info": "Miami avg 1H margin on the road: +13.2",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Miami"
+   },
+   {
+    "id": "ncaaf|401869968|1q|ml|away",
+    "game": "ncaaf|401869968",
+    "date": "2026-11-07",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-07T22:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "South Alabama @ Louisiana",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 176,
+    "title": "South Alabama 1Q ML",
+    "est": 0.3947,
+    "edge": 0.0323,
+    "agree": 3,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 4,
+    "streakTeam": "south-alabama-jaguars",
+    "angles": [
+     [
+      "South Alabama 1Q ML, season",
+      "7-1"
+     ],
+     [
+      "South Alabama 1Q ML, last 8",
+      "7-1"
+     ],
+     [
+      "South Alabama 1Q ML on the road",
+      "3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "South Alabama"
+   },
+   {
+    "id": "ncaaf|401858291|1q|ats|away",
+    "game": "ncaaf|401858291",
+    "date": "2026-11-07",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-08T00:30Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Miami @ Notre Dame",
+    "href": "college-football/games/",
+    "market": "ats",
+    "side": "away",
+    "line": 1.5,
+    "price": -110,
+    "title": "Miami 1Q +1.5",
+    "est": 0.5539,
+    "edge": 0.0301,
+    "agree": 3,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 8,
+    "streakTeam": "miami-hurricanes",
+    "angles": [
+     [
+      "Miami 1Q ATS at +1.5, season",
+      "8-0"
+     ],
+     [
+      "Miami 1Q ATS at +1.5, last 8",
+      "8-0"
+     ],
+     [
+      "Miami 1Q ATS at +1.5 on the road",
+      "4-0"
+     ]
+    ],
+    "info": "Miami avg 1Q margin on the road: +6.2",
     "status": "pending",
     "units": null,
     "streakTeamName": "Miami"
