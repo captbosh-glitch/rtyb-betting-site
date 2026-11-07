@@ -3835,6 +3835,52 @@
     "streakTeamName": "Rice"
    },
    {
+    "id": "nhl|2026020268|1p|btts|yes",
+    "game": "nhl|2026020268",
+    "date": "2026-11-07",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-08T00:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Montreal @ Toronto",
+    "href": "nhl/games/?date=2026-11-07",
+    "market": "btts",
+    "side": "yes",
+    "line": null,
+    "price": 155,
+    "title": "1P BTTS Yes",
+    "est": 0.4427,
+    "edge": 0.0505,
+    "agree": 3,
+    "sample": 17,
+    "tier": "B",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": 1,
+    "streakTeam": "MON",
+    "angles": [
+     [
+      "Montreal 1P BTTS on the road",
+      "5-2"
+     ],
+     [
+      "Montreal 1P BTTS, season",
+      "11-5"
+     ],
+     [
+      "Montreal 1P BTTS, last 8",
+      "5-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Montreal"
+   },
+   {
     "id": "ncaaf|401856854|1h|ml|home",
     "game": "ncaaf|401856854",
     "date": "2026-11-07",
@@ -4033,6 +4079,49 @@
     "streakTeamName": "Georgia Tech"
    },
    {
+    "id": "nhl|2026020265|1p|btts|yes",
+    "game": "nhl|2026020265",
+    "date": "2026-11-07",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-07T17:30:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Florida @ Washington",
+    "href": "nhl/games/?date=2026-11-07",
+    "market": "btts",
+    "side": "yes",
+    "line": null,
+    "price": 165,
+    "title": "1P BTTS Yes",
+    "est": 0.4156,
+    "edge": 0.0383,
+    "agree": 2,
+    "sample": 16,
+    "tier": "C",
+    "tags": [
+     "Over Lover",
+     "Early Bird"
+    ],
+    "streak": -2,
+    "streakTeam": "WSH",
+    "angles": [
+     [
+      "Washington 1P BTTS, last 8",
+      "5-3"
+     ],
+     [
+      "Washington 1P BTTS at home",
+      "6-4"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Washington"
+   },
+   {
     "id": "ncaaf|401858292|1q|ml|home",
     "game": "ncaaf|401858292",
     "date": "2026-11-07",
@@ -4080,108 +4169,6 @@
     "streakTeamName": "UConn"
    },
    {
-    "id": "ncaaf|401856856|1h|ats|away",
-    "game": "ncaaf|401856856",
-    "date": "2026-11-07",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-11-08T02:30Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "West Virginia @ Texas Tech",
-    "href": "college-football/games/",
-    "market": "ats",
-    "side": "away",
-    "line": 10.5,
-    "price": -110,
-    "title": "West Virginia 1H +10.5",
-    "est": 0.5592,
-    "edge": 0.0354,
-    "agree": 4,
-    "sample": 8,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter",
-     "Streak Rider"
-    ],
-    "streak": 8,
-    "streakTeam": "west-virginia-mountaineers",
-    "angles": [
-     [
-      "West Virginia 1H ATS at +10.5, season",
-      "8-0"
-     ],
-     [
-      "West Virginia 1H ATS at +10.5, last 8",
-      "8-0"
-     ],
-     [
-      "West Virginia 1H ATS at +10.5 on the road",
-      "3-0"
-     ],
-     [
-      "Texas Tech\u2019s opponents 1H ATS at +10.5, Texas Tech at home",
-      "3-2"
-     ]
-    ],
-    "info": "West Virginia avg 1H margin on the road: +0.0",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "West Virginia"
-   },
-   {
-    "id": "nhl|2026020273|1p|total|over",
-    "game": "nhl|2026020273",
-    "date": "2026-11-07",
-    "sport": "nhl",
-    "label": "NHL",
-    "slug": "nhl",
-    "start": "2026-11-08T01:00:00Z",
-    "seg": "1p",
-    "segTag": "1P",
-    "matchup": "Tampa Bay @ Minnesota",
-    "href": "nhl/games/?date=2026-11-07",
-    "market": "total",
-    "side": "over",
-    "line": 1.5,
-    "price": -135,
-    "title": "1P Over 1.5",
-    "est": 0.6096,
-    "edge": 0.0351,
-    "agree": 6,
-    "sample": 18,
-    "tier": "C",
-    "tags": [
-     "Over Lover",
-     "Streak Rider"
-    ],
-    "streak": 7,
-    "streakTeam": "TB",
-    "angles": [
-     [
-      "Tampa Bay 1P overs on the road (1.5)",
-      "7-0"
-     ],
-     [
-      "Tampa Bay 1P overs, last 8 (1.5)",
-      "7-1"
-     ],
-     [
-      "Tampa Bay 1P overs, season (1.5)",
-      "13-2"
-     ],
-     [
-      "Minnesota 1P overs, season (1.5)",
-      "13-5"
-     ]
-    ],
-    "info": "Avg 1P total in their games: Minnesota 1.8 \u00b7 Tampa Bay 2.3",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Tampa Bay"
-   },
-   {
     "id": "nba|401909941|1q|ml|away",
     "game": "nba|401909941",
     "date": "2026-11-07",
@@ -4196,10 +4183,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 194,
+    "price": 200,
     "title": "Wizards 1Q ML",
-    "est": 0.3752,
-    "edge": 0.0351,
+    "est": 0.37,
+    "edge": 0.0367,
     "agree": 2,
     "sample": 9,
     "tier": "C",
