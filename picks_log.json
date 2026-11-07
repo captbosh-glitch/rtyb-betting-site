@@ -3927,8 +3927,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Kansas St"
    },
    {
@@ -3978,8 +3978,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "NC State"
    },
    {
@@ -3997,10 +3997,10 @@
     "market": "ml",
     "side": "home",
     "line": null,
-    "price": -121,
+    "price": -120,
     "title": "Los Angeles 1P ML",
-    "est": 0.5894,
-    "edge": 0.0419,
+    "est": 0.5878,
+    "edge": 0.0424,
     "agree": 4,
     "sample": 10,
     "tier": "B",
@@ -4122,6 +4122,48 @@
     "streakTeamName": "Washington"
    },
    {
+    "id": "nba|401909941|1q|ml|away",
+    "game": "nba|401909941",
+    "date": "2026-11-07",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-08T01:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Wizards @ Thunder",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 205,
+    "title": "Wizards 1Q ML",
+    "est": 0.3658,
+    "edge": 0.0379,
+    "agree": 2,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "wsh",
+    "angles": [
+     [
+      "Wizards 1Q ML on the road",
+      "4-1"
+     ],
+     [
+      "Wizards 1Q ML, season",
+      "5-4"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Wizards"
+   },
+   {
     "id": "ncaaf|401858292|1q|ml|home",
     "game": "ncaaf|401858292",
     "date": "2026-11-07",
@@ -4164,51 +4206,204 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "UConn"
    },
    {
-    "id": "nba|401909941|1q|ml|away",
-    "game": "nba|401909941",
+    "id": "ncaaf|401856856|1h|ats|away",
+    "game": "ncaaf|401856856",
     "date": "2026-11-07",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-08T01:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Wizards @ Thunder",
-    "href": "nba/games/",
-    "market": "ml",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-08T02:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "West Virginia @ Texas Tech",
+    "href": "college-football/games/",
+    "market": "ats",
     "side": "away",
-    "line": null,
-    "price": 200,
-    "title": "Wizards 1Q ML",
-    "est": 0.37,
-    "edge": 0.0367,
-    "agree": 2,
-    "sample": 9,
+    "line": 10.5,
+    "price": -110,
+    "title": "West Virginia 1H +10.5",
+    "est": 0.5592,
+    "edge": 0.0354,
+    "agree": 4,
+    "sample": 8,
     "tier": "C",
     "tags": [
-     "Dog Hunter"
+     "Dog Hunter",
+     "Streak Rider"
     ],
-    "streak": 1,
-    "streakTeam": "wsh",
+    "streak": 8,
+    "streakTeam": "west-virginia-mountaineers",
     "angles": [
      [
-      "Wizards 1Q ML on the road",
-      "4-1"
+      "West Virginia 1H ATS at +10.5, season",
+      "8-0"
      ],
      [
-      "Wizards 1Q ML, season",
+      "West Virginia 1H ATS at +10.5, last 8",
+      "8-0"
+     ],
+     [
+      "West Virginia 1H ATS at +10.5 on the road",
+      "3-0"
+     ],
+     [
+      "Texas Tech\u2019s opponents 1H ATS at +10.5, Texas Tech at home",
+      "3-2"
+     ]
+    ],
+    "info": "West Virginia avg 1H margin on the road: +0.0",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "West Virginia"
+   },
+   {
+    "id": "ncaaf|401858290|1h|total|under",
+    "game": "ncaaf|401858290",
+    "date": "2026-11-07",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-07T20:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Merrimack Warriors @ Wake Forest",
+    "href": "college-football/games/",
+    "market": "total",
+    "side": "under",
+    "line": 34.5,
+    "price": -110,
+    "title": "1H Under 34.5",
+    "est": 0.5574,
+    "edge": 0.0336,
+    "agree": 3,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Under Grinder",
+     "Streak Rider"
+    ],
+    "streak": 4,
+    "streakTeam": "wake-forest-demon-deacons",
+    "angles": [
+     [
+      "Wake Forest 1H unders at home (34.5)",
+      "4-0"
+     ],
+     [
+      "Wake Forest 1H unders, season (34.5)",
+      "7-1"
+     ],
+     [
+      "Wake Forest 1H unders, last 8 (34.5)",
+      "7-1"
+     ]
+    ],
+    "info": "Avg 1H total in their games: Wake Forest 30.5 \u00b7 Merrimack Warriors 21.0",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Wake Forest"
+   },
+   {
+    "id": "nhl|2026020272|1p|total|under",
+    "game": "nhl|2026020272",
+    "date": "2026-11-07",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-08T01:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "San Jose @ Dallas",
+    "href": "nhl/games/?date=2026-11-07",
+    "market": "total",
+    "side": "under",
+    "line": 1.5,
+    "price": 112,
+    "title": "1P Under 1.5",
+    "est": 0.5049,
+    "edge": 0.0332,
+    "agree": 4,
+    "sample": 18,
+    "tier": "C",
+    "tags": [
+     "Under Grinder"
+    ],
+    "streak": 2,
+    "streakTeam": "DAL",
+    "angles": [
+     [
+      "Dallas 1P unders, season (1.5)",
+      "11-5"
+     ],
+     [
+      "Dallas 1P unders, last 8 (1.5)",
+      "5-3"
+     ],
+     [
+      "San Jose 1P unders, season (1.5)",
+      "11-7"
+     ],
+     [
+      "Dallas 1P unders at home (1.5)",
       "5-4"
      ]
     ],
-    "info": null,
+    "info": "Avg 1P total in their games: Dallas 1.2 \u00b7 San Jose 1.4",
     "status": "pending",
     "units": null,
-    "streakTeamName": "Wizards"
+    "streakTeamName": "Dallas"
+   },
+   {
+    "id": "ncaaf|401858291|1h|ats|away",
+    "game": "ncaaf|401858291",
+    "date": "2026-11-07",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-08T00:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Miami @ Notre Dame",
+    "href": "college-football/games/",
+    "market": "ats",
+    "side": "away",
+    "line": 3.5,
+    "price": -110,
+    "title": "Miami 1H +3.5",
+    "est": 0.5568,
+    "edge": 0.033,
+    "agree": 3,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 8,
+    "streakTeam": "miami-hurricanes",
+    "angles": [
+     [
+      "Miami 1H ATS at +3.5, season",
+      "8-0"
+     ],
+     [
+      "Miami 1H ATS at +3.5, last 8",
+      "8-0"
+     ],
+     [
+      "Miami 1H ATS at +3.5 on the road",
+      "4-0"
+     ]
+    ],
+    "info": "Miami avg 1H margin on the road: +13.2",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Miami"
    }
   ]
  }
