@@ -52,6 +52,8 @@ def sport_lists(sp, doc):
     out = {}
     for slug, found in (doc.get('streaks') or {}).items():
         t = teams.get(slug) or {}
+        if isinstance(t, str):   # otherTeams holds just a name
+            t = {'name': t}
         for s in found:
             if s['seg'] != k or s['n'] < MIN_STREAK:
                 continue
