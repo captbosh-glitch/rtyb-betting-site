@@ -3696,8 +3696,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Georgia Tech"
    },
    {
@@ -4401,8 +4401,8 @@
      ]
     ],
     "info": "Miami avg 1H margin on the road: +13.2",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Miami"
    },
    {
