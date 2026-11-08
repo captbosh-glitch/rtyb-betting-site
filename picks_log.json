@@ -3788,8 +3788,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "West Virginia"
    },
    {
@@ -3876,8 +3876,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Montreal"
    },
    {
@@ -4028,8 +4028,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Los Angeles"
    },
    {
@@ -4257,8 +4257,8 @@
      ]
     ],
     "info": "West Virginia avg 1H margin on the road: +0.0",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "West Virginia"
    },
    {
@@ -4307,8 +4307,8 @@
      ]
     ],
     "info": "Avg 1P total in their games: Dallas 1.2 \u00b7 San Jose 1.4",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Dallas"
    },
    {
@@ -4498,6 +4498,295 @@
     "status": "L",
     "units": -1.0,
     "streakTeamName": "Miami"
+   }
+  ]
+ },
+ "2026-11-08": {
+  "plays": [
+   {
+    "id": "nba|401909946|1h|ml|away",
+    "game": "nba|401909946",
+    "date": "2026-11-08",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-08T23:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Lakers @ Pistons",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 170,
+    "title": "Lakers 1H ML",
+    "est": 0.4404,
+    "edge": 0.07,
+    "agree": 4,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "lal",
+    "angles": [
+     [
+      "Lakers 1H ML on the road",
+      "3-0-1"
+     ],
+     [
+      "Pistons\u2019s opponents 1H ML, Pistons at home",
+      "3-0"
+     ],
+     [
+      "Lakers 1H ML, season",
+      "7-1-2"
+     ],
+     [
+      "Lakers 1H ML, last 8",
+      "6-1-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Lakers"
+   },
+   {
+    "id": "nba|401909948|1q|ml|away",
+    "game": "nba|401909948",
+    "date": "2026-11-08",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-09T00:30Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Nets @ Mavericks",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 150,
+    "title": "Nets 1Q ML",
+    "est": 0.4491,
+    "edge": 0.0491,
+    "agree": 4,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "bkn",
+    "angles": [
+     [
+      "Nets 1Q ML, last 8",
+      "5-3"
+     ],
+     [
+      "Nets 1Q ML on the road",
+      "3-2"
+     ],
+     [
+      "Mavericks\u2019s opponents 1Q ML, Mavericks at home",
+      "3-2"
+     ],
+     [
+      "Nets 1Q ML, season",
+      "5-4"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Nets"
+   },
+   {
+    "id": "nba|401909946|1q|ml|away",
+    "game": "nba|401909946",
+    "date": "2026-11-08",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-08T23:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Lakers @ Pistons",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 140,
+    "title": "Lakers 1Q ML",
+    "est": 0.4639,
+    "edge": 0.0473,
+    "agree": 4,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "lal",
+    "angles": [
+     [
+      "Pistons\u2019s opponents 1Q ML, Pistons at home",
+      "3-0"
+     ],
+     [
+      "Lakers 1Q ML, last 8",
+      "5-2-1"
+     ],
+     [
+      "Lakers 1Q ML, season",
+      "6-3-1"
+     ],
+     [
+      "Lakers 1Q ML on the road",
+      "2-1-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Lakers"
+   },
+   {
+    "id": "nba|401909948|1h|ml|away",
+    "game": "nba|401909948",
+    "date": "2026-11-08",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-09T00:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Nets @ Mavericks",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 185,
+    "title": "Nets 1H ML",
+    "est": 0.3898,
+    "edge": 0.0389,
+    "agree": 2,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "bkn",
+    "angles": [
+     [
+      "Mavericks\u2019s opponents 1H ML, Mavericks at home",
+      "3-1-1"
+     ],
+     [
+      "Nets 1H ML on the road",
+      "3-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Nets"
+   },
+   {
+    "id": "nhl|2026020281|1p|ml|home",
+    "game": "nhl|2026020281",
+    "date": "2026-11-08",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-09T00:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Philadelphia @ Calgary",
+    "href": "nhl/games/?date=2026-11-08",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 100,
+    "title": "Calgary 1P ML",
+    "est": 0.5384,
+    "edge": 0.0384,
+    "agree": 3,
+    "sample": 14,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 3,
+    "streakTeam": "CGY",
+    "angles": [
+     [
+      "Calgary 1P ML, last 8",
+      "5-2-1"
+     ],
+     [
+      "Calgary 1P ML at home",
+      "4-2-3"
+     ],
+     [
+      "Philadelphia\u2019s opponents 1P ML, Philadelphia on the road",
+      "5-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Calgary"
+   },
+   {
+    "id": "nfl|401873049|1q|ats|away",
+    "game": "nfl|401873049",
+    "date": "2026-11-08",
+    "sport": "nfl",
+    "label": "NFL",
+    "slug": "nfl",
+    "start": "2026-11-08T21:25Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Packers @ Patriots",
+    "href": "nfl/games/",
+    "market": "ats",
+    "side": "away",
+    "line": 0.5,
+    "price": -110,
+    "title": "Packers 1Q +0.5",
+    "est": 0.5578,
+    "edge": 0.034,
+    "agree": 3,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 8,
+    "streakTeam": "gb",
+    "angles": [
+     [
+      "Packers 1Q ATS at +0.5, season",
+      "8-0"
+     ],
+     [
+      "Packers 1Q ATS at +0.5, last 8",
+      "8-0"
+     ],
+     [
+      "Packers 1Q ATS at +0.5 on the road",
+      "4-0"
+     ]
+    ],
+    "info": "Packers avg 1Q margin on the road: +1.5",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Packers"
    }
   ]
  }
