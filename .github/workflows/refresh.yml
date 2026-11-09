@@ -32,6 +32,11 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
+        with:
+          # the latest main when the run starts, not the commit it was queued
+          # on -- a run that waits behind another (concurrency) would
+          # otherwise build on stale data and its push would be rejected
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -130,7 +135,13 @@ jobs:
             fi
             echo "Push rejected (attempt $attempt) -- rebasing onto latest remote and retrying..."
             git fetch origin main
-            git rebase origin/main
+            if ! git rebase origin/main; then
+              # both runs rewrote the same generated files; the newer one is
+              # already live and the next run rebuilds everything anyway
+              git rebase --abort
+              echo "::warning::Another refresh published first; skipping this push (the next run catches up)."
+              exit 0
+            fi
             sleep 3
           done
           # Pages is set to "Deploy from a branch" (main / root) in repo
