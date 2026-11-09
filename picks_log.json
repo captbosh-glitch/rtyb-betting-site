@@ -4891,16 +4891,14 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": -110,
+    "price": -108,
     "title": "Lakers 1Q ML",
-    "est": 0.5743,
-    "edge": 0.0505,
+    "est": 0.5709,
+    "edge": 0.0517,
     "agree": 4,
     "sample": 10,
     "tier": "B",
-    "tags": [
-     "Chalk Eater"
-    ],
+    "tags": [],
     "streak": 1,
     "streakTeam": "lal",
     "angles": [
