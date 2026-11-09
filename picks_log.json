@@ -4835,48 +4835,6 @@
  "2026-11-09": {
   "plays": [
    {
-    "id": "nba|401909954|1q|ml|away",
-    "game": "nba|401909954",
-    "date": "2026-11-09",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-10T00:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Wizards @ Pistons",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 185,
-    "title": "Wizards 1Q ML",
-    "est": 0.4104,
-    "edge": 0.0595,
-    "agree": 2,
-    "sample": 10,
-    "tier": "B",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": -1,
-    "streakTeam": "wsh",
-    "angles": [
-     [
-      "Pistons\u2019s opponents 1Q ML, Pistons at home",
-      "4-0"
-     ],
-     [
-      "Wizards 1Q ML on the road",
-      "4-2"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Wizards"
-   },
-   {
     "id": "nba|401909952|1q|ml|away",
     "game": "nba|401909952",
     "date": "2026-11-09",
@@ -4925,6 +4883,48 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Lakers"
+   },
+   {
+    "id": "nba|401909954|1q|ml|away",
+    "game": "nba|401909954",
+    "date": "2026-11-09",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-10T00:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Wizards @ Pistons",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 170,
+    "title": "Wizards 1Q ML",
+    "est": 0.425,
+    "edge": 0.0547,
+    "agree": 2,
+    "sample": 10,
+    "tier": "B",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "wsh",
+    "angles": [
+     [
+      "Pistons\u2019s opponents 1Q ML, Pistons at home",
+      "4-0"
+     ],
+     [
+      "Wizards 1Q ML on the road",
+      "4-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Wizards"
    },
    {
     "id": "nba|401909959|1q|ml|away",
@@ -4987,10 +4987,10 @@
     "market": "ats",
     "side": "away",
     "line": 1.5,
-    "price": -110,
+    "price": -105,
     "title": "Lakers 1H +1.5",
-    "est": 0.5661,
-    "edge": 0.0423,
+    "est": 0.5576,
+    "edge": 0.0454,
     "agree": 4,
     "sample": 11,
     "tier": "B",
