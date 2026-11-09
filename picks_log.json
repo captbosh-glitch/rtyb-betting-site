@@ -4835,6 +4835,56 @@
  "2026-11-09": {
   "plays": [
    {
+    "id": "nba|401909952|1q|ml|away",
+    "game": "nba|401909952",
+    "date": "2026-11-09",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-10T00:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Lakers @ Hawks",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 104,
+    "title": "Lakers 1Q ML",
+    "est": 0.5491,
+    "edge": 0.0589,
+    "agree": 4,
+    "sample": 10,
+    "tier": "B",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "lal",
+    "angles": [
+     [
+      "Hawks\u2019s opponents 1Q ML, Hawks at home",
+      "5-0"
+     ],
+     [
+      "Lakers 1Q ML, last 8",
+      "6-1-1"
+     ],
+     [
+      "Lakers 1Q ML on the road",
+      "3-1-1"
+     ],
+     [
+      "Lakers 1Q ML, season",
+      "7-3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Lakers"
+   },
+   {
     "id": "nba|401909954|1q|ml|away",
     "game": "nba|401909954",
     "date": "2026-11-09",
@@ -4875,56 +4925,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Wizards"
-   },
-   {
-    "id": "nba|401909952|1q|ml|away",
-    "game": "nba|401909952",
-    "date": "2026-11-09",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-10T00:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Lakers @ Hawks",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": -102,
-    "title": "Lakers 1Q ML",
-    "est": 0.5602,
-    "edge": 0.0552,
-    "agree": 4,
-    "sample": 10,
-    "tier": "B",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 1,
-    "streakTeam": "lal",
-    "angles": [
-     [
-      "Hawks\u2019s opponents 1Q ML, Hawks at home",
-      "5-0"
-     ],
-     [
-      "Lakers 1Q ML, last 8",
-      "6-1-1"
-     ],
-     [
-      "Lakers 1Q ML on the road",
-      "3-1-1"
-     ],
-     [
-      "Lakers 1Q ML, season",
-      "7-3-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Lakers"
    },
    {
     "id": "nba|401909959|1q|ml|away",
@@ -4986,11 +4986,11 @@
     "href": "nba/games/",
     "market": "ats",
     "side": "away",
-    "line": 0.5,
-    "price": -105,
-    "title": "Lakers 1H +0.5",
-    "est": 0.5576,
-    "edge": 0.0454,
+    "line": 1.5,
+    "price": -108,
+    "title": "Lakers 1H +1.5",
+    "est": 0.5627,
+    "edge": 0.0435,
     "agree": 4,
     "sample": 11,
     "tier": "B",
@@ -5001,19 +5001,19 @@
     "streakTeam": "lal",
     "angles": [
      [
-      "Lakers 1H ATS at +0.5 on the road",
+      "Lakers 1H ATS at +1.5 on the road",
       "5-0"
      ],
      [
-      "Lakers 1H ATS at +0.5, season",
+      "Lakers 1H ATS at +1.5, season",
       "10-1"
      ],
      [
-      "Lakers 1H ATS at +0.5, last 8",
+      "Lakers 1H ATS at +1.5, last 8",
       "7-1"
      ],
      [
-      "Hawks\u2019s opponents 1H ATS at +0.5, Hawks at home",
+      "Hawks\u2019s opponents 1H ATS at +1.5, Hawks at home",
       "3-2"
      ]
     ],
