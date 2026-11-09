@@ -4877,6 +4877,52 @@
     "streakTeamName": "Wizards"
    },
    {
+    "id": "nba|401909959|1q|ml|away",
+    "game": "nba|401909959",
+    "date": "2026-11-09",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-10T03:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Pelicans @ Warriors",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 198,
+    "title": "Pelicans 1Q ML",
+    "est": 0.39,
+    "edge": 0.0544,
+    "agree": 3,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 0,
+    "streakTeam": "no",
+    "angles": [
+     [
+      "Pelicans 1Q ML, last 8",
+      "4-2-2"
+     ],
+     [
+      "Warriors\u2019s opponents 1Q ML, Warriors at home",
+      "4-2"
+     ],
+     [
+      "Pelicans 1Q ML on the road",
+      "2-1-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Pelicans"
+   },
+   {
     "id": "nba|401909952|1q|ml|away",
     "game": "nba|401909952",
     "date": "2026-11-09",
@@ -4891,10 +4937,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": -104,
+    "price": -105,
     "title": "Lakers 1Q ML",
-    "est": 0.5638,
-    "edge": 0.054,
+    "est": 0.5656,
+    "edge": 0.0534,
     "agree": 4,
     "sample": 10,
     "tier": "B",
@@ -4925,52 +4971,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Lakers"
-   },
-   {
-    "id": "nba|401909959|1q|ml|away",
-    "game": "nba|401909959",
-    "date": "2026-11-09",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-10T03:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Pelicans @ Warriors",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 180,
-    "title": "Pelicans 1Q ML",
-    "est": 0.407,
-    "edge": 0.0499,
-    "agree": 3,
-    "sample": 8,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 0,
-    "streakTeam": "no",
-    "angles": [
-     [
-      "Pelicans 1Q ML, last 8",
-      "4-2-2"
-     ],
-     [
-      "Warriors\u2019s opponents 1Q ML, Warriors at home",
-      "4-2"
-     ],
-     [
-      "Pelicans 1Q ML on the road",
-      "2-1-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Pelicans"
    },
    {
     "id": "nba|401909952|1h|ats|away",
