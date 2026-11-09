@@ -4835,6 +4835,94 @@
  "2026-11-09": {
   "plays": [
    {
+    "id": "nba|401909954|1q|ml|away",
+    "game": "nba|401909954",
+    "date": "2026-11-09",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-10T00:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Wizards @ Pistons",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 176,
+    "title": "Wizards 1Q ML",
+    "est": 0.419,
+    "edge": 0.0567,
+    "agree": 2,
+    "sample": 10,
+    "tier": "B",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "wsh",
+    "angles": [
+     [
+      "Pistons\u2019s opponents 1Q ML, Pistons at home",
+      "4-0"
+     ],
+     [
+      "Wizards 1Q ML on the road",
+      "4-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Wizards"
+   },
+   {
+    "id": "nba|401909959|1q|ml|away",
+    "game": "nba|401909959",
+    "date": "2026-11-09",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-10T03:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Pelicans @ Warriors",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 154,
+    "title": "Pelicans 1Q ML",
+    "est": 0.4359,
+    "edge": 0.0422,
+    "agree": 3,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 0,
+    "streakTeam": "no",
+    "angles": [
+     [
+      "Pelicans 1Q ML, last 8",
+      "4-2-2"
+     ],
+     [
+      "Warriors\u2019s opponents 1Q ML, Warriors at home",
+      "4-2"
+     ],
+     [
+      "Pelicans 1Q ML on the road",
+      "2-1-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Pelicans"
+   },
+   {
     "id": "nhl|2026020285|1p|ml|away",
     "game": "nhl|2026020285",
     "date": "2026-11-09",
