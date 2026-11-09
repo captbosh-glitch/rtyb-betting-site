@@ -4831,5 +4831,51 @@
     "streakTeamName": "Packers"
    }
   ]
+ },
+ "2026-11-09": {
+  "plays": [
+   {
+    "id": "nhl|2026020285|1p|ml|away",
+    "game": "nhl|2026020285",
+    "date": "2026-11-09",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-10T03:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "NY Islanders @ San Jose",
+    "href": "nhl/games/?date=2026-11-09",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": -121,
+    "title": "NY Islanders 1P ML",
+    "est": 0.5846,
+    "edge": 0.0371,
+    "agree": 2,
+    "sample": 13,
+    "tier": "C",
+    "tags": [
+     "Chalk Eater"
+    ],
+    "streak": 1,
+    "streakTeam": "NYI",
+    "angles": [
+     [
+      "San Jose\u2019s opponents 1P ML, San Jose at home",
+      "5-1-2"
+     ],
+     [
+      "NY Islanders 1P ML, season",
+      "7-6-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "NY Islanders"
+   }
+  ]
  }
 }
