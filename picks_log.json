@@ -4696,6 +4696,48 @@
     "streakTeamName": "Nets"
    },
    {
+    "id": "nba|401909951|1q|ml|home",
+    "game": "nba|401909951",
+    "date": "2026-11-08",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-09T02:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Heat @ Kings",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 205,
+    "title": "Kings 1Q ML",
+    "est": 0.3626,
+    "edge": 0.0347,
+    "agree": 2,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "sac",
+    "angles": [
+     [
+      "Kings 1Q ML at home",
+      "2-1-1"
+     ],
+     [
+      "Kings 1Q ML, last 8",
+      "4-3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Kings"
+   },
+   {
     "id": "nhl|2026020281|1p|ml|home",
     "game": "nhl|2026020281",
     "date": "2026-11-08",
@@ -4787,48 +4829,6 @@
     "status": "W",
     "units": 0.9091,
     "streakTeamName": "Packers"
-   },
-   {
-    "id": "nba|401909951|1q|ml|home",
-    "game": "nba|401909951",
-    "date": "2026-11-08",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-09T02:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Heat @ Kings",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "home",
-    "line": null,
-    "price": 198,
-    "title": "Kings 1Q ML",
-    "est": 0.3687,
-    "edge": 0.0331,
-    "agree": 2,
-    "sample": 8,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": -1,
-    "streakTeam": "sac",
-    "angles": [
-     [
-      "Kings 1Q ML at home",
-      "2-1-1"
-     ],
-     [
-      "Kings 1Q ML, last 8",
-      "4-3-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Kings"
    }
   ]
  }
