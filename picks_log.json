@@ -4891,16 +4891,14 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": -112,
+    "price": -110,
     "title": "Lakers 1Q ML",
-    "est": 0.5777,
-    "edge": 0.0494,
+    "est": 0.5743,
+    "edge": 0.0505,
     "agree": 4,
     "sample": 10,
     "tier": "B",
-    "tags": [
-     "Chalk Eater"
-    ],
+    "tags": [],
     "streak": 1,
     "streakTeam": "lal",
     "angles": [
@@ -4971,6 +4969,56 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Pelicans"
+   },
+   {
+    "id": "nba|401909952|1h|ats|away",
+    "game": "nba|401909952",
+    "date": "2026-11-09",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-10T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Lakers @ Hawks",
+    "href": "nba/games/",
+    "market": "ats",
+    "side": "away",
+    "line": 0.5,
+    "price": -114,
+    "title": "Lakers 1H +0.5",
+    "est": 0.5726,
+    "edge": 0.0399,
+    "agree": 4,
+    "sample": 11,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "lal",
+    "angles": [
+     [
+      "Lakers 1H ATS at +0.5 on the road",
+      "5-0"
+     ],
+     [
+      "Lakers 1H ATS at +0.5, season",
+      "10-1"
+     ],
+     [
+      "Lakers 1H ATS at +0.5, last 8",
+      "7-1"
+     ],
+     [
+      "Hawks\u2019s opponents 1H ATS at +0.5, Hawks at home",
+      "3-2"
+     ]
+    ],
+    "info": "Lakers avg 1H margin on the road: +8.2",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Lakers"
    },
    {
     "id": "nhl|2026020285|1p|ml|away",
