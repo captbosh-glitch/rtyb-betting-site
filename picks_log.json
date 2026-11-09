@@ -4877,6 +4877,56 @@
     "streakTeamName": "Wizards"
    },
    {
+    "id": "nba|401909952|1q|ml|away",
+    "game": "nba|401909952",
+    "date": "2026-11-09",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-10T00:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Lakers @ Hawks",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": -122,
+    "title": "Lakers 1Q ML",
+    "est": 0.5936,
+    "edge": 0.0441,
+    "agree": 4,
+    "sample": 10,
+    "tier": "B",
+    "tags": [
+     "Chalk Eater"
+    ],
+    "streak": 1,
+    "streakTeam": "lal",
+    "angles": [
+     [
+      "Hawks\u2019s opponents 1Q ML, Hawks at home",
+      "5-0"
+     ],
+     [
+      "Lakers 1Q ML, last 8",
+      "6-1-1"
+     ],
+     [
+      "Lakers 1Q ML on the road",
+      "3-1-1"
+     ],
+     [
+      "Lakers 1Q ML, season",
+      "7-3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Lakers"
+   },
+   {
     "id": "nba|401909959|1q|ml|away",
     "game": "nba|401909959",
     "date": "2026-11-09",
@@ -4921,56 +4971,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Pelicans"
-   },
-   {
-    "id": "nba|401909952|1q|ml|away",
-    "game": "nba|401909952",
-    "date": "2026-11-09",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-10T00:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Lakers @ Hawks",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": -130,
-    "title": "Lakers 1Q ML",
-    "est": 0.6054,
-    "edge": 0.0402,
-    "agree": 4,
-    "sample": 10,
-    "tier": "B",
-    "tags": [
-     "Chalk Eater"
-    ],
-    "streak": 1,
-    "streakTeam": "lal",
-    "angles": [
-     [
-      "Hawks\u2019s opponents 1Q ML, Hawks at home",
-      "5-0"
-     ],
-     [
-      "Lakers 1Q ML, last 8",
-      "6-1-1"
-     ],
-     [
-      "Lakers 1Q ML on the road",
-      "3-1-1"
-     ],
-     [
-      "Lakers 1Q ML, season",
-      "7-3-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Lakers"
    },
    {
     "id": "nhl|2026020285|1p|ml|away",
