@@ -5023,52 +5023,6 @@
     "streakTeamName": "Lakers"
    },
    {
-    "id": "nba|401909957|1q|ml|away",
-    "game": "nba|401909957",
-    "date": "2026-11-09",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-10T01:30Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Nuggets @ Rockets",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 165,
-    "title": "Nuggets 1Q ML",
-    "est": 0.413,
-    "edge": 0.0356,
-    "agree": 3,
-    "sample": 8,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 1,
-    "streakTeam": "den",
-    "angles": [
-     [
-      "Nuggets 1Q ML on the road",
-      "3-1"
-     ],
-     [
-      "Nuggets 1Q ML, season",
-      "5-3"
-     ],
-     [
-      "Nuggets 1Q ML, last 8",
-      "5-3"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Nuggets"
-   },
-   {
     "id": "nba|401909955|1h|ml|away",
     "game": "nba|401909955",
     "date": "2026-11-09",
@@ -5083,10 +5037,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 115,
+    "price": 114,
     "title": "Grizzlies 1H ML",
-    "est": 0.4992,
-    "edge": 0.0341,
+    "est": 0.501,
+    "edge": 0.0337,
     "agree": 3,
     "sample": 8,
     "tier": "C",
