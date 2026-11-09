@@ -5063,52 +5063,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "NY Islanders"
-   },
-   {
-    "id": "nba|401909955|1h|ml|away",
-    "game": "nba|401909955",
-    "date": "2026-11-09",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-10T00:30Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Grizzlies @ Raptors",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 110,
-    "title": "Grizzlies 1H ML",
-    "est": 0.508,
-    "edge": 0.0318,
-    "agree": 3,
-    "sample": 8,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": -2,
-    "streakTeam": "mem",
-    "angles": [
-     [
-      "Grizzlies 1H ML on the road",
-      "3-0-1"
-     ],
-     [
-      "Grizzlies 1H ML, season",
-      "6-2-1"
-     ],
-     [
-      "Grizzlies 1H ML, last 8",
-      "5-2-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Grizzlies"
    }
   ]
  }
