@@ -4891,16 +4891,14 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": -105,
+    "price": -108,
     "title": "Lakers 1Q ML",
-    "est": 0.5656,
-    "edge": 0.0534,
+    "est": 0.5709,
+    "edge": 0.0517,
     "agree": 4,
     "sample": 10,
     "tier": "B",
-    "tags": [
-     "Dog Hunter"
-    ],
+    "tags": [],
     "streak": 1,
     "streakTeam": "lal",
     "angles": [
