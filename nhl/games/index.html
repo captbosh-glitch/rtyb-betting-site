@@ -1718,13 +1718,14 @@
 
   var MARKETS = {
     win:  { label: 'Moneyline', key: 'w',  desc: '1P Win %' },
+    ml3:  { label: '3-way', key: 'ml3', desc: '1P 3-way Win % (a tie loses)' },
     o05:  { label: 'Over 0.5', key: 'o05', desc: 'Over 0.5 goals' },
     o15:  { label: 'Over 1.5', key: 'o15', desc: 'Over 1.5 goals' },
     o25:  { label: 'Over 2.5', key: 'o25', desc: 'Over 2.5 goals' },
     btts: { label: 'BTTS',     key: 'btts', desc: 'Both teams to score', noTies: true },
   };
   var state = { market: 'win', side: 'Both', sortKey: 'units', sortDir: -1, search: '' };
-  var UNIT_MARKETS = { win: 1, o15: 1, btts: 1 }; // Over 0.5 / 2.5 are record-only (no odds yet)
+  var UNIT_MARKETS = { win: 1, ml3: 1, o15: 1, btts: 1 }; // Over 0.5 / 2.5 are record-only (no odds yet)
 
   // ---- Units: every bet risks 1u ($100), 1st-period markets ----
   // Win at negative odds: 100/|odds|; at positive odds: odds/100; even
@@ -2177,24 +2178,29 @@
   // 'Home' or 'Away'. W/L/T is from the bettor's side: Moneyline = this
   // team, Over markets = the Over, BTTS = Yes.
   function teamMarketAgg(log, side, market) {
-    var r = { gp: 0, w: 0, l: 0, t: 0, units: UNIT_MARKETS[market] ? 0 : null };
+    var r = { gp: 0, w: 0, l: 0, t: 0, d: 0, priced: 0, units: UNIT_MARKETS[market] ? 0 : null };
     log.forEach(function(e) {
       if (side !== 'Both' && e.side !== side) return;
       var total = e.p1t + e.p1o, res, price;
       if (market === 'win') { res = e.p1t > e.p1o ? 'W' : e.p1t < e.p1o ? 'L' : 'T'; price = e.ml; }
+      // 3-way: a tied period is a loss (r.d counts them for Tie %, how often the tie bet won)
+      else if (market === 'ml3') { res = e.p1t > e.p1o ? 'W' : 'L'; if (e.p1t === e.p1o) r.d++; price = e.ml3; }
       else if (market === 'o15') { res = total > 1 ? 'W' : 'L'; price = e.overPrice; }
       else if (market === 'btts') { res = e.btts ? 'W' : 'L'; price = e.bttsYesPrice; }
       else if (market === 'o05') res = total > 0 ? 'W' : 'L';
       else res = total > 2 ? 'W' : 'L';
       r.gp++;
       if (res === 'W') r.w++; else if (res === 'L') r.l++; else r.t++;
-      if (r.units !== null) {
+      // units only on games with a saved price (a loss without one isn't -1u,
+      // the same rule as every other record on the site)
+      if (r.units !== null && oddsNum(price) !== null) {
         var u = betUnits(res, price);
-        if (u !== null) r.units += u;
+        if (u !== null) { r.units += u; r.priced++; }
       }
     });
+    if (market === 'ml3' && !r.priced) r.units = null;   // 3-way prices only since Nov 2026
     r.pct = winPct(r.w, r.l, r.t);   // ties count as games played (only 'win' has them)
-    r.tiePct = market === 'win' ? tiePct(r.w, r.l, r.t) : null;
+    r.tiePct = market === 'win' ? tiePct(r.w, r.l, r.t) : market === 'ml3' ? (r.gp ? r.d / r.gp : null) : null;
     r.rec = market === 'win' ? (r.w + '-' + r.l + '-' + r.t) : (r.w + '-' + r.l);
     return r;
   }
@@ -2228,9 +2234,9 @@
       return (va - vb) * state.sortDir;
     });
     // the moneyline is the only market with ties: its record is W-L-T, with a Tie % column
-    var isMl = state.market === 'win', table = document.getElementById('leagueTable');
+    var isMl = state.market === 'win' || state.market === 'ml3', table = document.getElementById('leagueTable');
     table.querySelector('th.col-tie').hidden = !isMl;
-    table.querySelector('th[data-sort="wins"]').firstChild.nodeValue = isMl ? 'W-L-T' : 'W-L';
+    table.querySelector('th[data-sort="wins"]').firstChild.nodeValue = state.market === 'win' ? 'W-L-T' : 'W-L';
     if (!rows.length) {
       tbody.innerHTML = '<tr><td colspan="' + (isMl ? 5 : 4) + '"><div class="empty-state">No teams match &ldquo;' + escapeHtml(state.search) + '&rdquo;.</div></td></tr>';
       return;
@@ -2884,6 +2890,9 @@
     var pa = oddsNum(ml[g.away]), ph = oddsNum(ml[g.home]), po = oddsNum(t.over), pu = oddsNum(t.under), py = oddsNum(o.btts_yes), pn = oddsNum(o.btts_no);
     var u = {};
     if (pa !== null && ph !== null) u.su = [betUnits(su, pa), betUnits({ W: 'L', L: 'W' }[su] || su, ph)];
+    var m3 = o.ml3 || {}, ta = oddsNum(m3.away), th = oddsNum(m3.home), td = oddsNum(m3.draw);
+    if (ta !== null && th !== null && td !== null)   // 3-way: a tie loses both teams, wins the tie
+      u.ml3 = [betUnits(su === 'W' ? 'W' : 'L', ta), betUnits(su === 'L' ? 'W' : 'L', th), betUnits(su === 'T' ? 'W' : 'L', td)];
     if (po !== null && pu !== null) u.tot = [betUnits(tot === 'O' ? 'W' : 'L', po), betUnits(tot === 'U' ? 'W' : 'L', pu)];
     if (py !== null && pn !== null) u.btts = [betUnits(btts === 'Y' ? 'W' : 'L', py), betUnits(btts === 'N' ? 'W' : 'L', pn)];
     out.res = { '1p': { sc: [a, h], su: su, tot: tot, btts: btts, u: u } };
@@ -3339,18 +3348,18 @@
 
     // Season Markets: win % and units per market, tinted by units --
     // green > +0.25u, yellow -0.25u to +0.25u, red < -0.25u, gray with no games.
-    var TILE_MARKETS = [['win', 'Moneyline'], ['o15', 'Over 1.5'], ['btts', 'BTTS']];
+    var TILE_MARKETS = [['win', 'Moneyline'], ['ml3', '3-way'], ['o15', 'Over 1.5'], ['btts', 'BTTS']];
     document.getElementById('teamMarketTiles').innerHTML = TILE_MARKETS.map(function(m) {
       var r = teamMarketAgg(fullLog, 'Both', m[0]);
       if (!r.gp) {
         return '<div class="stat-tile t-none"><div class="lbl">' + m[1] + '</div><div class="val">&ndash;</div></div>';
       }
-      var u = roundUnits(r.units);
-      var tint = u > 0.25 ? 't-good' : u >= -0.25 ? 't-warn' : 't-bad';
+      var u = r.units === null ? 0 : roundUnits(r.units);
+      var tint = r.units === null ? 't-none' : u > 0.25 ? 't-good' : u >= -0.25 ? 't-warn' : 't-bad';
       var pct = r.pct === null ? '&mdash;' : Math.round(r.pct * 100) + '%';
-      var tie = r.tiePct === null ? '' : '<div class="tile-tie mono">' + r.w + '-' + r.l + '-' + r.t + ' &middot; Tie ' + Math.round(r.tiePct * 100) + '%</div>';
+      var tie = r.tiePct === null ? '' : '<div class="tile-tie mono">' + r.rec + ' &middot; Tie ' + Math.round(r.tiePct * 100) + '%</div>';
       return '<div class="stat-tile ' + tint + '"><div class="lbl">' + m[1] + (r.tiePct === null ? '' : ' win %') + '</div>' +
-        '<div class="val">' + pct + '<span class="u-inline">' + fmtUnits(r.units) + '</span></div>' + tie + '</div>';
+        '<div class="val">' + pct + '<span class="u-inline">' + (r.units === null ? '&mdash;' : fmtUnits(r.units)) + '</span></div>' + tie + '</div>';
     }).join('');
 
     // Home / Away splits, records or units.
