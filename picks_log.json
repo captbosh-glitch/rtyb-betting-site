@@ -5069,48 +5069,6 @@
  "2026-11-10": {
   "plays": [
    {
-    "id": "ncaaf|401866458|1q|ml|home",
-    "game": "ncaaf|401866458",
-    "date": "2026-11-10",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-11-11T00:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "W Michigan @ Akron",
-    "href": "college-football/games/",
-    "market": "ml",
-    "side": "home",
-    "line": null,
-    "price": 280,
-    "title": "Akron 1Q ML",
-    "est": 0.303,
-    "edge": 0.0399,
-    "agree": 2,
-    "sample": 6,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": -1,
-    "streakTeam": "akron-zips",
-    "angles": [
-     [
-      "Akron 1Q ML at home",
-      "2-1-1"
-     ],
-     [
-      "Akron 1Q ML, last 8",
-      "3-2-3"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Akron"
-   },
-   {
     "id": "ncaaf|401866460|1q|ats|away",
     "game": "ncaaf|401866460",
     "date": "2026-11-10",
@@ -5156,6 +5114,48 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Ohio"
+   },
+   {
+    "id": "ncaaf|401866458|1q|ml|home",
+    "game": "ncaaf|401866458",
+    "date": "2026-11-10",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-11T00:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "W Michigan @ Akron",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 260,
+    "title": "Akron 1Q ML",
+    "est": 0.3152,
+    "edge": 0.0374,
+    "agree": 2,
+    "sample": 6,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "akron-zips",
+    "angles": [
+     [
+      "Akron 1Q ML at home",
+      "2-1-1"
+     ],
+     [
+      "Akron 1Q ML, last 8",
+      "3-2-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Akron"
    },
    {
     "id": "nhl|2026020287|1p|total|over",
