@@ -5335,6 +5335,56 @@
     "streakTeamName": "Clippers"
    },
    {
+    "id": "nhl|2026020291|1p|ml|away",
+    "game": "nhl|2026020291",
+    "date": "2026-11-10",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-11T00:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "New Jersey @ Winnipeg",
+    "href": "nhl/games/?date=2026-11-10",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": -130,
+    "title": "New Jersey 1P ML",
+    "est": 0.5966,
+    "edge": 0.0314,
+    "agree": 4,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Chalk Eater"
+    ],
+    "streak": 0,
+    "streakTeam": "NJ",
+    "angles": [
+     [
+      "Winnipeg\u2019s opponents 1P ML, Winnipeg at home",
+      "3-1-5"
+     ],
+     [
+      "New Jersey 1P ML, season",
+      "6-3-9"
+     ],
+     [
+      "New Jersey 1P ML on the road",
+      "2-1-5"
+     ],
+     [
+      "New Jersey 1P ML, last 8",
+      "3-2-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "New Jersey"
+   },
+   {
     "id": "nhl|2026020287|1p|total|over",
     "game": "nhl|2026020287",
     "date": "2026-11-10",
@@ -5384,56 +5434,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Montreal"
-   },
-   {
-    "id": "nhl|2026020291|1p|ml|away",
-    "game": "nhl|2026020291",
-    "date": "2026-11-10",
-    "sport": "nhl",
-    "label": "NHL",
-    "slug": "nhl",
-    "start": "2026-11-11T00:00:00Z",
-    "seg": "1p",
-    "segTag": "1P",
-    "matchup": "New Jersey @ Winnipeg",
-    "href": "nhl/games/?date=2026-11-10",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": -132,
-    "title": "New Jersey 1P ML",
-    "est": 0.5995,
-    "edge": 0.0305,
-    "agree": 4,
-    "sample": 9,
-    "tier": "C",
-    "tags": [
-     "Chalk Eater"
-    ],
-    "streak": 0,
-    "streakTeam": "NJ",
-    "angles": [
-     [
-      "Winnipeg\u2019s opponents 1P ML, Winnipeg at home",
-      "3-1-5"
-     ],
-     [
-      "New Jersey 1P ML, season",
-      "6-3-9"
-     ],
-     [
-      "New Jersey 1P ML on the road",
-      "2-1-5"
-     ],
-     [
-      "New Jersey 1P ML, last 8",
-      "3-2-3"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "New Jersey"
    }
   ]
  }
