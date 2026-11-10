@@ -5063,57 +5063,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "NY Islanders"
-   },
-   {
-    "id": "nba|401909959|1q|ats|away",
-    "game": "nba|401909959",
-    "date": "2026-11-09",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-10T03:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Pelicans @ Warriors",
-    "href": "nba/games/",
-    "market": "ats",
-    "side": "away",
-    "line": 3.5,
-    "price": -102,
-    "title": "Pelicans 1Q +3.5",
-    "est": 0.5362,
-    "edge": 0.0312,
-    "agree": 4,
-    "sample": 10,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter",
-     "Streak Rider"
-    ],
-    "streak": 5,
-    "streakTeam": "no",
-    "angles": [
-     [
-      "Pelicans 1Q ATS at +3.5 on the road",
-      "4-0"
-     ],
-     [
-      "Warriors\u2019s opponents 1Q ATS at +3.5, Warriors at home",
-      "5-1"
-     ],
-     [
-      "Pelicans 1Q ATS at +3.5, last 8",
-      "6-2"
-     ],
-     [
-      "Pelicans 1Q ATS at +3.5, season",
-      "7-3"
-     ]
-    ],
-    "info": "Pelicans avg 1Q margin on the road: +3.5",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Pelicans"
    }
   ]
  }
