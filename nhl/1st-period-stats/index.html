@@ -844,6 +844,7 @@
   .sit-scroll .sit-wrap { overflow-x: auto; }
   .sit-scroll .sit-table th.sit-label, .sit-scroll .sit-table td.sit-label { position: sticky; left: 0; z-index: 1; background: var(--panel); }
   .sit-scroll .sit-table tr.sit-group td { background: var(--panel-2); }
+  .sit-table td.sit-same { text-align: center; font-size: 0.75rem; color: var(--text-muted); }
   .sit-table td.sit-label { white-space: normal; min-width: 210px; }
   .sit-group .sit-note { max-width: 320px; }
   .locked .sit-wrap, .locked .sit-mob { filter: blur(6px); user-select: none; pointer-events: none; }
@@ -1494,8 +1495,8 @@
 /*
  * NHL Situational Results registry (Stats page). Markets: 1st-period
  * Moneyline, Over 1.5 and BTTS; a tied 1st period is a push on the
- * moneyline (0 units). Favorite / underdog by the closing full-game
- * moneyline (ESPN); a pick'em is neither. Times are ET. Rows marked `own`
+ * moneyline (0 units). Favorite / underdog by the closing 1st-period
+ * moneyline, else the full-game one (ESPN); a pick'em is neither. Times are ET. Rows marked `own`
  * count each team-game from that team's side (so "After a loss" counts
  * every team coming off a loss, as the old Bounce-Back card did); the rest
  * use "View as" (home team by default).
@@ -1504,7 +1505,7 @@
   var C = { heavy: -200, scored: 5, lossBy: 3 };
   var groups = [
     { id: 'ha', label: 'Home / Away / Favorite / Underdog',
-      note: 'Away and Underdog rows are the mirror of Home and Favorite (W and L swapped, margin negated). Favorite / underdog by the closing full-game moneyline; a pick’em is neither.' },
+      note: 'Away and Underdog rows are the mirror of Home and Favorite (W and L swapped). Favorite / underdog by the closing 1st-period moneyline (the full-game one when there’s no 1P price); a pick’em is neither.' },
     { id: 'opp', label: 'Opponent' }, { id: 'drop', label: 'Puck Drop Window' }, { id: 'rest', label: 'Rest & Schedule' },
     { id: 'prev', label: 'Previous Game' }, { id: 'goalie', label: 'Goalie' },
   ];
@@ -1512,10 +1513,10 @@
   var rows = [
     { id: 'home', label: 'Home', short: 'Home', group: 'ha', own: true, def: 'Games as the home team.', test: function(c) { return c.home; } },
     { id: 'away', label: 'Away', short: 'Away', group: 'ha', own: true, def: 'Games as the road team.', test: function(c) { return !c.home; } },
-    { id: 'fav', label: 'Favorite', short: 'Fav', group: 'ha', own: true, def: 'Favored by the closing full-game moneyline.', test: function(c) { return c.fav === true; } },
-    { id: 'heavy', label: 'Heavy favorite', short: 'Heavy fav', group: 'ha', indent: 1, own: true, def: 'Closing moneyline -200 or shorter.', test: function(c) { return c.fav === true && c.favMl != null && c.favMl <= C.heavy; } },
-    { id: 'small', label: 'Small favorite', short: 'Small fav', group: 'ha', indent: 1, own: true, def: 'Closing moneyline -199 to -101.', test: function(c) { return c.fav === true && c.favMl != null && c.favMl > C.heavy && c.favMl <= -101; } },
-    { id: 'dog', label: 'Underdog', short: 'Dog', group: 'ha', own: true, def: 'The underdog by the closing full-game moneyline.', test: function(c) { return c.fav === false; } },
+    { id: 'fav', label: 'Favorite', short: 'Fav', group: 'ha', own: true, def: 'Favored by the closing 1st-period moneyline (full-game when there’s no 1P price).', test: function(c) { return c.fav === true; } },
+    { id: 'heavy', label: 'Heavy favorite', short: 'Heavy fav', group: 'ha', indent: 1, own: true, def: 'A favorite at a closing full-game moneyline of -200 or shorter.', test: function(c) { return c.fav === true && c.favMl != null && c.favMl <= C.heavy; } },
+    { id: 'small', label: 'Small favorite', short: 'Small fav', group: 'ha', indent: 1, own: true, def: 'A favorite at a closing full-game moneyline of -199 to -101.', test: function(c) { return c.fav === true && c.favMl != null && c.favMl > C.heavy && c.favMl <= -101; } },
+    { id: 'dog', label: 'Underdog', short: 'Dog', group: 'ha', own: true, def: 'The underdog by the closing 1st-period moneyline (full-game when there’s no 1P price).', test: function(c) { return c.fav === false; } },
 
     { id: 'div', label: 'Division', short: 'Div', group: 'opp', def: 'Against a division rival.', test: function(c) { return c.ti && c.oi && c.ti.division === c.oi.division; } },
     { id: 'conf', label: 'Conference', short: 'Conf', group: 'opp', def: 'Same conference, other division.', test: function(c) { return c.ti && c.oi && c.ti.conference === c.oi.conference && c.ti.division !== c.oi.division; } },
@@ -1555,7 +1556,7 @@
     { id: 'backup', label: 'Backup', short: 'Backup', group: 'goalie', own: true, def: 'Started anyone else.', test: function(c) { return c.starter === false; } },
   ];
   window.RTYB_SPLITS = window.RTYB_SPLITS || {};
-  window.RTYB_SPLITS.nhl = { config: C, groups: groups, rows: rows, favBy: 'fg-ml', periods: 3, smallSample: 10, pairUnits: 'both',
+  window.RTYB_SPLITS.nhl = { config: C, groups: groups, rows: rows, favBy: 'seg-ml', periods: 3, smallSample: 10, pairUnits: 'both',
     markets: [{ id: 'su', label: 'Moneyline' }, { id: 'ml3' }, { id: 'tot', label: 'Over 1.5', head: 'O/U 1.5', url: 'over15', pctHead: 'Over %' }, { id: 'btts', label: 'BTTS', url: 'btts' }],
     perspectives: [['home', 'Home team'], ['fav', 'Favorite']] };
 })();
@@ -1665,13 +1666,16 @@
     }
     function isPower(slug) { return ((src.conf || {}).power || []).indexOf(confOf(slug)) !== -1; }
     function fgLine(g, side) { return g.fs == null ? null : side === 'home' ? g.fs : -g.fs; }
-    // full-game favorite: by the registry's rule
+    function mlFav(ml) {
+      ml = ml || {};
+      if (typeof ml.away !== 'number' || typeof ml.home !== 'number' || ml.away === ml.home) return null;
+      return implied(ml.away) > implied(ml.home) ? 'away' : 'home';
+    }
+    // the favorite, by the registry's rule: 'seg-ml' = the segment's own
+    // moneyline, else the full-game one; 'fg-ml' = the full-game moneyline
     function fullFav(g, k) {
-      if (REG.favBy === 'fg-ml') {
-        var ml = g.fml || {};
-        if (typeof ml.away !== 'number' || typeof ml.home !== 'number' || ml.away === ml.home) return null;
-        return implied(ml.away) > implied(ml.home) ? 'away' : 'home';
-      }
+      if (REG.favBy === 'seg-ml') return mlFav(((g.odds || {})[k] || {}).ml) || mlFav(g.fml);
+      if (REG.favBy === 'fg-ml') return mlFav(g.fml);
       if (REG.favBy === 'fg-spread') return g.fs ? (g.fs < 0 ? 'home' : 'away') : null;
       // football: the segment's own line, else the full-game spread
       return segFav((g.odds || {})[k]) || (g.fs ? (g.fs < 0 ? 'home' : 'away') : null);
@@ -1800,11 +1804,11 @@
     }
 
     function agg(list) {
-      var a = { gp: 0, marg: 0, lined: 0 };
+      var a = { gp: 0, lined: 0 };
       markets.forEach(function(m) { a[m.id] = { a: 0, b: 0, p: 0, d: 0, n: 0, ua: 0, ub: 0, na: 0, nb: 0 }; });
       list.forEach(function(e) {
         var r = e.r;
-        a.gp++; a.marg += r.margin; if (r.lined) a.lined++;
+        a.gp++; if (r.lined) a.lined++;
         markets.forEach(function(m) {
           var x = a[m.id], v = r[m.id];
           if (v == null) return;
@@ -1902,7 +1906,13 @@
       var confShort = conf ? (((src.conf || {}).short || {})[conf] || conf) : '';
       var who = view.mode !== 'league' ? '' : conf ? 'as ' + confShort + ' teams' : 'as ' + (st.persp === 'fav' ? 'favorite' : 'home team');
       var sel = markets.filter(function(m) { return m.id === st.market; })[0];
-      var order = [sel].concat(markets.filter(function(m) { return m !== sel; }));
+      // mirrored rows (league view, both sides of every game): a game-level
+      // market (O/U, BTTS) reads the same on Away as on Home, so say so once
+      var MIRROR = {};
+      if (view.mode === 'league' && !conf && sel.pair) {
+        var pairs = { away: 'home', dog: 'fav', d1: 'f1', d4: 'f4', d8: 'f8' };
+        REG.rows.forEach(function(r) { if (r && pairs[r.id]) MIRROR[r.id] = (REG.rows.filter(function(x) { return x && x.id === pairs[r.id]; })[0] || {}).label; });
+      }
       var segLabel = src.segments.length > 1 ? '' : '<span class="sit-seglabel">' + esc(src.segments[0].label) + '</span>';
 
       // controls
@@ -1935,7 +1945,6 @@
         var useA = x.na && (!x.nb || x.ua >= x.ub);
         return pill(useA ? x.ua : x.ub, useA ? x.na : x.nb, (useA ? m.pair[0] : m.pair[1]) + ' ');
       }
-      function marg(a) { if (!a.gp) return '&mdash;'; var mm = Math.round(10 * a.marg / a.gp) / 10; return (mm > 0 ? '+' : '') + mm.toFixed(1); }
       function desc(row) {
         var d = typeof row.def === 'function' ? row.def(C, { cuts: (src.totalCuts || {})[k] }) : row.def;
         return d;
@@ -1946,20 +1955,23 @@
           '<span class="sit-desc">' + esc(desc(row)) + (who && (conf || !row.own) ? ' &middot; ' + who : '') + '</span></td>';
       }
       function cells(row, a) {
-        var x0 = a[sel.id], p = pctOf(sel, x0), cov = a.gp ? a.lined / a.gp : 0;
-        var h = labelCell(row, a) + '<td class="num mono' + (a.gp && a.gp < 5 ? ' amber' : '') + '">' + (a.gp || '&mdash;') + '</td>' +
-          '<td class="num mono sit-sel">' + recTxt(sel, x0) + '</td>' +
+        var x0 = a[sel.id], p = pctOf(sel, x0);
+        var h = labelCell(row, a) + '<td class="num mono' + (a.gp && a.gp < 5 ? ' amber' : '') + '">' + (a.gp || '&mdash;') + '</td>';
+        if (MIRROR[row.id]) return h + '<td class="num sit-same" colspan="3">Same games as ' + MIRROR[row.id] + '</td>' + oddsCell(a);
+        h += '<td class="num mono sit-sel">' + recTxt(sel, x0) + '</td>' +
           '<td class="num"><div class="pct-cell"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div></td>' +
           (isSu ? '<td class="num mono">' + (tieOf(x0) == null ? '&mdash;' : tieOf(x0) + '%') + '</td>' : '') +
           '<td class="num">' + unitsOf(sel, x0) + '</td>';
-        order.slice(1).forEach(function(m) { var x = a[m.id]; h += '<td class="num mono">' + recTxt(m, x) + '</td><td class="num">' + unitsOf(m, x) + '</td>'; });
-        return h + '<td class="num mono">' + marg(a) + '</td>' +
-          '<td class="num mono' + (a.gp && cov < 0.8 ? ' amber' : '') + '">' + (a.gp ? a.lined + '/' + a.gp : '&mdash;') + '</td>';
+        return h + oddsCell(a);
       }
-      var ncol = 6 + (isSu ? 1 : 0) + 2 * (order.length - 1) + 2;
+      function oddsCell(a) {
+        var cov = a.gp ? a.lined / a.gp : 0;
+        return '<td class="num mono' + (a.gp && cov < 0.8 ? ' amber' : '') + '">' + (a.gp ? a.lined + '/' + a.gp : '&mdash;') + '</td>';
+      }
+      // only the picked market's columns (the toggle switches markets)
+      var ncol = 6 + (isSu ? 1 : 0);
       var thead = '<tr><th class="sit-label">Split</th><th class="num">GP</th><th class="num">' + esc(sel.head) + '</th><th class="num">' + esc(sel.pctHead) +
-        '</th>' + (isSu ? '<th class="num">Tie %</th>' : '') + '<th class="num">Units</th>' + order.slice(1).map(function(m) { return '<th class="num">' + esc(m.head) + '</th><th class="num">' + esc(m.label) + ' Units</th>'; }).join('') +
-        '<th class="num">Avg Margin</th><th class="num">Odds</th></tr>';
+        '</th>' + (isSu ? '<th class="num">Tie %</th>' : '') + '<th class="num">Units</th><th class="num">Odds</th></tr>';
       var body = groups.map(function(G) {
         // the title sits in the pinned first column; the rest of the row is filler
         return '<tr class="sit-group"><td class="sit-label">' + esc(G.group.label) +
@@ -1985,8 +1997,7 @@
                 '</span><span class="sit-chev" aria-hidden="true">&#9662;</span></summary>' +
                 '<div class="sit-mbody"><p>' + esc(desc(x.row)) + '</p>' +
                   '<div class="pct-cell"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div>' +
-                  '<div class="sit-m3">' + markets.map(function(m) { var xx = a[m.id]; return '<div><b>' + esc(m.label) + '</b><span class="mono">' + recTxt(m, xx) + '</span>' + unitsOf(m, xx) + '</div>'; }).join('') +
-                  '<div><b>Margin</b><span class="mono">' + marg(a) + '</span></div></div>' +
+                  '<div class="sit-m3">' + markets.map(function(m) { var xx = a[m.id]; return '<div><b>' + esc(m.label) + '</b><span class="mono">' + recTxt(m, xx) + '</span>' + unitsOf(m, xx) + '</div>'; }).join('') + '</div>' +
                   '<div class="sit-mfoot' + (a.gp < 5 || (a.gp && a.lined / a.gp < 0.8) ? ' amber' : '') + '">' + a.gp + ' game' + (a.gp === 1 ? '' : 's') + ' &middot; ' + a.lined + ' with closing lines</div></div></details>';
             }).join('') +
             (G.hidden.length ? '<div class="sit-notyet">Not yet: ' + G.hidden.map(function(r) { return esc(r.short); }).join(' &middot; ') + '</div>' : '') + '</div>';
@@ -2866,10 +2877,22 @@
     return isNaN(n) ? null : n;
   }
   function isGameOver(g) { return g.state === 'FINAL' || g.state === 'OFF'; }
+  // The favorite, everywhere on the NHL pages (and the Situational table's
+  // 'seg-ml' rule): the shorter closing 1st-period moneyline, else the
+  // full-game one. null for a pick'em or no price.
+  function favSideOf(g) {
+    var ml = (g.odds || {}).ml || {}, f = g.fgMl || {};
+    var pairs = [[oddsNum(ml[g.away]), oddsNum(ml[g.home])], [oddsNum(f.away), oddsNum(f.home)]];
+    for (var i = 0; i < pairs.length; i++) {
+      var a = pairs[i][0], h = pairs[i][1];
+      if (a !== null && h !== null && a !== h) return h < a ? 'home' : 'away';
+    }
+    return null;
+  }
 
   // Daily results: one row per tracked side, graded off the 1st period --
-  // Home (the home team's moneyline), Favorites (the moneyline favorite;
-  // only games with saved prices for both sides), Over 1.5 and BTTS Yes.
+  // Home (the home team's moneyline), Favorites (favSideOf; only games with
+  // saved 1P prices for both sides), Over 1.5 and BTTS Yes.
   // Units = $100 on that side every game at its listed price.
   function computeDailySummary(games) {
     var finals = games.filter(hasP1Result);
@@ -2885,10 +2908,10 @@
     finals.forEach(function(g) {
       var odds = g.odds || {}, ml = odds.ml || {};
       add(home, g.homeP1 > g.awayP1 ? 'W' : g.homeP1 < g.awayP1 ? 'L' : 'T', ml[g.home]);
-      var pa = oddsNum(ml[g.away]), ph = oddsNum(ml[g.home]);
-      if (pa !== null && ph !== null && pa !== ph) {
+      var pa = oddsNum(ml[g.away]), ph = oddsNum(ml[g.home]), fs = favSideOf(g);
+      if (pa !== null && ph !== null && fs) {
         favGames++;
-        var favHome = ph < pa;
+        var favHome = fs === 'home';
         var fP1 = favHome ? g.homeP1 : g.awayP1, dP1 = favHome ? g.awayP1 : g.homeP1;
         add(fav, fP1 > dP1 ? 'W' : fP1 < dP1 ? 'L' : 'T', favHome ? ph : pa);
       }
@@ -2959,13 +2982,15 @@
       else if (g.awayP1 > g.homeP1) { ha.away++; ha.uAway += w(ml[g.away]); ha.uHome -= 1; }
       else ha.tie++;
 
-      var pa = oddsNum(ml[g.away]), ph = oddsNum(ml[g.home]);
-      if (pa !== null && ph !== null && pa !== ph) {
-        var favHome = ph < pa;
+      // favorite by favSideOf, the same rule as the Situational table
+      var pa = oddsNum(ml[g.away]), ph = oddsNum(ml[g.home]), fs = favSideOf(g);
+      if (fs) {
+        var favHome = fs === 'home', priced = pa !== null && ph !== null;
         var fP1 = favHome ? g.homeP1 : g.awayP1, dP1 = favHome ? g.awayP1 : g.homeP1;
         var fPrice = favHome ? ph : pa, dPrice = favHome ? pa : ph;
-        if (fP1 > dP1) { fd.fav++; fd.uFav += w(fPrice); fd.uDog -= 1; }
-        else if (dP1 > fP1) { fd.dog++; fd.uDog += w(dPrice); fd.uFav -= 1; }
+        // units only with both 1P prices saved, like the Situational table
+        if (fP1 > dP1) { fd.fav++; if (priced) { fd.uFav += w(fPrice); fd.uDog -= 1; } }
+        else if (dP1 > fP1) { fd.dog++; if (priced) { fd.uDog += w(dPrice); fd.uFav -= 1; } }
         else fd.tie++;
       }
 
@@ -3037,7 +3062,8 @@
         block('Moneyline (F/D)', [['Favorite', b.fd.fav], ['Underdog', b.fd.dog], ['Tie', b.fd.tie]], [['Fav', b.fd.uFav], ['Dog', b.fd.uDog]]) +
         block('Over 1.5 (O/U)', [['Over', b.ou.over], ['Under', b.ou.under]], [['Over', b.ou.uOver], ['Under', b.ou.uUnder]]) +
         block('BTTS (Y/N)', [['Yes', b.yn.yes], ['No', b.yn.no]], [['Yes', b.yn.uYes], ['No', b.yn.uNo]]) +
-      '</div>';
+      '</div>' +
+      '<p class="sc-note">Favorite = the closing 1st-period moneyline favorite (the full-game favorite when there&rsquo;s no 1P price), the same as the Situational table.</p>';
     el.querySelectorAll('[data-sc-mode]').forEach(function(btn) {
       btn.addEventListener('click', function() {
         seasonCardMode = btn.getAttribute('data-sc-mode');
@@ -3133,8 +3159,7 @@
         over: oddsNum(tot.over), under: oddsNum(tot.under),
         yes: oddsNum(odds.btts_yes), no: oddsNum(odds.btts_no)
       };
-      G.favSide = (G.price.away !== null && G.price.home !== null && G.price.away !== G.price.home)
-        ? (G.price.home < G.price.away ? 'home' : 'away') : null;
+      G.favSide = (G.price.away !== null && G.price.home !== null) ? favSideOf(g) : null;
 
       // Per-side context from the team's previous game this season.
       ['away', 'home'].forEach(function(side) {
@@ -3258,7 +3283,7 @@
   // Card 1 uses every finished 0-0 game; cards 2-4 need the saved 2nd / 3rd
   // period scores (fetch_schedule.py / backfill_periods.py). Full-game
   // totals include OT goals and the shootout winner (the final score), the
-  // way sportsbooks grade them. "1P favorite" = shorter closing 1P moneyline.
+  // way sportsbooks grade them. Favorite = favSideOf (1P moneyline, else full-game).
   function intermissionPool() {
     var done = rtybStats().current.filter(function(G) { return G.done && G.src.awayFinal != null && G.src.homeFinal != null; });
     var zero = done.filter(function(G) { return G.aP1 === 0 && G.hP1 === 0; });
@@ -3290,8 +3315,8 @@
           { label: 'First 2P goal: Home', count: countWhere(p2, function(G) { return G.src.firstGoal2P === 'home'; }), of: n2 },
           { label: 'First 2P goal: Road', count: countWhere(p2, function(G) { return G.src.firstGoal2P === 'away'; }), of: n2 },
           { label: 'No 2P goal', count: countWhere(p2, function(G) { return !G.src.firstGoal2P; }), of: n2 },
-          { label: 'First 2P goal: 1P Favorite', count: countWhere(priced, function(G) { return G.src.firstGoal2P === G.favSide; }), of: np },
-          { label: 'First 2P goal: 1P Underdog', count: countWhere(priced, function(G) { return G.src.firstGoal2P && G.src.firstGoal2P !== G.favSide; }), of: np }
+          { label: 'First 2P goal: Favorite', count: countWhere(priced, function(G) { return G.src.firstGoal2P === G.favSide; }), of: np },
+          { label: 'First 2P goal: Underdog', count: countWhere(priced, function(G) { return G.src.firstGoal2P && G.src.firstGoal2P !== G.favSide; }), of: np }
         ],
         note: gamesTxt(n2) + ' · favorite rows: ' + pricedNote },
       { title: 'Finish', subtitle: 'How 0-0 starts end', n: n2, bars: true,
@@ -3300,7 +3325,7 @@
           { label: 'Went to OT', count: countWhere(p2, function(G) { return G.src.ot === 'OT'; }), of: n2 },
           { label: 'Went to a shootout', count: countWhere(p2, function(G) { return G.src.ot === 'SO'; }), of: n2 },
           { label: 'Home team won', count: countWhere(p2, function(G) { return G.src.homeFinal > G.src.awayFinal; }), of: n2 },
-          { label: '1P favorite won', count: countWhere(priced, function(G) {
+          { label: 'Favorite won', count: countWhere(priced, function(G) {
             return (G.favSide === 'home') === (G.src.homeFinal > G.src.awayFinal); }), of: np }
         ],
         note: gamesTxt(n2) + ' · favorite row: ' + pricedNote }

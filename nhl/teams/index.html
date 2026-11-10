@@ -844,6 +844,7 @@
   .sit-scroll .sit-wrap { overflow-x: auto; }
   .sit-scroll .sit-table th.sit-label, .sit-scroll .sit-table td.sit-label { position: sticky; left: 0; z-index: 1; background: var(--panel); }
   .sit-scroll .sit-table tr.sit-group td { background: var(--panel-2); }
+  .sit-table td.sit-same { text-align: center; font-size: 0.75rem; color: var(--text-muted); }
   .sit-table td.sit-label { white-space: normal; min-width: 210px; }
   .sit-group .sit-note { max-width: 320px; }
   .locked .sit-wrap, .locked .sit-mob { filter: blur(6px); user-select: none; pointer-events: none; }
@@ -2381,10 +2382,22 @@
     return isNaN(n) ? null : n;
   }
   function isGameOver(g) { return g.state === 'FINAL' || g.state === 'OFF'; }
+  // The favorite, everywhere on the NHL pages (and the Situational table's
+  // 'seg-ml' rule): the shorter closing 1st-period moneyline, else the
+  // full-game one. null for a pick'em or no price.
+  function favSideOf(g) {
+    var ml = (g.odds || {}).ml || {}, f = g.fgMl || {};
+    var pairs = [[oddsNum(ml[g.away]), oddsNum(ml[g.home])], [oddsNum(f.away), oddsNum(f.home)]];
+    for (var i = 0; i < pairs.length; i++) {
+      var a = pairs[i][0], h = pairs[i][1];
+      if (a !== null && h !== null && a !== h) return h < a ? 'home' : 'away';
+    }
+    return null;
+  }
 
   // Daily results: one row per tracked side, graded off the 1st period --
-  // Home (the home team's moneyline), Favorites (the moneyline favorite;
-  // only games with saved prices for both sides), Over 1.5 and BTTS Yes.
+  // Home (the home team's moneyline), Favorites (favSideOf; only games with
+  // saved 1P prices for both sides), Over 1.5 and BTTS Yes.
   // Units = $100 on that side every game at its listed price.
   function computeDailySummary(games) {
     var finals = games.filter(hasP1Result);
@@ -2400,10 +2413,10 @@
     finals.forEach(function(g) {
       var odds = g.odds || {}, ml = odds.ml || {};
       add(home, g.homeP1 > g.awayP1 ? 'W' : g.homeP1 < g.awayP1 ? 'L' : 'T', ml[g.home]);
-      var pa = oddsNum(ml[g.away]), ph = oddsNum(ml[g.home]);
-      if (pa !== null && ph !== null && pa !== ph) {
+      var pa = oddsNum(ml[g.away]), ph = oddsNum(ml[g.home]), fs = favSideOf(g);
+      if (pa !== null && ph !== null && fs) {
         favGames++;
-        var favHome = ph < pa;
+        var favHome = fs === 'home';
         var fP1 = favHome ? g.homeP1 : g.awayP1, dP1 = favHome ? g.awayP1 : g.homeP1;
         add(fav, fP1 > dP1 ? 'W' : fP1 < dP1 ? 'L' : 'T', favHome ? ph : pa);
       }
@@ -2474,13 +2487,15 @@
       else if (g.awayP1 > g.homeP1) { ha.away++; ha.uAway += w(ml[g.away]); ha.uHome -= 1; }
       else ha.tie++;
 
-      var pa = oddsNum(ml[g.away]), ph = oddsNum(ml[g.home]);
-      if (pa !== null && ph !== null && pa !== ph) {
-        var favHome = ph < pa;
+      // favorite by favSideOf, the same rule as the Situational table
+      var pa = oddsNum(ml[g.away]), ph = oddsNum(ml[g.home]), fs = favSideOf(g);
+      if (fs) {
+        var favHome = fs === 'home', priced = pa !== null && ph !== null;
         var fP1 = favHome ? g.homeP1 : g.awayP1, dP1 = favHome ? g.awayP1 : g.homeP1;
         var fPrice = favHome ? ph : pa, dPrice = favHome ? pa : ph;
-        if (fP1 > dP1) { fd.fav++; fd.uFav += w(fPrice); fd.uDog -= 1; }
-        else if (dP1 > fP1) { fd.dog++; fd.uDog += w(dPrice); fd.uFav -= 1; }
+        // units only with both 1P prices saved, like the Situational table
+        if (fP1 > dP1) { fd.fav++; if (priced) { fd.uFav += w(fPrice); fd.uDog -= 1; } }
+        else if (dP1 > fP1) { fd.dog++; if (priced) { fd.uDog += w(dPrice); fd.uFav -= 1; } }
         else fd.tie++;
       }
 
@@ -2552,7 +2567,8 @@
         block('Moneyline (F/D)', [['Favorite', b.fd.fav], ['Underdog', b.fd.dog], ['Tie', b.fd.tie]], [['Fav', b.fd.uFav], ['Dog', b.fd.uDog]]) +
         block('Over 1.5 (O/U)', [['Over', b.ou.over], ['Under', b.ou.under]], [['Over', b.ou.uOver], ['Under', b.ou.uUnder]]) +
         block('BTTS (Y/N)', [['Yes', b.yn.yes], ['No', b.yn.no]], [['Yes', b.yn.uYes], ['No', b.yn.uNo]]) +
-      '</div>';
+      '</div>' +
+      '<p class="sc-note">Favorite = the closing 1st-period moneyline favorite (the full-game favorite when there&rsquo;s no 1P price), the same as the Situational table.</p>';
     el.querySelectorAll('[data-sc-mode]').forEach(function(btn) {
       btn.addEventListener('click', function() {
         seasonCardMode = btn.getAttribute('data-sc-mode');
@@ -2648,8 +2664,7 @@
         over: oddsNum(tot.over), under: oddsNum(tot.under),
         yes: oddsNum(odds.btts_yes), no: oddsNum(odds.btts_no)
       };
-      G.favSide = (G.price.away !== null && G.price.home !== null && G.price.away !== G.price.home)
-        ? (G.price.home < G.price.away ? 'home' : 'away') : null;
+      G.favSide = (G.price.away !== null && G.price.home !== null) ? favSideOf(g) : null;
 
       // Per-side context from the team's previous game this season.
       ['away', 'home'].forEach(function(side) {
@@ -2773,7 +2788,7 @@
   // Card 1 uses every finished 0-0 game; cards 2-4 need the saved 2nd / 3rd
   // period scores (fetch_schedule.py / backfill_periods.py). Full-game
   // totals include OT goals and the shootout winner (the final score), the
-  // way sportsbooks grade them. "1P favorite" = shorter closing 1P moneyline.
+  // way sportsbooks grade them. Favorite = favSideOf (1P moneyline, else full-game).
   function intermissionPool() {
     var done = rtybStats().current.filter(function(G) { return G.done && G.src.awayFinal != null && G.src.homeFinal != null; });
     var zero = done.filter(function(G) { return G.aP1 === 0 && G.hP1 === 0; });
@@ -2805,8 +2820,8 @@
           { label: 'First 2P goal: Home', count: countWhere(p2, function(G) { return G.src.firstGoal2P === 'home'; }), of: n2 },
           { label: 'First 2P goal: Road', count: countWhere(p2, function(G) { return G.src.firstGoal2P === 'away'; }), of: n2 },
           { label: 'No 2P goal', count: countWhere(p2, function(G) { return !G.src.firstGoal2P; }), of: n2 },
-          { label: 'First 2P goal: 1P Favorite', count: countWhere(priced, function(G) { return G.src.firstGoal2P === G.favSide; }), of: np },
-          { label: 'First 2P goal: 1P Underdog', count: countWhere(priced, function(G) { return G.src.firstGoal2P && G.src.firstGoal2P !== G.favSide; }), of: np }
+          { label: 'First 2P goal: Favorite', count: countWhere(priced, function(G) { return G.src.firstGoal2P === G.favSide; }), of: np },
+          { label: 'First 2P goal: Underdog', count: countWhere(priced, function(G) { return G.src.firstGoal2P && G.src.firstGoal2P !== G.favSide; }), of: np }
         ],
         note: gamesTxt(n2) + ' · favorite rows: ' + pricedNote },
       { title: 'Finish', subtitle: 'How 0-0 starts end', n: n2, bars: true,
@@ -2815,7 +2830,7 @@
           { label: 'Went to OT', count: countWhere(p2, function(G) { return G.src.ot === 'OT'; }), of: n2 },
           { label: 'Went to a shootout', count: countWhere(p2, function(G) { return G.src.ot === 'SO'; }), of: n2 },
           { label: 'Home team won', count: countWhere(p2, function(G) { return G.src.homeFinal > G.src.awayFinal; }), of: n2 },
-          { label: '1P favorite won', count: countWhere(priced, function(G) {
+          { label: 'Favorite won', count: countWhere(priced, function(G) {
             return (G.favSide === 'home') === (G.src.homeFinal > G.src.awayFinal); }), of: np }
         ],
         note: gamesTxt(n2) + ' · favorite row: ' + pricedNote }

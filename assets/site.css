@@ -834,6 +834,7 @@
   .sit-scroll .sit-wrap { overflow-x: auto; }
   .sit-scroll .sit-table th.sit-label, .sit-scroll .sit-table td.sit-label { position: sticky; left: 0; z-index: 1; background: var(--panel); }
   .sit-scroll .sit-table tr.sit-group td { background: var(--panel-2); }
+  .sit-table td.sit-same { text-align: center; font-size: 0.75rem; color: var(--text-muted); }
   .sit-table td.sit-label { white-space: normal; min-width: 210px; }
   .sit-group .sit-note { max-width: 320px; }
   .locked .sit-wrap, .locked .sit-mob { filter: blur(6px); user-select: none; pointer-events: none; }
