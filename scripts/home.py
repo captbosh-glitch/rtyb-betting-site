@@ -258,8 +258,20 @@ def game_card(g, kind):
             f'{seg if kind == "results" else ""}{lines if kind == "today" else ""}</a>')
 
 
+PICK_DONE = {'LIVE': 'Live', 'W': 'Hit', 'L': 'Miss', 'P': 'Push', 'NA': 'No action'}
+
+
+def trend_pick(t, p):
+    """A pick chip: a bet only on a non-weak trend before its game starts."""
+    done = PICK_DONE.get(p.get('status'))
+    muted = done or t.get('strength') == 'weak'
+    agree = f' <span class="ht-agree">{p["agree"]} agree</span>' if (p.get('agree') or 0) > 1 else ''
+    return (f'<span class="ht-pick{" muted" if muted else ""}">{esc(p["label"])}'
+            f'{f" &middot; {done}" if done else ""}{agree}</span>')
+
+
 def trend_row(t, label):
-    picks = ''.join(f'<span class="ht-pick">{esc(p["label"])}</span>' for p in (t.get('games') or [])[:6])
+    picks = ''.join(trend_pick(t, p) for p in (t.get('games') or [])[:6])
     more = len(t.get('games') or []) - 6
     if more > 0:
         picks += f'<span class="ht-pick muted">+{more} more</span>'

@@ -168,6 +168,8 @@ body.hm-open { overflow: hidden; }
 .ht-rec { font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; font-family: 'JetBrains Mono', monospace; }
 .ht-picks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .ht-pick { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 6px; padding: 3px 7px; }
+.ht-pick.muted { color: var(--text-muted); opacity: 0.7; }
+.ht-agree { font-family: 'Source Sans 3', sans-serif; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); margin-left: 4px; }
 .ht-locked { position: relative; }
 .ht-blur { filter: blur(6px); opacity: 0.7; pointer-events: none; user-select: none; max-height: 330px; overflow: hidden; }
 .ht-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; }

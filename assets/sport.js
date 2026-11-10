@@ -928,15 +928,23 @@
   // One league trend, from the side to bet (scripts/sport_build.py +
   // trend_rules.py): plain-English title, strength label with n, the
   // bettor-side record, and pick chips that name team, market, period and
-  // line. Hit / miss / push shows only once a pick is graded. A trend that
-  // covers (nearly) the whole slate collapses to "Applies to all N games".
-  var PICK_STATUS = { W: ['Hit', 'lt-w'], L: ['Miss', 'lt-l'], P: ['Push', 'lt-pending'], NA: ['No Action', 'lt-pending'] };
+  // line. A pick is a bet only on a non-weak trend before its game starts;
+  // then it shows Live, and Hit / Miss / Push once graded. A bet several
+  // trends back says "N trends agree". A trend that covers (nearly) the
+  // whole slate collapses to "Applies to all N games".
+  var PICK_STATUS = { W: ['Hit', 'lt-w'], L: ['Miss', 'lt-l'], P: ['Push', 'lt-pending'], NA: ['No Action', 'lt-pending'], LIVE: ['Live', 'lt-pending'] };
+  function pickStatus(p) {
+    if (p.status !== 'PENDING') return p.status;
+    var g = findGame(p.key);   // started since the last data refresh
+    return g && (g.state === 'in' || g.state === 'final' || (g.start && Date.now() >= Date.parse(g.start))) ? 'LIVE' : p.status;
+  }
   function trendRow(t) {
     if (!t.kind) return '';   // an entry in the old format
     var chips = t.games.map(function(p) {
-      var st = PICK_STATUS[p.status];
-      return '<span class="lt-game"><span class="lt-pick">' + esc(p.chip || p.label) + '</span>' +
+      var st = PICK_STATUS[pickStatus(p)], bet = !st && t.strength !== 'weak';
+      return '<span class="lt-game"><span class="lt-pick' + (bet ? '' : ' muted') + '">' + esc(p.chip || p.label) + '</span>' +
         (p.why ? ' <span class="lt-why">' + esc(p.matchup) + ' · ' + esc(p.why) + '</span>' : ' <span class="lt-why">' + esc(p.matchup || '') + '</span>') +
+        (p.agree > 1 ? ' <span class="tr-agree">' + p.agree + ' trends agree</span>' : '') +
         (st ? ' <span class="lt-chip ' + st[1] + '">' + st[0] + '</span>' : '') + '</span>';
     }).join('');
     var n = t.games.length, all = t.slate_n && n >= Math.max(6, Math.ceil(t.slate_n * 0.8));
@@ -948,7 +956,7 @@
       : '<b class="mono">' + Math.round(t.rate * 100) + '%</b> hit (' + esc(t.record) + ', league ' + Math.round(t.base * 100) + '%)';
     return '<div class="lt-row' + (t.strength === 'weak' ? ' weak' : '') + '"><div class="lt-top"><span class="lt-tag">' + esc(t.market) + '</span>' +
       '<span class="lt-sentence">' + esc(t.title) + '</span>' +
-      '<span class="lt-str ' + t.strength + '">' + t.strength + '</span><span class="lt-n">n = ' + t.n + '</span></div>' +
+      '<span class="lt-str ' + t.strength + '" title="' + esc(TRR().tip || '') + '">' + t.strength + '</span><span class="lt-n">n = ' + t.n + '</span></div>' +
       '<div class="lt-rec">' + rec + (t.units != null ? ' &middot; ' + fmtUnits(t.units) : '') + '</div>' + picks + '</div>';
   }
 
@@ -1051,6 +1059,7 @@
   // SU / ATS and the league rate for totals and YRFI.
   function TRR() { return D.trendRules || { team_rate_min: 15, streak_min: 4, moderate: 1, strong: 2 }; }
   function trZ(rate, base, n) { return (rate == null || !n || base <= 0 || base >= 1) ? 0 : (rate - base) / Math.sqrt(base * (1 - base) / n); }
+  // team lines have no prices, so strength alone (trend_rules.label)
   function trLabel(z) { var R = TRR(), a = Math.abs(z); return a >= R.strong ? 'strong' : a >= R.moderate ? 'moderate' : 'weak'; }
   function teamTrendLines(slug) {
     var R = TRR(), code = team(slug).code || shortName(slug), out = [];
@@ -1132,7 +1141,7 @@
       var trendsHtml = !tl.length ? '' : section('Current Trends', '<div class="tr-game">' + tl.map(function(l) {
         return '<div class="tr-row' + (l.label === 'weak' ? ' weak' : '') + '"><span class="tr-chip ' + (l.label === 'weak' ? 'muted' : 'good') + '">' + esc(l.chip) + '</span>' +
           '<span class="tr-mk">' + esc(l.tag) + '</span><span class="tr-text">' + esc(l.text) + '</span>' +
-          '<span class="tr-meta"><span class="tr-str ' + l.label + '">' + l.label + '</span> n = ' + l.n + '</span></div>';
+          '<span class="tr-meta"><span class="tr-str ' + l.label + '" title="' + esc(TRR().tip || '') + '">' + l.label + '</span> n = ' + l.n + '</span></div>';
       }).join('') + '</div>');
       // the season's game log, every period, newest first: the last 5,
       // then Show all (NFL / NCAAF use the Situational Results log)

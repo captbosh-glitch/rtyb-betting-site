@@ -332,8 +332,8 @@ def generate_for_date(games, d):
         cands.append({'id': f'side:{key}', 'family': (pair or key) + ':ml', 'kind': 'side', 'market': 'ML',
                       'title': title, 'sentence': title, 'group': rec_group,
                       'w': rec.w, 'l': rec.l, 't': rec.t, 'record': trend_rules.record_text(rec.w, rec.l, rec.t),
-                      'rate': round(rec.rate, 4), 'base': 0.5, 'n': n, 'units': units,
-                      'z': round(z, 2), 'strength': trend_rules.label(z), 'score': abs(z), 'games': picks})
+                      'rate': round(rec.rate, 4), 'base': 0.5, 'n': n, 'units': units, 'priced': rec.priced,
+                      'z': round(z, 2), 'strength': trend_rules.label(z, units, rec.priced), 'score': abs(z), 'games': picks})
 
     # ---- game angles on Over/Under 1.5 and BTTS
     for key, phrase, streak_phrase, test, priced_only in GAME_ANGLES:
@@ -370,7 +370,8 @@ def generate_for_date(games, d):
             cands.append({'id': f'game:{key}:{tag}', 'family': f'{key}:{fam}', 'kind': 'game', 'market': tag,
                           'title': title, 'sentence': title, 'hits': r.w, 'n': n,
                           'record': f'{r.w}/{n}', 'rate': round(rate, 4), 'base': round(base, 4), 'units': units,
-                          'z': round(z, 2), 'strength': trend_rules.label(z), 'score': abs(z), 'games': picks})
+                          'priced': r.priced, 'z': round(z, 2), 'strength': trend_rules.label(z, units, r.priced),
+                          'score': abs(z), 'games': picks})
 
     # ---- rank by strength: one per angle family, a few per market, and never
     # two trends on opposite sides of the same game
@@ -397,23 +398,30 @@ def generate_for_date(games, d):
     return picked
 
 
-def grade(entry, games_by_key):
-    """Fill each tonight game's status: PENDING, or W / L / P (push) once the 1P is graded."""
-    w = l = 0
+def _started(G, now_utc):
+    src = G['src']
+    if src.get('state') in ('LIVE', 'CRIT', 'FINAL', 'OFF'):
+        return True
+    start = src.get('startTimeUTC')
+    return bool(now_utc and start and now_utc >= datetime.fromisoformat(start.replace('Z', '+00:00')))
+
+
+def grade(entry, games_by_key, now_utc=None):
+    """Fill each tonight game's status: PENDING, LIVE once the game starts
+    (no longer a bet), or W / L / P (push) once the 1P is graded; then the
+    slate's labels, agreement and record (trend_rules.finish_slate)."""
     for t in entry['trends']:
         for g in t['games']:
             G = games_by_key.get(g['key'])
             if not G or not G['graded']:
-                g['status'] = 'PENDING'
+                g['status'] = 'LIVE' if G and _started(G, now_utc) else 'PENDING'
                 continue
             if g['kind'] == 'side':
                 res = G[g['side']]['res']
             else:
                 res = GAME_MARKETS[g['market']][0](G)
             g['status'] = 'P' if res == 'T' else res
-            w += res == 'W'
-            l += res == 'L'
-    entry['record'] = {'w': w, 'l': l}
+    trend_rules.finish_slate(entry, lambda g: _pick_sig(g))
 
 
 def update_log(log, games, today_et, now_utc):
@@ -434,7 +442,7 @@ def update_log(log, games, today_et, now_utc):
             log[d] = entry
         elif started:
             entry['frozen'] = True
-        grade(entry, games_by_key)
+        grade(entry, games_by_key, now_utc)
     return log
 
 

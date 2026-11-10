@@ -722,7 +722,7 @@ def generate_for_date(sp, teams, games, d, slate=None):
                               'w': rec.w, 'l': rec.l, 't': rec.t, 'record': trend_rules.record_text(rec.w, rec.l, rec.t),
                               'rate': round(rec.rate, 4), 'base': 0.5, 'n': n,
                               'units': round(units, 2) if units is not None else None, 'priced': rec.priced,
-                              'z': round(z, 2), 'strength': trend_rules.label(z), 'score': abs(z),
+                              'z': round(z, 2), 'strength': trend_rules.label(z, units, rec.priced), 'score': abs(z),
                               'slate_n': len(tonight), 'games': picks})
         # ---- game angles (totals / NRFI)
         for key, phrase, test, priced_only in game_angles(sp):
@@ -766,7 +766,7 @@ def generate_for_date(sp, teams, games, d, slate=None):
                               'w': r.w, 'l': r.l, 't': r.t, 'record': trend_rules.record_text(r.w, r.l, r.t),
                               'rate': round(r.rate, 4), 'base': round(base, 4),
                               'units': round(units, 2) if units is not None else None, 'priced': r.priced,
-                              'z': round(z, 2), 'strength': trend_rules.label(z), 'score': abs(z),
+                              'z': round(z, 2), 'strength': trend_rules.label(z, units, r.priced), 'score': abs(z),
                               'slate_n': len(tonight), 'games': picks})
     # ---- rank by strength: one per angle family, a few per market, and
     # never two trends on opposite sides of the same game
@@ -775,8 +775,7 @@ def generate_for_date(sp, teams, games, d, slate=None):
     for c in cands:
         if c['family'] in families or per_market.get(c['market'], 0) >= CONFIG['max_per_market']:
             continue
-        sigs = [(f"{g['key']}:{g['seg']}:{'side-' + g['market'] if g['kind'] == 'side' else GAME_MARKETS[g['market']][0]}",
-                 g.get('side') or g['market']) for g in c['games']]
+        sigs = [_pick_sig(g) for g in c['games']]
         if any(taken.get(s, v) != v for s, v in sigs):
             continue
         for s, v in sigs:
@@ -792,23 +791,37 @@ def generate_for_date(sp, teams, games, d, slate=None):
     return picked
 
 
-def grade_trends(entry, by_key):
-    w = l = 0
+def _pick_sig(g):
+    """(game + segment + market family, which side of it) for one pick."""
+    fam = 'side-' + g['market'] if g['kind'] == 'side' else GAME_MARKETS[g['market']][0]
+    return (f"{g['key']}:{g['seg']}:{fam}", g.get('side') or g['market'])
+
+
+def _started(G, now_utc):
+    g = G['g']
+    if g.get('state') in ('in', 'final'):
+        return True
+    return bool(now_utc and g.get('start') and now_utc >= datetime.fromisoformat(g['start'].replace('Z', '+00:00')))
+
+
+def grade_trends(entry, by_key, now_utc=None):
+    """Each pick's status: PENDING, LIVE once its game starts (no longer a
+    bet), NA, or W / L / P once graded; then the slate's labels, agreement
+    and record (trend_rules.finish_slate)."""
     for t in entry['trends']:
         for p in t['games']:
             G = by_key.get(p['key'])
             res = G and (G['g']['_res'].get(p['seg']) or None)
             if not res or not G['graded'] or res.get('na'):
-                p['status'] = 'NA' if res and res.get('na') else 'PENDING'
+                p['status'] = ('NA' if res and res.get('na') else
+                               'LIVE' if G and _started(G, now_utc) else 'PENDING')
                 continue
             if p['kind'] == 'side':
                 r = side_res(res, p['market'], p['side'])
             else:
                 r = GAME_MARKETS[p['market']][1](res)
             p['status'] = 'P' if r in ('T', 'P') else (r or 'PENDING')
-            w += r == 'W'
-            l += r == 'L'
-    entry['record'] = {'w': w, 'l': l}
+    trend_rules.finish_slate(entry, _pick_sig)
 
 
 LOG_VERSION = 2   # trend log format; older entries are rebuilt once
@@ -862,7 +875,7 @@ def update_trends_log(sp, teams, games, log_path, now_utc):
             log[k] = entry
         elif started:
             entry['frozen'] = True
-        grade_trends(entry, by_key)
+        grade_trends(entry, by_key, now_utc)
     write_json(log_path, log)
     return log
 
