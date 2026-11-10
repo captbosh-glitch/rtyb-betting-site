@@ -1527,6 +1527,25 @@
   .sn { border-bottom: 1px solid var(--border-soft); background: var(--bg); }
   .sn-inner { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; gap: 4px; overflow-x: auto; scrollbar-width: none; }
   .sn-inner::-webkit-scrollbar { display: none; }
+  /* The Daily (scripts/daily.py): arena cards, piece pages, the index */
+  .dp-arena-wrap { max-width: 1180px; margin: 20px auto 0; padding: 0 20px; }
+  .dp-arena { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  .dp-card { display: grid; gap: 6px; align-content: start; background: var(--panel); border: 1px solid var(--border-soft); border-radius: 14px; padding: 14px 16px; color: var(--text); text-decoration: none; }
+  .dp-card:hover { border-color: var(--accent); text-decoration: none; }
+  .dp-card .hd-kicker { font: 700 0.7rem 'JetBrains Mono', monospace; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gold, #f5c542); }
+  .dp-card b { font: 800 1.15rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.02em; }
+  .dp-card .muted { color: var(--text-muted); font-size: 0.88rem; }
+  .dp-more { color: var(--accent); font-weight: 600; font-size: 0.85rem; }
+  .dp-piece { max-width: 720px; }
+  .dp-piece h1 { margin: 6px 0 4px; }
+  .dp-date { color: var(--text-muted); margin: 0 0 18px; }
+  .dp-body p { line-height: 1.65; margin: 0 0 14px; font-size: 1.04rem; }
+  .dp-21 { color: var(--text-muted); font-size: 0.85rem; margin-top: 22px; }
+  .dp-back a { color: var(--accent); }
+  .dp-list { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 10px; }
+  .dp-list a { display: grid; gap: 4px; padding: 12px 14px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--panel); color: var(--text); text-decoration: none; }
+  .dp-list a:hover { border-color: var(--accent); }
+  .dp-list .muted { color: var(--text-muted); font-size: 0.9rem; }
   .sn-sport { display: inline-flex; align-items: center; gap: 8px; margin-right: 14px; font: 800 1.15rem 'Barlow Condensed', sans-serif; text-transform: uppercase; color: var(--text); white-space: nowrap; }
   .sn-sport .sport-icon { width: 22px; height: 22px; }
   .sn-link { display: inline-flex; align-items: center; min-height: 46px; padding: 0 12px; border-bottom: 2px solid transparent;
