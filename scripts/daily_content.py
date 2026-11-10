@@ -357,7 +357,7 @@ def unchecked_numbers(body, packet):
     have = {n.lstrip('+-').rstrip('0').rstrip('.') for n in numbers_in(json.dumps(packet, ensure_ascii=False))}
     have |= {'21', '1-800', '800', '4357'}
     out = []
-    for n in numbers_in(body.replace('1-800-GAMBLER', '')):
+    for n in re.findall(r'[+-]?\d+(?:\.\d+)?', body.replace('1-800-GAMBLER', '')):   # in reading order
         k = n.lstrip('+-').rstrip('0').rstrip('.') if '.' in n else n.lstrip('+-')
         if k not in have and n not in out:
             out.append(n)
