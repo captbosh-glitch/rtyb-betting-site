@@ -5069,6 +5069,53 @@
  "2026-11-10": {
   "plays": [
    {
+    "id": "ncaaf|401866460|1q|ats|away",
+    "game": "ncaaf|401866460",
+    "date": "2026-11-10",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-11T01:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Ohio @ Miami OH",
+    "href": "college-football/games/",
+    "market": "ats",
+    "side": "away",
+    "line": -0.5,
+    "price": 140,
+    "title": "Ohio 1Q -0.5",
+    "est": 0.4558,
+    "edge": 0.0391,
+    "agree": 3,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Chalk Eater",
+     "Streak Rider"
+    ],
+    "streak": 6,
+    "streakTeam": "ohio-bobcats",
+    "angles": [
+     [
+      "Ohio 1Q ATS at -0.5 on the road",
+      "4-1"
+     ],
+     [
+      "Ohio 1Q ATS at -0.5, season",
+      "7-2"
+     ],
+     [
+      "Ohio 1Q ATS at -0.5, last 8",
+      "6-2"
+     ]
+    ],
+    "info": "Ohio avg 1Q margin on the road: +2.0",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Ohio"
+   },
+   {
     "id": "ncaaf|401866458|1q|ml|home",
     "game": "ncaaf|401866458",
     "date": "2026-11-10",
@@ -5111,51 +5158,89 @@
     "streakTeamName": "Akron"
    },
    {
-    "id": "ncaaf|401866460|1q|ats|away",
-    "game": "ncaaf|401866460",
+    "id": "nhl|2026020288|1p|btts|yes",
+    "game": "nhl|2026020288",
     "date": "2026-11-10",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-11-11T01:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Ohio @ Miami OH",
-    "href": "college-football/games/",
-    "market": "ats",
-    "side": "away",
-    "line": -0.5,
-    "price": 135,
-    "title": "Ohio 1Q -0.5",
-    "est": 0.4626,
-    "edge": 0.037,
-    "agree": 3,
-    "sample": 9,
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-11T00:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Washington @ Ottawa",
+    "href": "nhl/games/?date=2026-11-10",
+    "market": "btts",
+    "side": "yes",
+    "line": null,
+    "price": 165,
+    "title": "1P BTTS Yes",
+    "est": 0.4105,
+    "edge": 0.0332,
+    "agree": 2,
+    "sample": 18,
     "tier": "C",
     "tags": [
-     "Chalk Eater",
-     "Streak Rider"
+     "Over Lover"
     ],
-    "streak": 6,
-    "streakTeam": "ohio-bobcats",
+    "streak": 1,
+    "streakTeam": "WSH",
     "angles": [
      [
-      "Ohio 1Q ATS at -0.5 on the road",
-      "4-1"
+      "Washington 1P BTTS, last 8",
+      "5-3"
      ],
      [
-      "Ohio 1Q ATS at -0.5, season",
-      "7-2"
-     ],
-     [
-      "Ohio 1Q ATS at -0.5, last 8",
-      "6-2"
+      "Washington 1P BTTS, season",
+      "8-7"
      ]
     ],
-    "info": "Ohio avg 1Q margin on the road: +2.0",
+    "info": null,
     "status": "pending",
     "units": null,
-    "streakTeamName": "Ohio"
+    "streakTeamName": "Washington"
+   },
+   {
+    "id": "nhl|2026020287|1p|btts|yes",
+    "game": "nhl|2026020287",
+    "date": "2026-11-10",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-11T00:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Minnesota @ Montreal",
+    "href": "nhl/games/?date=2026-11-10",
+    "market": "btts",
+    "side": "yes",
+    "line": null,
+    "price": 165,
+    "title": "1P BTTS Yes",
+    "est": 0.4102,
+    "edge": 0.0328,
+    "agree": 2,
+    "sample": 19,
+    "tier": "C",
+    "tags": [
+     "Over Lover",
+     "Contrarian"
+    ],
+    "streak": -4,
+    "streakTeam": "MIN",
+    "angles": [
+     [
+      "Montreal 1P BTTS at home",
+      "6-3"
+     ],
+     [
+      "Montreal 1P BTTS, season",
+      "11-6"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Minnesota"
    },
    {
     "id": "nhl|2026020290|1p|ml|home",
