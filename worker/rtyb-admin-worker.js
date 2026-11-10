@@ -46,8 +46,8 @@
  *                         (MLB: segment "1i" carries nrfi_yrfi {yrfi, nrfi}; "f5" a 0.5 run line)
  */
 
-const REPO_OWNER = "captbosh-glitch"; // TODO confirm this is the right GitHub org/user for this repo
-const REPO_NAME = "rtyb-betting-site"; // TODO confirm this matches your actual repo name
+const REPO_OWNER = "runtoyourbets"; // GitHub org that owns the repo (moved from captbosh-glitch 2026-11)
+const REPO_NAME = "rtyb-betting-site";
 const BRANCH = "main";
 
 const CORS_HEADERS = {

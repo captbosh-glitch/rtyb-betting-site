@@ -53,7 +53,7 @@ Also double-check the two constants at the top of `worker/rtyb-admin-worker.js`
 match your actual repo:
 
 ```js
-const REPO_OWNER = "captbosh-glitch";
+const REPO_OWNER = "runtoyourbets";
 const REPO_NAME = "rtyb-betting-site"; // <- confirm this is your real repo name
 ```
 
