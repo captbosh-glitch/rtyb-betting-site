@@ -1315,13 +1315,20 @@
   }
 
   // ------------------------------------------------------------ Odds page
-  // Every book's price for games that haven't started, from {slug}/odds.json
-  // (sport_build.write_odds_page, fed by the Unabated feed). The highlighted
-  // price is the one Games and Trends use: best moneyline at the regular
-  // sportsbooks; for spreads and totals, the line most books post and the
-  // best price at it. Links carry RTYB's partner code already.
-  var MKT_CUR = null;
+  // Every top sportsbook's price for games that haven't started, from
+  // {slug}/odds.json (sport_build.write_odds_page, fed by the Unabated
+  // feed). Desktop: one table, a row per side, a column per book, after
+  // Open (the first price we saw) and Best (the price Games and Trends use:
+  // best moneyline at the regular sportsbooks; for spreads and totals the
+  // line most books post, at its best price). Phones: a card per game with
+  // the best line per side and a 'Compare N books' list. A side two or more
+  // RTYB trends back gets the RTYB badge. Links carry the partner code.
+  var MKT_CUR = null, ODDS_VIEW = 'all';
   var MKT_LABEL = { ml: 'Moneyline', ml3: '3-way ML', ats: 'Spread', total: 'Total', btts: 'BTTS' };
+  var MKT_WORD = { ml: 'moneyline', ml3: '3-way moneyline', ats: 'spread', total: 'total', btts: 'BTTS' };
+  var BOOK_ORDER = ['1', '2', '4', '80', '20', '86', '36', '118'];   // DraftKings, FanDuel, BetMGM, Caesars, Fanatics, theScore
+  // Chance a price implies: a bigger number means the price shortened.
+  function implied(p) { return p < 0 ? -p / (100 - p) : 100 / (p + 100); }
   function renderOdds() {
     fetch(ROOT + SPORT_SLUG + '/odds.json').then(function(r) { return r.ok ? r.json() : null; }).then(function(O) {
       // NHL's data.json has its own shape: its odds.json carries what this page needs
@@ -1336,49 +1343,138 @@
       var cur = dates.indexOf(want) !== -1 ? want : (dates.filter(function(d) { return d >= todayET(); })[0] || dates[0]);
       var exch = {};
       (O.exchanges || []).forEach(function(b) { exch[b] = true; });
+      var logos = O.logos || {};
       function go(d) { cur = d; setUrlDate(d); draw(); }
       function markets(k) { return (O.markets && O.markets[k]) || (hasMl(k) ? ['ml'] : []).concat(['ats', 'total']); }
-      function price(n) { return n == null ? '' : signed(n); }
-      function cell(v, best, isBest) {
-        if (!v) return '<td class="num odds-na">&ndash;</td>';
-        var txt = (v.line != null ? '<span class="odds-line">' + esc(signed(v.line)) + '</span> ' : '') + esc(price(v.price));
-        var inner = v.link ? '<a href="' + esc(v.link) + '" target="_blank" rel="sponsored noopener">' + txt + '</a>' : txt;
-        return '<td class="num odds-cell' + (isBest ? ' odds-best' : '') + '">' + inner + '</td>';
+      function code(x) { return team(x).code || shortName(x); }
+      function sides(g, m) {
+        if (m === 'total') return [['over', 'Over'], ['under', 'Under']];
+        if (m === 'btts') return [['yes', 'Yes'], ['no', 'No']];
+        if (m === 'ml3') return [['away', null], ['draw', 'Tie'], ['home', null]];
+        return [['away', null], ['home', null]];
       }
-      function gameTable(g, k, m) {
-        var books = ((g.books || {})[k] || {})[m];
-        var best = ((g.best || {})[k] || {})[m];
-        if (!books || !Object.keys(books).length) return '<div class="odds-empty">No ' + (m === 'btts' ? 'BTTS' : MKT_LABEL[m].toLowerCase()) + ' posted yet.</div>';
-        var code = function(x) { return team(x).code || shortName(x); };
-        var cols = m === 'total' ? ['over', 'under'] : m === 'ml3' ? ['away', 'draw', 'home'] : m === 'btts' ? ['yes', 'no'] : ['away', 'home'];
-        var heads = m === 'total' ? ['Over', 'Under'] : m === 'ml3' ? [code(g.away), 'Tie', code(g.home)] : m === 'btts' ? ['Yes', 'No'] : [code(g.away), code(g.home)];
-        function isBest(b, col, v) {
-          if (!best || !v) return false;
-          if (m === 'btts') return false;   // one consensus row: nothing to compare
-          if (m === 'ml3') return v.price === best[col];   // the 3-way is exchange-only on the free tier
-          if (exch[b]) return false;
-          if (m === 'ml') return v.price === best[col];
-          if (m === 'ats') return !!best[col] && v.line === best[col].line && v.price === best[col].price;
-          return v.line === best.line && v.price === best[col];
-        }
-        var ids = Object.keys(books).sort(function(a, b) {
-          return (exch[a] ? 1 : 0) - (exch[b] ? 1 : 0) || String(O.books[a]).localeCompare(String(O.books[b]));
+      // {line, price, link} for one book and side, in the same shape for every market
+      function val(row, m, s) {
+        if (!row) return null;
+        if (m === 'total') return row[s] ? { line: (s === 'over' ? 'o' : 'u') + row.line, price: row[s].price, link: row[s].link } : null;
+        return row[s] ? { line: row[s].line != null ? signed(row[s].line) : null, price: row[s].price, link: row[s].link } : null;
+      }
+      // The Best (or Open) price for a side, from g.best / g.open
+      function top(src, m, s) {
+        if (!src) return null;
+        if (m === 'total') return src[s] != null ? { line: (s === 'over' ? 'o' : 'u') + src.line, price: src[s] } : null;
+        if (m === 'ats') return src[s] ? { line: signed(src[s].line), price: src[s].price } : null;
+        return src[s] != null ? { line: null, price: src[s] } : null;
+      }
+      function same(a, b) { return !!a && !!b && a.price === b.price && a.line === b.line; }
+      function counts(b, m) { return m === 'ml3' || m === 'btts' || !exch[b]; }
+      function txt(v) { return (v.line != null ? '<span class="odds-line">' + esc(v.line) + '</span> ' : '') + esc(signed(v.price)); }
+      function bookName(b) { return O.books[b] || 'Book ' + b; }
+      function bookMark(b, small) {
+        return logos[b] ? '<img class="ob-logo' + (small ? ' sm' : '') + '" src="' + ROOT + logos[b] + '" alt="' + esc(bookName(b)) + '" title="' + esc(bookName(b)) + '">'
+          : '<span class="ob-bname">' + esc(bookName(b)) + '</span>';
+      }
+      function linked(v, inner) { return v && v.link ? '<a href="' + esc(v.link) + '" target="_blank" rel="sponsored noopener">' + inner + '</a>' : inner; }
+      // One game, one market: the rows the table and the card both draw from
+      function model(g, k, m) {
+        var books = ((g.books || {})[k] || {})[m] || {};
+        var best = ((g.best || {})[k] || {})[m], open = ((g.open || {})[k] || {})[m];
+        var agree = ((g.agree || {})[k] || {})[m] || {};
+        var rows = sides(g, m).map(function(sd) {
+          var s = sd[0], b = top(best, m, s), o = top(open, m, s), at = null, move = '';
+          Object.keys(books).sort(bookSort).some(function(id) { var v = val(books[id], m, s); if (counts(id, m) && same(v, b)) { at = { id: id, v: v }; return true; } });
+          if (b && o && b.line === o.line && b.price !== o.price) move = implied(b.price) > implied(o.price) ? 'dn' : 'up';
+          var name = sd[1] || shortName(g[s]);
+          return { s: s, name: name, code: sd[1] ? '' : code(g[s]), slug: sd[1] ? null : g[s], best: b, open: o, at: at, move: move,
+            agree: agree[s] >= 2 ? agree[s] : 0 };
         });
-        var rows = ids.map(function(b) {
-          var row = books[b];
-          var vals = cols.map(function(c) { return m === 'total' && row[c] ? { line: (c === 'over' ? 'o' : 'u') + row.line, price: row[c].price, link: row[c].link } : row[c]; });
-          return '<tr><td class="odds-book">' + esc(O.books[b] || 'Book ' + b) + (exch[b] ? ' <span class="odds-tag">exchange</span>' : '') + '</td>' +
-            vals.map(function(v, i) { return cell(v, best, isBest(b, cols[i], m === 'total' ? { line: row.line, price: row[cols[i]] && row[cols[i]].price } : v)); }).join('') + '</tr>';
-        }).join('');
-        return '<table class="odds-table"><thead><tr><th>Book</th>' + heads.map(function(h) { return '<th class="num">' + esc(h) + '</th>'; }).join('') +
-          '</tr></thead><tbody>' + rows + '</tbody></table>';
+        return { books: books, best: best, rows: rows };
       }
-      function card(g, k, m) {
-        var when = g.start ? timeET(g.start) : '';
-        return '<div class="game-card odds-card"><div class="odds-head">' +
-          '<span class="odds-teams">' + badge(g.away, 22) + teamLink(g.away, esc(shortName(g.away))) + ' <span class="odds-at">@</span> ' +
-          badge(g.home, 22) + teamLink(g.home, esc(shortName(g.home))) + '</span><span class="odds-when">' + esc(when) + '</span></div>' +
-          gameTable(g, k, m) + '</div>';
+      function bookSort(a, b) {
+        var ia = BOOK_ORDER.indexOf(a), ib = BOOK_ORDER.indexOf(b);
+        return (exch[a] ? 1 : 0) - (exch[b] ? 1 : 0) || (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || String(bookName(a)).localeCompare(String(bookName(b)));
+      }
+      var ARROW = { dn: '<span class="ob-move dn" title="Shortening since open">&#9660;</span>', up: '<span class="ob-move up" title="Drifting since open">&#9650;</span>' };
+      function bestBox(r) {
+        if (!r.best) return '<span class="ob-none">&ndash;</span>';
+        return linked(r.at && r.at.v, '<span class="ob-best-p">' + txt(r.best) + (ARROW[r.move] || '') + '</span>' +
+          (r.at ? '<span class="ob-best-at">' + bookMark(r.at.id, true) + '</span>' : ''));
+      }
+      function agreeBadge(r) { return r.agree ? '<span class="ob-agree"><span class="ob-rtyb">RTYB</span>' + r.agree + ' trends agree</span>' : ''; }
+      function consensus(g, k, m, rows) {
+        var on = rows.filter(function(r) { return r.agree; });
+        if (!on.length) return '';
+        var href = ROOT + SPORT_SLUG + '/trends/?date=' + cur + (D.segments.length > 1 ? '&seg=' + k : '');
+        var what = on.map(function(r) { return r.agree + ' trends agree on ' + esc(r.name) + ' ' + esc(seg(k).tag || '') + ' ' + MKT_WORD[m]; }).join('; ');
+        return '<a class="ob-cons" href="' + href + '"><span><b>RTYB Consensus</b> ' + what + '</span><span class="ob-cons-go">See the trends &rarr;</span></a>';
+      }
+      function teamCell(r) {
+        return '<span class="ob-team">' + (r.slug ? '<span class="ob-code mono">' + esc(r.code) + '</span>' + badge(r.slug, 20) + teamLink(r.slug, esc(r.name)) : '<span class="ob-code"></span><b>' + esc(r.name) + '</b>') +
+          agreeBadge(r) + '</span>';
+      }
+      function gameHead(g) {
+        return (g.start ? esc(timeET(g.start)) + ' &middot; ' : '') + esc(shortName(g.away)) + ' @ ' + esc(shortName(g.home));
+      }
+      var gamesHref = function() { return ROOT + SPORT_SLUG + '/games/?date=' + cur; };
+      // Desktop: one table for the date
+      function table(games, k, m) {
+        var cols = {};
+        games.forEach(function(g) { Object.keys((((g.books || {})[k] || {})[m]) || {}).forEach(function(b) { cols[b] = cols[b] || null; }); });
+        var ids = Object.keys(cols).sort(bookSort);
+        // each book's column header links to the book (its first price on this board)
+        games.forEach(function(g) {
+          var bk = (((g.books || {})[k] || {})[m]) || {};
+          ids.forEach(function(b) { if (!cols[b]) sides(g, m).some(function(sd) { var v = val(bk[b], m, sd[0]); if (v && v.link) { cols[b] = v.link; return true; } }); });
+        });
+        var all = ODDS_VIEW === 'all';
+        var head = '<tr><th class="ob-gcol">Game</th><th class="num">Open</th><th class="ob-bestcol">Best</th>' + (all ? ids.map(function(b) {
+          var mark = bookMark(b) + (exch[b] ? '<span class="odds-tag">exchange</span>' : '');
+          return '<th class="ob-bk">' + (cols[b] ? '<a href="' + esc(cols[b]) + '" target="_blank" rel="sponsored noopener" title="Open ' + esc(bookName(b)) + '">' + mark + '<span class="ob-ext" aria-hidden="true">&#8599;</span></a>' : mark) + '</th>';
+        }).join('') : '') + '</tr>';
+        var span = 3 + (all ? ids.length : 0);
+        var body = games.map(function(g) {
+          var md = model(g, k, m);
+          var rows = md.rows.map(function(r) {
+            return '<tr class="ob-side"><td>' + teamCell(r) + '</td><td class="num mono ob-open">' + (r.open ? txt(r.open) : '&ndash;') + '</td>' +
+              '<td class="ob-bestcell">' + bestBox(r) + '</td>' + (all ? ids.map(function(b) {
+                var v = val(md.books[b], m, r.s);
+                if (!v) return '<td class="num odds-na">&ndash;</td>';
+                return '<td class="num odds-cell' + (counts(b, m) && same(v, r.best) ? ' odds-best' : '') + '">' + linked(v, txt(v)) + '</td>';
+              }).join('') : '') + '</tr>';
+          }).join('');
+          var cons = consensus(g, k, m, md.rows);
+          return '<tbody class="ob-game"><tr class="ob-ghead"><td colspan="' + span + '"><span>' + gameHead(g) + '</span><a href="' + gamesHref() + '">Matchup and trends &rarr;</a></td></tr>' + rows +
+            (cons ? '<tr class="ob-consrow"><td colspan="' + span + '">' + cons + '</td></tr>' : '') + '</tbody>';
+        }).join('');
+        return '<div class="ob-desk"><table class="ob-table' + (all ? '' : ' best-only') + '"><thead>' + head + '</thead>' + body + '</table></div>';
+      }
+      // Phones: a card per game
+      function cards(games, k, m) {
+        return '<div class="ob-mob">' + games.map(function(g) {
+          var md = model(g, k, m);
+          var ids = Object.keys(md.books).sort(bookSort);
+          var rows = md.rows.map(function(r) {
+            return '<div class="ob-mrow"><div class="ob-mteam">' + (r.slug ? badge(r.slug, 20) + teamLink(r.slug, esc(r.name)) : '<b>' + esc(r.name) + '</b>') + agreeBadge(r) + '</div>' +
+              '<span class="ob-mopen mono">' + (r.open ? txt(r.open) : '&ndash;') + '</span><span class="ob-bestcell">' + bestBox(r) + '</span></div>';
+          }).join('');
+          var list = ids.length ? '<details class="ob-compare"><summary>Compare ' + ids.length + ' book' + (ids.length === 1 ? '' : 's') + '</summary>' +
+            '<table class="ob-mtable"><thead><tr><th>Book</th>' + md.rows.map(function(r) { return '<th class="num">' + esc(r.code || r.name) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+            ids.map(function(b) {
+              return '<tr><td>' + linked(val(md.books[b], m, md.rows[0].s) || val(md.books[b], m, md.rows[md.rows.length - 1].s), esc(bookName(b))) + (exch[b] ? ' <span class="odds-tag">exchange</span>' : '') + '</td>' + md.rows.map(function(r) {
+                var v = val(md.books[b], m, r.s);
+                return v ? '<td class="num odds-cell' + (counts(b, m) && same(v, r.best) ? ' odds-best' : '') + '">' + linked(v, txt(v)) + '</td>' : '<td class="num odds-na">&ndash;</td>';
+              }).join('') + '</tr>';
+            }).join('') + '</tbody></table></details>' : '';
+          // total and BTTS rows don't name the teams: the head does
+          var when = m === 'total' || m === 'btts' ? gameHead(g) : g.start ? esc(timeET(g.start)) : '';
+          return '<div class="game-card ob-card"><div class="ob-mhead"><span>' + when + '</span><span>Open &middot; Best</span></div>' +
+            rows + consensus(g, k, m, md.rows) + list + '</div>';
+        }).join('') + '</div>';
+      }
+      function ago(iso) {
+        var min = Math.round((Date.now() - Date.parse(iso)) / 60000);
+        if (!(min >= 0)) return '';
+        return min < 1 ? 'updated just now' : min < 60 ? 'updated ' + min + ' min ago' : min < 1440 ? 'updated ' + Math.floor(min / 60) + ' hr ago' : 'updated ' + timeET(iso);
       }
       function draw() {
         var k = getSeg(), ms = markets(k);
@@ -1389,25 +1485,33 @@
           })[0] || ms[0];
         }
         var m = MKT_CUR;
+        var games = (O.games[cur] || []).filter(function(g) { var b = ((g.books || {})[k] || {})[m]; return b && Object.keys(b).length; });
         var html = dateBar(cur, dates);
+        html += '<div class="ob-top"><p class="ob-sub">' + esc(seg(k).label) + ' prices from top sportsbooks, side by side' + (O.updated ? ' &middot; ' + esc(ago(O.updated)) : '') + '.</p>' +
+          '<div class="seg-toggle ob-view" id="oddsView"><button class="seg-btn" data-view="all" aria-pressed="' + (ODDS_VIEW === 'all') + '">All books</button>' +
+          '<button class="seg-btn" data-view="best" aria-pressed="' + (ODDS_VIEW === 'best') + '">Best only</button></div></div>';
         html += '<div class="sport-seg-row odds-controls">' + (D.segments.length > 1 ? segToggle('pageSeg', k) : '') +
           '<div class="seg-toggle" id="oddsMkt">' + ms.map(function(x) {
             return '<button class="seg-btn" data-mkt="' + x + '" aria-pressed="' + (x === m) + '">' + MKT_LABEL[x] + '</button>';
-          }).join('') + '</div></div>';
-        var games = (O.games[cur] || []).filter(function(g) { return (g.books || {})[k]; });
-        html += games.length ? '<div class="games-list">' + games.map(function(g) { return card(g, k, m); }).join('') + '</div>'
-          : '<div class="no-games-note">No ' + esc(seg(k).label) + ' odds posted for ' + esc(dateLabel(cur)) + ' yet.</div>';
+          }).join('') + '</div>' +
+          '<div class="ob-legend"><span><i class="ob-key-best"></i>Best price</span><span>' + ARROW.dn + ' Shortening since open</span><span>' + ARROW.up + ' Drifting since open</span><span><span class="ob-rtyb">RTYB</span> Trends agree (2+)</span></div></div>';
+        html += games.length ? table(games, k, m) + cards(games, k, m)
+          : '<div class="no-games-note">No ' + esc(seg(k).label) + ' ' + MKT_WORD[m] + ' posted for ' + esc(dateLabel(cur)) + ' yet.</div>';
         if (m === 'btts') html += '<p class="odds-note">Both teams to score in the 1st period. BTTS isn&rsquo;t on our odds feed, so this is a consensus price across the books, entered by our team.</p>';
         if (m === 'ml3') html += '<p class="odds-note">The 3-way line (tie included) comes from Underdog&rsquo;s prediction market, the only book offering it on our odds feed.</p>';
-        html += '<p class="odds-note">Highlighted: the best price at the regular sportsbooks, and the odds Games and Trends use. ' +
-          'For spreads and totals that&rsquo;s the line most books post, at its best price. Odds via Unabated, refreshed every 10 minutes' +
-          (O.updated ? ' (last change ' + esc(timeET(O.updated)) + ')' : '') + '; prices can move before you open a link. ' +
+        html += '<p class="odds-note">Best: the best price at the regular sportsbooks, and the odds Games and Trends use. ' +
+          'For spreads and totals that&rsquo;s the line most books post, at its best price. Open: the first price our feed showed for the game. ' +
+          'Odds via Unabated, refreshed every 10 minutes; prices can move before you open a link. ' +
           '21+. Gambling problem? Call 1-800-GAMBLER.</p>';
         app.innerHTML = html;
+        // the table header sticks just under the site nav
+        var hn = document.querySelector('.hn');
+        if (hn) document.documentElement.style.setProperty('--hn-h', hn.offsetHeight + 'px');
         wireDateBar(dates, cur, go);
         var ps = document.getElementById('pageSeg');
         if (ps) ps.onclick = function(e) { var b = e.target.closest('[data-seg]'); if (b) { setSeg(b.getAttribute('data-seg')); draw(); } };
         document.getElementById('oddsMkt').onclick = function(e) { var b = e.target.closest('[data-mkt]'); if (b) { MKT_CUR = b.getAttribute('data-mkt'); draw(); } };
+        document.getElementById('oddsView').onclick = function(e) { var b = e.target.closest('[data-view]'); if (b) { ODDS_VIEW = b.getAttribute('data-view'); draw(); } };
       }
       draw();
     }).catch(function(e) {

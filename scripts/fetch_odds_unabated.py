@@ -72,8 +72,9 @@ NHL_BETS = (BT_ML, BT_ML3, BT_TOTAL)
 # Sportsbooks that set the best price (matched against /sources names)
 SPORTSBOOKS = ('draftkings', 'fanduel', 'mgm', 'caesars', 'thescore', 'fanatics')
 # Their ids, for when /sources fails (DraftKings, FanDuel, BetMGM, Caesars,
-# theScore US / CA / Fast, Fanatics, BetMGM Direct)
-SPORTSBOOK_IDS = {'1', '2', '4', '20', '36', '60', '118', '86', '80'}
+# theScore US / Fast, Fanatics, BetMGM Direct). RTYB is for US bettors, so
+# Canadian books (theScore CA, id 60) never set the best price.
+SPORTSBOOK_IDS = {'1', '2', '4', '20', '36', '118', '86', '80'}
 
 # Unabated team name -> RTYB team location, where the names don't line up
 ALIASES = {
@@ -416,7 +417,8 @@ def run_sport(sport, sport_type, segments, has_ml, now, ml3=False):
 
     teams = {t.get('id'): t.get('name') for t in cached(f'teams_{league}', f'/team/{league}', TEAMS_MAX_AGE)}
     sources = cached(f'sources_{league}', f'/market/{league}/straight/sources', SOURCES_MAX_AGE)
-    sharp = {str(s.get('id')) for s in sources if any(w in norm(s.get('name')).replace(' ', '') for w in SPORTSBOOKS)}
+    sharp = {str(s.get('id')) for s in sources if any(w in norm(s.get('name')).replace(' ', '') for w in SPORTSBOOKS)
+             and not norm(s.get('name')).endswith(' ca')}
     sharp = sharp or SPORTSBOOK_IDS
     aliases = team_aliases(sport)
     last_start = max(g['_start'] for g in upcoming)

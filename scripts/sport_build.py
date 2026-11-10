@@ -148,9 +148,53 @@ def book_names():
 # Odds page "books" that aren't sportsbooks on the feed: NHL's BTTS is
 # entered in the admin as a consensus price across books
 EXTRA_BOOKS = {'consensus': 'Consensus'}
+# Books the Odds page leaves off: RTYB is for US bettors
+HIDDEN_BOOKS = {'60'}   # theScore CA
+# Each book's logo: assets/books/{key}.svg (or .png). The page shows the
+# book's name instead when the file isn't there.
+BOOK_KEYS = {'1': 'draftkings', '2': 'fanduel', '4': 'betmgm', '80': 'betmgm', '20': 'caesars',
+             '36': 'thescore', '118': 'thescore', '86': 'fanatics', '121': 'underdog'}
 
 
-def write_odds_page(sp, slug_dir, now_utc, meta=None, extra=None):
+def book_logo(book_id):
+    key = BOOK_KEYS.get(book_id)
+    for ext in ('svg', 'png'):
+        if key and os.path.exists(os.path.join(ROOT, 'assets', 'books', f'{key}.{ext}')):
+            return f'assets/books/{key}.{ext}'
+    return None
+
+
+# Trend market -> Odds page market, and pick -> side of it
+ODDS_MARKET = {'su': 'ml', 'ML': 'ml', 'ats': 'ats', 'over': 'total', 'under': 'total'}
+
+
+def odds_agree(entries, where):
+    """How many trends (not weak) back each bet still to play, for the Odds
+    page's badges: {(date, away, home): {seg: {market: {side: n}}}}.
+    entries: {slate: trend log entry}; where(pick) -> (date, away, home, seg)
+    or None."""
+    out = {}
+    for e in entries.values():
+        for t in e.get('trends') or []:
+            if not t.get('kind') or t.get('strength') == 'weak':
+                continue
+            for p in t.get('games') or []:
+                if p.get('status') != 'PENDING':
+                    continue
+                m = p.get('market') or ''
+                if p['kind'] == 'side':
+                    mk, side = ODDS_MARKET.get(m), p.get('side')
+                else:   # over / under, or NHL's 'O1.5' / 'U1.5'
+                    mk, side = 'total', 'over' if m[:1].lower() == 'o' else 'under' if m[:1].lower() == 'u' else None
+                w = where(p)
+                if not (mk and side and w):
+                    continue
+                by = out.setdefault(w[:3], {}).setdefault(w[3], {}).setdefault(mk, {})
+                by[side] = by.get(side, 0) + 1
+    return out
+
+
+def write_odds_page(sp, slug_dir, now_utc, meta=None, extra=None, agree=None):
     """{slug}/odds.json for the Odds page (assets/sport.js): every book's
     price for games that haven't started, from the Unabated feed. Links
     already carry the partner code (fetch_odds_unabated.tag_link). `meta`
@@ -158,9 +202,15 @@ def write_odds_page(sp, slug_dir, now_utc, meta=None, extra=None):
     otherwise reads from data.json: label, segments, teams, markets.
     `extra` (NHL's admin-entered BTTS) adds markets the feed doesn't carry:
     [{date, away, home, start, books: {seg: {m: {book: row}}}, best: {seg: {m: ...}}}]
-    under book ids that EXTRA_BOOKS names."""
+    under book ids that EXTRA_BOOKS names. `agree`: odds_agree() for the
+    trend badges.
+
+    Each game's `open` is the best price the first time the feed showed it
+    (the feed has no opening line), carried over from the last odds.json."""
     feed = read_json(os.path.join(ROOT, 'data_feed', 'unabated', f"{sp['key']}.json"), {})
     path = os.path.join(slug_dir, 'odds.json')
+    opened = {(d, g['away'], g['home']): g.get('open') or {}
+              for d, day in (read_json(path, {}).get('games') or {}).items() for g in day}
     games = {}
     for g in (feed.get('games') or {}).values():
         start = g.get('start')
@@ -172,7 +222,8 @@ def write_odds_page(sp, slug_dir, now_utc, meta=None, extra=None):
             continue
         # sportsbooks only: exchange prices don't read like sportsbook odds --
         # except NHL's 3-way, which only an exchange offers on the free tier
-        books = {seg: {m: {b: v for b, v in by.items() if m == 'ml3' or b not in EXCHANGES} for m, by in mk.items()}
+        books = {seg: {m: {b: v for b, v in by.items() if b not in HIDDEN_BOOKS and (m == 'ml3' or b not in EXCHANGES)}
+                       for m, by in mk.items()}
                  for seg, mk in g['books'].items()}
         games.setdefault(g['date'], []).append({'away': g['away'], 'home': g['home'], 'start': start,
                                                 'best': g.get('segments') or {}, 'books': books})
@@ -195,12 +246,19 @@ def write_odds_page(sp, slug_dir, now_utc, meta=None, extra=None):
         if os.path.exists(path):
             os.remove(path)
         return
-    for day in games.values():
+    for d, day in games.items():
         day.sort(key=lambda x: (x['start'] or '', x['away']))
+        for g in day:
+            was = opened.get((d, g['away'], g['home'])) or {}
+            g['open'] = {seg: {m: (was.get(seg) or {}).get(m) or v for m, v in mk.items()} for seg, mk in g['best'].items()}
+            a = (agree or {}).get((d, g['away'], g['home']))
+            if a:
+                g['agree'] = a
     used = {b for day in games.values() for g in day for seg in g['books'].values() for m in seg.values() for b in m}
     names = dict(book_names(), **EXTRA_BOOKS)
     write_json(path, dict(meta or {}, updated=feed.get('updated'), games=games,
                           books={b: names.get(b, f'Book {b}') for b in used},
+                          logos={b: book_logo(b) for b in used if book_logo(b)},
                           exchanges=sorted(b for b in used if b in EXCHANGES)))
 
 
@@ -1039,7 +1097,9 @@ def build(sp, teams_list, now_utc=None):
     elif os.path.exists(hist_path):
         os.remove(hist_path)
     write_json(os.path.join(slug_dir, 'data.json'), doc)
-    write_odds_page(sp, slug_dir, now_utc)
+    by_id = {g['id']: g for g in games}
+    write_odds_page(sp, slug_dir, now_utc, agree=odds_agree(
+        trends, lambda p: by_id.get(p['key']) and (by_id[p['key']]['date'], by_id[p['key']]['away'], by_id[p['key']]['home'], p.get('seg'))))
     today = now_utc.astimezone(ET).date().isoformat()
     return {'season': current, 'games': len(games), 'graded': sum(1 for g in games if g.get('final')),
             'today': len(by_date.get(today, []))}

@@ -649,7 +649,7 @@ SECTION_DESC = {
     'games': '{label} games by date with {segs} odds, scores and results.',
     'stats': '{label} {segs} results league-wide: {markets} with units, scoring and situational splits.',
     'trends': '{label} League Trends for each slate and current team streaks.',
-    'odds': '{label} {segs} odds from every sportsbook side by side, with the best price highlighted.',
+    'odds': '{label} {segs} odds from top sportsbooks side by side, with the best price highlighted.',
 }
 
 
@@ -959,7 +959,10 @@ def main():
             btts.append({'date': date_str, 'away': g['away'], 'home': g['home'], 'start': g.get('startTimeUTC'),
                          'books': {'1p': {'btts': {'consensus': row}}},
                          'best': {'1p': {'btts': {'yes': o.get('btts_yes'), 'no': o.get('btts_no')}}}})
-    sport_build.write_odds_page(nhl, nhl_dir, datetime.now(timezone.utc), extra=btts, meta={
+    nhl_log = json.load(open(os.path.join(ROOT, 'league_trends_log.json'), encoding='utf-8')) \
+        if os.path.exists(os.path.join(ROOT, 'league_trends_log.json')) else {}
+    nhl_agree = sport_build.odds_agree(nhl_log, lambda p: tuple(p['key'].split('|')) + ('1p',))
+    sport_build.write_odds_page(nhl, nhl_dir, datetime.now(timezone.utc), extra=btts, agree=nhl_agree, meta={
         'sport': 'nhl', 'label': 'NHL', 'sportType': 'period', 'segments': nhl['segments'],
         'markets': {'1p': ['ml', 'ml3', 'total', 'btts']},
         'teams': {code: {'name': info['name'], 'short': info['name'].split(' ')[-1], 'code': code,
