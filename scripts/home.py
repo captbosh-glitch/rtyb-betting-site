@@ -23,6 +23,7 @@ from zoneinfo import ZoneInfo
 import account
 import daily
 import icons
+import seo
 import nav
 import sports
 
@@ -320,6 +321,7 @@ FOOTER = '''
     <p class="hf-rg"><b>21+ only.</b> Gambling problem? Call <a href="tel:18004262537">1-800-GAMBLER</a>. Please bet responsibly.</p>
     <p class="hf-small">RTYB &mdash; Run to Your Bets is for information and entertainment. Not affiliated with any league or sportsbook.
     Records and units are for tracking only; past results don&rsquo;t predict future ones.</p>
+    <p class="hf-small hf-legal"><a href="__ROOT__privacy/">Privacy</a> &middot; <a href="__ROOT__terms/">Terms</a></p>
   </div>
 </footer>'''
 
@@ -642,6 +644,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
     with open(os.path.join(ROOT, 'learn', 'index.html'), 'w', encoding='utf-8') as f:
         f.write(learn_page)
     daily.write_pages(page, status, logo_svg, pieces)
+    seo.write_legal(page, status, logo_svg)
     return {'today': len(today_games), 'yesterday': len(yday_games), 'trends': len(trends)}
 
 

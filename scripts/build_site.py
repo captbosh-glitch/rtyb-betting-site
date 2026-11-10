@@ -58,6 +58,7 @@ import account  # noqa: E402
 import league_trends  # noqa: E402
 import periods  # noqa: E402
 import picks  # noqa: E402
+import seo  # noqa: E402
 import streaks as streaks_page  # noqa: E402
 import daily  # noqa: E402
 import home  # noqa: E402
@@ -990,6 +991,8 @@ def main():
     streaks_page.write(template, full_data, LOGO_SVG)
     # The Daily's latest recap and preview at the top of each Games page
     daily.inject_arena({'nhl': 'nhl/games', 'nba': 'nba/games'}, datetime.now(sport_build.ET).date().isoformat())
+    # Last: share tags, analytics and footer links on every page; sitemap.xml, robots.txt
+    sitemap_urls = seo.finish()
 
     print(f"wrote index.html (home: {home_info['today']} games today, {home_info['trends']} trends), picks/ ({picks_info['plays']} plays today), learn/, nhl/data.json ({len(data_json)} bytes), "
           f"nhl/games/index.html ({len(games_html)} bytes), "
@@ -999,7 +1002,7 @@ def main():
           f"nhl/teams/index.html ({len(teamsindex_html)} bytes), "
           f"{len(full_data.get('summary', {}))} nhl/teams/<slug>/index.html pages ({team_bytes} bytes total), "
           f"and schedule_data.json ({sum(len(v) for v in merged_games.values())} games); "
-          f"other sports: {other}")
+          f"other sports: {other}; sitemap.xml ({sitemap_urls} URLs)")
 
 
 if __name__ == '__main__':
