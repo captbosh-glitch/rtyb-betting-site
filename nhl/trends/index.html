@@ -822,7 +822,16 @@
   .rec-cell b { color: var(--text); }
   /* Stats team table: fixed stat columns so values line up under their headers. */
   #leagueTable { table-layout: fixed; }
-  #leagueTable tr[data-href] { cursor: pointer; }
+  #leagueTable tr.tl-row { cursor: pointer; }
+  #leagueTable tr.tl-row:hover td { background: var(--panel-2); }
+  #leagueTable .col-go { width: 26px; padding-left: 0; padding-right: 8px; text-align: right; color: var(--text-muted); font-size: 1.15rem; line-height: 1; }
+  #leagueTable tr.tl-row:hover .col-go { color: var(--accent); }
+  #leagueTable .col-streak { width: 72px; }
+  .tl-streak { font-weight: 700; }
+  #leagueTable .tl-short { display: none; }
+  .tl-streak.good { color: var(--good); }
+  .tl-streak.bad { color: var(--bad); }
+  .tl-streak.flat { color: var(--text-muted); }
   #leagueTable .tl-name { color: var(--text); text-decoration: none; }
   #leagueTable tr.tl-group td { background: var(--panel-2); font: 700 0.95rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; padding-top: 14px; }
   .tl-note { margin-top: 8px; font-size: 0.74rem; color: var(--text-muted); }
@@ -902,9 +911,14 @@
   #leagueTable .col-pct { width: 150px; }
   #leagueTable .col-units { width: 120px; }
   @media (max-width: 600px) {
-    #leagueTable .col-rec { width: 62px; }
-    #leagueTable .col-pct { width: 48px; }
-    #leagueTable .col-units { width: 74px; }
+    #leagueTable .col-rec { width: 66px; }
+    #leagueTable .col-pct { width: 38px; }
+    #leagueTable .col-tie { width: 36px; }
+    #leagueTable .col-streak { width: 44px; }
+    #leagueTable .col-units { width: 56px; }
+    #leagueTable .col-go { width: 14px; padding-right: 4px; }
+    #leagueTable .tl-full { display: none; }
+    #leagueTable .tl-short { display: inline; }
   }
 
   /* ---------- Detail drawer ---------- */
@@ -1303,6 +1317,81 @@
   .odds-na { color: var(--text-muted); }
   .odds-empty { font-size: 0.85rem; color: var(--text-muted); padding: 4px 0; }
   .odds-note { font-size: 0.78rem; color: var(--text-muted); margin-top: 16px; line-height: 1.5; }
+  /* Odds board: desktop table (.ob-desk) and phone cards (.ob-mob) */
+  .ob-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; }
+  .ob-sub { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+  .ob-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-left: auto; font-size: 0.78rem; color: var(--text-muted); align-items: center; }
+  .ob-legend > span { display: inline-flex; align-items: center; gap: 5px; }
+  .ob-key-best { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--good); background: var(--good-dim); }
+  .ob-move { font-size: 0.62rem; margin-left: 4px; vertical-align: 1px; }
+  .ob-move.dn { color: #38bdf8; }
+  .ob-move.up { color: #f472b6; }
+  .ob-rtyb { font: 700 0.62rem 'JetBrains Mono', monospace; letter-spacing: 0.04em; padding: 1px 4px; border-radius: 4px; border: 1px solid var(--trend); color: var(--trend); background: var(--trend-dim); }
+  .ob-agree { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 600; color: var(--trend); padding: 2px 7px 2px 3px; border-radius: 999px; border: 1px solid var(--trend); background: var(--trend-dim); white-space: nowrap; }
+  .ob-agree .ob-rtyb { border: 0; padding: 0 3px; }
+  .ob-cons { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--trend); background: var(--trend-dim); color: var(--text); font-size: 0.82rem; text-decoration: none; }
+  .ob-cons b { font-family: 'Bebas Neue', 'Oswald', sans-serif; letter-spacing: 0.04em; font-size: 0.95rem; color: var(--trend); margin-right: 6px; font-weight: 400; }
+  .ob-cons:hover { text-decoration: none; filter: brightness(1.06); }
+  .ob-cons-go { color: var(--trend); font-weight: 600; white-space: nowrap; }
+  .ob-logo { height: 18px; max-width: 92px; width: auto; vertical-align: middle; object-fit: contain; }
+  .ob-logo.sm { height: 13px; max-width: 64px; }
+  .ob-bname { font-weight: 600; }
+  .ob-best-at { display: inline-flex; align-items: center; margin-left: 7px; padding-left: 7px; border-left: 1px solid var(--good); font-size: 0.7rem; color: var(--text-muted); font-weight: 500; vertical-align: 1px; }
+  .ob-mob .ob-best-at { display: block; margin: 0; padding: 0; border: 0; line-height: 1.2; }
+  .ob-best-at .ob-bname { font-weight: 500; }
+  .ob-bestcell { text-align: center; }
+  .ob-bestcell a, .ob-bestcell > span { display: inline-block; min-width: 86px; padding: 2px 8px; white-space: nowrap; border-radius: 7px; border: 1px solid var(--good); background: var(--good-dim); color: var(--good); font-weight: 700; text-decoration: none; line-height: 1.25; font-variant-numeric: tabular-nums; }
+  .ob-bestcell .ob-none { border-color: var(--border-soft); background: none; color: var(--text-muted); }
+  .ob-bestcell .odds-line { color: var(--good); }
+  .ob-desk { border: 1px solid var(--border-soft); border-radius: 12px; background: var(--panel); }
+  .ob-table { width: 100%; min-width: 0; border-collapse: separate; border-spacing: 0; font-size: 0.86rem; }
+  .ob-table thead th { position: sticky; top: var(--hn-h, 61px); z-index: 2; background: var(--panel); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600; text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--border-soft); }
+  .ob-table thead th:first-child { border-top-left-radius: 12px; }
+  .ob-table thead th:last-child { border-top-right-radius: 12px; }
+  .ob-table thead th.num, .ob-table thead th.ob-bestcol { text-align: center; }
+  .ob-table th.ob-bk { text-align: center; text-transform: none; letter-spacing: 0; color: var(--text); font-size: 0.8rem; }
+  .ob-table th.ob-bk a { color: var(--text); text-decoration: none; display: inline-flex; align-items: center; gap: 3px; }
+  .ob-table th.ob-bk a:hover .ob-ext { color: var(--accent); }
+  .ob-ext { color: var(--text-muted); font-size: 0.75rem; }
+  .ob-table td { padding: 3px 8px; vertical-align: middle; }
+  .ob-table td.num { text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ob-game + .ob-game .ob-ghead td { border-top: 1px solid var(--border-soft); }
+  .ob-ghead td { padding: 8px 12px 2px; font-size: 0.76rem; color: var(--text-muted); font-weight: 600; }
+  .ob-ghead td { display: table-cell; }
+  .ob-ghead a { float: right; color: var(--accent); font-weight: 600; text-decoration: none; }
+  .ob-ghead a:hover { text-decoration: underline; }
+  .ob-side td:first-child { padding-left: 12px; }
+  .ob-team { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; min-width: 0; }
+  .ob-team .gm-team, .ob-team b { font-weight: 700; color: var(--text); text-decoration: none; }
+  .ob-code { width: 34px; flex-shrink: 0; color: var(--text-muted); font-size: 0.72rem; }
+  .ob-open { color: var(--text-muted); }
+  .ob-consrow td { padding: 4px 12px 10px; }
+  .ob-gcol { width: 34%; }
+  .ob-table .odds-cell a { display: block; padding: 3px 4px; }
+  .ob-table .odds-best a { box-shadow: inset 0 0 0 1px var(--good); }
+  .ob-mob { display: none; }
+  .ob-card { padding: 12px 14px; }
+  .ob-mhead { display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .ob-mrow { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 4px 0; }
+  .ob-mteam { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+  .ob-mteam .gm-team, .ob-mteam b { font-weight: 700; color: var(--text); text-decoration: none; }
+  .ob-mopen { color: var(--text-muted); font-size: 0.82rem; }
+  .ob-card .ob-cons { margin-top: 8px; font-size: 0.78rem; flex-wrap: wrap; }
+  .ob-compare { margin-top: 10px; border-top: 1px solid var(--border-soft); padding-top: 8px; }
+  .ob-compare summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 0.85rem; list-style: none; }
+  .ob-compare summary::-webkit-details-marker { display: none; }
+  .ob-compare summary::after { content: ' \25BE'; }
+  .ob-compare[open] summary::after { content: ' \25B4'; }
+  .ob-mtable { width: 100%; min-width: 0; border-collapse: collapse; margin-top: 6px; font-size: 0.84rem; }
+  .ob-mtable th { font-size: 0.68rem; text-transform: uppercase; color: var(--text-muted); text-align: left; padding: 4px; font-weight: 600; }
+  .ob-mtable th.num, .ob-mtable td.num { text-align: center; }
+  .ob-mtable td { padding: 3px 4px; }
+  .ob-mtable td:first-child a { color: var(--text); text-decoration: none; font-weight: 600; }
+  @media (max-width: 760px) {
+    .ob-desk, .ob-view { display: none; }
+    .ob-mob { display: flex; flex-direction: column; gap: 12px; }
+    .ob-legend { margin-left: 0; }
+  }
   .game-matchup .gm-at { color: var(--text-faint); font-size: 0.9rem; }
   .card-seg { margin: 0 0 4px; }
   .gm-seg-line { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
@@ -2287,7 +2376,7 @@
   // 'Home' or 'Away'. W/L/T is from the bettor's side: Moneyline = this
   // team, Over markets = the Over, BTTS = Yes.
   function teamMarketAgg(log, side, market) {
-    var r = { gp: 0, w: 0, l: 0, t: 0, d: 0, priced: 0, units: UNIT_MARKETS[market] ? 0 : null };
+    var r = { gp: 0, w: 0, l: 0, t: 0, d: 0, priced: 0, units: UNIT_MARKETS[market] ? 0 : null }, seq = [];
     log.forEach(function(e) {
       if (side !== 'Both' && e.side !== side) return;
       var total = e.p1t + e.p1o, res, price;
@@ -2299,6 +2388,7 @@
       else if (market === 'o05') res = total > 0 ? 'W' : 'L';
       else res = total > 2 ? 'W' : 'L';
       r.gp++;
+      seq.push(res);
       if (res === 'W') r.w++; else if (res === 'L') r.l++; else r.t++;
       // units only on games with a saved price (a loss without one isn't -1u,
       // the same rule as every other record on the site)
@@ -2311,6 +2401,12 @@
     r.pct = winPct(r.w, r.l, r.t);   // ties count as games played (only 'win' has them)
     r.tiePct = market === 'win' ? tiePct(r.w, r.l, r.t) : market === 'ml3' ? (r.gp ? r.d / r.gp : null) : null;
     r.rec = market === 'win' ? (r.w + '-' + r.l + '-' + r.t) : (r.w + '-' + r.l);
+    // the current run (the log is oldest first): W4 / L3, O / U for Overs, Y / N for BTTS
+    var n = 0, last = seq[seq.length - 1];
+    for (var i = seq.length - 1; i >= 0 && seq[i] === last; i--) n++;
+    var letters = market === 'btts' ? { W: 'Y', L: 'N' } : /^o/.test(market) ? { W: 'O', L: 'U' } : { W: 'W', L: 'L', T: 'T' };
+    r.streakHtml = n ? '<span class="tl-streak ' + (last === 'W' ? 'good' : last === 'L' ? 'bad' : 'flat') + '">' + letters[last] + n + '</span>' : '&mdash;';
+    r.streak = n ? (last === 'W' ? n : last === 'L' ? -n : 0) : null;
     return r;
   }
 
@@ -2347,18 +2443,19 @@
     table.querySelector('th.col-tie').hidden = !isMl;
     table.querySelector('th[data-sort="wins"]').firstChild.nodeValue = state.market === 'win' ? 'W-L-T' : 'W-L';
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="' + (isMl ? 5 : 4) + '"><div class="empty-state">No teams match &ldquo;' + escapeHtml(state.search) + '&rdquo;.</div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="' + (isMl ? 7 : 6) + '"><div class="empty-state">No teams match &ldquo;' + escapeHtml(state.search) + '&rdquo;.</div></td></tr>';
       return;
     }
     tbody.innerHTML = rows.map(function(r) {
       var pctDisplay = r.pct === null ? null : Math.round(r.pct * 100);
-      return '<tr data-team="' + r.code + '">' +
-        '<td class="team-cell">' + teamLogoHtml(r.code, 24, {lazy: true}) + escapeHtml(r.name) + '</td>' +
+      return '<tr class="tl-row" data-team="' + r.code + '">' +
+        '<td class="team-cell">' + teamLogoHtml(r.code, 24, {lazy: true}) + '<span class="tl-full">' + escapeHtml(r.name) + '</span><span class="tl-short">' + escapeHtml(teamNick(r.name)) + '</span></td>' +
         '<td class="num rec-cell mono col-rec"><b>' + r.rec + '</b></td>' +
         '<td class="num col-pct"><div class="pct-cell"><div class="pct-bar"><span style="width:' + (pctDisplay || 0) + '%"></span></div><span class="pct-num mono">' + (pctDisplay === null ? '&mdash;' : pctDisplay + '%') + '</span></div></td>' +
         (isMl ? '<td class="num col-tie mono">' + (r.tiePct === null ? '&mdash;' : Math.round(r.tiePct * 100) + '%') + '</td>' : '') +
+        '<td class="num col-streak mono">' + r.streakHtml + '</td>' +
         '<td class="num col-units">' + unitsPill(r.units) + '</td>' +
-        '</tr>';
+        '<td class="col-go" aria-hidden="true">&rsaquo;</td></tr>';
     }).join('');
     tbody.querySelectorAll('tr[data-team]').forEach(function(tr) {
       tr.addEventListener('click', function() {
@@ -2366,6 +2463,10 @@
       });
     });
   }
+
+  // 'Columbus Blue Jackets' -> 'Blue Jackets': phones show the nickname
+  var TWO_WORD_NICKS = /(Blue Jackets|Maple Leafs|Red Wings|Golden Knights)$/;
+  function teamNick(name) { var m = name.match(TWO_WORD_NICKS); return m ? m[1] : name.split(' ').pop(); }
 
   function escapeHtml(s) {
     var div = document.createElement('div');
