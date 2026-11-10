@@ -61,6 +61,7 @@ import picks  # noqa: E402
 import streaks as streaks_page  # noqa: E402
 import home  # noqa: E402
 import icons  # noqa: E402
+import nav  # noqa: E402
 import sport_build  # noqa: E402
 import trend_rules  # noqa: E402
 import sports  # noqa: E402
@@ -311,21 +312,12 @@ def build_sport_data():
 SPORT_STATUS = {}
 
 
-def sport_menu_html(current, section):
-    items = []
-    for sp in sports.LAUNCHED:
-        cur = ' aria-current="true"' if sp['key'] == current['key'] else ''
-        st = SPORT_STATUS.get(sp['key'])
-        if st:
-            soon = (f'<span class="nav-status{" live" if st["live"] else ""}">'
-                    f'{"LIVE" if st["live"] else html_lib.escape(st["short"])}</span>')
-        else:
-            soon = '' if sport_has_data(sp['key']) else '<span class="soon">Soon</span>'
-        # a sport without this section (NHL has no Odds page yet) links to its Games
-        sec = section if section in sp['sections'] else 'games'
-        items.append(f'<a class="nav-dropdown-item" href="{sports.section_path(sp, sec)}"{cur}>'
-                     f'{icons.sport_icon(sp)}{sp["label"]}{soon}</a>')
-    return ''.join(items)
+def site_nav(sport, section):
+    """The shared nav (scripts/nav.py) for a sport page; the Sports menu
+    keeps this page's section when switching sport."""
+    status = [(sp, (SPORT_STATUS.get(sp['key']) or {}).get('live', False), (SPORT_STATUS.get(sp['key']) or {}).get('short', ''))
+              for sp in sports.LAUNCHED]
+    return nav.header('/', status, sport=sport, section=section, home_href='/')
 
 
 # The PH4 logo: stopwatch + RTY with a leaning B, tagline the same width.
@@ -353,6 +345,7 @@ def apply_sport(out, sport, section):
     is_nhl = sport['key'] == 'nhl'
     out = out.replace('__META_DESC__', NHL_META_DESC if is_nhl else
                       f'RTYB — Run to Your Bets: {sport["label"]} {sports.segment_summary(sport)} betting stats and trends.')
+    out = out.replace('__SITE_NAV__', site_nav(sport, section or 'games'))
     out = out.replace('__LOGO_SVG__', LOGO_SVG)
     if not sport.get('launched'):   # hidden sport: reachable by URL, kept out of search
         out = out.replace('</title>', '</title>\n<meta name="robots" content="noindex">', 1)
@@ -363,16 +356,13 @@ def apply_sport(out, sport, section):
     out = out.replace('__PAGE_ICON__', icons.sport_icon(sport))
     out = out.replace('__SPORT_KEY__', sport['key'])
     out = out.replace('__SPORT_LABEL__', sport['label'])
-    out = out.replace('__SPORT_MENU_ITEMS__', sport_menu_html(sport, section or 'games'))
-    out = out.replace('__BRAND_HREF__', '/')  # the home page (prefixed with SITE_ROOT at load)
-    out = out.replace('__ACCOUNT__', account.account_html('/'))
     out = out.replace('__ACCOUNT_JS__', account.ACCOUNT_JS)
     for sec in ('games', 'stats', 'trends', 'teams'):
         out = out.replace(f'__NAV_HREF_{sec.upper()}__', sports.section_path(sport, sec))
     odds_link = ''
     if 'odds' in sport['sections'] and sport_has_data(sport['key']):
         cur = ' aria-current="page"' if section == 'odds' else ''
-        odds_link = f'<a class="nav-link" href="{sports.section_path(sport, "odds")}"{cur}>Odds</a>'
+        odds_link = f'<a class="sn-link" href="{sports.section_path(sport, "odds")}"{cur}>Odds</a>'
     out = out.replace('__NAV_ODDS_LINK__', odds_link)
     if is_nhl:
         footer = NHL_FOOTER
@@ -421,23 +411,7 @@ SHELL_JS = """<script>
     document.documentElement.setAttribute('data-theme', next);
     try { localStorage.setItem('rtyb-theme', next); } catch (e) {}
   });
-  var btn = document.getElementById('sportBtn'), menu = document.getElementById('sportMenu');
-  btn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    var opening = !menu.classList.contains('open');
-    menu.classList.toggle('open', opening);
-    btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
-  });
-  document.addEventListener('click', function(e) {
-    if (!menu.contains(e.target)) { menu.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
-  });
-  var hamburger = document.getElementById('hamburgerBtn'), mainNav = document.getElementById('mainNav');
-  hamburger.addEventListener('click', function(e) {
-    e.stopPropagation();
-    var opening = !mainNav.classList.contains('open');
-    mainNav.classList.toggle('open', opening);
-    hamburger.setAttribute('aria-expanded', opening ? 'true' : 'false');
-  });
+  // the menus are wired by scripts/nav.py
 })();
 </script>"""
 
@@ -486,10 +460,8 @@ def render_page(template, page_key, teams_menu_html, meta=None, team_code='', sp
     out = out.replace('__PAGE_TITLE__', meta['title'])
     out = out.replace('__PAGE_H1__', meta['h1'])
     out = out.replace('__PAGE_DESC__', meta['desc'])
-    out = out.replace('__NAV_GAMES_CURRENT__', 'aria-current="page"' if page_key == 'games' else '')
-    out = out.replace('__NAV_HITRATES_CURRENT__', 'aria-current="page"' if page_key == 'hitrates' else '')
-    out = out.replace('__NAV_TRENDS_CURRENT__', 'aria-current="page"' if page_key == 'trends' else '')
-    out = out.replace('__NAV_TEAMS_CURRENT__', 'aria-current="page"' if page_key in ('teamsindex', 'team') else '')
+    for tab, sec in (('GAMES', 'games'), ('HITRATES', 'stats'), ('TRENDS', 'trends'), ('TEAMS', 'teams')):
+        out = out.replace(f'__NAV_{tab}_CURRENT__', 'aria-current="page"' if section == sec else '')
     out = out.replace('__TEAMS_MENU_ITEMS__', teams_menu_html)
     out = out.replace('__PAGE_TEAM_CODE__', team_code)
     return out

@@ -1369,45 +1369,106 @@
     color: var(--text-faint); font-size: 0.76rem; border-top: 1px solid var(--border-soft);
   }
   .empty-state { padding: 40px 20px; text-align: center; color: var(--text-muted); }
+  /* ---- site nav (scripts/nav.py): every page but admin ---- */
+  body.hm-open { overflow: hidden; }
+  .hn { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border-soft); }
+  .hn-inner { max-width: 1200px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 18px; }
+  .hn .brand, .hm .brand { display: flex; align-items: center; min-height: 44px; }
+  .hn-links { display: flex; align-items: center; gap: 4px; }
+  .hn-link {
+    display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 12px; border: none; background: none;
+    font: 700 1.1rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); text-decoration: none; cursor: pointer; border-radius: 8px;
+  }
+  .hn-link:hover, .hn-link[aria-expanded="true"] { color: var(--text); }
+  .hn-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .hn-premium, .hm-premium, .btn-gold {
+    display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px;
+    background: var(--gold); color: var(--on-gold); border: none; border-radius: 10px; cursor: pointer;
+    font: 800 1.05rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none;
+  }
+  .hn .theme-toggle { width: 44px; height: 44px; }
+  .hn-drop { position: relative; }
+  .hn-drop-menu {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 230px; padding: 6px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px var(--shadow);
+  }
+  .hn-drop-menu.open { display: block; }
+  .hn-sport-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 0 12px;
+    border-radius: 8px; color: var(--text); text-decoration: none; font-weight: 600;
+  }
+  .hn-sport-item:hover { background: var(--panel-2); }
+  .hn-sport-name { display: flex; align-items: center; gap: 10px; }
+  .hn-sport-name .sport-icon { width: 22px; height: 22px; }
+  .hn-badge {
+    font: 700 0.68rem 'JetBrains Mono', monospace; letter-spacing: 0.04em; color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: 5px; padding: 2px 6px; text-transform: uppercase;
+  }
+  .hn-badge.live { color: var(--good); border-color: var(--good); }
+  .hn-burger { display: none; width: 44px; height: 44px; border: 1px solid var(--border); background: var(--panel-2);
+    border-radius: 10px; cursor: pointer; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  .hn-burger span { display: block; width: 18px; height: 2px; background: var(--text); border-radius: 2px; }
+
+  /* full-screen phone menu */
+  .hm { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; flex-direction: column; }
+  .hm[hidden] { display: none; }
+  .hm-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--border-soft); }
+  .hm-close { width: 44px; height: 44px; font-size: 1.8rem; line-height: 1; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--panel-2); color: var(--text); cursor: pointer; }
+  .hm-body { flex: 1; overflow-y: auto; padding: 8px 16px 16px; }
+  .hm-acc, .hm-item {
+    display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 52px; padding: 0 4px;
+    border: none; border-bottom: 1px solid var(--border-soft); background: none; color: var(--text); text-decoration: none;
+    font: 700 1.15rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; cursor: pointer; text-align: left;
+  }
+  .hm-acc[aria-expanded="true"] span { transform: rotate(180deg); }
+  .hm-sports { padding: 4px 0 8px; }
+  .hm-sports[hidden] { display: none; }
+  .hm-sports .hn-sport-item { min-height: 48px; padding: 0 8px; font-size: 1rem; }
+  .hm-label { margin: 18px 4px 2px; font: 700 0.72rem 'Source Sans 3', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+  .hm-premium { margin: 12px 16px calc(12px + env(safe-area-inset-bottom)); min-height: 52px; font-size: 1.05rem; }
+
+  @media (max-width: 900px) {
+    .hn-links, .hn-signin, .hn-premium, .hn .theme-toggle { display: none; }
+    .hn-burger { display: inline-flex; }
+    .hn-inner { padding: 8px 16px; }
+  }
+
+  /* phone account controls (scripts/account.py; base styles in site.css) */
+  @media (max-width: 640px) {
+    .hn-right { gap: 6px; }
+    html.rtyb-signed-in .hm-signin { display: none; }
+  }
+  @media (min-width: 481px) and (max-width: 640px) { .hm-signin { display: none; } }
+  /* the sport pages' own row: NHL · Games · Stats · Trends · Odds · Teams */
+  .sn { border-bottom: 1px solid var(--border-soft); background: var(--bg); }
+  .sn-inner { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .sn-inner::-webkit-scrollbar { display: none; }
+  .sn-sport { display: inline-flex; align-items: center; gap: 8px; margin-right: 14px; font: 800 1.15rem 'Barlow Condensed', sans-serif; text-transform: uppercase; color: var(--text); white-space: nowrap; }
+  .sn-sport .sport-icon { width: 22px; height: 22px; }
+  .sn-link { display: inline-flex; align-items: center; min-height: 46px; padding: 0 12px; border-bottom: 2px solid transparent;
+    font: 700 1rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); text-decoration: none; white-space: nowrap; }
+  .sn-link:hover { color: var(--text); }
+  .sn-link[aria-current] { color: var(--text); border-bottom-color: var(--accent); }
+  @media (max-width: 600px) { .sn-inner { padding: 0 12px; } .sn-sport { margin-right: 6px; } .sn-link { padding: 0 9px; } }
+
 </style>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap">
 
-<header class="top">
-  <div class="top-inner">
-    <a class="brand" href="__BRAND_HREF__" aria-label="RTYB home">
-      __LOGO_SVG__
-    </a>
-
-    <nav class="main-nav" id="mainNav">
-      <div class="nav-dropdown" id="sportDropdown">
-        <button type="button" class="nav-link nav-dropdown-btn" id="sportBtn" aria-haspopup="true" aria-expanded="false">
-          __SPORT_ICON__ __SPORT_LABEL__ <span class="nav-caret">&#9662;</span>
-        </button>
-        <div class="nav-dropdown-menu" id="sportMenu">__SPORT_MENU_ITEMS__</div>
-      </div>
-      <a class="nav-link" href="__NAV_HREF_GAMES__" __NAV_GAMES_CURRENT__>Games</a>
-      <a class="nav-link" href="__NAV_HREF_STATS__" __NAV_HITRATES_CURRENT__>Stats</a>
-      <a class="nav-link" href="__NAV_HREF_TRENDS__" __NAV_TRENDS_CURRENT__>Trends</a>
-      __NAV_ODDS_LINK__
-      <a class="nav-link" href="__NAV_HREF_TEAMS__" __NAV_TEAMS_CURRENT__>Teams</a>
-      <a class="nav-link nav-mobile-only acct-menu-signin" href="/#premium">Sign in</a>
-      <a class="nav-premium nav-mobile-only acct-menu-premium" href="/#premium">Go Premium</a>
-    </nav>
-
-    <div class="nav-account">
-      <a class="nav-link" href="/#premium">Sign in</a>
-      <a class="nav-premium" href="/#premium">Go Premium</a>
-    </div>
-    __ACCOUNT__
-
-    <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
-    <button class="hamburger" id="hamburgerBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mainNav">
-      <span></span><span></span><span></span>
-    </button>
+__SITE_NAV__
+<nav class="sn" aria-label="__SPORT_LABEL__ pages">
+  <div class="sn-inner">
+    <span class="sn-sport">__SPORT_ICON__ __SPORT_LABEL__</span>
+    <a class="sn-link" href="__NAV_HREF_GAMES__" __NAV_GAMES_CURRENT__>Games</a>
+    <a class="sn-link" href="__NAV_HREF_STATS__" __NAV_HITRATES_CURRENT__>Stats</a>
+    <a class="sn-link" href="__NAV_HREF_TRENDS__" __NAV_TRENDS_CURRENT__>Trends</a>
+    __NAV_ODDS_LINK__
+    <a class="sn-link" href="__NAV_HREF_TEAMS__" __NAV_TEAMS_CURRENT__>Teams</a>
   </div>
-</header>
+</nav>
 __ACCOUNT_JS__
 
 <main>
@@ -1830,38 +1891,7 @@ __ACCOUNT_JS__
     if (document.body.getAttribute('data-team-code')) renderTeamPage();
   });
 
-  // ---- nav (sport / teams dropdowns + mobile hamburger) ----
-  (function() {
-    function wireDropdown(btnId, menuId) {
-      var btn = document.getElementById(btnId);
-      var menu = document.getElementById(menuId);
-      if (!btn || !menu) return;
-      btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        var opening = !menu.classList.contains('open');
-        document.querySelectorAll('.nav-dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
-        document.querySelectorAll('.nav-dropdown-btn').forEach(function(b) { b.setAttribute('aria-expanded', 'false'); });
-        if (opening) { menu.classList.add('open'); btn.setAttribute('aria-expanded', 'true'); }
-      });
-    }
-    wireDropdown('sportBtn', 'sportMenu');
-    document.addEventListener('click', function(e) {
-      document.querySelectorAll('.nav-dropdown-menu.open').forEach(function(m) {
-        if (!m.contains(e.target)) m.classList.remove('open');
-      });
-      document.querySelectorAll('.nav-dropdown-btn').forEach(function(b) { b.setAttribute('aria-expanded', 'false'); });
-    });
-    var hamburger = document.getElementById('hamburgerBtn');
-    var mainNav = document.getElementById('mainNav');
-    if (hamburger && mainNav) {
-      hamburger.addEventListener('click', function(e) {
-        e.stopPropagation();
-        var opening = !mainNav.classList.contains('open');
-        mainNav.classList.toggle('open', opening);
-        hamburger.setAttribute('aria-expanded', opening ? 'true' : 'false');
-      });
-    }
-  })();
+  // ---- nav: scripts/nav.py wires the menus ----
 
   // ---- Trends (Games page cards + Trends page) ----
   // One engine for both pages. Rules (minimum samples, strength cut-offs)

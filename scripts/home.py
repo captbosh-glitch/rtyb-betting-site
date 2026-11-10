@@ -22,6 +22,7 @@ from zoneinfo import ZoneInfo
 
 import account
 import icons
+import nav
 import sports
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -283,55 +284,8 @@ def trend_row(t, label):
 
 
 def nav_html(status, depth=''):
-    """Desktop nav + the phone menu. status: [(sport, chip, live)]."""
-    sport_items = ''.join(
-        f'<a class="hn-sport-item" href="{depth}{sports.section_path(sp, "games").lstrip("/")}">'
-        f'<span class="hn-sport-name">{icons.sport_icon(sp)}{esc(sp["label"])}</span><span class="hn-badge{" live" if live else ""}">{"LIVE" if live else esc(short)}</span></a>'
-        for sp, chip, live, short in status)
-    return f'''
-<header class="hn">
-  <div class="hn-inner">
-    <a class="brand" href="{depth or './'}" aria-label="RTYB home">__LOGO_SVG__</a>
-    <nav class="hn-links" aria-label="Main">
-      <div class="hn-drop">
-        <button class="hn-link hn-drop-btn" id="hnSportsBtn" aria-expanded="false" aria-haspopup="true">Sports <span aria-hidden="true">&#9662;</span></button>
-        <div class="hn-drop-menu" id="hnSportsMenu">{sport_items}</div>
-      </div>
-      <a class="hn-link" href="{depth}picks/">Picks</a>
-      <a class="hn-link" href="{depth}streaks/">Streaks</a>
-      <a class="hn-link" href="{depth}#today">Today</a>
-      <a class="hn-link" href="{depth}#trends">Trends to Watch</a>
-      <a class="hn-link" href="{depth}learn/">Learn</a>
-    </nav>
-    <div class="hn-right">
-      <a class="hn-link hn-signin" href="{depth}#premium">Sign in</a>
-      <a class="hn-premium" href="{depth}#premium">Go Premium</a>
-      {account.account_html(depth)}
-      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light/dark theme">&#9681;</button>
-      <button class="hn-burger" id="hnBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="hnMenu">
-        <span></span><span></span><span></span></button>
-    </div>
-  </div>
-</header>
-<div class="hm" id="hnMenu" hidden>
-  <div class="hm-head">
-    <a class="brand" href="{depth or './'}" aria-label="RTYB home">__LOGO_SVG__</a>
-    <button class="hm-close" id="hnClose" type="button" aria-label="Close menu">&times;</button>
-  </div>
-  <div class="hm-body">
-    <button class="hm-acc" id="hmSportsBtn" type="button" aria-expanded="true" aria-controls="hmSports">Sports <span aria-hidden="true">&#9662;</span></button>
-    <div class="hm-sports" id="hmSports">{sport_items}</div>
-    <div class="hm-label">Everything</div>
-    <a class="hm-item" href="{depth}picks/">Picks</a>
-    <a class="hm-item" href="{depth}streaks/">Streaks</a>
-    <a class="hm-item" href="{depth}#today">Today</a>
-    <a class="hm-item" href="{depth}#trends">Trends to Watch</a>
-    <a class="hm-item" href="{depth}learn/">Learn</a>
-    <a class="hm-item hm-signin" href="{depth}#premium">Sign in</a>
-    <button class="hm-item hm-theme" id="hmTheme" type="button">Light / dark theme</button>
-  </div>
-  <a class="hm-premium" href="{depth}#premium">Go Premium</a>
-</div>'''
+    """The shared site nav (scripts/nav.py). status: [(sport, chip, live, short)]."""
+    return nav.header(depth, [(sp, live, short) for sp, chip, live, short in status])
 
 
 FOOTER = '''
@@ -357,36 +311,7 @@ PAGE_JS = '''
     try { localStorage.setItem('rtyb-theme', next); } catch (e) {}
   }
   document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-  document.getElementById('hmTheme').addEventListener('click', toggleTheme);
-  // Sports dropdown (desktop)
-  var sBtn = document.getElementById('hnSportsBtn'), sMenu = document.getElementById('hnSportsMenu');
-  sBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    var open = !sMenu.classList.contains('open');
-    sMenu.classList.toggle('open', open);
-    sBtn.setAttribute('aria-expanded', String(open));
-  });
-  document.addEventListener('click', function(e) {
-    if (!sMenu.contains(e.target)) { sMenu.classList.remove('open'); sBtn.setAttribute('aria-expanded', 'false'); }
-  });
-  // Full-screen menu (phones)
-  var menu = document.getElementById('hnMenu'), burger = document.getElementById('hnBurger');
-  function setMenu(open) {
-    menu.hidden = !open;
-    burger.setAttribute('aria-expanded', String(open));
-    document.body.classList.toggle('hm-open', open);
-    if (open) document.getElementById('hnClose').focus(); else burger.focus();
-  }
-  burger.addEventListener('click', function() { setMenu(true); });
-  document.getElementById('hnClose').addEventListener('click', function() { setMenu(false); });
-  document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && !menu.hidden) setMenu(false); });
-  menu.querySelectorAll('a').forEach(function(a) { a.addEventListener('click', function() { setMenu(false); }); });
-  var acc = document.getElementById('hmSportsBtn'), accBody = document.getElementById('hmSports');
-  acc.addEventListener('click', function() {
-    var open = acc.getAttribute('aria-expanded') !== 'true';
-    acc.setAttribute('aria-expanded', String(open));
-    accBody.hidden = !open;
-  });
+  // the menus are wired by scripts/nav.py
   // League chips: arrows (and edge fades) when the row is wider than the
   // screen; each arrow shows only when there's more that way.
   var hsRow = document.getElementById('hsRow'), hsWrap = document.getElementById('hsWrap');
@@ -425,11 +350,13 @@ PAGE_JS = '''
 </script>'''
 
 
-def page(title, desc, body, status, depth=''):
+def page(title, desc, body, status, depth='', noindex=False):
+    """noindex: reachable by URL but kept out of search (Picks, Streaks)."""
     css = f'<link rel="stylesheet" href="{depth}assets/site.css"><link rel="stylesheet" href="{depth}assets/home.css">'
+    robots = '<meta name="robots" content="noindex">' if noindex else ''
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width,initial-scale=1"><title>{esc(title)}</title>'
-            f'<meta name="description" content="{esc(desc)}">{FONTS}{css}</head>'
+            f'<meta name="description" content="{esc(desc)}">{robots}{FONTS}{css}</head>'
             f'<body class="home">{nav_html(status, depth)}<main class="hp">{body}</main>{FOOTER}{PAGE_JS}{account.ACCOUNT_JS}</body></html>')
 
 
@@ -617,6 +544,11 @@ def build(template, nhl_data, logo_svg, now_utc=None):
     os.makedirs(os.path.join(ROOT, 'learn'), exist_ok=True)
     with open(os.path.join(ROOT, 'learn', 'index.html'), 'w', encoding='utf-8') as f:
         f.write(learn_page)
+    daily_page = page('RTYB — The Daily', 'Recaps, previews and the weekly column from RTYB. Coming soon.',
+                      DAILY_BODY, status, depth='../').replace('__LOGO_SVG__', logo_svg)
+    os.makedirs(os.path.join(ROOT, 'daily'), exist_ok=True)
+    with open(os.path.join(ROOT, 'daily', 'index.html'), 'w', encoding='utf-8') as f:
+        f.write(daily_page)
     return {'today': len(today_games), 'yesterday': len(yday_games), 'trends': len(trends)}
 
 
@@ -638,10 +570,18 @@ def write_picks(template, nhl_data, logo_svg, body, now_utc=None):
     by_sport, _ = collect(template, nhl_data)
     status = [(sp,) + sport_status(sp, by_sport.get(sp['key'], {}), today) for sp in sports.LAUNCHED]
     html = page('RTYB — Today’s Picks', 'Trend-based plays for the first quarter, half, period and inning, ranked by confidence, with every tier’s record public.',
-                body, status, depth='../').replace('__LOGO_SVG__', logo_svg)
+                body, status, depth='../', noindex=True).replace('__LOGO_SVG__', logo_svg)
     os.makedirs(os.path.join(ROOT, 'picks'), exist_ok=True)
     with open(os.path.join(ROOT, 'picks', 'index.html'), 'w', encoding='utf-8') as f:
         f.write(html)
+
+DAILY_BODY = '''
+<section class="hp-sec hd-soon">
+  <h1>The Daily</h1>
+  <p class="lead">Coming soon: The Morning Run (yesterday&rsquo;s recap), On Tap (today&rsquo;s preview) and the weekly
+  Running Tab column, for the NHL and NBA.</p>
+  <p><a href="../">Back to today&rsquo;s games</a></p>
+</section>'''
 
 LEARN_BODY = '''
 <section class="hp-sec learn">

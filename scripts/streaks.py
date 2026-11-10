@@ -173,7 +173,7 @@ def write(template, nhl_data, logo_svg, now_utc=None):
     live = {s[0]['key'] for s in status if s[2] and any(today <= d <= soon for d in by_sport.get(s[0]['key'], {}))}
     body = build(nhl_data, home.nhl_colors(template), live)
     page = home.page('RTYB — Streaks', 'Hot and cold streaks of 4+ games in the 1st period, quarter, half and inning, for every sport in season.',
-                     body, status, depth='../').replace('__LOGO_SVG__', logo_svg)
+                     body, status, depth='../', noindex=True).replace('__LOGO_SVG__', logo_svg)
     os.makedirs(os.path.join(ROOT, 'streaks'), exist_ok=True)
     with open(os.path.join(ROOT, 'streaks', 'index.html'), 'w', encoding='utf-8') as f:
         f.write(page)
