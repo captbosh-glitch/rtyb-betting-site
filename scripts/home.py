@@ -27,7 +27,6 @@ import sports
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ET = ZoneInfo('America/New_York')
-PRICE = '[PRICE]'   # Premium price placeholder until it's set
 TODAY_SHOWN = 6
 RESULTS_SHOWN = 6
 TRENDS_SHOWN = 5
@@ -478,8 +477,8 @@ def build(template, nhl_data, logo_svg, now_utc=None):
     else:
         last = '<div class="ln-card"><div class="ln-head"><span>Yesterday on RTYB</span></div><p class="muted">No graded games yet.</p></div>'
 
-    hero = (f'<section class="hh"><div class="hh-copy"><h1><span class="hh-a">The first</span> <span class="hh-b">period.</span><br><span class="hh-a">The first</span> <span class="hh-b">quarter.</span><br><span class="hh-a">The first</span> <span class="hh-b">inning.</span></h1>'
-            f'<p>Records, results and trends for the opening segment of every game &mdash; NHL, NBA, WNBA, MLB and NCAA sports.</p>'
+    hero = (f'<section class="hh"><div class="hh-copy"><h1><span class="hh-a">The first</span> <span class="hh-b">period.</span><br><span class="hh-a">The first</span> <span class="hh-b">quarter.</span><br><span class="hh-a">The first</span> <span class="hh-b">half.</span></h1>'
+            f'<p>Early bets settle fast. Run to yours with the numbers! Odds, stats and trends for every NHL and NBA game.</p>'
             f'<div class="hh-cta"><a class="btn-primary" href="#today">Today&rsquo;s games</a>'
             f'<a class="btn-ghost" href="#premium">Go Premium</a></div></div>{last}</section>')
 
@@ -516,7 +515,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
                        '<p class="hp-empty">No trends clear the bar for today&rsquo;s games yet.</p></section>')
 
     premium = (f'<section class="hpp" id="premium"><div class="hpp-inner"><div>'
-               f'<span class="hpp-kicker">RTYB Premium</span><h2>Every trend. Every sport. {esc(PRICE)}/mo.</h2>'
+               f'<span class="hpp-kicker">RTYB Premium</span><h2>Premium is coming. Get on the list.</h2>'
                f'<ul><li>All Trends to Watch, every night</li><li>Advanced stats and splits by segment</li>'
                f'<li>Units and records for every market</li></ul></div>'
                f'<form class="hpp-form" id="premiumForm" data-endpoint="" novalidate>'
@@ -534,7 +533,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
                 f'<div class="hs-row" id="hsRow">{chips}</div>'
                 f'<button class="hs-arrow next" type="button" aria-label="Scroll leagues right" hidden>&rsaquo;</button></div>')
     body = (f'{chip_row}{hero}{today_html}{results_html}{trends_html}{premium}{learn_html}')
-    home = page('RTYB — Run to Your Bets', 'First period, first quarter and first inning betting stats, results and trends for NHL, NFL, NBA, WNBA, MLB and college.',
+    home = page('RTYB — Run to Your Bets', 'First period, first quarter and first half betting odds, stats and trends for every NHL and NBA game.',
                 body, status).replace('__LOGO_SVG__', logo_svg)
     with open(os.path.join(ROOT, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(home)
