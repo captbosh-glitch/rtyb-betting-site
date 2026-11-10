@@ -104,13 +104,16 @@
     }
     function isPower(slug) { return ((src.conf || {}).power || []).indexOf(confOf(slug)) !== -1; }
     function fgLine(g, side) { return g.fs == null ? null : side === 'home' ? g.fs : -g.fs; }
-    // full-game favorite: by the registry's rule
+    function mlFav(ml) {
+      ml = ml || {};
+      if (typeof ml.away !== 'number' || typeof ml.home !== 'number' || ml.away === ml.home) return null;
+      return implied(ml.away) > implied(ml.home) ? 'away' : 'home';
+    }
+    // the favorite, by the registry's rule: 'seg-ml' = the segment's own
+    // moneyline, else the full-game one; 'fg-ml' = the full-game moneyline
     function fullFav(g, k) {
-      if (REG.favBy === 'fg-ml') {
-        var ml = g.fml || {};
-        if (typeof ml.away !== 'number' || typeof ml.home !== 'number' || ml.away === ml.home) return null;
-        return implied(ml.away) > implied(ml.home) ? 'away' : 'home';
-      }
+      if (REG.favBy === 'seg-ml') return mlFav(((g.odds || {})[k] || {}).ml) || mlFav(g.fml);
+      if (REG.favBy === 'fg-ml') return mlFav(g.fml);
       if (REG.favBy === 'fg-spread') return g.fs ? (g.fs < 0 ? 'home' : 'away') : null;
       // football: the segment's own line, else the full-game spread
       return segFav((g.odds || {})[k]) || (g.fs ? (g.fs < 0 ? 'home' : 'away') : null);
@@ -239,11 +242,11 @@
     }
 
     function agg(list) {
-      var a = { gp: 0, marg: 0, lined: 0 };
+      var a = { gp: 0, lined: 0 };
       markets.forEach(function(m) { a[m.id] = { a: 0, b: 0, p: 0, d: 0, n: 0, ua: 0, ub: 0, na: 0, nb: 0 }; });
       list.forEach(function(e) {
         var r = e.r;
-        a.gp++; a.marg += r.margin; if (r.lined) a.lined++;
+        a.gp++; if (r.lined) a.lined++;
         markets.forEach(function(m) {
           var x = a[m.id], v = r[m.id];
           if (v == null) return;
@@ -341,7 +344,13 @@
       var confShort = conf ? (((src.conf || {}).short || {})[conf] || conf) : '';
       var who = view.mode !== 'league' ? '' : conf ? 'as ' + confShort + ' teams' : 'as ' + (st.persp === 'fav' ? 'favorite' : 'home team');
       var sel = markets.filter(function(m) { return m.id === st.market; })[0];
-      var order = [sel].concat(markets.filter(function(m) { return m !== sel; }));
+      // mirrored rows (league view, both sides of every game): a game-level
+      // market (O/U, BTTS) reads the same on Away as on Home, so say so once
+      var MIRROR = {};
+      if (view.mode === 'league' && !conf && sel.pair) {
+        var pairs = { away: 'home', dog: 'fav', d1: 'f1', d4: 'f4', d8: 'f8' };
+        REG.rows.forEach(function(r) { if (r && pairs[r.id]) MIRROR[r.id] = (REG.rows.filter(function(x) { return x && x.id === pairs[r.id]; })[0] || {}).label; });
+      }
       var segLabel = src.segments.length > 1 ? '' : '<span class="sit-seglabel">' + esc(src.segments[0].label) + '</span>';
 
       // controls
@@ -374,7 +383,6 @@
         var useA = x.na && (!x.nb || x.ua >= x.ub);
         return pill(useA ? x.ua : x.ub, useA ? x.na : x.nb, (useA ? m.pair[0] : m.pair[1]) + ' ');
       }
-      function marg(a) { if (!a.gp) return '&mdash;'; var mm = Math.round(10 * a.marg / a.gp) / 10; return (mm > 0 ? '+' : '') + mm.toFixed(1); }
       function desc(row) {
         var d = typeof row.def === 'function' ? row.def(C, { cuts: (src.totalCuts || {})[k] }) : row.def;
         return d;
@@ -385,20 +393,23 @@
           '<span class="sit-desc">' + esc(desc(row)) + (who && (conf || !row.own) ? ' &middot; ' + who : '') + '</span></td>';
       }
       function cells(row, a) {
-        var x0 = a[sel.id], p = pctOf(sel, x0), cov = a.gp ? a.lined / a.gp : 0;
-        var h = labelCell(row, a) + '<td class="num mono' + (a.gp && a.gp < 5 ? ' amber' : '') + '">' + (a.gp || '&mdash;') + '</td>' +
-          '<td class="num mono sit-sel">' + recTxt(sel, x0) + '</td>' +
+        var x0 = a[sel.id], p = pctOf(sel, x0);
+        var h = labelCell(row, a) + '<td class="num mono' + (a.gp && a.gp < 5 ? ' amber' : '') + '">' + (a.gp || '&mdash;') + '</td>';
+        if (MIRROR[row.id]) return h + '<td class="num sit-same" colspan="3">Same games as ' + MIRROR[row.id] + '</td>' + oddsCell(a);
+        h += '<td class="num mono sit-sel">' + recTxt(sel, x0) + '</td>' +
           '<td class="num"><div class="pct-cell"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div></td>' +
           (isSu ? '<td class="num mono">' + (tieOf(x0) == null ? '&mdash;' : tieOf(x0) + '%') + '</td>' : '') +
           '<td class="num">' + unitsOf(sel, x0) + '</td>';
-        order.slice(1).forEach(function(m) { var x = a[m.id]; h += '<td class="num mono">' + recTxt(m, x) + '</td><td class="num">' + unitsOf(m, x) + '</td>'; });
-        return h + '<td class="num mono">' + marg(a) + '</td>' +
-          '<td class="num mono' + (a.gp && cov < 0.8 ? ' amber' : '') + '">' + (a.gp ? a.lined + '/' + a.gp : '&mdash;') + '</td>';
+        return h + oddsCell(a);
       }
-      var ncol = 6 + (isSu ? 1 : 0) + 2 * (order.length - 1) + 2;
+      function oddsCell(a) {
+        var cov = a.gp ? a.lined / a.gp : 0;
+        return '<td class="num mono' + (a.gp && cov < 0.8 ? ' amber' : '') + '">' + (a.gp ? a.lined + '/' + a.gp : '&mdash;') + '</td>';
+      }
+      // only the picked market's columns (the toggle switches markets)
+      var ncol = 6 + (isSu ? 1 : 0);
       var thead = '<tr><th class="sit-label">Split</th><th class="num">GP</th><th class="num">' + esc(sel.head) + '</th><th class="num">' + esc(sel.pctHead) +
-        '</th>' + (isSu ? '<th class="num">Tie %</th>' : '') + '<th class="num">Units</th>' + order.slice(1).map(function(m) { return '<th class="num">' + esc(m.head) + '</th><th class="num">' + esc(m.label) + ' Units</th>'; }).join('') +
-        '<th class="num">Avg Margin</th><th class="num">Odds</th></tr>';
+        '</th>' + (isSu ? '<th class="num">Tie %</th>' : '') + '<th class="num">Units</th><th class="num">Odds</th></tr>';
       var body = groups.map(function(G) {
         // the title sits in the pinned first column; the rest of the row is filler
         return '<tr class="sit-group"><td class="sit-label">' + esc(G.group.label) +
@@ -424,8 +435,7 @@
                 '</span><span class="sit-chev" aria-hidden="true">&#9662;</span></summary>' +
                 '<div class="sit-mbody"><p>' + esc(desc(x.row)) + '</p>' +
                   '<div class="pct-cell"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div>' +
-                  '<div class="sit-m3">' + markets.map(function(m) { var xx = a[m.id]; return '<div><b>' + esc(m.label) + '</b><span class="mono">' + recTxt(m, xx) + '</span>' + unitsOf(m, xx) + '</div>'; }).join('') +
-                  '<div><b>Margin</b><span class="mono">' + marg(a) + '</span></div></div>' +
+                  '<div class="sit-m3">' + markets.map(function(m) { var xx = a[m.id]; return '<div><b>' + esc(m.label) + '</b><span class="mono">' + recTxt(m, xx) + '</span>' + unitsOf(m, xx) + '</div>'; }).join('') + '</div>' +
                   '<div class="sit-mfoot' + (a.gp < 5 || (a.gp && a.lined / a.gp < 0.8) ? ' amber' : '') + '">' + a.gp + ' game' + (a.gp === 1 ? '' : 's') + ' &middot; ' + a.lined + ' with closing lines</div></div></details>';
             }).join('') +
             (G.hidden.length ? '<div class="sit-notyet">Not yet: ' + G.hidden.map(function(r) { return esc(r.short); }).join(' &middot; ') + '</div>' : '') + '</div>';

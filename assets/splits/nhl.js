@@ -1,8 +1,8 @@
 /*
  * NHL Situational Results registry (Stats page). Markets: 1st-period
  * Moneyline, Over 1.5 and BTTS; a tied 1st period is a push on the
- * moneyline (0 units). Favorite / underdog by the closing full-game
- * moneyline (ESPN); a pick'em is neither. Times are ET. Rows marked `own`
+ * moneyline (0 units). Favorite / underdog by the closing 1st-period
+ * moneyline, else the full-game one (ESPN); a pick'em is neither. Times are ET. Rows marked `own`
  * count each team-game from that team's side (so "After a loss" counts
  * every team coming off a loss, as the old Bounce-Back card did); the rest
  * use "View as" (home team by default).
@@ -11,7 +11,7 @@
   var C = { heavy: -200, scored: 5, lossBy: 3 };
   var groups = [
     { id: 'ha', label: 'Home / Away / Favorite / Underdog',
-      note: 'Away and Underdog rows are the mirror of Home and Favorite (W and L swapped, margin negated). Favorite / underdog by the closing full-game moneyline; a pick’em is neither.' },
+      note: 'Away and Underdog rows are the mirror of Home and Favorite (W and L swapped). Favorite / underdog by the closing 1st-period moneyline (the full-game one when there’s no 1P price); a pick’em is neither.' },
     { id: 'opp', label: 'Opponent' }, { id: 'drop', label: 'Puck Drop Window' }, { id: 'rest', label: 'Rest & Schedule' },
     { id: 'prev', label: 'Previous Game' }, { id: 'goalie', label: 'Goalie' },
   ];
@@ -19,10 +19,10 @@
   var rows = [
     { id: 'home', label: 'Home', short: 'Home', group: 'ha', own: true, def: 'Games as the home team.', test: function(c) { return c.home; } },
     { id: 'away', label: 'Away', short: 'Away', group: 'ha', own: true, def: 'Games as the road team.', test: function(c) { return !c.home; } },
-    { id: 'fav', label: 'Favorite', short: 'Fav', group: 'ha', own: true, def: 'Favored by the closing full-game moneyline.', test: function(c) { return c.fav === true; } },
-    { id: 'heavy', label: 'Heavy favorite', short: 'Heavy fav', group: 'ha', indent: 1, own: true, def: 'Closing moneyline -200 or shorter.', test: function(c) { return c.fav === true && c.favMl != null && c.favMl <= C.heavy; } },
-    { id: 'small', label: 'Small favorite', short: 'Small fav', group: 'ha', indent: 1, own: true, def: 'Closing moneyline -199 to -101.', test: function(c) { return c.fav === true && c.favMl != null && c.favMl > C.heavy && c.favMl <= -101; } },
-    { id: 'dog', label: 'Underdog', short: 'Dog', group: 'ha', own: true, def: 'The underdog by the closing full-game moneyline.', test: function(c) { return c.fav === false; } },
+    { id: 'fav', label: 'Favorite', short: 'Fav', group: 'ha', own: true, def: 'Favored by the closing 1st-period moneyline (full-game when there’s no 1P price).', test: function(c) { return c.fav === true; } },
+    { id: 'heavy', label: 'Heavy favorite', short: 'Heavy fav', group: 'ha', indent: 1, own: true, def: 'A favorite at a closing full-game moneyline of -200 or shorter.', test: function(c) { return c.fav === true && c.favMl != null && c.favMl <= C.heavy; } },
+    { id: 'small', label: 'Small favorite', short: 'Small fav', group: 'ha', indent: 1, own: true, def: 'A favorite at a closing full-game moneyline of -199 to -101.', test: function(c) { return c.fav === true && c.favMl != null && c.favMl > C.heavy && c.favMl <= -101; } },
+    { id: 'dog', label: 'Underdog', short: 'Dog', group: 'ha', own: true, def: 'The underdog by the closing 1st-period moneyline (full-game when there’s no 1P price).', test: function(c) { return c.fav === false; } },
 
     { id: 'div', label: 'Division', short: 'Div', group: 'opp', def: 'Against a division rival.', test: function(c) { return c.ti && c.oi && c.ti.division === c.oi.division; } },
     { id: 'conf', label: 'Conference', short: 'Conf', group: 'opp', def: 'Same conference, other division.', test: function(c) { return c.ti && c.oi && c.ti.conference === c.oi.conference && c.ti.division !== c.oi.division; } },
@@ -62,7 +62,7 @@
     { id: 'backup', label: 'Backup', short: 'Backup', group: 'goalie', own: true, def: 'Started anyone else.', test: function(c) { return c.starter === false; } },
   ];
   window.RTYB_SPLITS = window.RTYB_SPLITS || {};
-  window.RTYB_SPLITS.nhl = { config: C, groups: groups, rows: rows, favBy: 'fg-ml', periods: 3, smallSample: 10, pairUnits: 'both',
+  window.RTYB_SPLITS.nhl = { config: C, groups: groups, rows: rows, favBy: 'seg-ml', periods: 3, smallSample: 10, pairUnits: 'both',
     markets: [{ id: 'su', label: 'Moneyline' }, { id: 'ml3' }, { id: 'tot', label: 'Over 1.5', head: 'O/U 1.5', url: 'over15', pctHead: 'Over %' }, { id: 'btts', label: 'BTTS', url: 'btts' }],
     perspectives: [['home', 'Home team'], ['fav', 'Favorite']] };
 })();

@@ -24,7 +24,7 @@
     }
     var groups = [
       { id: 'ha', label: 'Home / Away / Favorite / Underdog',
-        note: 'Away and Underdog rows are the mirror of Home and Favorite (W and L swapped, margin negated). Favorite / underdog by the closing full-game spread; a pick’em is neither.' },
+        note: 'Away and Underdog rows are the mirror of Home and Favorite (W and L swapped). Favorite / underdog by the closing full-game spread; a pick’em is neither.' },
       { id: 'opp', label: 'Opponent' }, { id: 'tip', label: 'Tip-off Window' }, { id: 'rest', label: 'Rest & Schedule' },
       { id: 'prev', label: 'Previous Game' }, { id: 'size', label: 'Total Size' },
     ];

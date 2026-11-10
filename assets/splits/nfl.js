@@ -37,7 +37,7 @@
 
   var groups = [
     { id: 'ha', label: 'Home / Away · Favorite / Underdog',
-      note: 'League view: Away and Underdog rows are the mirror of Home and Favorite (W and L swapped, margin negated); Away favorite mirrors Home underdog and Away underdog mirrors Home favorite.' },
+      note: 'League view: Away and Underdog rows are the mirror of Home and Favorite (W and L swapped); Away favorite mirrors Home underdog and Away underdog mirrors Home favorite.' },
     { id: 'opp', label: 'Opponent' },
     { id: 'ko', label: 'Kickoff Window' },
     { id: 'rest', label: 'Rest & Schedule' },

@@ -31,7 +31,7 @@
 
   var groups = [
     { id: 'ha', label: 'Home / Away · Favorite / Underdog',
-      note: 'All FBS view: Away and Underdog rows are the mirror of Home and Favorite (W and L swapped, margin negated); Away favorite mirrors Home underdog and Away underdog mirrors Home favorite.' },
+      note: 'All FBS view: Away and Underdog rows are the mirror of Home and Favorite (W and L swapped); Away favorite mirrors Home underdog and Away underdog mirrors Home favorite.' },
     { id: 'spread', label: 'Spread Size (closing full-game spread)' },
     { id: 'opp', label: 'Opponent' },
     { id: 'rank', label: 'Rankings · AP Top 25 (rank at kickoff)' },
