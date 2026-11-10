@@ -1264,6 +1264,9 @@
   /* ---------- Other sports: Games / Stats / Trends (assets/sport.js) ---------- */
   .sport-seg-row { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
   .sport-seg-row .seg-toggle { margin-bottom: 0; }
+  .gm-trends-line { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; padding: 7px 10px; border-radius: 8px; background: var(--trend-dim); color: var(--text); font-size: 0.8rem; text-decoration: none; }
+  .gm-trends-line:hover { text-decoration: none; filter: brightness(1.05); }
+  .gm-trends-line .gm-why { color: var(--trend); white-space: nowrap; font-weight: 600; }
   /* ---------- Odds page (assets/sport.js renderOdds) ---------- */
   .odds-controls { flex-wrap: wrap; gap: 8px 12px; }
   .odds-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
