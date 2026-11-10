@@ -5383,57 +5383,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "New Jersey"
-   },
-   {
-    "id": "nhl|2026020287|1p|total|over",
-    "game": "nhl|2026020287",
-    "date": "2026-11-10",
-    "sport": "nhl",
-    "label": "NHL",
-    "slug": "nhl",
-    "start": "2026-11-11T00:00:00Z",
-    "seg": "1p",
-    "segTag": "1P",
-    "matchup": "Minnesota @ Montreal",
-    "href": "nhl/games/?date=2026-11-10",
-    "market": "total",
-    "side": "over",
-    "line": 1.5,
-    "price": -132,
-    "title": "1P Over 1.5",
-    "est": 0.5999,
-    "edge": 0.0309,
-    "agree": 6,
-    "sample": 19,
-    "tier": "C",
-    "tags": [
-     "Over Lover",
-     "Streak Rider"
-    ],
-    "streak": 5,
-    "streakTeam": "MON",
-    "angles": [
-     [
-      "Montreal 1P overs at home (1.5)",
-      "7-2"
-     ],
-     [
-      "Montreal 1P overs, season (1.5)",
-      "13-4"
-     ],
-     [
-      "Minnesota 1P overs on the road (1.5)",
-      "9-3"
-     ],
-     [
-      "Montreal 1P overs, last 8 (1.5)",
-      "6-2"
-     ]
-    ],
-    "info": "Avg 1P total in their games: Montreal 2.2 \u00b7 Minnesota 1.8",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Montreal"
    }
   ]
  }
