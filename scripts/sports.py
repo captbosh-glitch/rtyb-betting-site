@@ -20,6 +20,10 @@ Field reference
                  (its page lives at /nhl/1st-period-stats/)
   schedule       "day" (default) or "week": football's Games page and Admin
                  go week by week (ESPN's weeks: Week 1.., Wild Card, Bowls)
+  launched       True = shown on the site (nav, home, Picks, Streaks).
+                 False = hidden: its data is still fetched, graded and built,
+                 its pages still load by URL (noindexed), but nothing links
+                 to them. Turning a sport on is this one line.
 """
 
 SPREAD_MARKETS = ['ATS', 'ML', 'Total']
@@ -28,6 +32,7 @@ NO_ML_MARKETS = ['ATS', 'Total']
 SPORTS = [
     {
         'key': 'nhl', 'label': 'NHL', 'slug': 'nhl', 'sport_type': 'period',
+        'launched': True,
         'segments': [
             {'key': '1p', 'label': '1st Period', 'tag': '1P', 'markets': ['ML', 'O/U 1.5', 'BTTS']},
         ],
@@ -36,6 +41,7 @@ SPORTS = [
     },
     {
         'key': 'nfl', 'label': 'NFL', 'slug': 'nfl', 'sport_type': 'spread', 'schedule': 'week',
+        'launched': False,
         'segments': [
             {'key': '1q', 'label': '1st Quarter', 'tag': '1Q', 'markets': SPREAD_MARKETS},
             {'key': '1h', 'label': '1st Half', 'tag': '1H', 'markets': SPREAD_MARKETS},
@@ -44,6 +50,7 @@ SPORTS = [
     },
     {
         'key': 'nba', 'label': 'NBA', 'slug': 'nba', 'sport_type': 'spread',
+        'launched': True,
         'segments': [
             {'key': '1q', 'label': '1st Quarter', 'tag': '1Q', 'markets': SPREAD_MARKETS},
             {'key': '1h', 'label': '1st Half', 'tag': '1H', 'markets': SPREAD_MARKETS},
@@ -52,6 +59,7 @@ SPORTS = [
     },
     {
         'key': 'wnba', 'label': 'WNBA', 'slug': 'wnba', 'sport_type': 'spread',
+        'launched': False,
         'segments': [
             {'key': '1q', 'label': '1st Quarter', 'tag': '1Q', 'markets': SPREAD_MARKETS},
             {'key': '1h', 'label': '1st Half', 'tag': '1H', 'markets': SPREAD_MARKETS},
@@ -60,6 +68,7 @@ SPORTS = [
     },
     {
         'key': 'mlb', 'label': 'MLB', 'slug': 'mlb', 'sport_type': 'baseball',
+        'launched': False,
         'segments': [
             {'key': '1i', 'label': '1st Inning', 'tag': 'NRFI', 'markets': ['NRFI/YRFI']},
             {'key': 'f5', 'label': 'First Five Innings', 'tag': 'F5', 'markets': SPREAD_MARKETS},
@@ -68,6 +77,7 @@ SPORTS = [
     },
     {
         'key': 'ncaaf', 'label': 'NCAAF', 'slug': 'college-football', 'sport_type': 'spread', 'schedule': 'week',
+        'launched': False,
         'segments': [
             {'key': '1q', 'label': '1st Quarter', 'tag': '1Q', 'markets': SPREAD_MARKETS},
             {'key': '1h', 'label': '1st Half', 'tag': '1H', 'markets': SPREAD_MARKETS},
@@ -76,6 +86,7 @@ SPORTS = [
     },
     {
         'key': 'ncaab', 'label': 'NCAAB', 'slug': 'college-basketball', 'sport_type': 'spread',
+        'launched': False,
         'segments': [
             {'key': '1h', 'label': '1st Half', 'tag': '1H', 'markets': SPREAD_MARKETS},
         ],
@@ -94,6 +105,12 @@ for _s in SPORTS:
     _s.setdefault('schedule', 'day')
 
 BY_KEY = {s['key']: s for s in SPORTS}
+# the sports shown on the site, in nav order
+LAUNCHED = [s for s in SPORTS if s.get('launched')]
+
+
+def is_launched(key):
+    return bool(BY_KEY.get(key, {}).get('launched'))
 
 
 def section_path(sport, section):

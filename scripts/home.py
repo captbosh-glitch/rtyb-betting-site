@@ -436,7 +436,9 @@ def sport_status(sp, games_by_date, today):
               and any(g['state'] == 'final' for g in games_by_date[d])]
     if todays and (recent or any(g['state'] != 'pre' for g in games_by_date[today])):
         return f'{todays} today', True, 'LIVE'
-    if recent:
+    # an off day mid-season stays LIVE; a season that just ended (no game
+    # in the coming week) never does
+    if recent and any(today < d <= (t + timedelta(days=7)).isoformat() for d in dates):
         return 'Off today', True, 'LIVE'
     if todays:
         return f'Starts today ({todays})', True, 'LIVE'
@@ -483,9 +485,11 @@ def build(template, nhl_data, logo_svg, now_utc=None):
     by_sport, docs = collect(template, nhl_data)
 
     status = []
-    for sp in sports.SPORTS:
+    for sp in sports.LAUNCHED:
         chip, live, short = sport_status(sp, by_sport.get(sp['key'], {}), today)
         status.append((sp, chip, live, short))
+    # hidden sports (sports.py 'launched') stay off the home page
+    by_sport = {k: v for k, v in by_sport.items() if sports.is_launched(k)}
 
     # today: every sport's games today, by start time
     today_games = sorted((g for k in by_sport for g in by_sport[k].get(today, [])),
@@ -499,7 +503,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
     recap = []
     if yday:
         recap += nhl_recap(by_sport['nhl'].get(yday, []))
-        for sp in sports.SPORTS:
+        for sp in sports.LAUNCHED:
             if sp['key'] != 'nhl':
                 recap += sport_recap(sp['label'], sp['segments'], by_sport[sp['key']].get(yday, []))
 
@@ -510,7 +514,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
         trends += [('NHL', t) for t in (log.get(today) or {}).get('trends', [])]
     except (OSError, ValueError):
         pass
-    for sp in sports.SPORTS:
+    for sp in sports.LAUNCHED:
         doc = docs.get(sp['key']) or {}
         key = today
         if doc.get('schedule') == 'week':
@@ -620,7 +624,7 @@ def write_picks(template, nhl_data, logo_svg, body, now_utc=None):
     now_utc = now_utc or datetime.now(timezone.utc)
     today = now_utc.astimezone(ET).date().isoformat()
     by_sport, _ = collect(template, nhl_data)
-    status = [(sp,) + sport_status(sp, by_sport.get(sp['key'], {}), today) for sp in sports.SPORTS]
+    status = [(sp,) + sport_status(sp, by_sport.get(sp['key'], {}), today) for sp in sports.LAUNCHED]
     html = page('RTYB — Today’s Picks', 'Trend-based plays for the first quarter, half, period and inning, ranked by confidence, with every tier’s record public.',
                 body, status, depth='../').replace('__LOGO_SVG__', logo_svg)
     os.makedirs(os.path.join(ROOT, 'picks'), exist_ok=True)

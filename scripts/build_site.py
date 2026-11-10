@@ -310,7 +310,7 @@ SPORT_STATUS = {}
 
 def sport_menu_html(current, section):
     items = []
-    for sp in sports.SPORTS:
+    for sp in sports.LAUNCHED:
         cur = ' aria-current="true"' if sp['key'] == current['key'] else ''
         st = SPORT_STATUS.get(sp['key'])
         if st:
@@ -351,6 +351,8 @@ def apply_sport(out, sport, section):
     out = out.replace('__META_DESC__', NHL_META_DESC if is_nhl else
                       f'RTYB — Run to Your Bets: {sport["label"]} {sports.segment_summary(sport)} betting stats and trends.')
     out = out.replace('__LOGO_SVG__', LOGO_SVG)
+    if not sport.get('launched'):   # hidden sport: reachable by URL, kept out of search
+        out = out.replace('</title>', '</title>\n<meta name="robots" content="noindex">', 1)
     if '__SIT_JS__' in out:   # NHL Stats page: the shared split table, inlined
         js = ''.join(open(os.path.join(ROOT, 'assets', p), encoding='utf-8').read() for p in ('splits/nhl.js', 'situational.js'))
         out = out.replace('__SIT_JS__', f'<script>\n{js}</script>')

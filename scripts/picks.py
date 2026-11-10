@@ -733,5 +733,8 @@ def build(nhl_data, nhl_city, now_utc=None):
         e['streakTeamName'] = g['names'].get(e['streakTeam'], e['streakTeam'])
     log = update_log(games, plays, now_utc)
     today = now_utc.astimezone(ET).date().isoformat()
-    body = render(log, plays, evaluated, now_utc)
+    # every sport is still logged and graded; the page shows launched ones only
+    shown = {d: dict(day, plays=[p for p in day['plays'] if sports.is_launched(p['sport'])]) for d, day in log.items()}
+    evaluated = [e for e in evaluated if sports.is_launched(by_key[e['game']]['sport'])]
+    body = render(shown, [p for p in plays if sports.is_launched(p['sport'])], evaluated, now_utc)
     return body, {'plays': len((log.get(today) or {}).get('plays') or []), 'logged_days': len(log)}

@@ -166,7 +166,7 @@ def write(template, nhl_data, logo_svg, now_utc=None):
     now_utc = now_utc or datetime.now(timezone.utc)
     today = now_utc.astimezone(home.ET).date().isoformat()
     by_sport, _ = home.collect(template, nhl_data)
-    status = [(sp,) + home.sport_status(sp, by_sport.get(sp['key'], {}), today) for sp in sports.SPORTS]
+    status = [(sp,) + home.sport_status(sp, by_sport.get(sp['key'], {}), today) for sp in sports.LAUNCHED]
     # in season with games coming up: a season that just ended (still LIVE on
     # the home page for two weeks, for playoff gaps) would show stale streaks
     soon = (now_utc.astimezone(home.ET).date() + timedelta(days=7)).isoformat()
