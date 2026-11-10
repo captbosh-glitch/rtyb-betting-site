@@ -677,6 +677,8 @@
   .tr-str.strong { color: var(--good); }
   .tr-str.moderate { color: var(--accent); }
   .tr-str.weak { color: var(--text-faint); }
+  .tr-str[title] { cursor: help; }
+  .tr-agree { font: 700 0.62rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); margin-left: 4px; }
   .tr-src { font: 700 0.6rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
   .trend-record-strip { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--border-soft); border-radius: 10px; padding: 9px 14px; margin-bottom: 14px; font-size: 0.85rem; }
   .trs-label { font: 700 0.72rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
@@ -1142,6 +1144,8 @@
   .lt-str.weak { color: var(--text-faint); }
   .lt-n { flex-shrink: 0; font: 600 0.66rem 'JetBrains Mono', monospace; color: var(--text-muted); }
   .lt-pick { font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 0.72rem; background: var(--good-dim); color: var(--good); border-radius: 5px; padding: 2px 7px; }
+  .lt-pick.muted { background: var(--neutral-chip); color: var(--text-muted); }
+  .lt-str[title] { cursor: help; }
   .lt-why { font-family: 'Source Sans 3', sans-serif; color: var(--text-muted); font-size: 0.74rem; }
   .lt-all { margin-top: 6px; }
   .lt-all summary { cursor: pointer; font-size: 0.78rem; font-weight: 700; color: var(--accent); }

@@ -687,6 +687,8 @@
   .tr-str.strong { color: var(--good); }
   .tr-str.moderate { color: var(--accent); }
   .tr-str.weak { color: var(--text-faint); }
+  .tr-str[title] { cursor: help; }
+  .tr-agree { font: 700 0.62rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); margin-left: 4px; }
   .tr-src { font: 700 0.6rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
   .trend-record-strip { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--border-soft); border-radius: 10px; padding: 9px 14px; margin-bottom: 14px; font-size: 0.85rem; }
   .trs-label { font: 700 0.72rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
@@ -1152,6 +1154,8 @@
   .lt-str.weak { color: var(--text-faint); }
   .lt-n { flex-shrink: 0; font: 600 0.66rem 'JetBrains Mono', monospace; color: var(--text-muted); }
   .lt-pick { font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 0.72rem; background: var(--good-dim); color: var(--good); border-radius: 5px; padding: 2px 7px; }
+  .lt-pick.muted { background: var(--neutral-chip); color: var(--text-muted); }
+  .lt-str[title] { cursor: help; }
   .lt-why { font-family: 'Source Sans 3', sans-serif; color: var(--text-muted); font-size: 0.74rem; }
   .lt-all { margin-top: 6px; }
   .lt-all summary { cursor: pointer; font-size: 0.78rem; font-weight: 700; color: var(--accent); }
@@ -1839,15 +1843,31 @@
   // come from scripts/trend_rules.py via DATA.trendRules, shared with the
   // other sports. Strength = (rate - base) / sqrt(base * (1 - base) / n):
   // base 50% for the moneyline (n = decisions, ties are pushes), the league
-  // rate for Over 1.5 and BTTS. Labels: weak < 1, moderate 1-2, strong >= 2;
-  // weak trends are muted and left out of the odds highlight and tallies.
+  // rate for Over 1.5 and BTTS. Labels need the edge and, with saved prices,
+  // units per bet too (trend_rules.label); weak trends are muted, never a
+  // bet, and left out of the odds highlight and tallies.
   // Every line names the side to bet -- never "Fade".
   var TR = DATA.trendRules || { league_min: 30, team_rate_min: 15, streak_min: 4, moderate: 1, strong: 2, min_units: 0.5 };
   function trZ(rate, base, n) {
     if (rate == null || !n || base <= 0 || base >= 1) return 0;
     return (rate - base) / Math.sqrt(base * (1 - base) / n);
   }
-  function trLabel(z) { var a = Math.abs(z); return a >= TR.strong ? 'strong' : a >= TR.moderate ? 'moderate' : 'weak'; }
+  function trLabel(z, units, bets) {
+    var a = Math.abs(z), upb = units != null && bets ? units / bets : null;
+    function ok(lv) { return a >= TR[lv] && (upb === null || upb >= (TR[lv + '_upb'] || 0)); }
+    return ok('strong') ? 'strong' : ok('moderate') ? 'moderate' : 'weak';
+  }
+  function trMetaHtml(label, n) {
+    return '<span class="tr-meta"><span class="tr-str ' + label + '" title="' + escapeHtml(TR.tip || '') + '">' + label + '</span> n = ' + n + '</span>';
+  }
+  // A game that has started (or finished) is no longer a bet.
+  function trGameStarted(g) {
+    return !!g && (isGameOver(g) || g.state === 'LIVE' || g.state === 'CRIT' || (!!g.startTimeUTC && Date.now() >= Date.parse(g.startTimeUTC)));
+  }
+  function trGameByKey(key) {
+    var d = key.split('|')[0];
+    return ((SCHEDULE.games && SCHEDULE.games[d]) || []).filter(function(g) { return d + '|' + g.away + '|' + g.home === key; })[0] || null;
+  }
   var TR_MARKETS = [['ml', 'Moneyline'], ['o15', 'Total 1.5'], ['btts', 'BTTS']];
   // League-wide Over 1.5 / BTTS rates this season: the base for team rates.
   var TR_BASE = (function() {
@@ -1935,7 +1955,7 @@
           ? p.label.replace(/^Bet /, '') + ' — ' + p.why + '. ' + t.group + ' are ' + t.record + (t.units != null ? ' (' + fmtUnits(t.units) + ')' : '')
           : t.title + ': ' + pctText(t.rate) + ' (league ' + pctText(t.base) + ')' + (t.units != null ? ' · ' + fmtUnits(t.units) : '');
         out.push({ market: mk, side: t.kind === 'side' ? p.team : p.chip.toLowerCase(), chip: p.chip, text: text, src: 'League',
-          z: Math.abs(t.z || 0), label: t.strength || trLabel(t.z || 0), n: t.n, status: p.status });
+          z: Math.abs(t.z || 0), label: t.strength || trLabel(t.z || 0), n: t.n, status: trPickStatus(p) });
       });
     });
     return out;
@@ -1951,7 +1971,7 @@
     G.sides.forEach(function(c) {
       if (!isPartySpot(c) || dec < TR.league_min || u === null || u < TR.min_units) return;
       var z = trZ(r.w / dec, 0.5, dec);
-      out.push({ market: 'ml', side: c.team, chip: 'Bet ' + c.team, src: 'League', z: Math.max(0, z), label: trLabel(Math.max(0, z)), n: dec,
+      out.push({ market: 'ml', side: c.team, chip: 'Bet ' + c.team, src: 'League', z: Math.max(0, z), label: trLabel(Math.max(0, z), u, dec), n: dec,
         text: 'Bet ' + c.team + ' — first game after ' + partyCityOf(c.prev.home) + '. Road teams in this spot are ' +
           r.w + '–' + r.l + (r.t ? ' (' + r.t + ' push)' : '') + ' (' + fmtUnits(u) + ')' });
     });
@@ -1983,14 +2003,16 @@
     var name = mk === 'ml' ? lead + ' ML' : mk === 'o15' ? (lead === 'over' ? 'Over' : 'Under') : 'BTTS ' + (lead === 'yes' ? 'Yes' : 'No');
     return name + ' ' + info.a + '–' + info.b;
   }
-  var TR_STATUS = { W: ['Hit', 'lt-w'], L: ['Miss', 'lt-l'], P: ['Push', 'lt-pending'] };
+  var TR_STATUS = { W: ['Hit', 'lt-w'], L: ['Miss', 'lt-l'], P: ['Push', 'lt-pending'], LIVE: ['Live', 'lt-pending'], NA: ['No line', 'lt-pending'] };
+  // PENDING until the next data refresh notices the game started: show it live now
+  function trPickStatus(p) { return p.status === 'PENDING' && trGameStarted(trGameByKey(p.key)) ? 'LIVE' : p.status; }
   function trendLineHtml(l, info) {
-    var tone = l.label === 'weak' ? 'muted' : info.split ? 'amber' : l.side === info.lead ? 'good' : 'bad';
     var st = TR_STATUS[l.status];
+    var tone = l.label === 'weak' || st ? 'muted' : info.split ? 'amber' : l.side === info.lead ? 'good' : 'bad';
     return '<li class="tr-line' + (l.label === 'weak' ? ' weak' : '') + '">' +
       '<span class="tr-chip ' + tone + '">' + escapeHtml(l.chip) + '</span>' +
       '<span class="tr-text">' + escapeHtml(l.text) + '</span>' +
-      '<span class="tr-meta"><span class="tr-str ' + l.label + '">' + l.label + '</span> n = ' + l.n + '</span>' +
+      trMetaHtml(l.label, l.n) +
       '<span class="tr-src">' + l.src + '</span>' +
       (st ? '<span class="lt-chip ' + st[1] + '">' + st[0] + '</span>' : '') +
     '</li>';
@@ -2015,10 +2037,12 @@
   function marketOf(t) { return t.market === 'ML' ? 'ml' : /^O|^U/.test(t.market) ? 'o15' : 'btts'; }
   function leagueCardHtml(t) {
     var mk = marketOf(t);
+    // a bet only while its game hasn't started, and never on a weak trend
     var chips = (t.games || []).map(function(p) {
-      var st = TR_STATUS[p.status];
-      return '<span class="tr-pick"><span class="tr-chip good">' + escapeHtml(p.label) + '</span>' +
+      var st = TR_STATUS[trPickStatus(p)], bet = !st && t.strength !== 'weak';
+      return '<span class="tr-pick"><span class="tr-chip ' + (bet ? 'good' : 'muted') + '">' + escapeHtml(p.label) + '</span>' +
         '<span class="tr-pick-game">' + escapeHtml(p.matchup || '') + (p.why ? ' · ' + escapeHtml(p.why) : '') + '</span>' +
+        (p.agree > 1 ? '<span class="tr-agree">' + p.agree + ' trends agree</span>' : '') +
         (st ? '<span class="lt-chip ' + st[1] + '">' + st[0] + '</span>' : '') + '</span>';
     }).join('');
     var stat;
@@ -2034,7 +2058,7 @@
     return '<div class="tr-card' + (t.strength === 'weak' ? ' weak' : '') + '" data-mk="' + mk + '">' +
       '<div class="tr-card-top"><span class="lt-tag">' + escapeHtml(t.market === 'ML' ? 'ML' : t.market) + '</span>' +
         '<span class="tr-card-title">' + escapeHtml(t.title) + '</span>' +
-        '<span class="tr-meta"><span class="tr-str ' + t.strength + '">' + t.strength + '</span> n = ' + t.n + '</span></div>' +
+        trMetaHtml(t.strength, t.n) + '</div>' +
       stat + (chips ? '<div class="tr-picks"><span class="lt-when">Today</span>' + chips + '</div>' : '') +
     '</div>';
   }
@@ -2073,18 +2097,19 @@
         .filter(function(l) { return trPageMarket === 'all' || l.market === trPageMarket; });
       var sidesBy = {};
       lines.forEach(function(l) { (sidesBy[l.market] = sidesBy[l.market] || {})[l.side] = 1; });
+      var started = trGameStarted(g);
       var rows = TR_MARKETS.map(function(m) {
         return lines.filter(function(l) { return l.market === m[0]; }).map(function(l) {
           var disagree = Object.keys(sidesBy[l.market] || {}).length > 1;
           return '<div class="tr-row' + (l.label === 'weak' ? ' weak' : '') + '">' + teamLogoHtml(l.code, 24, { lazy: true }) +
-            '<span class="tr-chip ' + (disagree ? 'amber' : l.label === 'weak' ? 'muted' : 'good') + '">' + escapeHtml(l.chip) + '</span>' +
+            '<span class="tr-chip ' + (started || l.label === 'weak' ? 'muted' : disagree ? 'amber' : 'good') + '">' + escapeHtml(l.chip) + '</span>' +
             '<span class="tr-mk">' + m[1] + '</span><span class="tr-text">' + escapeHtml(l.text) + '</span>' +
             (disagree ? '<span class="tr-flag">Teams disagree</span>' : '') +
-            '<span class="tr-meta"><span class="tr-str ' + l.label + '">' + l.label + '</span> n = ' + l.n + '</span>' + lastDots(l) + '</div>';
+            trMetaHtml(l.label, l.n) + lastDots(l) + '</div>';
         }).join('');
       }).join('');
       return '<div class="tr-game"><div class="tr-game-head">' + teamLogoHtml(g.away, 22) + escapeHtml(g.away) + ' @ ' + teamLogoHtml(g.home, 22) + escapeHtml(g.home) +
-        ' <span class="tr-game-time">' + escapeHtml(fmtGameTime(g.startTimeUTC)) + '</span></div>' +
+        ' <span class="tr-game-time">' + (started ? (isGameOver(g) ? 'Final' : 'Live') : escapeHtml(fmtGameTime(g.startTimeUTC))) + '</span></div>' +
         (rows || '<div class="tr-none">No team trends for this game.</div>') + '</div>';
     }).join('') : '<div class="empty-state">No NHL games today.</div>';
   }
