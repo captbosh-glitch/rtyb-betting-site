@@ -520,17 +520,35 @@
   }
   // side: 'all' | 'home' | 'away'
   function teamAgg(slug, k, market, side, games) {
-    var a = newAgg();
+    var a = newAgg(), seq = [];
     games.forEach(function(g) {
       if (g.away !== slug && g.home !== slug) return;
       if (side === 'home' && g.home !== slug) return;
       if (side === 'away' && g.away !== slug) return;
-      addAgg(a, betResult(g, k, market, slug));
+      var b = betResult(g, k, market, slug);
+      addAgg(a, b);
+      if (b) seq.push(b.res);
     });
+    a.streak = streakOf(seq);
     // SU: ties count as games played. ATS / totals: pushes are left out of the %.
     a.pct = market === 'su' || market === 'ml3' ? winPct(a.w, a.l, a.t) : (a.w + a.l) ? a.w / (a.w + a.l) : null;
     a.tiePct = market === 'su' ? tiePct(a.w, a.l, a.t) : market === 'ml3' ? (a.gp ? a.d / a.gp : null) : null;
     return a;
+  }
+  // The current run of one result, from results oldest first:
+  // {r: 'W' | 'L' | 'T', n}, and n as a signed number for sorting.
+  function streakOf(seq) {
+    var n = 0, last = seq[seq.length - 1];
+    for (var i = seq.length - 1; i >= 0 && seq[i] === last; i--) n++;
+    return n ? { r: last, n: n, v: last === 'W' ? n : last === 'L' ? -n : 0 } : null;
+  }
+  // 'W4' / 'L3' (O / U for totals, Y / N for YRFI): green for the side the
+  // table's % counts, red for the other.
+  var STREAK_LETTER = { tot: { W: 'O', L: 'U', T: 'P' }, rfi: { W: 'Y', L: 'N', T: 'P' }, ats: { W: 'W', L: 'L', T: 'P' } };
+  function streakHtml(st, market) {
+    if (!st) return '&mdash;';
+    var letter = (STREAK_LETTER[market] || { W: 'W', L: 'L', T: 'T' })[st.r];
+    return '<span class="tl-streak ' + (st.r === 'W' ? 'good' : st.r === 'L' ? 'bad' : 'flat') + '">' + letter + st.n + '</span>';
   }
   function marketsFor(k) {
     if (isRfi(k)) return [['rfi', 'YRFI']];
@@ -561,12 +579,12 @@
       }).map(function(s) {
         var a = teamAgg(s, k, tlState.market, tlState.side, games);
         a.slug = s; a.name = D.teams[s].name; a.conf = D.teams[s].conference || 'Other';
-        a.wins = a.w; a.u = a.priced ? a.units : null;
+        a.wins = a.w; a.u = a.priced ? a.units : null; a.streakV = a.streak ? a.streak.v : null;
         return a;
       });
     }
     function sortRows(list) {
-      var key = tlState.sortKey === 'units' ? 'u' : tlState.sortKey, dir = tlState.sortDir;
+      var key = { units: 'u', streak: 'streakV' }[tlState.sortKey] || tlState.sortKey, dir = tlState.sortDir;
       return list.sort(function(a, b) {
         if (key === 'name') return a.name.localeCompare(b.name) * dir;
         var va = a[key], vb = b[key];
@@ -578,18 +596,19 @@
     }
     function rowHtml(r) {
       var p = r.pct == null ? null : Math.round(r.pct * 100);
-      return '<tr data-href="' + teamUrl(r.slug) + '">' +
-        '<td class="team-cell">' + badge(r.slug, 24) + '<a class="tl-name" href="' + teamUrl(r.slug) + '">' + esc(r.name) + '</a></td>' +
+      return '<tr class="tl-row" data-href="' + teamUrl(r.slug) + '">' +
+        '<td class="team-cell">' + badge(r.slug, 24) + '<a class="tl-name" href="' + teamUrl(r.slug) + '"><span class="tl-full">' + esc(r.name) + '</span><span class="tl-short">' + esc(shortName(r.slug)) + '</span></a></td>' +
         '<td class="num rec-cell mono col-rec"><b>' + (r.gp ? r.w + '-' + r.l + (tlState.market === 'ml3' ? '' : '-' + r.t) : '&mdash;') + '</b></td>' +
         '<td class="num col-pct"><div class="pct-cell"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div></td>' +
         (hasTie ? '<td class="num col-tie mono">' + (r.tiePct == null ? '&mdash;' : Math.round(r.tiePct * 100) + '%') + '</td>' : '') +
-        '<td class="num col-units">' + unitsPill(r.units, r.priced) + '</td></tr>';
+        '<td class="num col-streak mono">' + streakHtml(r.streak, tlState.market) + '</td>' +
+        '<td class="num col-units">' + unitsPill(r.units, r.priced) + '</td><td class="col-go" aria-hidden="true">&rsaquo;</td></tr>';
     }
     function draw() {
       var k = getSeg(), mk = marketsFor(k);
       if (!mk.some(function(m) { return m[0] === tlState.market; })) tlState.market = mk[0][0];
       hasTie = tlState.market === 'su' || tlState.market === 'ml3';
-      var list = sortRows(rows(k)), body, ncol = hasTie ? 5 : 4;
+      var list = sortRows(rows(k)), body, ncol = hasTie ? 7 : 6;
       if (!list.length) body = '<tr><td colspan="' + ncol + '"><div class="empty-state">No teams match &ldquo;' + esc(tlState.q) + '&rdquo;.</div></td></tr>';
       else if (college) {
         var groups = {};
@@ -610,7 +629,7 @@
         '<div class="control-group"><span class="control-label">Side</span>' + pills('data-tl-side', [['all', 'All'], ['home', 'Home'], ['away', 'Away']], tlState.side) + '</div>' +
         '<div class="control-group"><input class="search-box" id="tlSearch" type="search" placeholder="Search team&hellip;" value="' + esc(tlState.q) + '"></div></div>' +
         '<div class="table-wrap"><div class="table-scroll"><table id="leagueTable"><thead><tr>' +
-        th('name', 'Team') + th('wins', recLabel, 'num col-rec') + th('pct', pctLabel, 'num col-pct') + (hasTie ? th('tiePct', 'Tie %', 'num col-tie') : '') + th('units', 'Units', 'num col-units') +
+        th('name', 'Team') + th('wins', recLabel, 'num col-rec') + th('pct', pctLabel, 'num col-pct') + (hasTie ? th('tiePct', 'Tie %', 'num col-tie') : '') + th('streak', 'Streak', 'num col-streak') + th('units', 'Units', 'num col-units') + '<th class="col-go" aria-hidden="true"></th>' +
         '</tr></thead><tbody id="leagueBody">' + body + '</tbody></table></div></div>' +
         '<p class="tl-note">' + esc(seg(k).label) + ' &middot; ' + esc(D.seasonLabel) + ' season &middot; ' + ({ su: 'Win % and Tie % are out of every game played', ml3: '3-way: a tie loses both teams; Tie % is how often the tie bet won; units only where 3-way prices were saved' }[tlState.market] || 'pushes count in the record but not the %') +
         (tlState.market !== 'su' && tlState.market !== 'rfi' ? ' &middot; ATS and totals need saved odds' : '') + '</p></div>';
