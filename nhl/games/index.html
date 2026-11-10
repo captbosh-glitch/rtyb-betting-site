@@ -602,6 +602,8 @@
   .ds-col-rec { width: 58px; text-align: right; }
   .ds-col-pct { width: 50px; text-align: right; }
   .ds-col-units { width: 74px; text-align: right; }
+  #leagueTable .col-tie { width: 64px; text-align: right; }
+  .tie-pct { color: var(--text-muted); font-weight: 400; }
   /* Team pages' season records run longer ("79 of 166", "75-59-32") */
   .season-markets .ds-col-rec { width: auto; min-width: 58px; white-space: nowrap; }
   .season-markets .ds-col-pct { white-space: nowrap; }
@@ -1166,6 +1168,7 @@
 
   /* ---------- Team page: Season Markets cards tinted by units ---------- */
   .stat-tile .val .u-inline { font-size: 0.85rem; margin-left: 8px; }
+  .stat-tile .tile-tie { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
   .stat-tile.t-good { background: color-mix(in srgb, var(--good) 16%, transparent); border-color: var(--good); }
   .stat-tile.t-warn { background: color-mix(in srgb, var(--warn) 16%, transparent); border-color: var(--warn); }
   .stat-tile.t-bad  { background: color-mix(in srgb, var(--bad) 16%, transparent);  border-color: var(--bad); }
@@ -1732,6 +1735,10 @@
     if (n === null || n === 0) return null;
     return n < 0 ? 100 / Math.abs(n) : n / 100;
   }
+  // Win % and Tie % of every game played: a 5-0-12 team is 29% wins, 71% ties
+  // (not 100%). Keep in step with winPct in assets/sport.js and situational.js.
+  function winPct(w, l, t) { var n = w + l + (t || 0); return n ? w / n : null; }
+  function tiePct(w, l, t) { var n = w + l + (t || 0); return n ? (t || 0) / n : null; }
   // result: 'W' | 'L' | 'T'. null = a win with no saved price (left out of the sum).
   function betUnits(result, price) {
     if (result === 'L') return -1;
@@ -2186,8 +2193,8 @@
         if (u !== null) r.units += u;
       }
     });
-    var decided = r.w + r.l;
-    r.pct = decided ? r.w / decided : null; // win % excludes ties
+    r.pct = winPct(r.w, r.l, r.t);   // ties count as games played (only 'win' has them)
+    r.tiePct = market === 'win' ? tiePct(r.w, r.l, r.t) : null;
     r.rec = market === 'win' ? (r.w + '-' + r.l + '-' + r.t) : (r.w + '-' + r.l);
     return r;
   }
@@ -2220,8 +2227,12 @@
       if (vb === -Infinity) return -1;
       return (va - vb) * state.sortDir;
     });
+    // the moneyline is the only market with ties: its record is W-L-T, with a Tie % column
+    var isMl = state.market === 'win', table = document.getElementById('leagueTable');
+    table.querySelector('th.col-tie').hidden = !isMl;
+    table.querySelector('th[data-sort="wins"]').firstChild.nodeValue = isMl ? 'W-L-T' : 'W-L';
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">No teams match &ldquo;' + escapeHtml(state.search) + '&rdquo;.</div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="' + (isMl ? 5 : 4) + '"><div class="empty-state">No teams match &ldquo;' + escapeHtml(state.search) + '&rdquo;.</div></td></tr>';
       return;
     }
     tbody.innerHTML = rows.map(function(r) {
@@ -2230,6 +2241,7 @@
         '<td class="team-cell">' + teamLogoHtml(r.code, 24, {lazy: true}) + escapeHtml(r.name) + '</td>' +
         '<td class="num rec-cell mono col-rec"><b>' + r.rec + '</b></td>' +
         '<td class="num col-pct"><div class="pct-cell"><div class="pct-bar"><span style="width:' + (pctDisplay || 0) + '%"></span></div><span class="pct-num mono">' + (pctDisplay === null ? '&mdash;' : pctDisplay + '%') + '</span></div></td>' +
+        (isMl ? '<td class="num col-tie mono">' + (r.tiePct === null ? '&mdash;' : Math.round(r.tiePct * 100) + '%') + '</td>' : '') +
         '<td class="num col-units">' + unitsPill(r.units) + '</td>' +
         '</tr>';
     }).join('');
@@ -2391,8 +2403,7 @@
   }
 
   function summaryRowView(r) {
-    var decided = r.w + r.l;
-    var pct = decided ? Math.round((r.w / decided) * 100) : null; // ties excluded
+    var p = winPct(r.w, r.l, r.t), pct = p === null ? null : Math.round(p * 100); // ties count as games
     return {
       rec: r.w + '-' + r.l + (r.hasTies ? '-' + r.t : ''),
       pct: pct === null ? '&mdash;' : pct + '%',
@@ -2584,7 +2595,7 @@
     }
   }
   function recUnits(r) { return r.priced ? r.units : null; } // null = hide the chip
-  function recWinPct(r) { var d = r.w + r.l; return d ? r.w / d : null; }
+  function recWinPct(r) { return winPct(r.w, r.l, r.t); }
 
   function buildRtybStats() {
     var divOf = {};
@@ -3337,8 +3348,9 @@
       var u = roundUnits(r.units);
       var tint = u > 0.25 ? 't-good' : u >= -0.25 ? 't-warn' : 't-bad';
       var pct = r.pct === null ? '&mdash;' : Math.round(r.pct * 100) + '%';
-      return '<div class="stat-tile ' + tint + '"><div class="lbl">' + m[1] + '</div>' +
-        '<div class="val">' + pct + '<span class="u-inline">' + fmtUnits(r.units) + '</span></div></div>';
+      var tie = r.tiePct === null ? '' : '<div class="tile-tie mono">' + r.w + '-' + r.l + '-' + r.t + ' &middot; Tie ' + Math.round(r.tiePct * 100) + '%</div>';
+      return '<div class="stat-tile ' + tint + '"><div class="lbl">' + m[1] + (r.tiePct === null ? '' : ' win %') + '</div>' +
+        '<div class="val">' + pct + '<span class="u-inline">' + fmtUnits(r.units) + '</span></div>' + tie + '</div>';
     }).join('');
 
     // Home / Away splits, records or units.

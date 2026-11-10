@@ -592,6 +592,8 @@
   .ds-col-rec { width: 58px; text-align: right; }
   .ds-col-pct { width: 50px; text-align: right; }
   .ds-col-units { width: 74px; text-align: right; }
+  #leagueTable .col-tie { width: 64px; text-align: right; }
+  .tie-pct { color: var(--text-muted); font-weight: 400; }
   /* Team pages' season records run longer ("79 of 166", "75-59-32") */
   .season-markets .ds-col-rec { width: auto; min-width: 58px; white-space: nowrap; }
   .season-markets .ds-col-pct { white-space: nowrap; }
@@ -1156,6 +1158,7 @@
 
   /* ---------- Team page: Season Markets cards tinted by units ---------- */
   .stat-tile .val .u-inline { font-size: 0.85rem; margin-left: 8px; }
+  .stat-tile .tile-tie { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
   .stat-tile.t-good { background: color-mix(in srgb, var(--good) 16%, transparent); border-color: var(--good); }
   .stat-tile.t-warn { background: color-mix(in srgb, var(--warn) 16%, transparent); border-color: var(--warn); }
   .stat-tile.t-bad  { background: color-mix(in srgb, var(--bad) 16%, transparent);  border-color: var(--bad); }
