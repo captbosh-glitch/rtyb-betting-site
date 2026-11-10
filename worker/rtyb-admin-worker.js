@@ -40,6 +40,9 @@
  *   /results/publish    same body -- also writes data_admin/results_overrides.json
  *   /odds/parse         body: {sport, segment, mode, text, games: [{away, home, date, awayName, homeName}]} --
  *                         AI fills one segment's table for the other sports; writes nothing
+ *   /content/list       body: {} -- every draft (content/drafts/) and column (content/columns/) with its text
+ *   /content/save       body: {path, text} -- saves an edited draft or column in place
+ *   /content/publish    body: {path, text} -- writes it to content/published/ and removes the draft
  *   /odds/save          body: {sport, rows: [{date, away, home, segment, ats, ml, total}], removes: [{date, away, home}]}
  *                         -- odds for the other sports (not NHL), one file per sport at
  *                         data_admin/odds/{sport}.json, stored per game + segment + market
@@ -121,6 +124,76 @@ async function commitJsonFile(env, filePath, message, mutate) {
   }
   const text = await putResp.text();
   return { ok: false, status: putResp.status, detail: `PUT ${filePath}: ${text.slice(0, 300)}` };
+}
+
+// --- The Daily: drafts and columns (Markdown) -------------------------------
+// Drafts are written by scripts/daily_content.py into content/drafts/;
+// columns are hand-written into content/columns/. Publishing moves a file
+// to content/published/, which the next refresh turns into its page.
+const CONTENT_PATH = /^content\/(drafts|columns)\/[a-z0-9][a-z0-9-]*\.md$/;
+
+async function getFile(env, filePath) {
+  const resp = await ghRequest(env, `contents/${filePath}?ref=${BRANCH}`, { method: "GET" });
+  if (resp.status !== 200) return { ok: false, status: resp.status, detail: `GET ${filePath}: ${(await resp.text()).slice(0, 300)}` };
+  const info = await resp.json();
+  return { ok: true, sha: info.sha, text: b64decode(info.content.replace(/\n/g, "")) };
+}
+
+async function putText(env, filePath, message, text) {
+  const cur = await getFile(env, filePath);
+  const resp = await ghRequest(env, `contents/${filePath}`, {
+    method: "PUT",
+    body: JSON.stringify({ message, content: b64encode(text), branch: BRANCH, ...(cur.ok ? { sha: cur.sha } : {}) }),
+  });
+  if (resp.status === 200 || resp.status === 201) return { ok: true };
+  return { ok: false, status: resp.status, detail: `PUT ${filePath}: ${(await resp.text()).slice(0, 300)}` };
+}
+
+async function deleteFile(env, filePath, message) {
+  const cur = await getFile(env, filePath);
+  if (!cur.ok) return cur.status === 404 ? { ok: true } : cur;
+  const resp = await ghRequest(env, `contents/${filePath}`, {
+    method: "DELETE",
+    body: JSON.stringify({ message, sha: cur.sha, branch: BRANCH }),
+  });
+  if (resp.status === 200) return { ok: true };
+  return { ok: false, status: resp.status, detail: `DELETE ${filePath}: ${(await resp.text()).slice(0, 300)}` };
+}
+
+// Every draft and column, with its text: {ok, files: [{path, text}]}
+async function listContent(env) {
+  const files = [];
+  for (const dir of ["content/drafts", "content/columns"]) {
+    const resp = await ghRequest(env, `contents/${dir}?ref=${BRANCH}`, { method: "GET" });
+    if (resp.status === 404) continue;
+    if (resp.status !== 200) return { ok: false, status: resp.status, detail: `GET ${dir}: ${(await resp.text()).slice(0, 300)}` };
+    for (const f of await resp.json()) {
+      if (f.type !== "file" || !CONTENT_PATH.test(f.path)) continue;
+      const got = await getFile(env, f.path);
+      if (got.ok) files.push({ path: f.path, text: got.text });
+    }
+  }
+  return { ok: true, files };
+}
+
+function validateContent(body) {
+  if (!body || typeof body.path !== "string" || !CONTENT_PATH.test(body.path)) return "path must be a .md file in content/drafts/ or content/columns/";
+  if (typeof body.text !== "string" || !body.text.trim() || body.text.length > 50000) return "text must be 1-50,000 characters";
+  return null;
+}
+
+// Publish: write the (edited) text to content/published/ and remove the
+// draft (and the fact packet beside it). Columns publish as column-{name}.md.
+async function publishContent(env, body) {
+  const name = body.path.split("/").pop();
+  const isColumn = body.path.startsWith("content/columns/");
+  const target = `content/published/${isColumn && !name.startsWith("column-") ? "column-" + name : name}`;
+  const put = await putText(env, target, `Publish ${name} (admin)`, body.text);
+  if (!put.ok) return put;
+  const del = await deleteFile(env, body.path, `Remove ${name} after publishing (admin)`);
+  if (!del.ok) return del;
+  if (!isColumn) await deleteFile(env, body.path.replace(/\.md$/, ".packet.json"), `Remove ${name}'s packet after publishing (admin)`);
+  return { ok: true };
 }
 
 function matchupKey(date, away, home) {
@@ -602,6 +675,24 @@ export default {
         const err = validateOdds(body);
         if (err) return json({ ok: false, error: err }, 400);
         result = await saveSportOdds(env, body);
+        break;
+      }
+      case "/content/list": {
+        const listed = await listContent(env);
+        if (listed.ok) return json({ ok: true, files: listed.files });
+        result = listed;
+        break;
+      }
+      case "/content/save": {
+        const err = validateContent(body);
+        if (err) return json({ ok: false, error: err }, 400);
+        result = await putText(env, body.path, `Edit ${body.path.split("/").pop()} (admin)`, body.text);
+        break;
+      }
+      case "/content/publish": {
+        const err = validateContent(body);
+        if (err) return json({ ok: false, error: err }, 400);
+        result = await publishContent(env, body);
         break;
       }
       default:

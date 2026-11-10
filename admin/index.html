@@ -102,6 +102,13 @@
   .preview-h.ok { color: var(--good); }
   .preview-h.bad { color: var(--bad); }
   code { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+  .draft { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 14px; }
+  .draft:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+  .draft-head { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+  .draft-head b { font-size: 0.95rem; }
+  .draft-head code { color: var(--text-muted); }
+  .draft-check { font-size: 0.8rem; color: var(--bad); margin: 6px 0 0; }
+  .draft textarea { min-height: 260px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -118,8 +125,23 @@
 
   <div id="main" hidden>
     <h1>RTYB — Admin</h1>
-    <p class="sub">Matchups Tool and Results Tool. <a href="#" id="signOut" style="color:var(--text-muted)">Sign out</a></p>
+    <p class="sub">Matchups Tool, Results Tool and The Daily&rsquo;s drafts. <a href="#" id="signOut" style="color:var(--text-muted)">Sign out</a></p>
+    <div class="seg-tabs" id="viewTabs" style="margin-bottom:14px">
+      <button type="button" data-view="tools" aria-pressed="true">Odds &amp; results</button>
+      <button type="button" data-view="drafts" aria-pressed="false">Drafts</button>
+    </div>
 
+    <div id="draftsView" hidden>
+      <div class="card">
+        <h2>The Daily &mdash; drafts and columns</h2>
+        <p class="sub" style="margin-bottom:0">Recaps (8 AM ET) and previews (11 AM ET) are drafted from the site&rsquo;s numbers. Read each one against the results, edit the text, then Publish: it goes live on /daily/, its own page and the sport&rsquo;s Games page on the next refresh (within about 10 minutes). Columns are Markdown files in <code>content/columns/</code> and publish the same way.</p>
+        <div class="actions"><button class="save" id="draftsReload" type="button">Reload</button></div>
+        <p class="status" id="draftsStatus"></p>
+        <div id="draftsList"></div>
+      </div>
+    </div>
+
+    <div id="toolsView">
     <div class="card">
       <div class="row">
         <label for="sportSelect">Sport</label>
@@ -239,6 +261,7 @@
     </div>
 
     <p class="note">Changes take effect on the next site rebuild, usually within a minute or two (the Save commit triggers it automatically). Reload this page after saving to re-check what went live.</p>
+    </div>
   </div>
 
 </div>
@@ -1474,6 +1497,61 @@
     link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     link.download = 'rtyb-' + SPORT.key + '-odds-template.csv';
     link.click();
+  });
+
+  // ---- The Daily: drafts and columns (worker /content/*) ----
+  function draftMeta(text) {
+    var m = /^---\n([\s\S]*?)\n---/.exec(text), meta = {};
+    if (m) m[1].split('\n').forEach(function(line) {
+      var i = line.indexOf(':');
+      if (i > 0) meta[line.slice(0, i).trim()] = line.slice(i + 1).trim().replace(/^"(.*)"$/, '$1');
+    });
+    return meta;
+  }
+  function escHtml(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+  function renderDrafts(files) {
+    var box = document.getElementById('draftsList');
+    if (!files.length) { box.innerHTML = '<p class="empty">No drafts or columns waiting.</p>'; return; }
+    box.innerHTML = files.map(function(f, i) {
+      var meta = draftMeta(f.text), check = [];
+      try { check = JSON.parse(meta.check || '[]'); } catch (e) {}
+      return '<div class="draft" data-i="' + i + '"><div class="draft-head"><b>' + escHtml(meta.title || f.path.split('/').pop()) + '</b><code>' + escHtml(f.path) + '</code></div>' +
+        (check.length ? '<p class="draft-check">Check these numbers against the results (not found in the data the draft was written from): ' + escHtml(check.join(', ')) + '</p>' : '') +
+        '<textarea id="draftText' + i + '">' + escHtml(f.text) + '</textarea>' +
+        '<div class="actions"><button class="save" type="button" data-act="save">Save edits</button><button class="publish" type="button" data-act="publish">Publish</button></div>' +
+        '<p class="status" id="draftStatus' + i + '"></p></div>';
+    }).join('');
+    box.querySelectorAll('.draft').forEach(function(el) {
+      var i = +el.getAttribute('data-i'), f = files[i];
+      el.querySelectorAll('button[data-act]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var act = btn.getAttribute('data-act'), text = document.getElementById('draftText' + i).value;
+          if (act === 'publish' && !confirm('Publish "' + (draftMeta(text).title || f.path) + '" to the site?')) return;
+          callWorker('/content/' + act, { path: f.path, text: text }, document.getElementById('draftStatus' + i), btn,
+            act === 'publish' ? 'Publishing' : 'Saving',
+            act === 'publish' ? 'Published. It goes live on the next refresh, within about 10 minutes.' : 'Saved.')
+            .then(function() { if (act === 'publish') el.querySelectorAll('button, textarea').forEach(function(x) { x.disabled = true; }); })
+            .catch(function() {});
+        });
+      });
+    });
+  }
+  function loadDrafts() {
+    var btn = document.getElementById('draftsReload');
+    callWorker('/content/list', {}, document.getElementById('draftsStatus'), btn, 'Loading drafts', '')
+      .then(function(res) { renderDrafts(res.body.files || []); })
+      .catch(function() {});
+  }
+  document.getElementById('draftsReload').addEventListener('click', loadDrafts);
+  var draftsLoaded = false;
+  document.getElementById('viewTabs').addEventListener('click', function(e) {
+    var b = e.target.closest('[data-view]');
+    if (!b) return;
+    var v = b.getAttribute('data-view');
+    document.querySelectorAll('#viewTabs [data-view]').forEach(function(x) { x.setAttribute('aria-pressed', String(x === b)); });
+    document.getElementById('toolsView').hidden = v !== 'tools';
+    document.getElementById('draftsView').hidden = v !== 'drafts';
+    if (v === 'drafts' && !draftsLoaded) { draftsLoaded = true; loadDrafts(); }
   });
 
   function showGate(msg) {

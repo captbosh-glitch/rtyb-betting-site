@@ -21,6 +21,7 @@ from datetime import date as Date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import account
+import daily
 import icons
 import nav
 import sports
@@ -598,13 +599,18 @@ def build(template, nhl_data, logo_svg, now_utc=None):
         trends_html = ('<section class="hp-sec" id="trends"><div class="hp-head"><h2>Hottest trends today</h2></div>'
                        '<p class="hp-empty">No trends clear the bar for today&rsquo;s games yet.</p></section>')
 
+    pieces = daily.load()
+    # the newest recap, preview and column; a placeholder for any not published yet
+    slots = {'recap': '<div class="hd-card"><span class="hd-kicker">The Morning Run &middot; recap</span><b>Yesterday&rsquo;s recap lands here each morning.</b><span class="muted">Starting launch week.</span></div>',
+             'preview': '<div class="hd-card"><span class="hd-kicker">On Tap &middot; today&rsquo;s preview</span><b>Today&rsquo;s preview lands here before the first game.</b><span class="muted">Starting launch week.</span></div>',
+             'column': '<div class="hd-card"><span class="hd-kicker">Running Tab &middot; weekly column</span><b>The first column is on the way.</b><span class="muted">Coming soon.</span></div>'}
+    for kind in slots:
+        p = daily.latest(pieces, kind)
+        if p:
+            slots[kind] = daily.card(p, p['path'])
     daily_html = ('<section class="hp-sec" id="daily"><div class="hp-head"><h2>The Daily</h2>'
                   '<span class="muted">Recaps, previews and the weekly column.</span><a class="hp-head-link" href="daily/">Everything in The Daily &rarr;</a></div>'
-                  '<div class="hd-grid">'
-                  '<div class="hd-card"><span class="hd-kicker">The Morning Run &middot; recap</span><b>Yesterday&rsquo;s recap lands here each morning.</b><span class="muted">Starting launch week.</span></div>'
-                  '<div class="hd-card"><span class="hd-kicker">On Tap &middot; today&rsquo;s preview</span><b>Today&rsquo;s preview lands here before the first game.</b><span class="muted">Starting launch week.</span></div>'
-                  '<div class="hd-card"><span class="hd-kicker">Running Tab &middot; weekly column</span><b>The first column is on the way.</b><span class="muted">Coming soon.</span></div>'
-                  '</div></section>')
+                  '<div class="hd-grid">' + ''.join(slots.values()) + '</div></section>')
 
     premium = (f'<section class="hpp" id="premium"><div class="hpp-inner"><div>'
                f'<span class="hpp-kicker">RTYB Premium &middot; coming soon</span><h2>Premium is coming. Get on the list.</h2>'
@@ -635,11 +641,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
     os.makedirs(os.path.join(ROOT, 'learn'), exist_ok=True)
     with open(os.path.join(ROOT, 'learn', 'index.html'), 'w', encoding='utf-8') as f:
         f.write(learn_page)
-    daily_page = page('RTYB — The Daily', 'Recaps, previews and the weekly column from RTYB. Coming soon.',
-                      DAILY_BODY, status, depth='../').replace('__LOGO_SVG__', logo_svg)
-    os.makedirs(os.path.join(ROOT, 'daily'), exist_ok=True)
-    with open(os.path.join(ROOT, 'daily', 'index.html'), 'w', encoding='utf-8') as f:
-        f.write(daily_page)
+    daily.write_pages(page, status, logo_svg, pieces)
     return {'today': len(today_games), 'yesterday': len(yday_games), 'trends': len(trends)}
 
 
@@ -665,14 +667,6 @@ def write_picks(template, nhl_data, logo_svg, body, now_utc=None):
     os.makedirs(os.path.join(ROOT, 'picks'), exist_ok=True)
     with open(os.path.join(ROOT, 'picks', 'index.html'), 'w', encoding='utf-8') as f:
         f.write(html)
-
-DAILY_BODY = '''
-<section class="hp-sec hd-soon">
-  <h1>The Daily</h1>
-  <p class="lead">Coming soon: The Morning Run (yesterday&rsquo;s recap), On Tap (today&rsquo;s preview) and the weekly
-  Running Tab column, for the NHL and NBA.</p>
-  <p><a href="../">Back to today&rsquo;s games</a></p>
-</section>'''
 
 LEARN_BODY = '''
 <section class="hp-sec learn">

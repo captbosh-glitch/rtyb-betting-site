@@ -18,6 +18,8 @@ on:
       - 'data_admin/odds_overrides.json'
       - 'data_admin/results_overrides.json'
       - 'data_admin/odds/**'
+      # The Daily: a piece the admin just published goes live on this run
+      - 'content/published/**'
 
 permissions:
   contents: write
