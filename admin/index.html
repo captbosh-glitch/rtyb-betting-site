@@ -196,7 +196,7 @@
 
     <div class="card">
       <h2>Matchups Tool</h2>
-      <p class="sub" style="margin-bottom:0">Save pushes these odds live to that day&rsquo;s Games section immediately. No number means the odds are read as +; a leading &ndash; is kept as &ndash;.</p>
+      <p class="sub" style="margin-bottom:0">Save pushes these odds live to that day&rsquo;s Games section immediately. Moneyline is the 2-way 1st-period price (a tied period is a push), not the 3-way. No number means the odds are read as +; a leading &ndash; is kept as &ndash;.</p>
       <table id="matchupsTable">
         <thead><tr>
           <th>Matchup</th><th>ML Away</th><th>ML Home</th>
@@ -673,7 +673,7 @@
     ats: ['Matchup', 'ATS Away', 'ATS Home', 'Total', ''],
   };
   var HELP = {
-    spread: 'One table per segment. ATS is the line (away and home must be opposites &mdash; type one and the other fills in); the small field under it is the price, &ndash;110 unless you change it. Total is the line with Over / Under prices underneath. Rows marked Auto are already live from the odds feed; Save only what you add or change &mdash; a saved number always wins over the feed.',
+    spread: 'One table per segment. ATS is the line (away and home must be opposites &mdash; type one and the other fills in); the small field under it is the price, &ndash;110 unless you change it. Total is the line with Over / Under prices underneath. <b>ML is the 2-way moneyline</b> (a tied segment is a push) &mdash; never enter 3-way prices (the ones with a Tie option) here. Rows marked Auto are already live from the odds feed; Save only what you add or change &mdash; a saved number always wins over the feed.',
     f5: 'First Five innings. The ATS columns are <b>prices</b> &mdash; the line is always 0.5, and the moneyline favorite (shorter ML) lays &ndash;0.5. Use the Fav menu under the matchup to override (or to pick a side when the moneylines are even or blank). Total can be a whole number or a .5; Over / Under prices default to &ndash;110.',
     rfi: 'Run in the 1st inning: Yes is the YRFI price, No is the NRFI price.',
     ats: 'One table per segment. ATS is the line (away and home must be opposites &mdash; type one and the other fills in); the small field under it is the price, &ndash;110 unless you change it. Total is the line with Over / Under prices underneath. This segment tracks spread and total only, no moneyline. Rows marked Auto are already live from the odds feed; Save only what you add or change &mdash; a saved number always wins over the feed.',

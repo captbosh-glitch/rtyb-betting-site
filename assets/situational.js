@@ -356,7 +356,11 @@
         '<span class="sc-gp">' + seasonTxt + ' &middot; ' + gp + ' GP</span></div></div>';
 
       function recTxt(m, x) { return x.n ? x.a + '-' + x.b + (m.pair ? (x.p ? '-' + x.p : '') : '-' + x.p) : '&mdash;'; }
-      function pctOf(m, x) { var d = x.a + x.b; return d ? Math.round(100 * x.a / d) : null; }
+      // Moneyline: Win % and Tie % out of every game played (ties count, as in
+      // template.html / sport.js winPct). Other markets leave pushes out.
+      function pctOf(m, x) { var d = x.a + x.b + (m.id === 'su' ? x.p : 0); return d ? Math.round(100 * x.a / d) : null; }
+      function tieOf(x) { var d = x.a + x.b + x.p; return d ? Math.round(100 * x.p / d) : null; }
+      var isSu = sel.id === 'su';
       function unitsOf(m, x) {
         if (!m.pair) return pill(x.ua, x.na);
         if (!x.na && !x.nb) return pill(0, 0);
@@ -379,14 +383,15 @@
         var h = labelCell(row, a) + '<td class="num mono' + (a.gp && a.gp < 5 ? ' amber' : '') + '">' + (a.gp || '&mdash;') + '</td>' +
           '<td class="num mono sit-sel">' + recTxt(sel, x0) + '</td>' +
           '<td class="num"><div class="pct-cell"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div></td>' +
+          (isSu ? '<td class="num mono">' + (tieOf(x0) == null ? '&mdash;' : tieOf(x0) + '%') + '</td>' : '') +
           '<td class="num">' + unitsOf(sel, x0) + '</td>';
         order.slice(1).forEach(function(m) { var x = a[m.id]; h += '<td class="num mono">' + recTxt(m, x) + '</td><td class="num">' + unitsOf(m, x) + '</td>'; });
         return h + '<td class="num mono">' + marg(a) + '</td>' +
           '<td class="num mono' + (a.gp && cov < 0.8 ? ' amber' : '') + '">' + (a.gp ? a.lined + '/' + a.gp : '&mdash;') + '</td>';
       }
-      var ncol = 6 + 2 * (order.length - 1) + 2;
+      var ncol = 6 + (isSu ? 1 : 0) + 2 * (order.length - 1) + 2;
       var thead = '<tr><th class="sit-label">Split</th><th class="num">GP</th><th class="num">' + esc(sel.head) + '</th><th class="num">' + esc(sel.pctHead) +
-        '</th><th class="num">Units</th>' + order.slice(1).map(function(m) { return '<th class="num">' + esc(m.head) + '</th><th class="num">' + esc(m.label) + ' Units</th>'; }).join('') +
+        '</th>' + (isSu ? '<th class="num">Tie %</th>' : '') + '<th class="num">Units</th>' + order.slice(1).map(function(m) { return '<th class="num">' + esc(m.head) + '</th><th class="num">' + esc(m.label) + ' Units</th>'; }).join('') +
         '<th class="num">Avg Margin</th><th class="num">Odds</th></tr>';
       var body = groups.map(function(G) {
         // the title sits in the pinned first column; the rest of the row is filler
