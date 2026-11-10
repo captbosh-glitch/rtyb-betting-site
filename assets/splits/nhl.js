@@ -63,6 +63,6 @@
   ];
   window.RTYB_SPLITS = window.RTYB_SPLITS || {};
   window.RTYB_SPLITS.nhl = { config: C, groups: groups, rows: rows, favBy: 'fg-ml', periods: 3, smallSample: 10, pairUnits: 'both',
-    markets: [{ id: 'su', label: 'Moneyline' }, { id: 'tot', label: 'Over 1.5', head: 'O/U 1.5', url: 'over15', pctHead: 'Over %' }, { id: 'btts', label: 'BTTS', url: 'btts' }],
+    markets: [{ id: 'su', label: 'Moneyline' }, { id: 'ml3' }, { id: 'tot', label: 'Over 1.5', head: 'O/U 1.5', url: 'over15', pctHead: 'Over %' }, { id: 'btts', label: 'BTTS', url: 'btts' }],
     perspectives: [['home', 'Home team'], ['fav', 'Favorite']] };
 })();

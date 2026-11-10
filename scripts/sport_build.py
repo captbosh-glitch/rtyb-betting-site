@@ -77,7 +77,8 @@ def write_json(path, data):
 def compact(seg_key, sport_type, g):
     """grading.py's result for one segment, trimmed for data.json:
     sc [away, home]; su / ats from the away side (W L T/P NA); tot O U P NA;
-    rfi Y N NA; u units per side (only where odds were saved)."""
+    rfi Y N NA; u units per side (only where odds were saved; ml3 is
+    [away, home, tie])."""
     if g is None:
         return None
     out = {}
@@ -95,6 +96,8 @@ def compact(seg_key, sport_type, g):
     out['su'] = g['su']['away']['result']
     if g['su']['away']['units'] is not None and not g.get('no_action'):
         u['su'] = [g['su']['away']['units'], g['su']['home']['units']]
+    if g.get('ml3') and not g.get('no_action'):   # the 3-way's result reads off su
+        u['ml3'] = [g['ml3']['away']['units'], g['ml3']['home']['units'], g['ml3']['draw']['units']]
     if g.get('ats'):
         out['ats'] = g['ats']['away']['result']
         if not g.get('no_action'):

@@ -67,6 +67,8 @@
   // Market definitions: how a result reads for a team-game and its units.
   var MARKETS = {
     su: { label: 'Moneyline', url: 'moneyline', head: 'W-L-T', pctHead: 'Win %' },
+    // 3-way: the same games as su, but a tie is a loss; Tie % = how often the tie bet won
+    ml3: { label: '3-way', url: '3-way', head: '3-way W-L', pctHead: 'Win %' },
     ats: { label: 'Spread', url: 'spread', head: 'ATS W-L-P', pctHead: 'Cover %' },
     tot: { label: 'Total', url: 'total', head: 'O/U O-U-P', pctHead: 'Over %', pair: ['O', 'U'] },
     btts: { label: 'BTTS', url: 'btts', head: 'BTTS Y-N', pctHead: 'Yes %', pair: ['Y', 'N'] },
@@ -200,6 +202,9 @@
               res.su = side === 'away' ? r.su : flip(r.su);
               if (res.su === 'P') res.su = 'T';
               res.suU = u.su ? u.su[i] : null;
+              res.ml3 = res.su === 'W' ? 'W' : 'L';
+              res.ml3Tie = res.su === 'T';
+              res.ml3U = u.ml3 ? u.ml3[i] : null;
             }
             if (r.ats && r.ats !== 'NA') {
               res.ats = side === 'away' ? r.ats : flip(r.ats);
@@ -235,7 +240,7 @@
 
     function agg(list) {
       var a = { gp: 0, marg: 0, lined: 0 };
-      markets.forEach(function(m) { a[m.id] = { a: 0, b: 0, p: 0, n: 0, ua: 0, ub: 0, na: 0, nb: 0 }; });
+      markets.forEach(function(m) { a[m.id] = { a: 0, b: 0, p: 0, d: 0, n: 0, ua: 0, ub: 0, na: 0, nb: 0 }; });
       list.forEach(function(e) {
         var r = e.r;
         a.gp++; a.marg += r.margin; if (r.lined) a.lined++;
@@ -250,6 +255,7 @@
             if (ub != null) { x.ub += ub; x.nb++; }
           } else {
             if (v === 'W') x.a++; else if (v === 'L') x.b++; else x.p++;
+            if (r[m.id + 'Tie']) x.d++;
             var u = r[m.id + 'U'];
             if (u != null) { x.ua += u; x.na++; }
           }
@@ -355,12 +361,12 @@
       var head = '<div class="season-card-head"><h3>Situational Results' + segLabel + '</h3><div class="sc-right">' + ctl +
         '<span class="sc-gp">' + seasonTxt + ' &middot; ' + gp + ' GP</span></div></div>';
 
-      function recTxt(m, x) { return x.n ? x.a + '-' + x.b + (m.pair ? (x.p ? '-' + x.p : '') : '-' + x.p) : '&mdash;'; }
+      function recTxt(m, x) { return x.n ? x.a + '-' + x.b + (m.pair || m.id === 'ml3' ? (x.p ? '-' + x.p : '') : '-' + x.p) : '&mdash;'; }
       // Moneyline: Win % and Tie % out of every game played (ties count, as in
       // template.html / sport.js winPct). Other markets leave pushes out.
       function pctOf(m, x) { var d = x.a + x.b + (m.id === 'su' ? x.p : 0); return d ? Math.round(100 * x.a / d) : null; }
-      function tieOf(x) { var d = x.a + x.b + x.p; return d ? Math.round(100 * x.p / d) : null; }
-      var isSu = sel.id === 'su';
+      function tieOf(x) { var d = x.a + x.b + x.p; return d ? Math.round(100 * (x.p + (x.d || 0)) / d) : null; }
+      var isSu = sel.id === 'su' || sel.id === 'ml3';
       function unitsOf(m, x) {
         if (!m.pair) return pill(x.ua, x.na);
         if (!x.na && !x.nb) return pill(0, 0);

@@ -81,6 +81,23 @@ class SpreadSports(unittest.TestCase):
         self.assertEqual(results(r), {'away': 'T', 'home': 'T'})
         self.assertEqual((r['away']['units'], r['home']['units']), (0.0, 0.0))
 
+    def test_ml3_tie_loses_both_teams(self):
+        # 3-way moneyline: a tied segment is a loss for both teams, a win for the tie
+        tie = game([7, 0], [7, 0])
+        ml3 = {'away': 210, 'draw': 900, 'home': 180}
+        r = self.grade({'ml3': ml3}, g_=tie)['1q']
+        self.assertEqual(results(r['ml3']), {'away': 'L', 'draw': 'W', 'home': 'L'})
+        self.assertEqual((r['ml3']['away']['units'], r['ml3']['home']['units']), (-1.0, -1.0))
+        self.assertEqual(r['ml3']['draw']['units'], 9.0)
+        self.assertEqual(results(r['su']), {'away': 'T', 'home': 'T'})   # the 2-way still pushes
+
+    def test_ml3_win_and_missing_prices(self):
+        r = self.grade({'ml3': {'away': 210, 'draw': 900, 'home': 180}})['1q']['ml3']   # away won 7-3
+        self.assertEqual(results(r), {'away': 'W', 'draw': 'L', 'home': 'L'})
+        self.assertEqual(r['away']['units'], 2.1)
+        self.assertIsNone(self.grade({'ml3': {'away': 210, 'home': 180}})['1q']['ml3'])   # no tie price
+        self.assertIsNone(self.grade()['1q']['ml3'])
+
     def test_su_without_odds_has_result_but_no_units(self):
         r = self.grade()['1h']
         self.assertEqual(results(r['su']), {'away': 'W', 'home': 'L'})

@@ -20,6 +20,8 @@ Input game (as the loaders build it):
 
 Output per segment (None when the segment isn't finished yet):
   spread sports  {"su":    {"away": {result, units}, "home": {...}},   W / L / T
+                  "ml3":   {"away", "draw", "home": {result, units}} | None,   W / L
+                                                                       (3-way: a tie loses both team sides)
                   "ats":   {"away": {...}, "home": {...}} | None,      W / L / P
                   "total": {"over": {...}, "under": {...}, "line", "points"} | None,
                   "score": {"away", "home"}}                            O-side W / L / P
@@ -96,6 +98,17 @@ def grade_su(score, ml):
     }
 
 
+def grade_ml3(score, ml3):
+    """3-way moneyline (away / tie / home), graded only when all three prices
+    were saved. Unlike the 2-way, a tied segment is a loss for both teams and
+    a win for the tie."""
+    if not ml3 or any(num(ml3.get(k)) is None for k in ('away', 'draw', 'home')):
+        return None
+    diff = score['away'] - score['home']
+    won = 'away' if diff > 0 else 'home' if diff < 0 else 'draw'
+    return {k: side('W' if k == won else 'L', ml3[k]) for k in ('away', 'draw', 'home')}
+
+
 def grade_ats(score, ats):
     """Against the spread: away line added to the away score. Prices default
     to -110. A 0.5 line can't push; a tie goes to the +0.5 side."""
@@ -130,6 +143,7 @@ def grade_spread_segment(score, odds):
     odds = odds or {}
     return {
         'su': grade_su(score, odds.get('ml') or {}),
+        'ml3': grade_ml3(score, odds.get('ml3')),
         'ats': grade_ats(score, odds.get('ats')),
         'total': grade_total(score, odds.get('total')),
         'score': score,

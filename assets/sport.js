@@ -459,6 +459,12 @@
     var r = (g.res || {})[k];
     if (!r) return null;
     var home = g.home === slug, i = home ? 1 : 0, u = r.u || {};
+    if (market === 'ml3') {
+      // 3-way moneyline: the same score as su, but a tie is a loss (and a win for the tie bet)
+      if (!r.su || r.su === 'NA') return null;
+      var s3 = home ? flipRes(r.su) : r.su;
+      return { res: s3 === 'W' ? 'W' : 'L', tie: s3 === 'T', u: u.ml3 ? u.ml3[i] : null };
+    }
     if (market === 'su' || market === 'ats') {
       var x = r[market];
       if (!x || x === 'NA') return null;
@@ -475,10 +481,11 @@
     }
     return null;
   }
-  function newAgg() { return { w: 0, l: 0, t: 0, gp: 0, units: 0, priced: 0 }; }
+  function newAgg() { return { w: 0, l: 0, t: 0, d: 0, gp: 0, units: 0, priced: 0 }; }
   function addAgg(a, b) {
     if (!b) return;
     a.gp++;
+    if (b.tie) a.d++;   // 3-way: the segment was tied (a loss, counted for Tie %)
     if (b.res === 'W') a.w++; else if (b.res === 'L') a.l++; else a.t++;
     if (b.u != null) { a.units += b.u; a.priced++; }
   }
@@ -492,13 +499,13 @@
       addAgg(a, betResult(g, k, market, slug));
     });
     // SU: ties count as games played. ATS / totals: pushes are left out of the %.
-    a.pct = market === 'su' ? winPct(a.w, a.l, a.t) : (a.w + a.l) ? a.w / (a.w + a.l) : null;
-    a.tiePct = market === 'su' ? tiePct(a.w, a.l, a.t) : null;
+    a.pct = market === 'su' || market === 'ml3' ? winPct(a.w, a.l, a.t) : (a.w + a.l) ? a.w / (a.w + a.l) : null;
+    a.tiePct = market === 'su' ? tiePct(a.w, a.l, a.t) : market === 'ml3' ? (a.gp ? a.d / a.gp : null) : null;
     return a;
   }
   function marketsFor(k) {
     if (isRfi(k)) return [['rfi', 'YRFI']];
-    return (hasMl(k) ? [['su', 'Moneyline']] : []).concat([['ats', 'ATS'], ['tot', 'Over']]);
+    return (hasMl(k) ? [['su', 'Moneyline'], ['ml3', '3-way']] : []).concat([['ats', 'ATS'], ['tot', 'Over']]);
   }
 
   // ----------------------------------------------------------- Teams page
@@ -514,6 +521,7 @@
     if (!D.season) return;   // keep the plain list
     var college = D.sport === 'ncaaf' || D.sport === 'ncaab';
     var games = finalGames();
+    var hasTie = false;   // moneyline and 3-way views get a Tie % column
     function pills(attr, opts, cur) {
       return opts.map(function(o) { return '<button class="seg-btn" ' + attr + '="' + o[0] + '" aria-pressed="' + (o[0] === cur) + '">' + o[1] + '</button>'; }).join('');
     }
@@ -543,15 +551,16 @@
       var p = r.pct == null ? null : Math.round(r.pct * 100);
       return '<tr data-href="' + teamUrl(r.slug) + '">' +
         '<td class="team-cell">' + badge(r.slug, 24) + '<a class="tl-name" href="' + teamUrl(r.slug) + '">' + esc(r.name) + '</a></td>' +
-        '<td class="num rec-cell mono col-rec"><b>' + (r.gp ? r.w + '-' + r.l + '-' + r.t : '&mdash;') + '</b></td>' +
+        '<td class="num rec-cell mono col-rec"><b>' + (r.gp ? r.w + '-' + r.l + (tlState.market === 'ml3' ? '' : '-' + r.t) : '&mdash;') + '</b></td>' +
         '<td class="num col-pct"><div class="pct-cell"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div></td>' +
-        (tlState.market === 'su' ? '<td class="num col-tie mono">' + (r.tiePct == null ? '&mdash;' : Math.round(r.tiePct * 100) + '%') + '</td>' : '') +
+        (hasTie ? '<td class="num col-tie mono">' + (r.tiePct == null ? '&mdash;' : Math.round(r.tiePct * 100) + '%') + '</td>' : '') +
         '<td class="num col-units">' + unitsPill(r.units, r.priced) + '</td></tr>';
     }
     function draw() {
       var k = getSeg(), mk = marketsFor(k);
       if (!mk.some(function(m) { return m[0] === tlState.market; })) tlState.market = mk[0][0];
-      var list = sortRows(rows(k)), body, ncol = tlState.market === 'su' ? 5 : 4;
+      hasTie = tlState.market === 'su' || tlState.market === 'ml3';
+      var list = sortRows(rows(k)), body, ncol = hasTie ? 5 : 4;
       if (!list.length) body = '<tr><td colspan="' + ncol + '"><div class="empty-state">No teams match &ldquo;' + esc(tlState.q) + '&rdquo;.</div></td></tr>';
       else if (college) {
         var groups = {};
@@ -560,8 +569,8 @@
           return '<tr class="tl-group"><td colspan="' + ncol + '">' + esc(c) + ' <span class="tc-count">' + groups[c].length + '</span></td></tr>' + groups[c].map(rowHtml).join('');
         }).join('');
       } else body = list.map(rowHtml).join('');
-      var recLabel = { su: 'W-L-T', ats: 'ATS W-L-P', tot: 'O-U-P', rfi: 'Y-N' }[tlState.market];
-      var pctLabel = { su: 'Win %', ats: 'Cover %', tot: 'Over %', rfi: 'YRFI %' }[tlState.market];
+      var recLabel = { su: 'W-L-T', ml3: 'W-L', ats: 'ATS W-L-P', tot: 'O-U-P', rfi: 'Y-N' }[tlState.market];
+      var pctLabel = { su: 'Win %', ml3: 'Win %', ats: 'Cover %', tot: 'Over %', rfi: 'YRFI %' }[tlState.market];
       function th(key, label, cls) {
         var on = tlState.sortKey === key;
         return '<th class="' + (cls || '') + '" data-sort="' + key + '">' + label + '<span class="arrow">' + (on ? (tlState.sortDir < 0 ? '▼' : '▲') : '') + '</span></th>';
@@ -572,9 +581,9 @@
         '<div class="control-group"><span class="control-label">Side</span>' + pills('data-tl-side', [['all', 'All'], ['home', 'Home'], ['away', 'Away']], tlState.side) + '</div>' +
         '<div class="control-group"><input class="search-box" id="tlSearch" type="search" placeholder="Search team&hellip;" value="' + esc(tlState.q) + '"></div></div>' +
         '<div class="table-wrap"><div class="table-scroll"><table id="leagueTable"><thead><tr>' +
-        th('name', 'Team') + th('wins', recLabel, 'num col-rec') + th('pct', pctLabel, 'num col-pct') + (tlState.market === 'su' ? th('tiePct', 'Tie %', 'num col-tie') : '') + th('units', 'Units', 'num col-units') +
+        th('name', 'Team') + th('wins', recLabel, 'num col-rec') + th('pct', pctLabel, 'num col-pct') + (hasTie ? th('tiePct', 'Tie %', 'num col-tie') : '') + th('units', 'Units', 'num col-units') +
         '</tr></thead><tbody id="leagueBody">' + body + '</tbody></table></div></div>' +
-        '<p class="tl-note">' + esc(seg(k).label) + ' &middot; ' + esc(D.seasonLabel) + ' season &middot; ' + (tlState.market === 'su' ? 'Win % and Tie % are out of every game played' : 'pushes count in the record but not the %') +
+        '<p class="tl-note">' + esc(seg(k).label) + ' &middot; ' + esc(D.seasonLabel) + ' season &middot; ' + ({ su: 'Win % and Tie % are out of every game played', ml3: '3-way: a tie loses both teams; Tie % is how often the tie bet won; units only where 3-way prices were saved' }[tlState.market] || 'pushes count in the record but not the %') +
         (tlState.market !== 'su' && tlState.market !== 'rfi' ? ' &middot; ATS and totals need saved odds' : '') + '</p></div>';
       app.querySelectorAll('[data-tl-seg]').forEach(function(b) { b.onclick = function() { setSeg(b.getAttribute('data-tl-seg')); draw(); }; });
       app.querySelectorAll('[data-tl-market]').forEach(function(b) { b.onclick = function() { tlState.market = b.getAttribute('data-tl-market'); draw(); }; });
@@ -1104,7 +1113,10 @@
                   ['Scored in the 1st', r.scored + ' of ' + r.gp, pctTxt(r.scored, r.gp - r.scored), null]];
         } else {
           var atsN = r.ats[0] + r.ats[1] + r.ats[2], ouN = r.over[0] + r.over[1] + r.over[2];
-          rows = (hasMl(s.key) ? [['SU <small>W–L–T</small>' + suTieTxt(r.su), rec(r.su), suPctTxt(r.su), unitsPill(r.su[3], r.su[4])]] : []).concat([
+          var m3 = hasMl(s.key) ? teamAgg(slug, s.key, 'ml3', 'all', finalGames()) : null;
+          rows = (hasMl(s.key) ? [['SU <small>W–L–T</small>' + suTieTxt(r.su), rec(r.su), suPctTxt(r.su), unitsPill(r.su[3], r.su[4])],
+                  ['3-way <small>W–L</small>' + (m3.gp ? ' <small class="tie-pct">Tie ' + (Math.round(1000 * m3.tiePct) / 10).toFixed(1) + '%</small>' : ''),
+                   m3.gp ? m3.w + '-' + m3.l : '&mdash;', m3.pct == null ? '&mdash;' : (Math.round(1000 * m3.pct) / 10).toFixed(1) + '%', unitsPill(m3.units, m3.priced)]] : []).concat([
                   ['ATS <small>W–L–P</small>' + (atsN ? ' ' + oddsNote(atsN) : ''), atsN ? rec(r.ats) : '&mdash;', atsN ? pctTxt(r.ats[0], r.ats[1]) : '&mdash;', unitsPill(r.ats[3], r.ats[4])],
                   ['O/U <small>O–U–P</small>' + (ouN ? ' ' + oddsNote(ouN) : ''), ouN ? rec(r.over) : '&mdash;', ouN ? pctTxt(r.over[0], r.over[1]) + ' O' : '&mdash;', unitsPill(r.over[3], r.over[4])]]);
         }

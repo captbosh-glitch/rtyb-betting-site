@@ -158,6 +158,7 @@ def build_season_stats(merged_games, team_names):
                     split['btts'] += btts
                 odds = g.get('odds') or {}
                 ml = odds.get('ml') or {}
+                ml3 = odds.get('ml3') or {}
                 tot = (odds.get('totals') or {}).get('1.5') or {}
                 # Prices for the units math on Stats/team pages: this team's
                 # moneyline, the Over 1.5 price and the BTTS Yes price.
@@ -165,6 +166,8 @@ def build_season_stats(merged_games, team_names):
                     'date': date_str, 'side': side, 'opp': TEAM_CITY.get(opp, opp), 'oppCode': opp,
                     'p1t': p1t, 'p1o': p1o, 'ft': ft, 'fo': fo, 'ot': g.get('ot') or '',
                     'ml': ml.get(code), 'overPrice': tot.get('over'), 'bttsYesPrice': odds.get('btts_yes'),
+                    # this team's 3-way price, only when the tie was priced too
+                    'ml3': ml3.get(side.lower()) if ml3.get('draw') is not None else None,
                     'btts': btts,
                 })
 
