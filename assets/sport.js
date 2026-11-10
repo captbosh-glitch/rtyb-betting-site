@@ -21,7 +21,8 @@
   // load starts on the sport's first segment -- its order in
   // scripts/sports.py, 1st Quarter first -- and nothing is remembered
   // between visits, so a new sport gets the right default automatically.
-  var SEG_CUR = null;
+  // A ?seg= in the URL (a game card's trend link) picks it for this load.
+  var SEG_CUR = new URLSearchParams(location.search).get('seg');
 
   // ---------------------------------------------------------------- utils
   function esc(s) {
@@ -108,7 +109,11 @@
   // Segments without 'ML' in their markets (NCAAB 1st half) show no moneyline / SU anywhere.
   function hasMl(k) { var s = seg(k); return !s || !s.markets || s.markets.indexOf('ML') !== -1; }
   function getSeg() { return seg(SEG_CUR) ? SEG_CUR : D.segments[0].key; }
-  function setSeg(k) { SEG_CUR = k; }
+  function setSeg(k) {
+    SEG_CUR = k;
+    var u = new URL(location.href);
+    if (u.searchParams.has('seg')) { u.searchParams.set('seg', k); history.replaceState(null, '', u); }
+  }
   function segToggle(id, cur, attr) {
     if (D.segments.length < 2) return '';
     return '<div class="seg-toggle" id="' + id + '">' + D.segments.map(function(s) {
@@ -187,8 +192,32 @@
           teamLink(g.home, badge(g.home) + esc(shortName(g.home))) +
         '</div>' + score +
       '</div>' + toggle +
-      '<div class="card-body">' + segScoreLine(g, k) + marketPills(g, k) + '</div>' +
+      '<div class="card-body">' + cardBody(g, k) + '</div>' +
     '</div>';
+  }
+  function cardBody(g, k) { return segScoreLine(g, k) + marketPills(g, k) + cardTrends(g, k); }
+
+  // The league trends (not weak) with a pick on this game in the segment
+  // the card shows: '2 trends agree · Over 57.5 1Q', linking to Trends.
+  function cardTrends(g, k) {
+    findGame(g.id);   // fills GAME_DAY
+    var slate = D.schedule === 'week' ? g.wk : GAME_DAY[g.id];
+    var e = (D.trends || {})[slate];
+    if (!e) return '';
+    var chips = [], n = 0;
+    e.trends.forEach(function(t) {
+      if (!t.kind || t.strength === 'weak' || t.seg !== k) return;
+      t.games.forEach(function(p) {
+        if (p.key !== g.id) return;
+        n++;
+        var c = p.chip || p.label;
+        if (chips.indexOf(c) === -1) chips.push(c);
+      });
+    });
+    if (!n) return '';
+    var what = n > 1 && chips.length === 1 ? n + ' trends agree' : n + ' trend' + (n === 1 ? '' : 's');
+    var href = ROOT + SPORT_SLUG + '/trends/?' + (D.schedule === 'week' ? 'week=' + slate : 'date=' + slate) + '&seg=' + k;
+    return '<a class="gm-trends-line" href="' + href + '"><span>' + what + ' &middot; ' + esc(chips.join(' and ')) + '</span><span class="gm-why">See why &rarr;</span></a>';
   }
 
   function wireCardToggles(root) {
@@ -200,15 +229,15 @@
       if (!g) return;
       var k = b.getAttribute('data-card-seg');
       card.querySelectorAll('[data-card-seg]').forEach(function(x) { x.setAttribute('aria-pressed', String(x === b)); });
-      card.querySelector('.card-body').innerHTML = segScoreLine(g, k) + marketPills(g, k);
+      card.querySelector('.card-body').innerHTML = cardBody(g, k);
     });
   }
 
-  var GAME_INDEX = null;
+  var GAME_INDEX = null, GAME_DAY = {};
   function findGame(id) {
     if (!GAME_INDEX) {
       GAME_INDEX = {};
-      Object.keys(D.games).forEach(function(d) { D.games[d].forEach(function(g) { GAME_INDEX[g.id] = g; }); });
+      Object.keys(D.games).forEach(function(d) { D.games[d].forEach(function(g) { GAME_INDEX[g.id] = g; GAME_DAY[g.id] = d; }); });
     }
     return GAME_INDEX[id];
   }
@@ -960,10 +989,41 @@
       '<div class="lt-rec">' + rec + (t.units != null ? ' &middot; ' + fmtUnits(t.units) : '') + '</div>' + picks + '</div>';
   }
 
+  // One segment's trends from a slate (1Q or 1H), with its own record:
+  // each graded bet once, from non-weak trends only, like trend_rules.py.
+  function segTrends(e, k) {
+    var trends = e.trends.filter(function(t) { return !t.kind || t.seg === k; });
+    var seen = {}, w = 0, l = 0;
+    trends.forEach(function(t) {
+      if (!t.kind || t.strength === 'weak') return;
+      t.games.forEach(function(p) {
+        var id = p.key + '|' + (p.chip || p.label);
+        if (seen[id]) return;
+        seen[id] = 1;
+        if (p.status === 'W') w++; else if (p.status === 'L') l++;
+      });
+    });
+    return { trends: trends, record: { w: w, l: l } };
+  }
+  function segRow() {
+    return D.segments.length > 1 ? '<div class="sport-seg-row"><span class="control-label">Show</span>' + segToggle('pageSeg', getSeg()) + '</div>' : '';
+  }
+  function wireSegRow(draw) {
+    var ps = document.getElementById('pageSeg');
+    if (ps) ps.onclick = function(ev) {
+      var b = ev.target.closest('[data-seg]');
+      if (!b) return;
+      setSeg(b.getAttribute('data-seg'));
+      draw();
+    };
+  }
+
   // League Trends + Team Streaks for one slate: a date, or (football) a week.
   // `games` = the slate's games; `when` = "today's" / "Week 7's"; `on` = how
   // to say when a team plays ("Today", "Week 7").
   function trendsSections(e, games, when, on, noun) {
+    var k = getSeg(), multi = D.segments.length > 1;
+    if (multi && e) e = segTrends(e, k);
     var playing = {};
     games.forEach(function(g) { playing[g.away] = g; playing[g.home] = g; });
     var html = '<section class="trends-page-section"><div class="tp-head"><div><h2>League Trends</h2>' +
@@ -980,7 +1040,10 @@
     var list = [];
     Object.keys(D.streaks || {}).forEach(function(slug) {
       if (!D.teams[slug]) return;
-      D.streaks[slug].forEach(function(s) { list.push({ slug: slug, s: s, on: !!playing[slug] }); });
+      D.streaks[slug].forEach(function(s) {
+        if (multi && s.seg !== k) return;
+        list.push({ slug: slug, s: s, on: !!playing[slug] });
+      });
     });
     list.sort(function(a, b) { return (b.on - a.on) || (b.s.n - a.s.n); });
     html += '<section class="trends-page-section"><div class="tp-head"><div><h2>Team Streaks</h2>' +
@@ -1019,8 +1082,9 @@
         '<div class="date-label-wrap"><span class="date-label">' + esc(w.label) + ' <span class="week-range">' + esc(weekRange(w)) + '</span></span>' +
         (cur !== thisWeek ? '<button class="date-today-btn" id="weekNowBtn" type="button">This week</button>' : '') + '</div>' +
         '<button class="date-nav" id="weekNext" aria-label="Next week"' + (i >= keys.length - 1 ? ' disabled' : '') + '>&rsaquo;</button></div>';
-      html += trendsSections(D.trends[cur], weekGames(cur), esc(w.label) + '&rsquo;s', w.label, 'in ' + esc(w.label));
+      html += segRow() + trendsSections(D.trends[cur], weekGames(cur), esc(w.label) + '&rsquo;s', w.label, 'in ' + esc(w.label));
       app.innerHTML = html;
+      wireSegRow(draw);
       var p = document.getElementById('weekPrev'), n = document.getElementById('weekNext'), t = document.getElementById('weekNowBtn');
       if (p) p.onclick = function() { if (i > 0) go(keys[i - 1]); };
       if (n) n.onclick = function() { if (i < keys.length - 1) go(keys[i + 1]); };
@@ -1039,8 +1103,9 @@
     function go(d) { cur = d; setUrlDate(d); draw(); }
     function draw() {
       var when = dateLabel(cur).toLowerCase() === 'today' ? 'today&rsquo;s' : esc(dateLabel(cur)) + '&rsquo;s';
-      app.innerHTML = dateBar(cur, dates) + trendsSections(D.trends[cur], D.games[cur] || [], when, dateLabel(cur), 'on this date');
+      app.innerHTML = dateBar(cur, dates) + segRow() + trendsSections(D.trends[cur], D.games[cur] || [], when, dateLabel(cur), 'on this date');
       wireDateBar(dates, cur, go);
+      wireSegRow(draw);
     }
     draw();
   }
