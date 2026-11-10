@@ -112,12 +112,26 @@ jobs:
       - name: Build site
         run: python3 scripts/build_site.py
 
+      - name: The Daily drafts (recap from 8 AM ET, preview from 11 AM ET)
+        # Claude writes each sport's recap / preview once a day, as a draft
+        # in content/drafts/ for someone to approve; nothing is published
+        # automatically. Skipped until the ANTHROPIC_API_KEY secret is set,
+        # and a failure never stops the refresh (the next run retries).
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            pip install --quiet anthropic && python3 scripts/daily_content.py || echo "daily drafts failed; will retry next run"
+          else
+            echo "ANTHROPIC_API_KEY not set; skipping daily drafts"
+          fi
+
       - name: Commit and push if anything changed
         run: |
           git config user.name "rtyb-bot"
           git config user.email "actions@users.noreply.github.com"
           # One folder per sport in scripts/sports.py -- add new sports here too.
-          git add index.html learn picks streaks picks_log.json nhl nfl nba wnba mlb college-football college-basketball schedule_data.json assets/logos assets/site.css assets/sports.json league_trends_log.json data_seed/games data_seed/rankings trends_log data_feed
+          git add index.html learn picks streaks picks_log.json nhl nfl nba wnba mlb college-football college-basketball schedule_data.json assets/logos assets/site.css assets/sports.json league_trends_log.json data_seed/games data_seed/rankings trends_log data_feed content
           if git diff --cached --quiet; then
             echo "No changes, skipping commit."
             exit 0
