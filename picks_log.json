@@ -5385,8 +5385,8 @@
      ]
     ],
     "info": "Avg 1P total in their games: Winnipeg 1.6 \u00b7 New Jersey 1.4",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "New Jersey"
    },
    {
@@ -5435,8 +5435,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "New Jersey"
    },
    {
