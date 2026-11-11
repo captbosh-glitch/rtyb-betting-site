@@ -5722,57 +5722,6 @@
     "streakTeamName": "Thunder"
    },
    {
-    "id": "nba|401909969|1q|ml|away",
-    "game": "nba|401909969",
-    "date": "2026-11-11",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-12T01:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Spurs @ Bulls",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": -258,
-    "title": "Spurs 1Q ML",
-    "est": 0.751,
-    "edge": 0.0304,
-    "agree": 4,
-    "sample": 11,
-    "tier": "C",
-    "tags": [
-     "Chalk Eater",
-     "Streak Rider"
-    ],
-    "streak": 6,
-    "streakTeam": "sa",
-    "angles": [
-     [
-      "Bulls\u2019s opponents 1Q ML, Bulls at home",
-      "3-0"
-     ],
-     [
-      "Spurs 1Q ML, last 8",
-      "7-1"
-     ],
-     [
-      "Spurs 1Q ML on the road",
-      "4-1"
-     ],
-     [
-      "Spurs 1Q ML, season",
-      "8-3"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Spurs"
-   },
-   {
     "id": "ncaaf|401866461|1q|ml|home",
     "game": "ncaaf|401866461",
     "date": "2026-11-11",
