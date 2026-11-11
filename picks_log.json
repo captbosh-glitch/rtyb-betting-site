@@ -5238,8 +5238,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Minnesota"
    },
    {
@@ -5335,8 +5335,8 @@
      ]
     ],
     "info": "Avg 1P total in their games: Montreal 2.2 \u00b7 Minnesota 1.8",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Montreal"
    },
    {
