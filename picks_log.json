@@ -5486,5 +5486,97 @@
     "streakTeamName": "Clippers"
    }
   ]
+ },
+ "2026-11-11": {
+  "plays": [
+   {
+    "id": "ncaaf|401866463|1h|ml|away",
+    "game": "ncaaf|401866463",
+    "date": "2026-11-11",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-12T00:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "UMass @ Toledo",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 340,
+    "title": "UMass 1H ML",
+    "est": 0.3007,
+    "edge": 0.0734,
+    "agree": 3,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "massachusetts-minutemen",
+    "angles": [
+     [
+      "UMass 1H ML on the road",
+      "3-1"
+     ],
+     [
+      "UMass 1H ML, season",
+      "6-3"
+     ],
+     [
+      "UMass 1H ML, last 8",
+      "5-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "UMass"
+   },
+   {
+    "id": "ncaaf|401866461|1q|ml|home",
+    "game": "ncaaf|401866461",
+    "date": "2026-11-11",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-12T00:30Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Buffalo @ Ball State",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 100,
+    "title": "Ball State 1Q ML",
+    "est": 0.5301,
+    "edge": 0.0301,
+    "agree": 2,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "ball-state-cardinals",
+    "angles": [
+     [
+      "Buffalo\u2019s opponents 1Q ML, Buffalo on the road",
+      "3-1"
+     ],
+     [
+      "Ball State 1Q ML at home",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Ball State"
+   }
+  ]
  }
 }
