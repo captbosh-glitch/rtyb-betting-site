@@ -127,139 +127,175 @@ def load_games(sport):
     return out
 
 
-# Book names when the feed's /sources lookup hasn't loaded (ids are the
-# same across leagues). Exchanges and pick'em apps never set the best
-# price and are left off the Odds page.
+# Source names when the feed's /sources lookup hasn't loaded (ids are the
+# same across leagues).
 BOOK_NAMES = {'1': 'DraftKings', '2': 'FanDuel', '4': 'BetMGM', '20': 'Caesars', '36': 'theScore',
               '60': 'theScore CA', '118': 'theScore', '86': 'Fanatics', '80': 'BetMGM', '89': 'Novig',
               '66': 'ProphetX', '105': 'Kalshi', '107': 'Polymarket', '111': 'Polymarket US',
               '121': 'Underdog', '73': 'Underdog Fantasy', '72': 'PrizePicks', '84': 'DK Pick6'}
+# Exchanges, prediction markets and pick'em apps: shown after the
+# sportsbooks, and they never set the best price
 EXCHANGES = {'89', '66', '105', '107', '111', '121', '73', '72', '84'}
+# The major sportsbooks, in column order; then the other sportsbooks and
+# then the exchanges, each alphabetically
+MAJOR_BOOKS = ['1', '2', '4', '80', '20']   # DraftKings, FanDuel, BetMGM (and BetMGM Direct), Caesars
 
 
 def book_names():
     names = dict(BOOK_NAMES)
     for path in sorted(glob.glob(os.path.join(ROOT, 'data_feed', 'unabated', 'lookups', 'sources_*.json'))):
         for src in read_json(path, {}).get('data') or []:
-            names.setdefault(str(src.get('id')), src.get('name'))
+            names[str(src.get('id'))] = src.get('name')
     return names
 
 
-# Odds page "books" that aren't sportsbooks on the feed: NHL's BTTS is
-# entered in the admin as a consensus price across books
 EXTRA_BOOKS = {'consensus': 'Consensus'}
-# Books the Odds page leaves off: RTYB is for US bettors
-HIDDEN_BOOKS = {'60'}   # theScore CA
-# Each book's logo: assets/books/{key}.svg (or .png). The page shows the
-# book's name instead when the file isn't there.
+HIDDEN_BOOKS = {'60'}   # theScore CA (RTYB is for US bettors)
+# Logos: assets/books/{source id}.{ext}, downloaded from Unabated's /sources
+# thumbnails by fetch_odds_unabated.py; else a hand-made assets/books/{key}.svg
+# or .png. The page shows the source's name when there's neither.
 BOOK_KEYS = {'1': 'draftkings', '2': 'fanduel', '4': 'betmgm', '80': 'betmgm', '20': 'caesars',
              '36': 'thescore', '118': 'thescore', '86': 'fanatics', '121': 'underdog'}
+LOGO_EXTS = ('svg', 'png', 'webp', 'jpg')
 
 
 def book_logo(book_id):
-    key = BOOK_KEYS.get(book_id)
-    for ext in ('svg', 'png'):
-        if key and os.path.exists(os.path.join(ROOT, 'assets', 'books', f'{key}.{ext}')):
-            return f'assets/books/{key}.{ext}'
+    for key in (book_id, BOOK_KEYS.get(book_id)):
+        for ext in LOGO_EXTS:
+            if key and os.path.exists(os.path.join(ROOT, 'assets', 'books', f'{key}.{ext}')):
+                return f'assets/books/{key}.{ext}'
     return None
 
 
-# Trend market -> Odds page market, and pick -> side of it
-ODDS_MARKET = {'su': 'ml', 'ML': 'ml', 'ats': 'ats', 'over': 'total', 'under': 'total'}
+def source_order(ids, names):
+    """Major sportsbooks first, then the other sportsbooks, then exchanges
+    and prediction markets, each group alphabetically."""
+    def key(b):
+        if b in EXCHANGES:
+            return (2, 0, (names.get(b) or b).lower())
+        if b in MAJOR_BOOKS:
+            return (0, MAJOR_BOOKS.index(b), '')
+        return (1, 0, (names.get(b) or b).lower())
+    return sorted(ids, key=key)
 
 
-def odds_agree(entries, where):
-    """How many trends (not weak) back each bet still to play, for the Odds
-    page's badges: {(date, away, home): {seg: {market: {side: n}}}}.
-    entries: {slate: trend log entry}; where(pick) -> (date, away, home, seg)
-    or None."""
-    out = {}
-    for e in entries.values():
-        for t in e.get('trends') or []:
-            if not t.get('kind') or t.get('strength') == 'weak':
-                continue
-            for p in t.get('games') or []:
-                if p.get('status') != 'PENDING':
-                    continue
-                m = p.get('market') or ''
-                if p['kind'] == 'side':
-                    mk, side = ODDS_MARKET.get(m), p.get('side')
-                else:   # over / under, or NHL's 'O1.5' / 'U1.5'
-                    mk, side = 'total', 'over' if m[:1].lower() == 'o' else 'under' if m[:1].lower() == 'u' else None
-                w = where(p)
-                if not (mk and side and w):
-                    continue
-                by = out.setdefault(w[:3], {}).setdefault(w[3], {}).setdefault(mk, {})
-                by[side] = by.get(side, 0) + 1
-    return out
+def _unlinked(row):
+    if isinstance(row, dict):
+        return {k: _unlinked(v) for k, v in row.items() if k != 'link'}
+    return row
 
 
-def write_odds_page(sp, slug_dir, now_utc, meta=None, extra=None, agree=None):
-    """{slug}/odds.json for the Odds page (assets/sport.js): every book's
-    price for games that haven't started, from the Unabated feed. Links
-    already carry the partner code (fetch_odds_unabated.tag_link). `meta`
-    (NHL, whose data.json has a different shape) carries what the page
-    otherwise reads from data.json: label, segments, teams, markets.
-    `extra` (NHL's admin-entered BTTS) adds markets the feed doesn't carry:
-    [{date, away, home, start, books: {seg: {m: {book: row}}}, best: {seg: {m: ...}}}]
-    under book ids that EXTRA_BOOKS names. `agree`: odds_agree() for the
-    trend badges.
+def best_price(market, books):
+    """The best price per side, by the same rule the feed uses (sportsbooks
+    only; spreads and totals at the line most books post). BTTS rows (the
+    admin's consensus) are already one price per side."""
+    import fetch_odds_unabated as feed
+    if not books:
+        return None
+    if market == 'btts':
+        row = next(iter(books.values()))
+        return {s: (row.get(s) or {}).get('price') for s in ('yes', 'no')}
+    sharp = {b for b in books if b not in EXCHANGES and b not in EXTRA_BOOKS}
+    try:
+        return feed.best_of(market, books, sharp)
+    except (KeyError, TypeError, ValueError):
+        return None
 
-    Each game's `open` is the best price the first time the feed showed it
-    (the feed has no opening line), carried over from the last odds.json."""
+
+def write_odds_page(sp, slug_dir, now_utc, schedule, meta=None, extra=None, weeks=None):
+    """The Odds page's data (assets/sport.js), for every scheduled game:
+
+      {slug}/odds.json          index: sources (name, logo, exchange), source
+                                order, markets with data, game counts per date
+                                (the calendar), weeks (weekly sports) and meta
+      {slug}/odds/{date}.json   that date's games: {away, home, start, state,
+                                books, best, open, opens?}
+
+    Games that haven't started carry every source's live price (links have the
+    partner code, fetch_odds_unabated.tag_link); started and finished games
+    carry each source's closing line (`books`) and opening line (`opens`) from
+    data_feed/unabated/history/, without links. `best` is the best price per
+    side (the green outline), `open` the best opening price (the Open column).
+
+    schedule: {date: [{away, home, start, state}]}, state 'pre' | 'live' |
+    'final'. `meta` (NHL, whose data.json has another shape) carries label,
+    segments and teams. `extra` (NHL's admin-entered BTTS) adds markets the
+    feed doesn't carry: [{date, away, home, start, books: {seg: {m: {book: row}}}}]
+    under the book ids EXTRA_BOOKS names."""
     feed = read_json(os.path.join(ROOT, 'data_feed', 'unabated', f"{sp['key']}.json"), {})
-    path = os.path.join(slug_dir, 'odds.json')
-    opened = {(d, g['away'], g['home']): g.get('open') or {}
-              for d, day in (read_json(path, {}).get('games') or {}).items() for g in day}
-    games = {}
-    for g in (feed.get('games') or {}).values():
-        start = g.get('start')
-        try:
-            started = start and datetime.fromisoformat(start.replace('Z', '+00:00')) <= now_utc
-        except ValueError:
-            started = False
-        if started or not g.get('books'):
-            continue
-        # sportsbooks only: exchange prices don't read like sportsbook odds --
-        # except NHL's 3-way, which only an exchange offers on the free tier
-        books = {seg: {m: {b: v for b, v in by.items() if b not in HIDDEN_BOOKS and (m == 'ml3' or b not in EXCHANGES)}
-                       for m, by in mk.items()}
-                 for seg, mk in g['books'].items()}
-        games.setdefault(g['date'], []).append({'away': g['away'], 'home': g['home'], 'start': start,
-                                                'best': g.get('segments') or {}, 'books': books})
+    hist_dir = os.path.join(ROOT, 'data_feed', 'unabated', 'history', sp['key'])
+    out_dir = os.path.join(slug_dir, 'odds')
+    index_path = os.path.join(slug_dir, 'odds.json')
+    live = {(g['date'], g['away'], g['home']): g for g in (feed.get('games') or {}).values()}
+    extras = {}
     for x in extra or []:
-        try:
-            if x.get('start') and datetime.fromisoformat(x['start'].replace('Z', '+00:00')) <= now_utc:
-                continue
-        except ValueError:
-            pass
-        day = games.setdefault(x['date'], [])
-        g = next((y for y in day if y['away'] == x['away'] and y['home'] == x['home']), None)
-        if g is None:
-            g = {'away': x['away'], 'home': x['home'], 'start': x.get('start'), 'best': {}, 'books': {}}
-            day.append(g)
         for seg, mk in x['books'].items():
-            g['books'].setdefault(seg, {}).update(mk)
-        for seg, mk in (x.get('best') or {}).items():
-            g['best'].setdefault(seg, {}).update(mk)
-    if not games:
-        if os.path.exists(path):
-            os.remove(path)
-        return
-    for d, day in games.items():
-        day.sort(key=lambda x: (x['start'] or '', x['away']))
-        for g in day:
-            was = opened.get((d, g['away'], g['home'])) or {}
-            g['open'] = {seg: {m: (was.get(seg) or {}).get(m) or v for m, v in mk.items()} for seg, mk in g['best'].items()}
-            a = (agree or {}).get((d, g['away'], g['home']))
-            if a:
-                g['agree'] = a
-    used = {b for day in games.values() for g in day for seg in g['books'].values() for m in seg.values() for b in m}
+            extras.setdefault((x['date'], x['away'], x['home']), {}).setdefault(seg, {}).update(mk)
+
+    def clean(books):
+        return {seg: {m: {b: v for b, v in by.items() if b not in HIDDEN_BOOKS} for m, by in mk.items()}
+                for seg, mk in (books or {}).items()}
+
+    def merge(a, b):
+        out = {seg: dict(mk) for seg, mk in (a or {}).items()}
+        for seg, mk in (b or {}).items():
+            out.setdefault(seg, {}).update(mk)
+        return out
+
+    def bests(books):
+        return {seg: {m: v for m, v in ((m, best_price(m, by)) for m, by in mk.items()) if v}
+                for seg, mk in books.items()}
+
+    dates = set(schedule)
+    days, line_days, used, have = {}, [], set(), set()
+    os.makedirs(out_dir, exist_ok=True)
+    for d in sorted(dates):
+        hist = (read_json(os.path.join(hist_dir, f'{d}.json'), {}).get('games') or {})
+        rows = []
+        for sg in sorted(schedule[d], key=lambda x: (x.get('start') or '', x['away'])):
+            key = (d, sg['away'], sg['home'])
+            try:
+                started = bool(sg.get('start')) and datetime.fromisoformat(sg['start'].replace('Z', '+00:00')) <= now_utc
+            except ValueError:
+                started = False
+            state = sg.get('state') or ('pre' if not started else 'live')
+            if state == 'pre' and started:
+                state = 'live'
+            h = hist.get(f"{sg['away']}|{sg['home']}") or {}
+            lg = live.get(key) or {}
+            if state == 'pre':
+                books = merge(clean(lg.get('books')), extras.get(key))
+                opens = merge(clean(lg.get('opens')), {seg: {m: _unlinked(v) for m, v in mk.items()}
+                                                       for seg, mk in (extras.get(key) or {}).items()})
+                game = {'books': books}
+            else:
+                close = h.get('close') or _unlinked(lg.get('books'))
+                books = merge(clean(close), {seg: {m: _unlinked(v) for m, v in mk.items()} for seg, mk in (extras.get(key) or {}).items()})
+                opens = clean(h.get('open') or lg.get('opens'))
+                game = {'books': books, 'opens': opens}
+            game.update({'away': sg['away'], 'home': sg['home'], 'start': sg.get('start'), 'state': state,
+                         'best': bests(books), 'open': bests(opens) if opens else {}})
+            for seg, mk in books.items():
+                for m, by in mk.items():
+                    if by:
+                        have.add((seg, m))
+                        used.update(by)
+            rows.append(game)
+        days[d] = len(rows)
+        if any(g['books'] for g in rows):
+            line_days.append(d)
+        write_json(os.path.join(out_dir, f'{d}.json'), {'date': d, 'games': rows})
+    for name in os.listdir(out_dir):
+        if name.endswith('.json') and name[:-5] not in dates:
+            os.remove(os.path.join(out_dir, name))
     names = dict(book_names(), **EXTRA_BOOKS)
-    write_json(path, dict(meta or {}, updated=feed.get('updated'), games=games,
-                          books={b: names.get(b, f'Book {b}') for b in used},
-                          logos={b: book_logo(b) for b in used if book_logo(b)},
-                          exchanges=sorted(b for b in used if b in EXCHANGES)))
+    markets = [list(x) for x in sp['family_markets'] if not have or (x[0], x[1]) in have]
+    write_json(index_path, dict(meta or {}, updated=feed.get('updated'), calendar=sp['calendar'],
+                                weeks=weeks or None, markets=markets, days=days, lineDays=line_days,
+                                order=source_order(used, names),
+                                sources={b: dict({'name': names.get(b, f'Source {b}')},
+                                                 **({'logo': book_logo(b)} if book_logo(b) else {}),
+                                                 **({'x': 1} if b in EXCHANGES else {})) for b in used}))
 
 
 def merge_odds(admin, feed):
@@ -1097,9 +1133,10 @@ def build(sp, teams_list, now_utc=None):
     elif os.path.exists(hist_path):
         os.remove(hist_path)
     write_json(os.path.join(slug_dir, 'data.json'), doc)
-    by_id = {g['id']: g for g in games}
-    write_odds_page(sp, slug_dir, now_utc, agree=odds_agree(
-        trends, lambda p: by_id.get(p['key']) and (by_id[p['key']]['date'], by_id[p['key']]['away'], by_id[p['key']]['home'], p.get('seg'))))
+    odds_schedule = {d: [{'away': g['away'], 'home': g['home'], 'start': g.get('start'),
+                          'state': {'in': 'live', 'final': 'final', 'post': 'final'}.get(g.get('state'), 'pre')} for g in day]
+                     for d, day in by_date.items()}
+    write_odds_page(sp, slug_dir, now_utc, odds_schedule, weeks=doc.get('weeks'))
     today = now_utc.astimezone(ET).date().isoformat()
     return {'season': current, 'games': len(games), 'graded': sum(1 for g in games if g.get('final')),
             'today': len(by_date.get(today, []))}

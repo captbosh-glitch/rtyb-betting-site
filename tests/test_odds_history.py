@@ -55,5 +55,39 @@ class History(unittest.TestCase):
         self.assertIn('books', games['2026-11-11|NYR|PHI'])   # not started yet
 
 
+
+class Logos(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.old = (F.LOGO_DIR, F.LOGO_MANIFEST)
+        F.LOGO_DIR = self.tmp.name
+        F.LOGO_MANIFEST = os.path.join(self.tmp.name, 'sources.json')
+        self.calls = []
+
+    def tearDown(self):
+        F.LOGO_DIR, F.LOGO_MANIFEST = self.old
+        self.tmp.cleanup()
+
+    def fetch(self, url):
+        self.calls.append(url)
+        return b'img'
+
+    def test_new_changed_and_daily(self):
+        src = [{'id': 1, 'name': 'DraftKings', 'modifiedOn': 'a', 'thumbnailUrl': 'https://x/t/dk.webp'},
+               {'id': 80, 'name': 'BetMGM Direct'}]
+        day1 = datetime(2026, 11, 11, 12, tzinfo=timezone.utc)
+        self.assertEqual(F.download_logos(src, day1, self.fetch), 1)
+        self.assertTrue(os.path.exists(os.path.join(self.tmp.name, '1.webp')))
+        self.assertEqual(F.download_logos(src, day1, self.fetch), 0)          # checked today already
+        day2 = datetime(2026, 11, 12, 13, tzinfo=timezone.utc)
+        self.assertEqual(F.download_logos(src, day2, self.fetch), 0)          # unchanged
+        src[0].update(modifiedOn='b', thumbnailUrl='https://x/t/dk.png')
+        day3 = datetime(2026, 11, 13, 14, tzinfo=timezone.utc)
+        self.assertEqual(F.download_logos(src, day3, self.fetch), 1)          # changed: new file replaces the old
+        self.assertTrue(os.path.exists(os.path.join(self.tmp.name, '1.png')))
+        self.assertFalse(os.path.exists(os.path.join(self.tmp.name, '1.webp')))
+        self.assertEqual(len(self.calls), 2)
+
+
 if __name__ == '__main__':
     unittest.main()

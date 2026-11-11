@@ -499,7 +499,7 @@ EMPTY_COPY = {
     'stats': ('No {label} stats yet', 'records, hit rates and units'),
     'trends': ('No {label} trends yet', 'streaks and league trends'),
     'teams': ('No {label} teams yet', 'team pages with records and splits'),
-    'odds': ('No {label} odds yet', 'sportsbook odds side by side'),
+    'odds': ('No {label} odds yet', 'odds from every sportsbook, exchange and prediction market'),
 }
 
 
@@ -651,7 +651,7 @@ SECTION_DESC = {
     'games': '{label} games by date with {segs} odds, scores and results.',
     'stats': '{label} {segs} results league-wide: {markets} with units, scoring and situational splits.',
     'trends': '{label} League Trends for each slate and current team streaks.',
-    'odds': '{label} {segs} odds from top sportsbooks side by side, with the best price highlighted.',
+    'odds': '{label} {segs} odds from every sportsbook, exchange and prediction market we track, with the best price outlined.',
 }
 
 
@@ -961,13 +961,15 @@ def main():
             btts.append({'date': date_str, 'away': g['away'], 'home': g['home'], 'start': g.get('startTimeUTC'),
                          'books': {'1p': {'btts': {'consensus': row}}},
                          'best': {'1p': {'btts': {'yes': o.get('btts_yes'), 'no': o.get('btts_no')}}}})
-    nhl_log = json.load(open(os.path.join(ROOT, 'league_trends_log.json'), encoding='utf-8')) \
-        if os.path.exists(os.path.join(ROOT, 'league_trends_log.json')) else {}
-    nhl_agree = sport_build.odds_agree(nhl_log, lambda p: tuple(p['key'].split('|')) + ('1p',))
-    sport_build.write_odds_page(nhl, nhl_dir, datetime.now(timezone.utc), extra=btts, agree=nhl_agree, meta={
+    nhl_state = {'LIVE': 'live', 'CRIT': 'live', 'FINAL': 'final', 'OFF': 'final'}
+    nhl_schedule = {d: [{'away': g['away'], 'home': g['home'], 'start': g.get('startTimeUTC'),
+                         'state': nhl_state.get(g.get('state'), 'pre')} for g in games]
+                    for d, games in merged_games.items() if d >= SEASON_START}
+    two_word = ('Blue Jackets', 'Maple Leafs', 'Red Wings', 'Golden Knights')
+    sport_build.write_odds_page(nhl, nhl_dir, datetime.now(timezone.utc), nhl_schedule, extra=btts, meta={
         'sport': 'nhl', 'label': 'NHL', 'sportType': 'period', 'segments': nhl['segments'],
-        'markets': {'1p': ['ml', 'ml3', 'total', 'btts']},
-        'teams': {code: {'name': info['name'], 'short': info['name'].split(' ')[-1], 'code': code,
+        'teams': {code: {'name': info['name'], 'code': code,
+                         'short': next((w for w in two_word if info['name'].endswith(w)), info['name'].split(' ')[-1]),
                          'color': (team_colors.get(code) or '').lstrip('#') or None, 'svg': 1}
                   for code, info in full_data.get('summary', {}).items()}})
     odds_meta = {'title': 'RTYB — NHL Odds', 'h1': 'NHL — Odds', 'section': 'odds',

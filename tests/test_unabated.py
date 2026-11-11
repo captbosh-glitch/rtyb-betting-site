@@ -51,7 +51,7 @@ class PartnerCode(unittest.TestCase):
         self.assertEqual(F.tag_link('https://x.com/a?b=1&utm_campaign=old'), 'https://x.com/a?b=1&utm_campaign=rtyb')
 
     def test_every_saved_link_has_the_code(self):
-        paths = glob.glob(os.path.join(ROOT, 'data_feed', 'unabated', '*.json')) + glob.glob(os.path.join(ROOT, '*', 'odds.json'))
+        paths = glob.glob(os.path.join(ROOT, 'data_feed', 'unabated', '*.json')) + glob.glob(os.path.join(ROOT, '*', 'odds.json')) + glob.glob(os.path.join(ROOT, '*', 'odds', '*.json'))
         for path in paths:
             with open(path, encoding='utf-8') as f:
                 for link in links_in(json.load(f)):

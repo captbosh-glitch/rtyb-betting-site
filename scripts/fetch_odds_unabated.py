@@ -60,6 +60,13 @@ KEY = os.environ.get('UNABATED_API_KEY', '').strip()
 ET = ZoneInfo('America/New_York')
 OUT_DIR = os.path.join(ROOT, 'data_feed', 'unabated')
 HISTORY_DIR = os.path.join(OUT_DIR, 'history')
+# Source logos for the Odds page: each /sources thumbnail saved as
+# assets/books/{source id}.{ext} (the page never loads Unabated's servers),
+# checked once a day and re-downloaded only when new or changed.
+LOGO_DIR = os.path.join(ROOT, 'assets', 'books')
+LOGO_MANIFEST = os.path.join(LOGO_DIR, 'sources.json')
+LOGO_EXTS = ('svg', 'png', 'webp', 'jpg')
+LOGO_MAX_BYTES = 500_000
 
 PARTNER_CODE = 'rtyb'
 GAP = 5.5            # seconds between requests (limit is one per 5s)
@@ -401,6 +408,60 @@ MARKET = {BT_ML: 'ml', BT_SPREAD: 'ats', BT_TOTAL: 'total', BT_ML3: 'ml3'}
 
 # ------------------------------------------------------------------ main
 
+def fetch_bytes(url):
+    req = urllib.request.Request(url, headers={'User-Agent': 'RTYB odds feed (runtoyourbets.com)'})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return r.read(LOGO_MAX_BYTES + 1)
+
+
+def download_logos(sources, now, fetch=fetch_bytes):
+    """Save each source's thumbnail when it's new or changed (by URL and
+    modifiedOn), at most once a day. Returns how many were saved."""
+    man = read_json(LOGO_MANIFEST, {})
+    checked = parse_time(man.get('_checked'))
+    if checked and now - checked < timedelta(days=1):
+        return 0
+    saved = 0
+    for src in sources:
+        sid, url = str(src.get('id')), src.get('thumbnailUrl')
+        ext = os.path.splitext(urllib.parse.urlparse(url or '').path)[1].lstrip('.').lower().replace('jpeg', 'jpg')
+        if not url or ext not in LOGO_EXTS:
+            continue
+        path = os.path.join(LOGO_DIR, f'{sid}.{ext}')
+        was = man.get(sid) or {}
+        if was.get('url') == url and was.get('modified') == src.get('modifiedOn') and os.path.exists(path):
+            continue
+        try:
+            data = fetch(url)
+        except (OSError, ValueError) as e:
+            print(f'logo {sid}: not saved ({e.__class__.__name__})', file=sys.stderr)
+            continue
+        if not data or len(data) > LOGO_MAX_BYTES:
+            continue
+        os.makedirs(LOGO_DIR, exist_ok=True)
+        for other in LOGO_EXTS:
+            old = os.path.join(LOGO_DIR, f'{sid}.{other}')
+            if other != ext and os.path.exists(old):
+                os.remove(old)
+        with open(path, 'wb') as f:
+            f.write(data)
+        man[sid] = {'name': src.get('name'), 'url': url, 'modified': src.get('modifiedOn'), 'file': f'{sid}.{ext}'}
+        saved += 1
+    man['_checked'] = now.isoformat(timespec='seconds')
+    write_json(LOGO_MANIFEST, man)
+    return saved
+
+
+def all_sources():
+    """Every league's /sources list, one entry per source id."""
+    out = {}
+    for name in sorted(os.listdir(os.path.join(OUT_DIR, 'lookups'))) if os.path.isdir(os.path.join(OUT_DIR, 'lookups')) else []:
+        if name.startswith('sources_'):
+            for src in read_json(os.path.join(OUT_DIR, 'lookups', name), {}).get('data') or []:
+                out.setdefault(str(src.get('id')), src)
+    return list(out.values())
+
+
 def unlinked(row):
     """A book's row without its links (history keeps prices and lines only)."""
     if isinstance(row, dict):
@@ -531,6 +592,10 @@ def main():
             run_sport(sp['key'], sp['sport_type'], segs, has_ml, now, ml3=bool(sp.get('launched')))
         except Exception as e:   # one sport's surprise shouldn't stop the others
             print(f"{sp['key']}: skipped -- {e.__class__.__name__}: {e}", file=sys.stderr)
+    try:
+        print(f'logos: {download_logos(all_sources(), now)} saved')
+    except Exception as e:   # logos are nice to have; odds aren't held up by them
+        print(f'logos: skipped -- {e.__class__.__name__}: {e}', file=sys.stderr)
 
 
 if __name__ == '__main__':
