@@ -5550,10 +5550,10 @@
     "market": "total",
     "side": "under",
     "line": 59.5,
-    "price": -105,
+    "price": -108,
     "title": "1Q Under 59.5",
-    "est": 0.5564,
-    "edge": 0.0442,
+    "est": 0.5615,
+    "edge": 0.0422,
     "agree": 6,
     "sample": 12,
     "tier": "B",
@@ -5697,6 +5697,7 @@
     "sample": 11,
     "tier": "C",
     "tags": [
+     "Dog Hunter",
      "Streak Rider"
     ],
     "streak": 4,
