@@ -5633,6 +5633,53 @@
     "streakTeamName": "Wizards"
    },
    {
+    "id": "nba|401909975|1q|ml|away",
+    "game": "nba|401909975",
+    "date": "2026-11-11",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-12T03:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Thunder @ Trail Blazers",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 106,
+    "title": "Thunder 1Q ML",
+    "est": 0.5242,
+    "edge": 0.0388,
+    "agree": 3,
+    "sample": 11,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 4,
+    "streakTeam": "okc",
+    "angles": [
+     [
+      "Trail Blazers\u2019s opponents 1Q ML, Trail Blazers at home",
+      "2-1-1"
+     ],
+     [
+      "Thunder 1Q ML, season",
+      "7-4"
+     ],
+     [
+      "Thunder 1Q ML, last 8",
+      "5-3"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Thunder"
+   },
+   {
     "id": "ncaab|401925682|1h|ml|away",
     "game": "ncaab|401925682",
     "date": "2026-11-11",
@@ -5715,53 +5762,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Ball State"
-   },
-   {
-    "id": "nba|401909975|1q|ml|away",
-    "game": "nba|401909975",
-    "date": "2026-11-11",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-12T03:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Thunder @ Trail Blazers",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": -105,
-    "title": "Thunder 1Q ML",
-    "est": 0.5438,
-    "edge": 0.0316,
-    "agree": 3,
-    "sample": 11,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter",
-     "Streak Rider"
-    ],
-    "streak": 4,
-    "streakTeam": "okc",
-    "angles": [
-     [
-      "Trail Blazers\u2019s opponents 1Q ML, Trail Blazers at home",
-      "2-1-1"
-     ],
-     [
-      "Thunder 1Q ML, season",
-      "7-4"
-     ],
-     [
-      "Thunder 1Q ML, last 8",
-      "5-3"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Thunder"
    }
   ]
  }
