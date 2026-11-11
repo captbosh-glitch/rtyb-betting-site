@@ -5550,10 +5550,10 @@
     "market": "total",
     "side": "under",
     "line": 61.5,
-    "price": -125,
+    "price": -122,
     "title": "1Q Under 61.5",
-    "est": 0.5959,
-    "edge": 0.0403,
+    "est": 0.5916,
+    "edge": 0.042,
     "agree": 6,
     "sample": 12,
     "tier": "B",
@@ -5585,6 +5585,48 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Bucks"
+   },
+   {
+    "id": "ncaab|401925682|1h|ml|away",
+    "game": "ncaab|401925682",
+    "date": "2026-11-11",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
+    "start": "2026-11-12T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "SC State @ Notre Dame",
+    "href": "college-basketball/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 950,
+    "title": "SC State 1H ML",
+    "est": 0.132,
+    "edge": 0.0368,
+    "agree": 2,
+    "sample": 3,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "south-carolina-state-bulldogs",
+    "angles": [
+     [
+      "SC State 1H ML, season",
+      "2-1"
+     ],
+     [
+      "SC State 1H ML, last 8",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "SC State"
    },
    {
     "id": "nba|401909966|1q|ml|away",
