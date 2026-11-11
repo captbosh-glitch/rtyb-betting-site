@@ -74,6 +74,17 @@ def first_period_score(goals):
     return away_p1, home_p1
 
 
+def first_period_over(g, state):
+    """True once a game's 1st period has ended: the game is final, it's past
+    the 1st, or it's in the 1st intermission. Before that the goals so far
+    aren't a 1st-period result (a 0-0 game ten minutes in isn't a tied
+    period), so no awayP1/homeP1 is saved."""
+    if state in ('FINAL', 'OFF'):
+        return True
+    number = (g.get('periodDescriptor') or {}).get('number') or 0
+    return number >= 2 or (number == 1 and bool((g.get('clock') or {}).get('inIntermission')))
+
+
 def set_periods(entry, goals, source):
     """Save 1P / 2P / 3P scores on a FINAL game from its goal list; a game
     failing the sanity rule is logged and keeps its 2P / 3P fields None."""
@@ -139,7 +150,7 @@ def main():
                 entry['ot'] = ot
                 # Pull the goals[] breakdown, if present in this payload, for 1P score
                 goals = g.get('goals')
-                if goals is not None:
+                if goals is not None and first_period_over(g, state):
                     away_p1, home_p1 = first_period_score(goals)
                     entry['awayP1'] = away_p1
                     entry['homeP1'] = home_p1

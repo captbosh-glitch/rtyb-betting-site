@@ -1,11 +1,12 @@
 """
 Search and sharing, run last in the build (build_site.py):
 
-  - privacy/ and terms/ pages (write_legal). Anything only RTYB can say is
-    left in [BRACKETS] for Pat and Chris to fill in.
+  - privacy/ and terms/ pages (write_legal). Details still to come are in
+    [BRACKETS] (Chris's city and state).
   - every page's <head> gets share tags (Open Graph / Twitter, with the
     share image for its arena), a canonical link and the analytics snippet
-    (finish). The block sits between <!--seo--> markers, so re-running
+    (finish), plus Beehiiv's attribution script and the signup handler
+    (signup.py), whose boxes finish also fills in. The block sits between <!--seo--> markers, so re-running
     replaces it.
   - sitemap.xml (home, NHL, NBA, The Daily and Learn pages that aren't
     noindex) and robots.txt.
@@ -21,6 +22,8 @@ once; they don't change with the data.
 import html
 import os
 import re
+
+import signup
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PAGES_URL = 'https://runtoyourbets.github.io/rtyb-betting-site/'
@@ -53,41 +56,45 @@ def analytics():
 
 PRIVACY = '''
 <h1>Privacy Policy</h1>
-<p class="dp-date">Last updated: [DATE]</p>
+<p class="dp-date">Last updated: November 26, 2026</p>
 <p>This policy explains what RTYB &mdash; Run to Your Bets (&ldquo;RTYB&rdquo;, &ldquo;we&rdquo;) collects when you use
-runtoyourbets.com, and what we do with it. RTYB is run by [LEGAL ENTITY NAME], [CITY, STATE].</p>
+runtoyourbets.com, and what we do with it. RTYB is run by Christopher David, [CITY, STATE].</p>
 <h2>What we collect</h2>
 <ul>
-<li><b>Usage data.</b> We use [ANALYTICS PROVIDER] to count visits and see which pages are used: pages viewed, referring
-site, device and browser type, and approximate location (country or region). [SAY WHETHER IT USES COOKIES.]</li>
-<li><b>Your email address</b>, only if you sign up for our emails. It&rsquo;s stored with [EMAIL PROVIDER] and used to
-send the emails you asked for. Every email has an unsubscribe link.</li>
+<li><b>Usage data.</b> We use Cloudflare Web Analytics to count visits and see which pages are used: pages viewed,
+referring site, device and browser type, and country. It doesn&rsquo;t use cookies or identify you; we only see
+anonymous totals.</li>
+<li><b>Your email address</b>, only if you sign up for the Running Tab, our newsletter. It&rsquo;s stored with Beehiiv,
+our newsletter service, and used to send the emails you asked for. Every email has an unsubscribe link. Beehiiv&rsquo;s
+signup form sets cookies to record which page you signed up from and that you&rsquo;ve already signed up, so it
+doesn&rsquo;t ask you again.</li>
 <li><b>Settings on your device.</b> Your light or dark theme choice is saved in your own browser (local storage).
 It isn&rsquo;t sent to us.</li>
 </ul>
 <p>We don&rsquo;t ask for your name, address, payment details or betting history, and we don&rsquo;t sell personal information.</p>
 <h2>Sportsbook links</h2>
-<p>Odds on RTYB link to sportsbooks and to [ODDS PARTNER]. Some links carry a code that tells the partner the visit came
-from RTYB, and we may be paid when you sign up or bet there. Once you leave RTYB, that site&rsquo;s own privacy policy applies.</p>
+<p>Odds on RTYB link to sportsbooks through our odds partner, Gambly. Those links carry a partner code that tells the
+partner the visit came from RTYB, and RTYB may earn a commission when you sign up or bet there. Once you leave RTYB, that site&rsquo;s own privacy policy applies.</p>
 <h2>Who we share it with</h2>
 <p>Only the services named above, which process data for us, and anyone the law requires us to share it with.</p>
 <h2>How long we keep it</h2>
-<p>[RETENTION &mdash; e.g. analytics data for 14 months; email addresses until you unsubscribe.]</p>
+<p>We keep your email address until you unsubscribe or ask us to delete it. Analytics are anonymous and aggregated,
+so there&rsquo;s nothing in them tied to you.</p>
 <h2>Your choices</h2>
 <p>You can unsubscribe from emails at any time, block or clear cookies in your browser, and ask us to see or delete
-the data we hold about you by writing to [CONTACT EMAIL]. [ADD STATE-SPECIFIC RIGHTS IF NEEDED, E.G. CALIFORNIA.]</p>
+the data we hold about you by writing to <a href="mailto:info@runtoyourbets.com">info@runtoyourbets.com</a>.</p>
 <h2>Age</h2>
 <p>RTYB is for adults 21 and over. We don&rsquo;t knowingly collect information from anyone under 21.</p>
 <h2>Changes</h2>
 <p>If this policy changes, we&rsquo;ll update the date above.</p>
 <h2>Contact</h2>
-<p>[CONTACT EMAIL]</p>
+<p><a href="mailto:info@runtoyourbets.com">info@runtoyourbets.com</a></p>
 '''
 
 TERMS = '''
 <h1>Terms of Use</h1>
-<p class="dp-date">Last updated: [DATE]</p>
-<p>These terms cover your use of RTYB &mdash; Run to Your Bets (runtoyourbets.com), run by [LEGAL ENTITY NAME].
+<p class="dp-date">Last updated: November 26, 2026</p>
+<p>These terms cover your use of RTYB &mdash; Run to Your Bets (runtoyourbets.com), run by Christopher David.
 By using the site you agree to them.</p>
 <h2>21 and over</h2>
 <p>RTYB is for people 21 and over, and only where sports betting is legal for you. You&rsquo;re responsible for knowing
@@ -102,13 +109,15 @@ Any bet you place is your own decision and your own risk.</p>
 The site is provided &ldquo;as is&rdquo;, without warranties of any kind.</p>
 <h2>Sportsbooks and other sites</h2>
 <p>RTYB isn&rsquo;t a sportsbook and doesn&rsquo;t take bets. Links to sportsbooks and partners take you to sites we
-don&rsquo;t control; their terms apply there. We may be paid when you sign up or bet through some links.
-RTYB isn&rsquo;t affiliated with any league or team.</p>
+don&rsquo;t control; their terms apply there. RTYB isn&rsquo;t affiliated with any league or team.</p>
+<h2>Affiliate disclosure</h2>
+<p>Our sportsbook links carry a partner code, and RTYB may earn a commission from sportsbook links when you sign up
+or bet through them. That never changes the odds, stats or trends we show.</p>
 <h2>Using the site</h2>
 <p>Don&rsquo;t copy the site&rsquo;s content or data in bulk, scrape it, or use it to build a competing product without
-our written permission. [ADD ANY OTHER RULES, E.G. FOR ACCOUNTS OR PREMIUM ONCE THEY EXIST.]</p>
+our written permission.</p>
 <h2>Limit of liability</h2>
-<p>To the extent the law allows, [LEGAL ENTITY NAME] isn&rsquo;t liable for any losses, including betting losses, that
+<p>To the extent the law allows, Christopher David and RTYB aren&rsquo;t liable for any losses, including betting losses, that
 come from using the site or relying on its information.</p>
 <h2>Governing law</h2>
 <p>These terms are governed by the laws of [STATE].</p>
@@ -117,7 +126,7 @@ come from using the site or relying on its information.</p>
 <h2>Gambling problem?</h2>
 <p>Call <a href="tel:18004262537">1-800-GAMBLER</a>. Help is free and confidential.</p>
 <h2>Contact</h2>
-<p>[CONTACT EMAIL]</p>
+<p><a href="mailto:info@runtoyourbets.com">info@runtoyourbets.com</a></p>
 '''
 
 LEGAL = {'privacy': ('RTYB — Privacy Policy', 'How RTYB — Run to Your Bets handles your data.', PRIVACY),
@@ -168,6 +177,7 @@ def head_block(rel, page_html, base, snippet):
             f'<meta name="twitter:image" content="{e(img)}">']
     if 'rel="canonical"' not in re.sub(r'<!--seo-->.*?<!--/seo-->', '', page_html, flags=re.S):
         tags.append(f'<link rel="canonical" href="{e(base + rel)}">')
+    tags.append(signup.ATTRIBUTION + signup.SIGNUP_JS)
     if snippet:
         tags.append(snippet)
     return '<!--seo-->' + ''.join(tags) + '<!--/seo-->'
@@ -183,7 +193,7 @@ def finish():
             page_html = f.read()
         if 'http-equiv="refresh"' in page_html:   # redirect stubs
             continue
-        out = page_html.replace('__ROOT__', '../' * rel.count('/'))
+        out = signup.fill(page_html.replace('__ROOT__', '../' * rel.count('/')))
         block = head_block(rel, out, base, snippet)
         if '<!--seo-->' in out:
             out = re.sub(r'<!--seo-->.*?<!--/seo-->', lambda m: block, out, count=1, flags=re.S)

@@ -131,6 +131,10 @@ body.home { min-height: 100%; }
 .ht-agree { font-family: 'Source Sans 3', sans-serif; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); margin-left: 4px; }
 .ht-locked { position: relative; }
 .ht-blur { filter: blur(6px); opacity: 0.7; pointer-events: none; user-select: none; max-height: 330px; overflow: hidden; }
+.rt-subbed .ht-blur { filter: none; opacity: 1; pointer-events: auto; user-select: auto; max-height: none; overflow: visible; }
+.rt-subbed .ht-overlay { display: none; }
+.hpp-label { font-weight: 700; margin: 0 0 10px; }
+.hpp .rt-done { color: var(--premium-text); }
 .ht-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; }
 .ht-lock-card { text-align: center; background: var(--panel); border: 1px solid var(--accent); border-radius: 14px; padding: 18px 22px; box-shadow: 0 12px 32px var(--shadow); max-width: 360px; }
 .ht-lock-title { font: 800 1.2rem 'Barlow Condensed', sans-serif; text-transform: uppercase; }

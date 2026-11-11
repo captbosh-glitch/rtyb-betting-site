@@ -24,6 +24,7 @@ import account
 import daily
 import icons
 import seo
+import signup
 import nav
 import sports
 
@@ -318,10 +319,12 @@ def nav_html(status, depth=''):
 FOOTER = '''
 <footer class="hf">
   <div class="hf-inner">
+    <div class="ft-signup"><h2>Get the Running Tab</h2><p>Our free newsletter: first-segment results, trends and what&rsquo;s on tap.</p><!--signup:footer--></div>
     <p class="hf-rg"><b>21+ only.</b> Gambling problem? Call <a href="tel:18004262537">1-800-GAMBLER</a>. Please bet responsibly.</p>
     <p class="hf-small">RTYB &mdash; Run to Your Bets is for information and entertainment. Not affiliated with any league or sportsbook.
     Records and units are for tracking only; past results don&rsquo;t predict future ones.</p>
-    <p class="hf-small hf-legal"><a href="__ROOT__privacy/">Privacy</a> &middot; <a href="__ROOT__terms/">Terms</a></p>
+    <p class="hf-small">RTYB may earn a commission from sportsbook links.</p>
+    <p class="hf-small hf-legal"><a href="__ROOT__privacy/">Privacy</a> &middot; <a href="__ROOT__terms/">Terms</a> &middot; <a href="mailto:info@runtoyourbets.com">info@runtoyourbets.com</a></p>
   </div>
 </footer>'''
 
@@ -376,13 +379,7 @@ PAGE_JS = '''
       });
     });
   });
-  // Email signup: there's no list behind it yet, so nothing is sent or stored.
-  document.querySelectorAll('form.hp-email').forEach(function(form) {
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      form.querySelector('.hpp-msg').textContent = 'Signups open soon — check back shortly.';
-    });
-  });
+  // Email signup: scripts/signup.py (Beehiiv forms; unblurs the trends after a signup)
 })();
 </script>'''
 
@@ -586,13 +583,11 @@ def build(template, nhl_data, logo_svg, now_utc=None):
         rest = hot[TRENDS_SHOWN:]
         locked = ''
         if rest:
-            locked = (f'<div class="ht-locked"><div class="ht-blur" aria-hidden="true">{"".join(trend_row(t, s) for s, t in rest[:3])}</div>'
-                      f'<div class="ht-overlay"><form class="ht-lock-card hp-email" data-source="trends" novalidate>'
+            locked = (f'<div class="ht-locked"><div class="ht-blur" aria-hidden="true">{"".join(trend_row(t, s) for s, t in rest)}</div>'
+                      f'<div class="ht-overlay"><div class="ht-lock-card">'
                       f'<div class="ht-lock-title">{len(rest)} more trend{"s" if len(rest) != 1 else ""} today</div>'
-                      f'<p>Free with your email. Every angle, both sports, graded daily.</p>'
-                      f'<div class="hpp-row"><input type="email" placeholder="you@email.com" autocomplete="email" aria-label="Email address">'
-                      f'<button class="btn-primary" type="submit">Unlock free</button></div>'
-                      f'<p class="hpp-msg" role="status"></p></form></div></div>')
+                      f'<p>Free with the Running Tab, our newsletter. Sign up once and they unlock on this device.</p>'
+                      f'<a class="btn-primary" href="#signup-tab">Get the Tab</a></div></div></div>')
         trends_html = (f'<section class="hp-sec" id="trends"><div class="hp-head"><h2>Hottest trends today</h2>'
                        f'<span class="muted">Records from the side to bet. Ties are pushes.</span>'
                        f'<a class="hp-head-link" href="{sports.section_path(sports.BY_KEY["nhl"], "trends").lstrip("/")}">All trends &rarr;</a></div>'
@@ -618,11 +613,8 @@ def build(template, nhl_data, logo_svg, now_utc=None):
                f'<span class="hpp-kicker">RTYB Premium &middot; coming soon</span><h2>Premium is coming. Get on the list.</h2>'
                f'<ul><li>Plays where several trends point the same way</li><li>Situational splits: rest, back-to-backs, bounce-backs</li>'
                f'<li>Every pick graded in public</li></ul></div>'
-               f'<form class="hpp-form hp-email" id="premiumForm" data-source="premium" novalidate>'
-               f'<label for="premiumEmail">Get notified when Premium launches</label>'
-               f'<div class="hpp-row"><input id="premiumEmail" type="email" placeholder="you@example.com" autocomplete="email">'
-               f'<button class="btn-gold" type="submit">Notify me</button></div>'
-               f'<p class="hpp-msg" id="premiumMsg" role="status"></p></form></div></section>')
+               f'<div class="hpp-form"><p class="hpp-label">Get the Running Tab, our free newsletter. '
+               f'You&rsquo;ll hear first when Premium launches.</p>{signup.box("tab")}</div></div></section>')
 
     learn = ''.join(f'<a class="hl-card" href="learn/#{a}"><b>{esc(t)}</b><span>{esc(d)}</span></a>' for a, t, d in LEARN_LINKS)
     learn_html = (f'<section class="hp-sec" id="learn"><div class="hp-head"><h2>Learn</h2></div>'
