@@ -5153,8 +5153,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Akron"
    },
    {
@@ -5438,6 +5438,52 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "New Jersey"
+   },
+   {
+    "id": "nba|401909962|1h|ml|away",
+    "game": "nba|401909962",
+    "date": "2026-11-10",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-11T02:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Clippers @ Suns",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 126,
+    "title": "Clippers 1H ML",
+    "est": 0.4727,
+    "edge": 0.0302,
+    "agree": 3,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 3,
+    "streakTeam": "lac",
+    "angles": [
+     [
+      "Clippers 1H ML, season",
+      "5-3-1"
+     ],
+     [
+      "Suns\u2019s opponents 1H ML, Suns at home",
+      "3-2-1"
+     ],
+     [
+      "Clippers 1H ML, last 8",
+      "4-3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Clippers"
    }
   ]
  }
