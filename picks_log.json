@@ -5069,6 +5069,53 @@
  "2026-11-10": {
   "plays": [
    {
+    "id": "ncaaf|401866460|1q|ats|away",
+    "game": "ncaaf|401866460",
+    "date": "2026-11-10",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-11T01:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Ohio @ Miami OH",
+    "href": "college-football/games/",
+    "market": "ats",
+    "side": "away",
+    "line": -0.5,
+    "price": 140,
+    "title": "Ohio 1Q -0.5",
+    "est": 0.4558,
+    "edge": 0.0391,
+    "agree": 3,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Chalk Eater",
+     "Streak Rider"
+    ],
+    "streak": 6,
+    "streakTeam": "ohio-bobcats",
+    "angles": [
+     [
+      "Ohio 1Q ATS at -0.5 on the road",
+      "4-1"
+     ],
+     [
+      "Ohio 1Q ATS at -0.5, season",
+      "7-2"
+     ],
+     [
+      "Ohio 1Q ATS at -0.5, last 8",
+      "6-2"
+     ]
+    ],
+    "info": "Ohio avg 1Q margin on the road: +2.0",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Ohio"
+   },
+   {
     "id": "ncaaf|401866458|1q|ml|home",
     "game": "ncaaf|401866458",
     "date": "2026-11-10",
