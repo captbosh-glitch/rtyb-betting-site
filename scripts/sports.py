@@ -104,6 +104,45 @@ for _s in SPORTS:
     _s.setdefault('sections', dict(DEFAULT_SECTIONS))
     _s.setdefault('schedule', 'day')
 
+def has_ml(seg):
+    """Whether a segment tracks the moneyline (SU); one with NO_ML_MARKETS doesn't."""
+    return 'ML' in (seg.get('markets') or ['ML'])
+
+
+# ---- Sport families (see CLAUDE.md) --------------------------------------
+# Pages are driven from these, never from per-sport copies: a page change
+# applies to every sport in the same session.
+#
+#   period  NHL, MLB: Yes/No style markets (BTTS, YRFI / NRFI)
+#   spread  NBA, WNBA, NCAAB, NFL, NCAAF: Spread, Total, Moneyline
+#
+# calendar: 'daily', or 'weekly' (NFL, NCAAF: the date bar, calendar and
+# day records become weeks).
+# markets: the Odds / Trends / Stats tabs in order, as (segment, feed key,
+# label, kind). kind 'yn' = a two-row Over/Yes over Under/No market (top row
+# is always Over / Yes); 'ml3' = 3-way (away, Tie, home); 'side' = away/home.
+# A market only shows where there's data for it.
+FAMILY = {'nhl': 'period', 'mlb': 'period',
+          'nba': 'spread', 'wnba': 'spread', 'ncaab': 'spread', 'nfl': 'spread', 'ncaaf': 'spread'}
+SPREAD_FAMILY_MARKETS = [('ats', 'Spread', 'side'), ('total', 'Total', 'yn'), ('ml', 'Moneyline', 'side'), ('ml3', '3-way ML', 'ml3')]
+FAMILY_MARKETS = {
+    'nhl': [('1p', 'ml', 'Moneyline', 'side'), ('1p', 'total', 'Total 1.5', 'yn'), ('1p', 'btts', 'BTTS', 'yn'),
+            ('1p', 'ml3', '3-way ML', 'ml3')],
+    'mlb': [('1i', 'rfi', 'NRFI/YRFI', 'yn'), ('f5', 'ml', 'F5 Moneyline', 'side'), ('f5', 'ats', 'F5 Run Line', 'side'),
+            ('f5', 'total', 'F5 Total', 'yn'), ('f5', 'ml3', 'F5 3-way ML', 'ml3')],
+}
+# Yes/No labels per yn market (top row first)
+YES_NO = {'total': ('Over', 'Under'), 'btts': ('Yes', 'No'), 'rfi': ('YRFI', 'NRFI')}
+# the words each sport uses for its segments
+SEGMENT_WORDS = {'1p': '1st period', '1i': '1st inning', 'f5': 'First 5', '1q': '1st quarter', '1h': '1st half'}
+
+for _s in SPORTS:
+    _s['family'] = FAMILY[_s['key']]
+    _s['calendar'] = 'weekly' if _s.get('schedule') == 'week' else 'daily'
+    _s['family_markets'] = FAMILY_MARKETS.get(_s['key']) or [
+        (seg['key'], m, label, kind) for seg in _s['segments'] for m, label, kind in SPREAD_FAMILY_MARKETS
+        if m not in ('ml', 'ml3') or has_ml(seg)]
+
 BY_KEY = {s['key']: s for s in SPORTS}
 # the sports shown on the site, in nav order
 LAUNCHED = [s for s in SPORTS if s.get('launched')]
@@ -117,11 +156,6 @@ def section_path(sport, section):
     """Root-relative URL for a sport's section, e.g. ('nfl', 'stats') -> /nfl/stats/."""
     s = BY_KEY[sport] if isinstance(sport, str) else sport
     return f"/{s['slug']}/{s['sections'][section]}/"
-
-
-def has_ml(seg):
-    """Whether a segment tracks the moneyline (SU); one with NO_ML_MARKETS doesn't."""
-    return 'ML' in (seg.get('markets') or ['ML'])
 
 
 def segment_summary(sport):

@@ -1,0 +1,67 @@
+{
+  "_about": "Tooltip text for the Trends page. Each trend tooltip shows: meaning, counted, an auto-generated example line from the most recent game that fit, then the footer.",
+  "footer": "Records cover this season's graded games. Past results don't predict future ones.",
+  "direction": {
+    "Back": "Back = bet the teams in this spot.",
+    "Fade": "Fade = bet against them, meaning their opponent."
+  },
+  "side_angles": {
+    "home_fav": {"title": "Home favorites", "meaning": "The home team is favored to win the segment.", "counted": "Every game where the home side's price was shorter than the road side's."},
+    "road_dog": {"title": "Road underdogs", "meaning": "The road team is the underdog.", "counted": "Same games as home favorites, from the road side."},
+    "home_dog": {"title": "Home underdogs", "meaning": "The home team is the underdog.", "counted": "Every game where the road team was favored."},
+    "road_fav": {"title": "Road favorites", "meaning": "The road team is favored.", "counted": "Same games as home underdogs, from the road side."},
+    "tier1": {"title": "Big favorites", "meaning": "Teams priced -150 or shorter.", "counted": "Graded at the saved price for that side."},
+    "tier2": {"title": "Small favorites", "meaning": "Teams priced -149 to -101.", "counted": "Graded at the saved price for that side."},
+    "tier3": {"title": "Small underdogs", "meaning": "Teams priced +100 to +149.", "counted": "Graded at the saved price for that side."},
+    "tier4": {"title": "Big underdogs", "meaning": "Teams priced +150 or longer.", "counted": "Graded at the saved price for that side."},
+    "b2b": {"title": "Teams on a back-to-back", "meaning": "The team played yesterday; its opponent didn't.", "counted": "Games where only one team is on zero days of rest."},
+    "b2b_opp": {"title": "Opponents of a back-to-back team", "meaning": "The other team played yesterday; this one is rested.", "counted": "Same games, from the rested side."},
+    "rested": {"title": "Rested teams", "meaning": "The team has more days off than its opponent.", "counted": "Games where one team has the rest edge, from that side."},
+    "tired": {"title": "Tired teams", "meaning": "The team has fewer days off than its opponent.", "counted": "Same games, from the side with less rest."},
+    "off_loss": {"title": "Teams off a loss", "meaning": "The team lost its last game.", "counted": "Any full-game loss, including overtime."},
+    "off_loss3": {"title": "Teams off a blowout", "meaning": "The team lost its last game by 3+ goals.", "counted": "Final-score margin of 3 or more."},
+    "off_shutout": {"title": "Teams off a shutout", "meaning": "The team was shut out last game.", "counted": "Last game ended with zero goals scored."}
+  },
+  "game_angles": {
+    "div": {"title": "Divisional games", "meaning": "Both teams are in the same division.", "counted": "Every game between division rivals."},
+    "conf": {"title": "Conference games", "meaning": "Same conference, different division.", "counted": "Every in-conference, non-division game."},
+    "nonconf": {"title": "Non-conference games", "meaning": "The teams are in different conferences.", "counted": "Every cross-conference game."},
+    "rest_edge": {"title": "Rest edge games", "meaning": "One team has more days off than the other.", "counted": "Games where rest days differ."},
+    "even_rest": {"title": "Even rest games", "meaning": "Both teams have the same days off.", "counted": "Games where rest days match."},
+    "b2b_game": {"title": "Back-to-back games", "meaning": "At least one team played yesterday.", "counted": "Games where either team has zero days of rest."},
+    "off_loss_game": {"title": "Team off a loss", "meaning": "At least one team lost its last game.", "counted": "Any full-game loss, including overtime."},
+    "off_loss3_game": {"title": "Team off a blowout", "meaning": "At least one team lost its last game by 3+ goals.", "counted": "Final-score margin of 3 or more."},
+    "off_shutout_game": {"title": "Team off a shutout", "meaning": "At least one team was shut out last game.", "counted": "Last game ended with zero goals scored."},
+    "home_fav_game": {"title": "Home favorite games", "meaning": "The home team is favored.", "counted": "Every game where the home price was shorter."},
+    "home_dog_game": {"title": "Home underdog games", "meaning": "The road team is favored.", "counted": "Every game where the road price was shorter."}
+  },
+  "market_notes": {
+    "side": "Ties and pushes don't count toward the record and are 0 units.",
+    "game": "Half-point totals and BTTS can't push; a whole-number total that lands exactly is a push.",
+    "ml3": "3-way moneyline: a tied segment is its own outcome, so a team bet loses on a tie."
+  },
+  "matchup_labels": {
+    "tug_of_war": {"label": "Tug of war", "tooltip": "One team leans Over (or BTTS Yes), the other leans Under (or No). Something has to give."},
+    "fireworks": {"label": "Fireworks", "tooltip": "Both teams lean Over (or BTTS Yes) this season."},
+    "lockdown": {"label": "Lockdown", "tooltip": "Both teams lean Under (or BTTS No) this season."},
+    "mismatch": {"label": "Mismatch", "tooltip": "One team usually wins the opening segment; the other usually loses it."},
+    "heavyweights": {"label": "Heavyweights", "tooltip": "Both teams usually win the opening segment."},
+    "lean_rule": "A team leans a way when it hits that side in 60%+ of its games, with at least 10 games played."
+  },
+  "streaks": {
+    "section": "Teams on a run of 3 or more straight in the opening segment, counted from their most recent game. A tie or push ends a streak.",
+    "colors": "Win and loss streaks run green to red. Over/Under and Yes/No streaks get darker the longer they run."
+  },
+  "status_icons": {
+    "hit": "✓ Hit",
+    "miss": "✗ Miss",
+    "push": "– Tie or push, 0 units",
+    "live": "● Live",
+    "upcoming": "Start time: game hasn't started"
+  },
+  "record_line": {
+    "example": "35–22 · 61% · league 55% · +5.44u",
+    "tooltip": "Wins and losses betting this trend this season, how often it won, how often the same bet won across all games, and profit risking 1 unit per bet at the prices RTYB saved."
+  },
+  "todays_record": "How this day's trend bets are doing, each bet counted once even if two trends point at it."
+}
