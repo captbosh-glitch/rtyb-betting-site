@@ -24,6 +24,12 @@ side at that line (prices on different lines can't be compared). Exchanges
 and pick'em apps are kept in "books" for the comparison page but don't set
 the best price.
 
+Every source's lines are kept for the Odds page's past dates: "opens"
+holds each source's first price on a game (per segment and market), and
+when the game starts its opens and its last prices (the closing lines) move
+to history/{sport}/{date}.json, without links:
+  {"games": {"away|home": {away, home, start, open: {seg: {m: {book: row}}}, close: {...}}}}
+
 Rules that keep it honest:
   - a game's odds freeze at its start time (the last pull before it is the
     closing line the site grades against)
@@ -53,6 +59,7 @@ BASE = 'https://data.unabated.com'
 KEY = os.environ.get('UNABATED_API_KEY', '').strip()
 ET = ZoneInfo('America/New_York')
 OUT_DIR = os.path.join(ROOT, 'data_feed', 'unabated')
+HISTORY_DIR = os.path.join(OUT_DIR, 'history')
 
 PARTNER_CODE = 'rtyb'
 GAP = 5.5            # seconds between requests (limit is one per 5s)
@@ -394,6 +401,49 @@ MARKET = {BT_ML: 'ml', BT_SPREAD: 'ats', BT_TOTAL: 'total', BT_ML3: 'ml3'}
 
 # ------------------------------------------------------------------ main
 
+def unlinked(row):
+    """A book's row without its links (history keeps prices and lines only)."""
+    if isinstance(row, dict):
+        return {k: unlinked(v) for k, v in row.items() if k != 'link'}
+    return row
+
+
+def note_opens(rec, seg, market, books):
+    """Each source's first price on this game, segment and market."""
+    opens = rec.setdefault('opens', {}).setdefault(seg, {}).setdefault(market, {})
+    for b, row in books.items():
+        opens.setdefault(b, unlinked(row))
+
+
+def archive_started(sport, games_doc, now):
+    """Move started games' per-source opens and closing lines into the day's
+    history file, then drop them from the live feed. Returns how many moved."""
+    by_date = {}
+    for key, g in games_doc.items():
+        start = parse_time(g.get('start'))
+        if not (start and start <= now) or not (g.get('books') or g.get('opens')):
+            continue
+        by_date.setdefault(g['date'], []).append(g)
+    for day, games in by_date.items():
+        path = os.path.join(HISTORY_DIR, sport, f'{day}.json')
+        doc = read_json(path, {'games': {}})
+        for g in games:
+            row = doc['games'].setdefault(f"{g['away']}|{g['home']}", {'away': g['away'], 'home': g['home']})
+            row['start'] = g.get('start')
+            if g.get('opens'):
+                row['open'] = g['opens']
+            if g.get('books'):
+                row['close'] = unlinked(g['books'])
+        write_json(path, doc)
+    moved = 0
+    for games in by_date.values():
+        for g in games:
+            g.pop('books', None)
+            g.pop('opens', None)
+            moved += 1
+    return moved
+
+
 def run_sport(sport, sport_type, segments, has_ml, now, ml3=False):
     path = os.path.join(OUT_DIR, sport + '.json')
     doc = read_json(path, {})
@@ -402,11 +452,8 @@ def run_sport(sport, sport_type, segments, has_ml, now, ml3=False):
     league = LEAGUE[sport]
     stamp = now.isoformat(timespec='seconds')
 
-    # odds freeze at the start: drop per-book detail once a game is underway
-    for g in games_doc.values():
-        start = parse_time(g.get('start'))
-        if start and start <= now:
-            g.pop('books', None)
+    # odds freeze at the start: per-book detail moves to the day's history
+    archive_started(sport, games_doc, now)
 
     if not upcoming:
         if doc and (doc.get('unmatched') or doc.get('games') != read_json(path, {}).get('games')):
@@ -454,6 +501,7 @@ def run_sport(sport, sport_type, segments, has_ml, now, ml3=False):
             rec['start'] = g.get('start')
             rec.setdefault('segments', {}).setdefault(grp['seg'], {})[market] = best
             rec.setdefault('books', {}).setdefault(grp['seg'], {})[market] = books
+            note_opens(rec, grp['seg'], market, books)
             filled += 1
 
     new = {'status': status, 'unmatched': sorted(unmatched), 'games': games_doc}
