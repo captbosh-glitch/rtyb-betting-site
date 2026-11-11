@@ -5675,6 +5675,48 @@
     "streakTeamName": "SC State"
    },
    {
+    "id": "ncaaf|401866461|1q|ml|home",
+    "game": "ncaaf|401866461",
+    "date": "2026-11-11",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-12T00:30Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Buffalo @ Ball State",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 105,
+    "title": "Ball State 1Q ML",
+    "est": 0.5207,
+    "edge": 0.0329,
+    "agree": 2,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "ball-state-cardinals",
+    "angles": [
+     [
+      "Buffalo\u2019s opponents 1Q ML, Buffalo on the road",
+      "3-1"
+     ],
+     [
+      "Ball State 1Q ML at home",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Ball State"
+   },
+   {
     "id": "nba|401909975|1q|ml|away",
     "game": "nba|401909975",
     "date": "2026-11-11",
@@ -5720,48 +5762,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Thunder"
-   },
-   {
-    "id": "ncaaf|401866461|1q|ml|home",
-    "game": "ncaaf|401866461",
-    "date": "2026-11-11",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-11-12T00:30Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Buffalo @ Ball State",
-    "href": "college-football/games/",
-    "market": "ml",
-    "side": "home",
-    "line": null,
-    "price": 100,
-    "title": "Ball State 1Q ML",
-    "est": 0.5301,
-    "edge": 0.0301,
-    "agree": 2,
-    "sample": 9,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 1,
-    "streakTeam": "ball-state-cardinals",
-    "angles": [
-     [
-      "Buffalo\u2019s opponents 1Q ML, Buffalo on the road",
-      "3-1"
-     ],
-     [
-      "Ball State 1Q ML at home",
-      "2-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Ball State"
    }
   ]
  }
