@@ -5587,6 +5587,52 @@
     "streakTeamName": "Bucks"
    },
    {
+    "id": "nba|401909966|1q|ml|away",
+    "game": "nba|401909966",
+    "date": "2026-11-11",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-12T00:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Wizards @ Pacers",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 110,
+    "title": "Wizards 1Q ML",
+    "est": 0.5158,
+    "edge": 0.0396,
+    "agree": 3,
+    "sample": 11,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "wsh",
+    "angles": [
+     [
+      "Pacers\u2019s opponents 1Q ML, Pacers at home",
+      "4-0-1"
+     ],
+     [
+      "Wizards 1Q ML on the road",
+      "5-2"
+     ],
+     [
+      "Wizards 1Q ML, season",
+      "6-5"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Wizards"
+   },
+   {
     "id": "ncaab|401925682|1h|ml|away",
     "game": "ncaab|401925682",
     "date": "2026-11-11",
@@ -5629,52 +5675,6 @@
     "streakTeamName": "SC State"
    },
    {
-    "id": "nba|401909966|1q|ml|away",
-    "game": "nba|401909966",
-    "date": "2026-11-11",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-12T00:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Wizards @ Pacers",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 102,
-    "title": "Wizards 1Q ML",
-    "est": 0.5296,
-    "edge": 0.0345,
-    "agree": 3,
-    "sample": 11,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 1,
-    "streakTeam": "wsh",
-    "angles": [
-     [
-      "Pacers\u2019s opponents 1Q ML, Pacers at home",
-      "4-0-1"
-     ],
-     [
-      "Wizards 1Q ML on the road",
-      "5-2"
-     ],
-     [
-      "Wizards 1Q ML, season",
-      "6-5"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Wizards"
-   },
-   {
     "id": "nba|401909975|1q|ml|away",
     "game": "nba|401909975",
     "date": "2026-11-11",
@@ -5689,10 +5689,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": -106,
+    "price": -105,
     "title": "Thunder 1Q ML",
-    "est": 0.5456,
-    "edge": 0.031,
+    "est": 0.5438,
+    "edge": 0.0316,
     "agree": 3,
     "sample": 11,
     "tier": "C",
