@@ -5504,10 +5504,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 340,
+    "price": 330,
     "title": "UMass 1H ML",
-    "est": 0.3007,
-    "edge": 0.0734,
+    "est": 0.3047,
+    "edge": 0.0722,
     "agree": 3,
     "sample": 9,
     "tier": "C",
@@ -5550,10 +5550,10 @@
     "market": "total",
     "side": "under",
     "line": 61.5,
-    "price": -122,
+    "price": -125,
     "title": "1Q Under 61.5",
-    "est": 0.5916,
-    "edge": 0.042,
+    "est": 0.5959,
+    "edge": 0.0403,
     "agree": 6,
     "sample": 12,
     "tier": "B",
@@ -5675,55 +5675,55 @@
     "streakTeamName": "Wizards"
    },
    {
-    "id": "nba|401909971|1h|total|under",
-    "game": "nba|401909971",
+    "id": "nba|401909972|1q|total|under",
+    "game": "nba|401909972",
     "date": "2026-11-11",
     "sport": "nba",
     "label": "NBA",
     "slug": "nba",
     "start": "2026-11-12T01:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Lakers @ Bucks",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Nets @ Pelicans",
     "href": "nba/games/",
     "market": "total",
     "side": "under",
-    "line": 120.5,
-    "price": -110,
-    "title": "1H Under 120.5",
-    "est": 0.5557,
-    "edge": 0.0319,
+    "line": 59.5,
+    "price": -115,
+    "title": "1Q Under 59.5",
+    "est": 0.566,
+    "edge": 0.0312,
     "agree": 6,
-    "sample": 12,
+    "sample": 11,
     "tier": "C",
     "tags": [
      "Under Grinder",
      "Streak Rider"
     ],
-    "streak": 8,
-    "streakTeam": "mil",
+    "streak": 4,
+    "streakTeam": "no",
     "angles": [
      [
-      "Bucks 1H unders, last 8 (120.5)",
-      "8-0"
+      "Pelicans 1Q unders, last 8 (59.5)",
+      "7-1"
      ],
      [
-      "Bucks 1H unders at home (120.5)",
+      "Nets 1Q unders, last 8 (59.5)",
+      "7-1"
+     ],
+     [
+      "Pelicans 1Q unders at home (59.5)",
       "5-1"
      ],
      [
-      "Bucks 1H unders, season (120.5)",
-      "9-2"
-     ],
-     [
-      "Lakers 1H unders, last 8 (120.5)",
-      "6-2"
+      "Nets 1Q unders, season (59.5)",
+      "8-2"
      ]
     ],
-    "info": "Avg 1H total in their games: Bucks 107.2 \u00b7 Lakers 122.1",
+    "info": "Avg 1Q total in their games: Pelicans 57.5 \u00b7 Nets 52.6",
     "status": "pending",
     "units": null,
-    "streakTeamName": "Bucks"
+    "streakTeamName": "Pelicans"
    },
    {
     "id": "ncaaf|401866461|1q|ml|home",
