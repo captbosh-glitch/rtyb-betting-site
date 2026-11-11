@@ -5633,57 +5633,6 @@
     "streakTeamName": "Wizards"
    },
    {
-    "id": "nba|401909971|1h|total|under",
-    "game": "nba|401909971",
-    "date": "2026-11-11",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-12T01:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Lakers @ Bucks",
-    "href": "nba/games/",
-    "market": "total",
-    "side": "under",
-    "line": 119.5,
-    "price": 100,
-    "title": "1H Under 119.5",
-    "est": 0.5326,
-    "edge": 0.0326,
-    "agree": 5,
-    "sample": 12,
-    "tier": "C",
-    "tags": [
-     "Under Grinder",
-     "Streak Rider"
-    ],
-    "streak": 8,
-    "streakTeam": "mil",
-    "angles": [
-     [
-      "Bucks 1H unders, last 8 (119.5)",
-      "8-0"
-     ],
-     [
-      "Bucks 1H unders at home (119.5)",
-      "5-1"
-     ],
-     [
-      "Bucks 1H unders, season (119.5)",
-      "9-2"
-     ],
-     [
-      "Lakers 1H unders on the road (119.5)",
-      "4-2"
-     ]
-    ],
-    "info": "Avg 1H total in their games: Bucks 107.2 \u00b7 Lakers 122.1",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Bucks"
-   },
-   {
     "id": "ncaaf|401866461|1q|ml|home",
     "game": "ncaaf|401866461",
     "date": "2026-11-11",
