@@ -28,6 +28,7 @@ import grading
 import icons
 import sports
 import trend_rules
+import trends as trend_cards
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ET = ZoneInfo('America/New_York')
@@ -1133,6 +1134,8 @@ def build(sp, teams_list, now_utc=None):
     elif os.path.exists(hist_path):
         os.remove(hist_path)
     write_json(os.path.join(slug_dir, 'data.json'), doc)
+    # the Trends page's League Trends cards (scripts/trends.py)
+    write_json(os.path.join(slug_dir, 'trends.json'), trend_cards.page_doc(sp, doc, now_utc))
     odds_schedule = {d: [{'away': g['away'], 'home': g['home'], 'start': g.get('start'),
                           'state': {'in': 'live', 'final': 'final', 'post': 'final'}.get(g.get('state'), 'pre')} for g in day]
                      for d, day in by_date.items()}

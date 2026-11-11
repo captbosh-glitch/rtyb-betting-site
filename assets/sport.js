@@ -1206,123 +1206,299 @@
   }
 
   // --------------------------------------------------------- Trends page
-  function streakText(s) {
-    var sg = seg(s.seg);
-    var where = s.seg === '1i' ? '' : ' (' + sg.tag + ')';
-    if (s.market === 'rfi') return (s.kind === 'NRFI' ? 'NRFI' : 'YRFI') + ' in ' + s.n + ' straight';
-    if (s.market === 'tot') return 'The ' + s.kind + ' in ' + s.n + ' straight' + where;
-    if (s.market === 'ats') return (s.kind === 'W' ? 'Covered' : 'Failed to cover') + ' ' + s.n + ' straight' + where;
-    return (s.kind === 'W' ? 'Won' : 'Lost') + ' ' + s.n + ' straight SU' + where;
+  // League Trends (cards from {slug}/trends.json, scripts/trends.py: frozen
+  // per slate once its first game starts), then Matchup Trends and Streak
+  // Trends, worked out here from each team's games before the slate. Copy
+  // and tooltips come from content/trend_tooltips.json (TR.tips).
+  var TR = null, TR_MKT = 'all';
+  function tcode(slug) { var t = team(slug); return t.code || String(t.short || slug).slice(0, 4).toUpperCase(); }
+  function segWord(k) { return seg(k).label.toLowerCase(); }
+  function segWords(k) { var w = segWord(k); return /innings$/.test(w) ? w : /half$/.test(w) ? w.replace(/half$/, 'halves') : w + 's'; }
+  function flipR(x) { return x === 'W' ? 'L' : x === 'L' ? 'W' : x; }
+  // One side's result in a segment: W / L / P (a tie or push), or null.
+  // ml3: a tied segment loses a team bet.
+  function sideRes(g, k, m, side) {
+    var r = (g.res || {})[k];
+    if (!r || !r.sc || r.na) return null;
+    var x = r[m === 'ats' ? 'ats' : 'su'];
+    if (!x || x === 'NA') return null;
+    if (side === 'home') x = flipR(x);
+    if (m === 'ml3') return x === 'W' ? 'W' : 'L';
+    return x === 'T' ? 'P' : x;
+  }
+  // A game bet's result: over / under, yes / no (BTTS, a 1st-inning run), tie.
+  function gameRes(g, k, m, bet) {
+    var r = (g.res || {})[k];
+    if (!r || !r.sc || r.na) return null;
+    if (m === 'ml3') return r.su === 'T' ? 'W' : r.su ? 'L' : null;
+    var x = r[{ total: 'tot', btts: 'btts', rfi: 'rfi' }[m]];
+    if (!x || x === 'NA') return null;
+    if (m === 'total') return x === 'P' ? 'P' : (x === 'O') === (bet === 'over') ? 'W' : 'L';
+    return (x === 'Y') === (bet === 'yes') ? 'W' : 'L';
+  }
+  function started(g) { return g.state === 'in' || g.state === 'final' || (g.start && Date.now() >= Date.parse(g.start)); }
+  function betRes(g, c, x) { return x.side ? sideRes(g, c.seg, c.mk, x.side) : gameRes(g, c.seg, c.mk, x.bet); }
+  var ST_ICON = { W: ['✓', 'tr-w', 'hit'], L: ['✗', 'tr-l', 'miss'], P: ['–', 'tr-p', 'push'] };
+  function statusHtml(g, r) {
+    var tip = TR.tips.status_icons || {};
+    if (g.state === 'final' && r) { var s = ST_ICON[r]; return '<span class="tr-st ' + s[1] + '" title="' + esc(tip[s[2]] || '') + '">' + s[0] + '</span>'; }
+    if (g.state === 'final') return '<span class="tr-st tr-p">–</span>';
+    if (started(g)) return '<span class="tr-st tr-live" title="' + esc(tip.live || '') + '"><i></i>LIVE</span>';
+    return '<span class="tr-st tr-up" title="' + esc(tip.upcoming || '') + '"></span>';
+  }
+  function pct0(x) { return Math.round(x * 100) + '%'; }
+  // Start time; football rows say the day ("Sun 1:00 PM")
+  function trTime(iso) {
+    if (!iso || D.schedule !== 'week') return timeET(iso);
+    return new Date(iso).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }).replace(',', '');
   }
 
-  // One league trend, from the side to bet (scripts/sport_build.py +
-  // trend_rules.py): plain-English title, strength label with n, the
-  // bettor-side record, and pick chips that name team, market, period and
-  // line. A pick is a bet only on a non-weak trend before its game starts;
-  // then it shows Live, and Hit / Miss / Push once graded. A bet several
-  // trends back says "N trends agree". A trend that covers (nearly) the
-  // whole slate collapses to "Applies to all N games".
-  var PICK_STATUS = { W: ['Hit', 'lt-w'], L: ['Miss', 'lt-l'], P: ['Push', 'lt-pending'], NA: ['No Action', 'lt-pending'], LIVE: ['Live', 'lt-pending'] };
-  function pickStatus(p) {
-    if (p.status !== 'PENDING') return p.status;
-    var g = findGame(p.key);   // started since the last data refresh
-    return g && (g.state === 'in' || g.state === 'final' || (g.start && Date.now() >= Date.parse(g.start))) ? 'LIVE' : p.status;
-  }
-  function trendRow(t) {
-    if (!t.kind) return '';   // an entry in the old format
-    var chips = t.games.map(function(p) {
-      var st = PICK_STATUS[pickStatus(p)], bet = !st && t.strength !== 'weak';
-      return '<span class="lt-game"><span class="lt-pick' + (bet ? '' : ' muted') + '">' + esc(p.chip || p.label) + '</span>' +
-        (p.why ? ' <span class="lt-why">' + esc(p.matchup) + ' · ' + esc(p.why) + '</span>' : ' <span class="lt-why">' + esc(p.matchup || '') + '</span>') +
-        (p.agree > 1 ? ' <span class="tr-agree">' + p.agree + ' trends agree</span>' : '') +
-        (st ? ' <span class="lt-chip ' + st[1] + '">' + st[0] + '</span>' : '') + '</span>';
+  // One league card
+  function trendCard(c, hidden) {
+    var T = TR.tips;
+    var tip = '<b>' + esc(c.meaning) + '</b><br>' + esc(c.counted) +
+      (c.dir ? '<br>' + esc((T.direction || {})[c.dir] || '') : '') +
+      '<br>' + esc((T.market_notes || {})[c.note] || '') + '<br><i>' + esc(c.example) + '</i><br><small>' + esc(T.footer || '') + '</small>';
+    var rows = c.games.map(function(x) {
+      var g = findGame(x.id);
+      if (!g) return '';
+      var bet = x.side ? 'Bet ' + badge(g[x.side], 16) + ' ' + esc(tcode(g[x.side])) : esc(x.label);
+      return '<button type="button" class="tr-row"><span class="tr-time">' + esc(trTime(g.start)) + '</span>' +
+        '<span class="tr-match">' + esc(tcode(g.away)) + ' @ ' + esc(tcode(g.home)) + '</span>' +
+        '<span class="tr-bet">' + bet + '</span>' + statusHtml(g, betRes(g, c, x)) +
+        '<span class="tr-fact">' + esc(x.fact) + '</span></button>';
     }).join('');
-    var n = t.games.length, all = t.slate_n && n >= Math.max(6, Math.ceil(t.slate_n * 0.8));
-    var picks = all
-      ? '<details class="lt-all"><summary>' + (n === t.slate_n ? 'Applies to all ' + n + ' games' : 'Applies to ' + n + ' of ' + t.slate_n + ' games') + '</summary><div class="lt-games">' + chips + '</div></details>'
-      : '<div class="lt-games"><span class="lt-when">Picks</span>' + chips + '</div>';
-    var rec = t.kind === 'side'
-      ? esc(t.group) + ' are <b class="mono">' + esc(t.record) + '</b>'
-      : '<b class="mono">' + Math.round(t.rate * 100) + '%</b> hit (' + esc(t.record) + ', league ' + Math.round(t.base * 100) + '%)';
-    return '<div class="lt-row' + (t.strength === 'weak' ? ' weak' : '') + '"><div class="lt-top"><span class="lt-tag">' + esc(t.market) + '</span>' +
-      '<span class="lt-sentence">' + esc(t.title) + '</span>' +
-      '<span class="lt-str ' + t.strength + '" title="' + esc(TRR().tip || '') + '">' + t.strength + '</span><span class="lt-n">n = ' + t.n + '</span></div>' +
-      '<div class="lt-rec">' + rec + (t.units != null ? ' &middot; ' + fmtUnits(t.units) : '') + '</div>' + picks + '</div>';
+    var r = c.rate * 100, b = c.base * 100;
+    return '<div class="tr-card"' + (hidden ? ' hidden' : '') + '><div class="tr-top"><span class="lt-tag">' + esc(c.tag) + '</span>' + infoTip(tip, true) + '</div>' +
+      '<h3 class="tr-title">' + esc(c.title) + '</h3>' +
+      '<div class="tr-rec" title="' + esc((T.record_line || {}).tooltip || '') + '"><b class="mono">' + c.w + '–' + c.l + '</b> · ' + pct0(c.rate) +
+      ' · league ' + pct0(c.base) + ' · <span class="' + (c.units > 0 ? 'pos' : 'neg') + '">' + fmtUnits(c.units) + '</span></div>' +
+      '<div class="tr-bar" aria-hidden="true"><span style="width:' + r.toFixed(1) + '%"></span><i style="left:' + b.toFixed(1) + '%"></i></div>' +
+      '<div class="tr-rows">' + rows + '</div></div>';
   }
 
-  // One segment's trends from a slate (1Q or 1H), with its own record:
-  // each graded bet once, from non-weak trends only, like trend_rules.py.
-  function segTrends(e, k) {
-    var trends = e.trends.filter(function(t) { return !t.kind || t.seg === k; });
+  // Each bet once, ties and pushes not counted
+  function dayRecord(cards) {
     var seen = {}, w = 0, l = 0;
-    trends.forEach(function(t) {
-      if (!t.kind || t.strength === 'weak') return;
-      t.games.forEach(function(p) {
-        var id = p.key + '|' + (p.chip || p.label);
+    cards.forEach(function(c) {
+      c.games.forEach(function(x) {
+        var id = x.id + '|' + c.seg + '|' + c.mk + '|' + (x.side || x.bet);
         if (seen[id]) return;
         seen[id] = 1;
-        if (p.status === 'W') w++; else if (p.status === 'L') l++;
+        var g = findGame(x.id);
+        if (!g || g.state !== 'final') return;
+        var r = betRes(g, c, x);
+        if (r === 'W') w++; else if (r === 'L') l++;
       });
     });
-    return { trends: trends, record: { w: w, l: l } };
-  }
-  function segRow() {
-    return D.segments.length > 1 ? '<div class="sport-seg-row"><span class="control-label">Show</span>' + segToggle('pageSeg', getSeg()) + '</div>' : '';
-  }
-  function wireSegRow(draw) {
-    var ps = document.getElementById('pageSeg');
-    if (ps) ps.onclick = function(ev) {
-      var b = ev.target.closest('[data-seg]');
-      if (!b) return;
-      setSeg(b.getAttribute('data-seg'));
-      draw();
-    };
+    return [w, l];
   }
 
-  // League Trends + Team Streaks for one slate: a date, or (football) a week.
-  // `games` = the slate's games; `when` = "today's" / "Week 7's"; `on` = how
-  // to say when a team plays ("Today", "Week 7").
-  function trendsSections(e, games, when, on, noun) {
-    var k = getSeg(), multi = D.segments.length > 1;
-    if (multi && e) e = segTrends(e, k);
-    var playing = {};
+  // ---- each team's season in one segment, for Matchup and Streak Trends
+  // seq per market: [{r, g}] oldest first. ml: W / L / T; ats: W / L / P;
+  // total: O / U / P; btts, rfi: Y / N.
+  var TEAM_SEQ = {};
+  function teamSeqs(before, k) {
+    var key = before + '|' + k;
+    if (TEAM_SEQ[key]) return TEAM_SEQ[key];
+    var out = {};
+    allDates().forEach(function(d) {
+      if (d >= before) return;
+      D.games[d].forEach(function(g) {
+        var r = (g.res || {})[k];
+        if (g.state !== 'final' || !r || !r.sc || r.na) return;
+        ['away', 'home'].forEach(function(side) {
+          var s = g[side], o = out[s] || (out[s] = { ml: [], ats: [], total: [], btts: [], rfi: [] });
+          if (r.su && r.su !== 'NA') o.ml.push(side === 'away' ? r.su : flipR(r.su));
+          if (r.ats && r.ats !== 'NA') o.ats.push(side === 'away' ? r.ats : flipR(r.ats));
+          if (r.tot && r.tot !== 'NA') o.total.push(r.tot);
+          if (r.btts === 'Y' || r.btts === 'N') o.btts.push(r.btts);
+          if (r.rfi === 'Y' || r.rfi === 'N') o.rfi.push(r.rfi);
+        });
+      });
+    });
+    return (TEAM_SEQ[key] = out);
+  }
+  function streakOf(seq) {
+    var n = 0, last = seq[seq.length - 1];
+    if (!last || last === 'T' || last === 'P') return null;
+    for (var i = seq.length - 1; i >= 0 && seq[i] === last; i--) n++;
+    return { kind: last, n: n };
+  }
+  var HIT = { ml: 'W', ats: 'W', total: 'O', btts: 'Y', rfi: 'Y' }, MISS = { ml: 'L', ats: 'L', total: 'U', btts: 'N', rfi: 'N' };
+  // The team's lean in one market: {kind, x, y, rate} or null. ml counts
+  // ties as games played; ats / total leave pushes out.
+  function leanOf(m, seq) {
+    var a = 0, b = 0, t = 0;
+    seq.forEach(function(x) { if (x === HIT[m]) a++; else if (x === MISS[m]) b++; else t++; });
+    var y = m === 'ml' ? a + b + t : a + b;
+    if (y < 10) return null;
+    var kind = a >= b ? HIT[m] : MISS[m], x = Math.max(a, b);
+    return x / y >= 0.6 ? { kind: kind, x: x, y: y, rate: x / y } : null;
+  }
+  function countOf(m, seq, kind) {
+    var x = 0, y = 0;
+    seq.forEach(function(v) { if (v === kind) x++; if (m === 'ml' || v === HIT[m] || v === MISS[m]) y++; });
+    return { x: x, y: y };
+  }
+  function lineWords(m, kind, k) {
+    var s = segWord(k);
+    if (m === 'ml') return 'has ' + (kind === 'W' ? 'won' : 'lost') + ' the ' + s;
+    if (m === 'ats') return kind === 'W' ? 'has covered the ' + s + ' spread' : 'has failed to cover the ' + s + ' spread';
+    if (m === 'total') return 'has gone ' + (kind === 'O' ? 'Over' : 'Under') + (D.sport === 'nhl' ? ' 1.5' : ' the ' + s + ' total');
+    if (m === 'btts') return 'has gone BTTS ' + (kind === 'Y' ? 'Yes' : 'No');
+    return 'has gone ' + (kind === 'Y' ? 'YRFI' : 'NRFI');
+  }
+  function streakWords(slug, m, s, k) {
+    var nm = shortName(slug), sw = segWords(k), n = s.n + ' straight';
+    if (m === 'ml') return nm + ' have ' + (s.kind === 'W' ? 'won' : 'lost') + ' the ' + segWord(k) + ' ' + n;
+    if (m === 'ats') return nm + ' have ' + (s.kind === 'W' ? 'covered' : 'failed to cover') + ' the ' + segWord(k) + ' spread ' + n;
+    var w = m === 'total' ? (s.kind === 'O' ? 'Over' : 'Under') + (D.sport === 'nhl' ? ' 1.5' : '') : m === 'btts' ? 'BTTS ' + (s.kind === 'Y' ? 'Yes' : 'No') : (s.kind === 'Y' ? 'YRFI' : 'NRFI');
+    return nm + ' ' + sw + ' have gone ' + w + ' ' + n;
+  }
+  // The markets a pill covers (ml3 reads the moneyline's results)
+  function teamMarkets(k) {
+    var ms = TR.markets.filter(function(x) { return x[0] === k; }).map(function(x) { return x[1] === 'ml3' ? 'ml' : x[1]; });
+    if (TR_MKT !== 'all') ms = [TR_MKT === 'ml3' ? 'ml' : TR_MKT];
+    return ms.filter(function(m, i) { return ms.indexOf(m) === i && HIT[m]; });
+  }
+  function dots(seq, kind) {
+    return '<span class="tr-dots" aria-hidden="true">' + seq.slice(-8).map(function(v) {
+      return '<i class="' + (v === kind ? 'on' : v === 'T' || v === 'P' ? 'mid' : '') + '"></i>';
+    }).join('') + '</span>';
+  }
+  function matchupBlock(g, k, before) {
+    var seqs = teamSeqs(before, k), lines = [], leans = {};
+    teamMarkets(k).forEach(function(m) {
+      ['away', 'home'].forEach(function(side) {
+        var slug = g[side], seq = ((seqs[slug] || {})[m]) || [];
+        var ln = leanOf(m, seq), st = streakOf(seq);
+        if (ln) (leans[m] = leans[m] || {})[side] = ln.kind;
+        var kind = ln ? ln.kind : st && st.n >= 3 ? st.kind : null;
+        if (!kind) return;
+        var c = countOf(m, seq, kind);
+        var stTxt = st && st.n >= 3 && st.kind === kind ? ' · ' + st.n + ' straight' : '';
+        lines.push('<div class="mt-line">' + badge(slug, 18) + '<span><b>' + esc(tcode(slug)) + '</b> ' + esc(lineWords(m, kind, k)) + ' in ' + c.x + ' of ' + c.y +
+          ' · ' + pct0(c.y ? c.x / c.y : 0) + stTxt + '</span>' + dots(seq, kind) + '</div>');
+      });
+    });
+    var L = TR.tips.matchup_labels || {}, labels = [];
+    function lab(id, m) { var x = L[id]; if (x) labels.push(infoTipLabel(x.label + (TR_MKT === 'all' ? ' · ' + mktTag(m) : ''), x.tooltip + ' ' + (L.lean_rule || ''))); }
+    ['total', 'btts'].forEach(function(m) {
+      var x = leans[m];
+      if (!x || !x.away || !x.home) return;
+      var up = HIT[m];
+      if (x.away !== x.home) lab('tug_of_war', m); else lab(x.away === up ? 'fireworks' : 'lockdown', m);
+    });
+    var x = leans.ml;
+    if (x && x.away && x.home) { if (x.away !== x.home) lab('mismatch', 'ml'); else if (x.away === 'W') lab('heavyweights', 'ml'); }
+    return '<div class="mt-game"><div class="mt-head"><span class="tr-time">' + esc(trTime(g.start)) + '</span>' +
+      badge(g.away, 22) + '<span class="nm-full">' + esc(shortName(g.away)) + '</span><span class="nm-abbr">' + esc(tcode(g.away)) + '</span> @ ' +
+      badge(g.home, 22) + '<span class="nm-full">' + esc(shortName(g.home)) + '</span><span class="nm-abbr">' + esc(tcode(g.home)) + '</span>' +
+      (labels.length ? '<span class="mt-labels">' + labels.join('') + '</span>' : '') + '</div>' +
+      (lines.length ? lines.join('') : '<p class="mt-none">No matchup trends for this game.</p>') + '</div>';
+  }
+  function mktTag(m) { return { ml: 'ML', ats: 'Spread', total: 'O/U', btts: 'BTTS', rfi: 'NRFI' }[m] || m; }
+  function infoTipLabel(text, tip) {
+    return '<button type="button" class="info-tip mt-label tip-left" aria-label="' + esc(text) + '">' + esc(text) + '<span class="tip-bubble" role="tooltip">' + esc(tip) + '</span></button>';
+  }
+
+  function streakSection(games, k, before, onWord) {
+    var seqs = teamSeqs(before, k), playing = {}, list = [];
     games.forEach(function(g) { playing[g.away] = g; playing[g.home] = g; });
-    var html = '<section class="trends-page-section"><div class="tp-head"><div><h2>League Trends</h2>' +
-      '<p class="tp-sub">League-wide angles for ' + when + ' games, strongest first. Records are from the side to bet; ties and pushes don\'t count. Weak trends are muted. Locked in when the first game starts.</p></div></div>';
-    if (e && e.trends.length) {
-      var r = e.record || { w: 0, l: 0 };
-      if (r.w + r.l) html += '<p class="lt-summary">League Trends went <b>' + r.w + '-' + r.l + '</b> ' + noun + '.</p>';
-      html += '<div class="lt-list">' + e.trends.map(trendRow).join('') + '</div>';
-    } else {
-      html += '<div class="no-games-note" style="margin-top:12px">' + (games.length ? 'No league trends clear the bar for these games (8+ points off the league rate, or &plusmn;2 units, over 10+ games).' : 'No ' + esc(D.label) + ' games ' + noun + '.') + '</div>';
+    var ms = teamMarkets(k);
+    Object.keys(D.teams).forEach(function(slug) {
+      ms.forEach(function(m) {
+        var s = streakOf(((seqs[slug] || {})[m]) || []);
+        if (s && s.n >= 3) list.push({ slug: slug, m: m, s: s, g: playing[slug] });
+      });
+    });
+    list.sort(function(a, b) { return (!!b.g - !!a.g) || (b.s.n - a.s.n); });
+    var on = list.filter(function(x) { return x.g; }), rest = list.filter(function(x) { return !x.g; }).slice(0, 30);
+    function row(x) {
+      var yn = x.m === 'total' || x.m === 'btts' || x.m === 'rfi';
+      var cls = (yn ? 'sk-n' : x.s.kind === 'W' ? 'sk-w' : 'sk-l') + (x.s.n >= 7 ? '3' : x.s.n >= 5 ? '2' : '1');
+      var opp = x.g ? (x.g.home === x.slug ? x.g.away : x.g.home) : null;
+      return '<div class="sk-row"><span class="sk-len ' + cls + '">' + x.s.n + '</span>' + teamLink(x.slug, badge(x.slug, 22)) +
+        '<span class="sk-text">' + esc(streakWords(x.slug, x.m, x.s, k)) +
+        (opp ? '<small>Plays ' + esc(tcode(opp)) + ' ' + esc(onWord(x.g)) + '</small>' : '') + '</span></div>';
+    }
+    return '<section class="trends-page-section"><div class="tp-head"><div><h2>Streak Trends</h2>' +
+      '<p class="tp-sub">' + esc((TR.tips.streaks || {}).section || '') + ' ' + esc((TR.tips.streaks || {}).colors || '') + '</p></div></div>' +
+      (list.length ? '<div class="sk-list">' + on.concat(rest).map(row).join('') + '</div>' : '<div class="no-games-note">No team is on a run of 3 or more.</div>') + '</section>';
+  }
+
+  // One slate: a date, or (football) a week
+  function trendsSlate(o) {
+    var k = getSeg(), slate = (TR.slates || {})[o.key] || { cards: [] };
+    var ms = TR.markets.filter(function(x) { return x[0] === k; });
+    if (TR_MKT !== 'all' && !ms.some(function(x) { return x[1] === TR_MKT; })) TR_MKT = 'all';
+    var cards = slate.cards.filter(function(c) { return c.seg === k && (TR_MKT === 'all' || c.mk === TR_MKT); });
+    var html = '<p class="tr-date">' + esc(o.title) + '</p>' + o.bar;
+    html += '<div class="sport-seg-row tr-controls">' + segToggle('pageSeg', k) +
+      '<div class="seg-toggle" id="trMkt"><button class="seg-btn" data-mkt="all" aria-pressed="' + (TR_MKT === 'all') + '">All</button>' + ms.map(function(x) {
+        return '<button class="seg-btn" data-mkt="' + x[1] + '" aria-pressed="' + (x[1] === TR_MKT) + '">' + esc(x[2]) + '</button>';
+      }).join('') + '</div></div>';
+    html += '<section class="trends-page-section"><div class="tp-head"><div><h2>League Trends</h2></div>';
+    if (cards.length) {
+      var r = dayRecord(cards);
+      html += '<p class="tr-day" title="' + esc(TR.tips.todays_record || '') + '">' + esc(o.recLabel) + ' Trends: <b>' + r[0] + '–' + r[1] + '</b></p>';
+    }
+    html += '</div>';
+    if (!o.games.length) html += '<div class="no-games-note">No ' + esc(D.label) + ' games ' + esc(o.none) + '.</div>';
+    else if (!cards.length) html += '<div class="no-games-note">No trends meet our bar ' + esc(o.none) + '.' + (o.today ? ' Check back tomorrow.' : '') + '</div>';
+    else {
+      html += '<div class="tr-cards">' + cards.map(function(c, i) { return trendCard(c, i >= TR.shown); }).join('') + '</div>';
+      if (cards.length > TR.shown) html += '<button type="button" class="tr-more" id="trMore">Show more trends (' + (cards.length - TR.shown) + ')</button>';
     }
     html += '</section>';
-    // Team streaks: teams playing in this slate first.
-    var list = [];
-    Object.keys(D.streaks || {}).forEach(function(slug) {
-      if (!D.teams[slug]) return;
-      D.streaks[slug].forEach(function(s) {
-        if (multi && s.seg !== k) return;
-        list.push({ slug: slug, s: s, on: !!playing[slug] });
-      });
-    });
-    list.sort(function(a, b) { return (b.on - a.on) || (b.s.n - a.s.n); });
-    html += '<section class="trends-page-section"><div class="tp-head"><div><h2>Team Streaks</h2>' +
-      '<p class="tp-sub">Current runs of 4 or more, through the latest final. Teams playing ' + esc(on) + ' first.</p></div></div>';
-    html += list.length ? '<div class="lt-list">' + list.slice(0, 30).map(function(x) {
-      var g = playing[x.slug];
-      var opp = g ? (g.home === x.slug ? 'vs ' + shortName(g.away) : '@ ' + shortName(g.home)) : '';
-      var day = g && D.schedule === 'week' && g.start
-        ? new Date(g.start).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'America/New_York' }) + ' '
-        : '';
-      return '<div class="lt-row"><div class="lt-top">' + teamLink(x.slug, badge(x.slug, 22)) + '<span class="lt-sentence">' +
-        esc(team(x.slug).short || team(x.slug).name) + ': ' + esc(streakText(x.s)) + '</span></div>' +
-        (g ? '<div class="lt-rec">Plays ' + esc(day || on + ' ') + esc(opp) + '</div>' : '') + '</div>';
-    }).join('') + '</div>' : '<div class="no-games-note" style="margin-top:12px">No team has a run of 4+ right now.</div>';
-    return html + '</section>';
+    var games = o.games.slice().sort(function(a, b) { return (a.start || '') < (b.start || '') ? -1 : 1; });
+    html += '<section class="trends-page-section"><div class="tp-head"><div><h2>Matchup Trends</h2>' +
+      '<p class="tp-sub">' + esc((TR.tips.matchup_labels || {}).lean_rule || '') + ' Lines also show a run of 3 or more.</p></div></div>' +
+      (games.length ? games.map(function(g) { return matchupBlock(g, k, o.before); }).join('') : '<div class="no-games-note">No games ' + esc(o.none) + '.</div>') + '</section>';
+    html += streakSection(o.games, k, o.before, o.onWord);
+    html += '<p class="odds-note">' + esc(TR.tips.footer || '') + '</p>';
+    return html;
   }
+  function wireSlate(draw) {
+    var ps = document.getElementById('pageSeg');
+    if (ps) ps.onclick = function(e) { var b = e.target.closest('[data-seg]'); if (b) { setSeg(b.getAttribute('data-seg')); draw(); } };
+    document.getElementById('trMkt').onclick = function(e) { var b = e.target.closest('[data-mkt]'); if (b) { TR_MKT = b.getAttribute('data-mkt'); draw(); } };
+    var more = document.getElementById('trMore');
+    if (more) more.onclick = function() { app.querySelectorAll('.tr-card[hidden]').forEach(function(c) { c.hidden = false; }); more.remove(); };
+    app.querySelectorAll('.tr-row').forEach(function(r) { r.onclick = function() { r.classList.toggle('open'); }; });
+  }
+  function dayCounts() { var o = {}; allDates().forEach(function(d) { o[d] = D.games[d].length; }); return o; }
+  function longDay(d) { return new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', timeZone: 'UTC' }); }
 
-  // Football: one list per week, like its Games page.
+  function renderTrends() {
+    fetch(ROOT + SPORT_SLUG + '/trends.json').then(function(r) { return r.json(); }).then(function(tr) {
+      TR = tr;
+      if (D.schedule === 'week') renderTrendsByWeek(); else renderTrendsByDay();
+    }).catch(function(e) {
+      app.innerHTML = emptyNote('Couldn&rsquo;t load the trends. Try reloading.');
+      if (window.console) console.error(e);
+    });
+  }
+  function renderTrendsByDay() {
+    var dates = allDates();
+    if (!dates.length) { app.innerHTML = emptyNote('No ' + esc(D.label) + ' games loaded yet &mdash; trends appear once games are played.'); return; }
+    var cur = urlDate() || defaultDate(dates);
+    function go(d) { cur = d; setUrlDate(d); draw(); }
+    function draw() {
+      var t = todayET(), today = cur === t;
+      app.innerHTML = trendsSlate({
+        key: cur, games: D.games[cur] || [], before: cur, today: today, title: longDay(cur), bar: dateBar(cur, dates, true),
+        recLabel: today ? 'Today’s' : shortDay(cur), none: today ? 'today' : 'on ' + shortDay(cur),
+        onWord: function() { return today ? 'tonight' : 'on ' + shortDay(cur); }
+      });
+      wireDateBar(dates, cur, go);
+      document.getElementById('dateCal').onclick = function() { openCalendar({ days: dayCounts(), cur: cur, weeks: null, onPick: go }); };
+      wireSlate(draw);
+    }
+    draw();
+  }
+  // Football: one slate per week, like its Games page
   function renderTrendsByWeek() {
     var weeks = D.weeks || [];
     if (!weeks.length) { app.innerHTML = emptyNote('No ' + esc(D.label) + ' games loaded yet &mdash; trends appear once games are played.'); return; }
@@ -1337,36 +1513,18 @@
       draw();
     }
     function draw() {
-      var i = keys.indexOf(cur), w = weeks[i];
-      var html = '<div class="date-bar">' +
-        '<button class="date-nav" id="weekPrev" aria-label="Previous week"' + (i <= 0 ? ' disabled' : '') + '>&lsaquo;</button>' +
-        '<div class="date-label-wrap"><span class="date-label">' + esc(w.label) + ' <span class="week-range">' + esc(weekRange(w)) + '</span></span>' +
-        (cur !== thisWeek ? '<button class="date-today-btn" id="weekNowBtn" type="button">This week</button>' : '') + '</div>' +
-        '<button class="date-nav" id="weekNext" aria-label="Next week"' + (i >= keys.length - 1 ? ' disabled' : '') + '>&rsaquo;</button></div>';
-      html += segRow() + trendsSections(D.trends[cur], weekGames(cur), esc(w.label) + '&rsquo;s', w.label, 'in ' + esc(w.label));
-      app.innerHTML = html;
-      wireSegRow(draw);
+      var i = keys.indexOf(cur), w = weeks[i], now = cur === thisWeek;
+      app.innerHTML = trendsSlate({
+        key: cur, games: weekGames(cur), before: w.start, today: now, title: w.label + ' · ' + weekRange(w), bar: weekBar(weeks, cur, thisWeek),
+        recLabel: now ? 'This Week’s' : w.label, none: now ? 'this week' : 'in ' + w.label,
+        onWord: function(g) { return g.start ? new Date(g.start).toLocaleDateString('en-US', { weekday: 'short', timeZone: 'America/New_York' }) : ''; }
+      });
       var p = document.getElementById('weekPrev'), n = document.getElementById('weekNext'), t = document.getElementById('weekNowBtn');
       if (p) p.onclick = function() { if (i > 0) go(keys[i - 1]); };
       if (n) n.onclick = function() { if (i < keys.length - 1) go(keys[i + 1]); };
       if (t) t.onclick = function() { go(thisWeek); };
-    }
-    draw();
-  }
-
-  function renderTrends() {
-    if (D.schedule === 'week') { renderTrendsByWeek(); return; }
-    var dates = Object.keys(D.trends || {}).sort();
-    var gameDates = allDates();
-    if (!gameDates.length) { app.innerHTML = emptyNote('No ' + esc(D.label) + ' games loaded yet &mdash; trends appear once games are played.'); return; }
-    if (!dates.length) dates = gameDates;
-    var cur = urlDate() || defaultDate(dates);
-    function go(d) { cur = d; setUrlDate(d); draw(); }
-    function draw() {
-      var when = dateLabel(cur).toLowerCase() === 'today' ? 'today&rsquo;s' : esc(dateLabel(cur)) + '&rsquo;s';
-      app.innerHTML = dateBar(cur, dates) + segRow() + trendsSections(D.trends[cur], D.games[cur] || [], when, dateLabel(cur), 'on this date');
-      wireDateBar(dates, cur, go);
-      wireSegRow(draw);
+      document.getElementById('dateCal').onclick = function() { openCalendar({ days: dayCounts(), cur: cur, weeks: weeks, onPick: go }); };
+      wireSlate(draw);
     }
     draw();
   }
@@ -1823,8 +1981,8 @@
     document.querySelectorAll('.info-tip.open').forEach(function(t) { if (t !== tip) t.classList.remove('open'); });
     if (tip) tip.classList.toggle('open');
   });
-  // NHL's data.json is its own shape; its Stats page reads the shared shape (nhl/sport.json)
-  var DATA_FILE = SPORT_SLUG === 'nhl' && SECTION === 'stats' ? 'sport.json' : 'data.json';
+  // NHL's data.json is its own shape; its Stats and Trends pages read the shared shape (nhl/sport.json)
+  var DATA_FILE = SPORT_SLUG === 'nhl' && (SECTION === 'stats' || SECTION === 'trends') ? 'sport.json' : 'data.json';
   fetch(ROOT + SPORT_SLUG + '/' + DATA_FILE).then(function(r) { return r.json(); }).then(function(data) {
     D = data;
     if (SECTION === 'odds') { renderOdds(); return; }   // works from odds.json alone for NHL
