@@ -1054,6 +1054,11 @@ def logo_flag(sport_key, slug):
     return None if info is None else ('d' if info.get('dark') else 'l')
 
 
+def page_markets(sp):
+    """[[segment, market, label, kind]] for the pages, in order."""
+    return [list(m) for m in sp['family_markets'] if m[1] != 'ml3' or sp['family'] == 'period']
+
+
 def build(sp, teams_list, now_utc=None):
     """Writes {slug}/data.json for the current season (the latest one
     loaded; earlier seasons stay in data_seed/games but aren't published).
@@ -1085,6 +1090,8 @@ def build(sp, teams_list, now_utc=None):
     doc = {
         'sport': sp['key'], 'label': sp['label'], 'slug': sp['slug'], 'sportType': sp['sport_type'],
         'segments': sp['segments'],
+        # the market pills every page uses (sports.py family markets); no 3-way for the spread family
+        'markets': page_markets(sp),
         'schedule': sp.get('schedule', 'day'),
         'weeks': week_list(games) if sp.get('schedule') == 'week' else None,
         'season': current, 'seasonLabel': season_label(sp['key'], current) if current else None,
@@ -1141,5 +1148,5 @@ def build(sp, teams_list, now_utc=None):
                      for d, day in by_date.items()}
     write_odds_page(sp, slug_dir, now_utc, odds_schedule, weeks=doc.get('weeks'))
     today = now_utc.astimezone(ET).date().isoformat()
-    return {'season': current, 'games': len(games), 'graded': sum(1 for g in games if g.get('final')),
+    return {'season': current, 'seasonLabel': doc['seasonLabel'], 'games': len(games), 'graded': sum(1 for g in games if g.get('final')),
             'today': len(by_date.get(today, []))}

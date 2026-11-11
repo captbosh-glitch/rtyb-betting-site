@@ -204,15 +204,6 @@ def build_season_stats(merged_games, team_names):
     return summary, streaks, gamelog
 
 
-def team_page_meta(code, name):
-    return {
-        'title': 'RTYB — ' + name,
-        'h1': name,
-        'desc': ('1st-period Moneyline, Over 1.5, and BTTS records and units, home/away splits, last 10 games, '
-                  'and current trends for the ' + name + '.'),
-    }
-
-
 def load(path, default):
     full = os.path.join(ROOT, path)
     if not os.path.exists(full):
@@ -457,6 +448,8 @@ def lighten(html, page_dir):
 def render_page(template, page_key, teams_menu_html, meta=None, team_code='', sport=None, empty_html='', sport_body=''):
     sport = sport or sports.BY_KEY['nhl']
     out = strip_pages(template, page_key)
+    if (meta or {}).get('icon') is not None:   # team pages: the team's logo, not the sport icon
+        out = out.replace('__PAGE_ICON__', meta['icon'], 1)
     section = PAGE_SECTION.get(page_key) or (meta or {}).get('section')
     out = apply_sport(out, sport, section)
     out = out.replace('__EMPTY_HTML__', empty_html)
@@ -523,6 +516,9 @@ def esc(s):
 def badge_html(team, size=40, sport_key=None):
     """The team's logo (assets/logos/{sport}/) when cached, else a
     team-color circle with the abbreviation, text color picked for contrast."""
+    if sport_key == 'nhl':   # NHL logos: assets/logos/{CODE}_light.svg / _dark.svg
+        base = f"__ROOT__/assets/logos/{team['code']}_"
+        return icons.logo_html(base + 'light.svg', base + 'dark.svg', size)
     logo = icons.team_logo(sport_key, team['slug'], size, alt='') if sport_key else ''
     if logo:
         return logo
@@ -633,21 +629,33 @@ def teams_index_html(sport, teams):
 
 
 def team_detail_html(sport, team):
-    meta = ' · '.join(filter(None, [short_group(team.get('division')), team['conference']]))
+    """The team page body; the header (logo + name as the one h1, division
+    and conference) is the page head (sport_team_meta)."""
     tags = ''.join(f'<span>{esc(seg["tag"])}</span>' for seg in sport['segments'])
     def section(title, msg):
-        return f'<h3 class="team-section-title">{title}</h3><div class="section-empty">{msg}</div>'
+        return f'<h2 class="team-section-title">{title}</h2><div class="section-empty">{msg}</div>'
     no_games = f'No {esc(sport["label"])} games tracked yet.'
     return (f'<a class="sport-team-back" href="/{sport["slug"]}/teams/">&larr; All {esc(sport["label"])} teams</a>'
-            f'<div class="sport-team-head">{badge_html(team, 64, sport["key"])}<div><h1>{esc(team["name"])}</h1>'
-            f'<div class="sport-team-meta">{esc(meta)}</div></div></div>'
             # assets/sport.js fills these in from data.json once games exist
-            + f'<div id="sportApp" data-section="team" data-team="{esc(team["slug"])}">'
+            + f'<div id="sportApp" data-section="team" data-team="{esc(team.get("code") if sport["key"] == "nhl" else team["slug"])}">'
             + section('Next Game', 'No upcoming game scheduled yet.')
             + section('Last Game', no_games)
             + section('Season Markets', f'Records and units will appear here once games are graded.<span class="empty-tags">{tags}</span>')
-            + section('Season Game Log', no_games)
+            + section('Game Log', no_games)
             + '</div>')
+
+
+def segment_title_words(sport):
+    """'First Quarter & First Half' -- the segment words in team page titles."""
+    return ' & '.join(seg['label'].replace('1st ', 'First ') for seg in sport['segments'])
+
+
+def sport_team_meta(sport, team, season_label):
+    """Team page title, h1 (logo + name) and the line under it."""
+    title = f"{team['name']} {segment_title_words(sport)} Stats & Betting Record" + (f' {season_label}' if season_label else '')
+    return {'title': title, 'h1': esc(team['name']), 'icon': badge_html(team, 44, sport['key']),
+            'desc': esc(' · '.join(filter(None, [short_group(team.get('division')), team.get('conference')]))),
+            'section': 'teams'}
 
 
 SECTION_DESC = {
@@ -709,9 +717,7 @@ def build_other_sports(template):
             write_light(html, f"{sp['slug']}/{sp['sections'][section]}")
         # one page per team
         for t in teams:
-            meta = {'title': f'RTYB — {t["name"]}', 'h1': f'{sp["label"]} — Teams',
-                    'desc': f'{sp["label"]} {sports.segment_summary(sp)} records, splits and trends for the {t["name"]}.',
-                    'section': 'teams'}
+            meta = sport_team_meta(sp, t, (SPORT_DATA.get(sp['key']) or {}).get('seasonLabel'))
             write_light(render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=team_detail_html(sp, t)),
                         f"{sp['slug']}/teams/{t['slug']}")
         info = SPORT_DATA.get(sp['key']) or {}
@@ -896,7 +902,6 @@ def main():
     teams_menu_html = build_teams_menu_html(full_data.get('summary', {}), team_colors)
 
     games_html = render_page(template, 'games', teams_menu_html)
-    teamsindex_html = render_page(template, 'teamsindex', teams_menu_html)
 
     nhl_dir = os.path.join(ROOT, 'nhl')
     games_dir = os.path.join(ROOT, 'nhl', 'games')
@@ -930,19 +935,6 @@ def main():
     for old in (hitrates_dir, hitrates_old_dir):   # old Stats URLs
         with open(os.path.join(old, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(redirect_page_html('../stats/'))
-    with open(os.path.join(teams_dir, 'index.html'), 'w', encoding='utf-8') as f:
-        f.write(teamsindex_html)
-
-    team_bytes = 0
-    for code, info in full_data.get('summary', {}).items():
-        slug = team_slug(code)
-        meta = team_page_meta(code, info['name'])
-        team_html = render_page(template, 'team', teams_menu_html, meta=meta, team_code=code)
-        team_dir = os.path.join(teams_dir, slug)
-        os.makedirs(team_dir, exist_ok=True)
-        with open(os.path.join(team_dir, 'index.html'), 'w', encoding='utf-8') as f:
-            f.write(team_html)
-        team_bytes += len(team_html)
 
     # /nhl/odds/: the book-by-book Odds page, rendered by assets/sport.js
     # like the other sports' (nhl/odds.json carries the team names and logos)
@@ -989,6 +981,21 @@ def main():
     write_light(render_page(template, 'sport', teams_menu_html, meta=trends_meta, sport=nhl,
                             sport_body='<div id="sportApp" data-section="trends"><div class="no-games-note">Loading&hellip;</div>'
                                        '<noscript>This page needs JavaScript.</noscript></div>'), 'nhl/trends')
+    # /nhl/teams/ and /nhl/teams/<code>/: the shared Teams list and team
+    # pages (assets/sport.js), from nhl/sport.json like every sport's
+    nhl_teams = sorted(({'slug': team_slug(code), 'code': code, 'name': t['name'], 'short': t['short'], 'color': t.get('color'),
+                         'division': f"{t['division']} Division", 'conference': f"{t['conference']}ern Conference"}
+                        for code, t in nhl_doc['teams'].items()), key=lambda t: t['name'])
+    teams_meta = {'title': 'RTYB — NHL Teams', 'h1': 'NHL — Teams', 'section': 'teams',
+                  'desc': 'Every NHL team’s 1st Period record, win % and units this season. Pick a market and side, and tap any team for its full page.'}
+    write_light(render_page(template, 'sport', teams_menu_html, meta=teams_meta, sport=nhl,
+                            sport_body=f'<div id="sportApp" data-section="teams">{teams_index_html(nhl, nhl_teams)}</div>'), 'nhl/teams')
+    team_bytes = 0
+    for t in nhl_teams:
+        team_html = render_page(template, 'sport', teams_menu_html, meta=sport_team_meta(nhl, t, full_data['seasonLabel']),
+                                sport=nhl, sport_body=team_detail_html(nhl, t))
+        write_light(team_html, f"nhl/teams/{t['slug']}")
+        team_bytes += len(team_html)
     stats_meta = {'title': 'RTYB — NHL Stats', 'h1': 'NHL — Stats', 'section': 'stats',
                   'desc': SECTION_DESC['stats'].format(label='NHL', segs='1st Period', markets='moneyline, Total 1.5, BTTS and 3-way')}
     write_light(render_page(template, 'sport', teams_menu_html, meta=stats_meta, sport=nhl,
@@ -1012,7 +1019,7 @@ def main():
           f"nhl/stats/index.html, nhl/sport.json, "
           f"nhl/1st-period-stats/ + nhl/hit-rates/ (redirect stubs), "
           f"nhl/trends/index.html + nhl/trends.json, "
-          f"nhl/teams/index.html ({len(teamsindex_html)} bytes), "
+          f"nhl/teams/index.html, "
           f"{len(full_data.get('summary', {}))} nhl/teams/<slug>/index.html pages ({team_bytes} bytes total), "
           f"and schedule_data.json ({sum(len(v) for v in merged_games.values())} games); "
           f"other sports: {other}; sitemap.xml ({sitemap_urls} URLs)")

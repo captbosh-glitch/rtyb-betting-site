@@ -8,13 +8,18 @@
  *   sit.render(box, view)            view = {mode: 'league'} | {mode: 'team', slug}
  *   sit.contexts(k, 'current')       [{c, r}] for the team-page game log
  *   sit.tags(c)                      registry rows a team-game counts toward
+ *   sit.nextFits(k, slug, gameId)    registry rows a team's upcoming game fits
  *
  * src: {sport, segments [{key, label, tag}], teams {slug: {name, conference,
  *   division}}, seasons: [{key: 'current', label, games: {date: [game]}},
  *   {key: 'prev', label, load: () => Promise<{date: [game]}>}], conf, rivals,
  *   tz {team: utc offset}, totalCuts {k: [lo, hi]}, locked, lockHtml, url,
  *   today (ET date: rows that fit a game today link to trendsUrl),
- *   onSeg(k, section) (a segment change; return false to let this file redraw)}
+ *   onSeg(k, section) (a segment change; return false to let this file redraw),
+ *   ties (true: a tied segment is its own result with a Tie %; false: a push),
+ *   tonightLocked () => true when "Tonight only" is premium-locked}
+ * Team view extras: view.next = {id, label} (the team's next game and how
+ * to say it: "Tonight vs MON"); its rows get a Tonight tag.
  *
  * Games are in sport.js's shape: {id, start, state, away, home, as, hs,
  * als, hls, neutral, intl, note, post, wk, fs (home full-game spread),
@@ -122,7 +127,7 @@
       return segFav((g.odds || {})[k]) || (g.fs ? (g.fs < 0 ? 'home' : 'away') : null);
     }
 
-    var cache = {}, todayCtx = {};
+    var cache = {}, todayCtx = {}, upcoming = {};
     // [{c, r}] for one season's games in segment k
     function seasonContexts(games, k, seasonKey) {
       var dates = Object.keys(games).sort();
@@ -177,9 +182,10 @@
       dates.forEach(function(d) {
         games[d].forEach(function(g) {
           var r = (g.res || {})[k];
-          var isToday = !!src.today && seasonKey === 'current' && g.state !== 'final' && etDate(g.start) === src.today;
+          var pending = seasonKey === 'current' && g.state !== 'final' && g.state !== 'postponed' && g.state !== 'canceled' && !!g.start;
+          var isToday = !!src.today && pending && etDate(g.start) === src.today;
           var done = r && r.sc && !r.na;
-          if (!done && !isToday) return;
+          if (!done && !pending) return;
           var fav = fullFav(g, k), et = etParts(g.start), o = (g.odds || {})[k] || {}, date = etDate(g.start);
           var segTotal = (o.total || {}).line;
           ['away', 'home'].forEach(function(side) {
@@ -205,6 +211,7 @@
               teamConf: confOf(team), oppConf: confOf(opp), oppFcs: !src.teams[opp], oppP4: isP4(opp),
               teamPower: isPower(team), oppPower: isPower(opp), rival: isRival(g.away, g.home) };
             if (isToday) today.push({ c: c });
+            if (pending) upcoming[k + '|' + g.id + '|' + team] = c;
             if (!done) return;
             var res = { margin: r.sc[i] - r.sc[1 - i], lined: !!(o.ats || o.total || o.ml || o.btts) };
             var u = r.u || {};
@@ -292,7 +299,8 @@
             return !!row.test(e.c, C);
           });
           var a = agg(list);
-          if (!a.gp) { if (view.mode === 'team') hidden.push(row); } else rows.push({ row: row, agg: a });
+          if (view.mode === 'team') { if (a.gp >= 5) rows.push({ row: row, agg: a }); }
+          else if (a.gp) rows.push({ row: row, agg: a });
         });
         return { group: gr, rows: rows, hidden: hidden };
       }).filter(function(x) { return x.rows.length; });
@@ -304,6 +312,17 @@
           if (view.persp === 'fav' ? e.c.fav !== true : !e.c.home) return false;
         }
         return !!row.test(e.c, C);
+      });
+    }
+    // rows a team's upcoming game fits (the team page's "Tonight" spots)
+    function nextFits(k, slug, gameId) {
+      contexts(k, 'current');
+      var c = upcoming[k + '|' + gameId + '|' + slug];
+      if (!c) return [];
+      return REG.rows.filter(function(row) {
+        if (row.id === 'overall') return false;
+        if (row.applies && !row.applies(slug, C)) return false;
+        return !!row.test(c, C);
       });
     }
     function tags(c) {
@@ -318,7 +337,7 @@
     }
 
     // ---- state, URL ----
-    var st = { k: null, market: null, persp: 'home', conf: '', mob: null };
+    var st = { k: null, market: null, persp: 'home', conf: '', mob: null, tonightOnly: false };
     if (src.url) {
       try {
         var q = new URLSearchParams(window.location.search);
@@ -364,6 +383,15 @@
       var v = view.mode === 'league' ? { mode: 'league', persp: st.persp, conf: conf } : view;
       var groups = merged(table(k, v, mode));
       var league = view.mode === 'league';
+      // team view: the rows the team's next game fits ("Tonight")
+      var FIT = {}, fits = !league && view.next ? nextFits(k, view.slug, view.next.id) : [];
+      fits.forEach(function(r) { FIT[r.id] = 1; });
+      var shownIds = {};
+      groups.forEach(function(G) { G.rows.forEach(function(x) { shownIds[x.row.id] = 1; }); });
+      if (!league && st.tonightOnly && view.next) {
+        groups = groups.map(function(G) { return { name: G.name, rows: G.rows.filter(function(x) { return FIT[x.row.id]; }), hidden: [], notes: G.notes }; })
+          .filter(function(G) { return G.rows.length; });
+      }
       var who = !league ? '' : conf ? 'as ' + (((src.conf || {}).short || {})[conf] || conf) + ' teams' : 'as ' + (st.persp === 'fav' ? 'favorite' : 'home team');
       var sel = markets.filter(function(m) { return m.id === st.market; })[0];
       var segTag = (src.segments.filter(function(s) { return s.key === k; })[0] || {}).tag || '';
@@ -393,10 +421,10 @@
       function recTxt(m, x) { return x.n ? x.a + '-' + x.b + (m.pair || m.id === 'ml3' ? (x.p ? '-' + x.p : '') : '-' + x.p) : '&mdash;'; }
       // Moneyline: Win % and Tie % out of every game played (ties count, as in
       // template.html / sport.js winPct). Other markets leave pushes out.
-      function decided(m, x) { return x.a + x.b + (m.id === 'su' ? x.p : 0); }
+      function decided(m, x) { return x.a + x.b + (m.id === 'su' && src.ties ? x.p : 0); }
       function pctOf(m, x) { var d = decided(m, x); return d ? Math.round(100 * x.a / d) : null; }
       function tieOf(x) { var d = x.a + x.b + x.p; return d ? Math.round(100 * (x.p + (x.d || 0)) / d) : null; }
-      var isSu = sel.id === 'su' || sel.id === 'ml3';
+      var isSu = sel.id === 'ml3' || (sel.id === 'su' && !!src.ties);
       // the units shown: the market's own, or the better side of a pair
       function unitsPick(m, x) {
         if (!m.pair) return { u: x.ua, n: x.na, pre: '' };
@@ -423,8 +451,9 @@
       function todayLink(row, tone) {
         return league && tone && src.trendsUrl && fitsToday(row, k, v) ? '<a class="sit-today" href="' + esc(src.trendsUrl) + '">On today&rsquo;s board &rarr;</a>' : '';
       }
+      var TONIGHT_TAG = '<span class="sit-tn">Tonight</span>';
       function labelCell(row, a, tone) {
-        return '<td class="sit-label' + (row.indent ? ' ind' : '') + '"><span class="sit-name">' + esc(row.label) + '</span>' +
+        return '<td class="sit-label' + (row.indent ? ' ind' : '') + '"><span class="sit-name">' + esc(row.label) + '</span>' + (FIT[row.id] ? ' ' + TONIGHT_TAG : '') +
           (a.gp && a.gp < (REG.smallSample || 10) ? ' <span class="sit-small">Small sample</span>' : '') + todayLink(row, tone) +
           '<span class="sit-desc">' + esc(desc(row)) + (who && (conf || !row.own) ? ' &middot; ' + who : '') + '</span></td>';
       }
@@ -448,7 +477,7 @@
       function mobRows(G) {
         return G.rows.map(function(x) {
           var a = x.agg, x0 = a[sel.id], p = pctOf(sel, x0), tone = edgeOf(sel, x0);
-          return '<details class="sit-mrow"><summary><span class="sit-mlabel' + (x.row.indent ? ' ind' : '') + '">' + esc(x.row.short) +
+          return '<details class="sit-mrow' + (FIT[x.row.id] ? ' sit-on' : '') + '" id="sit-m-' + esc(x.row.id) + '"><summary><span class="sit-mlabel' + (x.row.indent ? ' ind' : '') + '">' + esc(x.row.short) + (FIT[x.row.id] ? ' ' + TONIGHT_TAG : '') +
               (a.gp && a.gp < (REG.smallSample || 10) ? ' <span class="sit-small">Small</span>' : '') +
               (who && (conf || !x.row.own) ? '<span class="sit-who">' + who + '</span>' : '') + '</span>' +
             '<span class="mono sit-mrec">' + recTxt(sel, x0) + '</span><span class="sit-mval">' + (sel.id === 'su' ? '<span class="mono">' + (p == null ? '&mdash;' : p + '%') + '</span>' : unitsOf(sel, x0, tone)) +
@@ -463,19 +492,26 @@
         ' Small sample: under ' + (REG.smallSample || 10) + ' games; GP in amber under 5. Odds: games with closing lines, amber under 80%. ' +
         '&ldquo;Per team&rdquo; rows count each team&rsquo;s game, so one game can count twice. Green and red mark real edges: 60%+ (or 40% and under) over 10+ games, or more than 5 units either way.';
       var html = '<div class="season-card sit"><div class="season-card-head"><h3>Situational Results <button type="button" class="info-tip tip-left" aria-label="About this table">i<span class="tip-bubble" role="tooltip">' + tip + '</span></button></h3>' +
-        (league ? '' : '<div class="sc-right">' + bar(true) + '</div>') + '</div>';
-      if (!groups.length) html += '<div class="sit-notyet">No games in these splits yet.</div>';
+        '</div>';
+      if (!league && view.next) {
+        var tonightLocked = src.tonightLocked && src.tonightLocked();
+        html += '<div class="sit-spots"><p><b>' + esc(view.next.label) + ':</b> ' + (fits.length ? fits.map(function(r) {
+            return shownIds[r.id] ? '<a href="#sit-r-' + esc(r.id) + '" data-sit-jump="' + esc(r.id) + '">' + esc(r.short) + '</a>' : esc(r.short);
+          }).join(' &middot; ') : 'no situations yet') + '</p>' +
+          '<button type="button" class="seg-btn sit-tonly" data-sit-tonight aria-pressed="' + st.tonightOnly + '"' + (tonightLocked ? ' disabled title="Premium"' : '') + '>Tonight only' + (tonightLocked ? ' &#128274;' : '') + '</button></div>';
+      }
+      if (!groups.length) html += '<div class="sit-notyet">' + (st.tonightOnly ? 'None of tonight&rsquo;s situations has 5+ games yet.' : 'No games in these splits yet.') + '</div>';
       html += groups.map(function(G, gi) {
         var id = 'sit-g-' + G.name.toLowerCase().replace(/[^a-z]+/g, '-');
         var notes = league && !conf && G.notes.length ? '<div class="sit-note">' + G.notes.map(esc).join(' ') + '</div>' : '';
         var tbl = '<div class="sit-desk' + (REG.mobileList ? '' : ' sit-scroll') + '"><div class="sit-wrap"><table class="sit-table"><thead>' + thead + '</thead><tbody>' +
-          G.rows.map(function(x) { return '<tr>' + cells(x.row, x.agg) + '</tr>'; }).join('') +
+          G.rows.map(function(x) { return '<tr id="sit-r-' + esc(x.row.id) + '"' + (FIT[x.row.id] ? ' class="sit-on"' : '') + '>' + cells(x.row, x.agg) + '</tr>'; }).join('') +
           (G.hidden.length ? '<tr class="sit-notyet"><td colspan="' + ncol + '">Not yet: ' + G.hidden.map(function(r) { return esc(r.label); }).join(' &middot; ') + '</td></tr>' : '') +
           '</tbody></table></div></div>';
         var mob = REG.mobileList ? '<div class="sit-mob">' + mobRows(G) +
           (G.hidden.length ? '<div class="sit-notyet">Not yet: ' + G.hidden.map(function(r) { return esc(r.short); }).join(' &middot; ') + '</div>' : '') + '</div>' : '';
         return '<section class="sit-gsec" id="' + id + '"><h4 class="sit-gtitle">' + esc(G.name) + ' <span class="sit-gset">&middot; ' + esc(segTag) + ' &middot; ' + esc(sel.label) + '</span></h4>' +
-          notes + (league ? bar(gi === 0) : '') + tbl + mob + '</section>';
+          notes + bar(gi === 0) + tbl + mob + '</section>';
       }).join('') + '</div>';
       var locked = league && src.locked && src.locked();
       box.className = 'adv-section' + (locked ? ' locked' : '');
@@ -498,8 +534,20 @@
       on('[data-sit-mk]', 'click', function(b) { st.market = b.getAttribute('data-sit-mk'); });
       on('[data-sit-persp]', 'click', function(b) { st.persp = b.getAttribute('data-sit-persp'); });
       on('[data-sit-conf]', 'change', function(s) { st.conf = s.value; });
+      on('[data-sit-tonight]', 'click', function() { st.tonightOnly = !st.tonightOnly; });
+      // a spot link opens its row (on phones, the row's card) and scrolls to it
+      box.querySelectorAll('[data-sit-jump]').forEach(function(a) {
+        a.onclick = function(e) {
+          var id = a.getAttribute('data-sit-jump'), m = document.getElementById('sit-m-' + id), d = document.getElementById('sit-r-' + id);
+          var el = m && m.offsetParent ? m : d;
+          if (!el) return;
+          e.preventDefault();
+          if (el.tagName === 'DETAILS') el.open = true;
+          el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        };
+      });
     }
-    return { render: render, contexts: function(k, mode) { return contexts(k, mode || 'current'); }, tags: tags, reg: REG, state: st };
+    return { render: render, contexts: function(k, mode) { return contexts(k, mode || 'current'); }, tags: tags, nextFits: nextFits, reg: REG, state: st };
   }
   window.RTYBSit = { create: create, etParts: etParts };
 })();

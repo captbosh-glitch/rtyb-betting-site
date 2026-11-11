@@ -60,14 +60,18 @@ class WinPctTest(unittest.TestCase):
         self.check('assets/sport.js')
 
     def test_situational_table(self):
-        # x = {a: wins, b: losses, p: ties}; whole percents
+        # x = {a: wins, b: losses, p: ties}; whole percents. src.ties: NHL / MLB
+        # count a tied segment as a game played; the spread family calls it a push
         js = (helper('assets/situational.js', 'decided') + '\n' + helper('assets/situational.js', 'pctOf') + '\n' + helper('assets/situational.js', 'tieOf') + '\n'
-              'var x = {a: 5, b: 0, p: 12};'
-              'console.log(JSON.stringify([pctOf({id: "su"}, x), tieOf(x), pctOf({id: "ats"}, {a: 5, b: 5, p: 2})]));')
-        win, tie, cover = run(js)
+              'var src = {ties: true}, x = {a: 5, b: 0, p: 12};'
+              'var out = [pctOf({id: "su"}, x), tieOf(x), pctOf({id: "ats"}, {a: 5, b: 5, p: 2})];'
+              'src.ties = false; out.push(pctOf({id: "su"}, {a: 6, b: 4, p: 2}));'
+              'console.log(JSON.stringify(out));')
+        win, tie, cover, spread_ml = run(js)
         self.assertEqual(win, 29)
         self.assertEqual(tie, 71)
         self.assertEqual(cover, 50)   # spreads still leave pushes out
+        self.assertEqual(spread_ml, 60)   # NBA moneyline: a tied quarter is a push
 
     def test_montreal_is_not_100(self):
         js = helper('template.html', 'winPct') + '\nconsole.log(JSON.stringify(Math.round(winPct(5, 0, 12) * 100)));'

@@ -13,6 +13,7 @@ which counts OT goals and the shootout winner, the way books grade it.
 The same rules as nhlSitGame in template.html: a tied 1st period is a push
 on the moneyline (0 units), a loss for both teams on the 3-way.
 """
+import sports
 from grading import bet_units, flip, num
 
 STATE = {'LIVE': 'in', 'CRIT': 'in', 'FINAL': 'final', 'OFF': 'final'}
@@ -86,6 +87,7 @@ def doc(games_by_date, season_start, season_label, summary, divisions, colors, t
                            'division': div, 'conference': CONFERENCE.get(div)}
     return {
         'sport': 'nhl', 'label': 'NHL', 'slug': 'nhl', 'sportType': 'period', 'segments': SEGMENTS,
+        'markets': [list(m) for m in sports.BY_KEY['nhl']['family_markets']],
         'schedule': 'day', 'season': int(season_start[:4]) + 1, 'seasonLabel': season_label,
         'generated': generated, 'teams': teams, 'tz': tz,
         'games': {d: [game(g, d) for g in gs] for d, gs in sorted(games_by_date.items()) if d >= season_start},

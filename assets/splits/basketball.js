@@ -83,7 +83,7 @@
       { id: 'tmid', label: 'Middle total', short: 'Mid total', group: 'size', def: cutDef(1), test: function(c) { return third(c, 1); } },
       { id: 'thigh', label: 'High total', short: 'High total', group: 'size', def: cutDef(2), test: function(c) { return third(c, 2); } },
     ].filter(Boolean);
-    return { config: C, groups: groups, rows: rows, markets: [{ id: 'ats' }, { id: 'tot' }, { id: 'su' }, { id: 'ml3' }], favBy: 'fg-spread', periods: 4,
+    return { config: C, groups: groups, rows: rows, markets: [{ id: 'ats' }, { id: 'tot' }, { id: 'su' }], favBy: 'fg-spread', periods: 4,
              perspectives: [['home', 'Home team'], ['fav', 'Favorite']], defaultSeason: o.defaultSeason, smallSample: 10 };
   };
 })();

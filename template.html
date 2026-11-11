@@ -961,6 +961,64 @@
     #leagueTable .tl-short { display: inline; }
   }
 
+  /* ---------- Teams list + team pages (assets/sport.js) ---------- */
+  .tm-controls { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+  .tm-controls .seg-toggle { margin-bottom: 0; }
+  .tm-dots { display: inline-flex; gap: 3px; vertical-align: middle; }
+  .tm-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--text-faint); opacity: 0.55; }
+  .tm-dots i.hit { background: var(--good); opacity: 1; }
+  .tm-dots i.tie { background: var(--warn); opacity: 1; }
+  #leagueTable .col-l8 { width: 96px; }
+  .tm-u { font-weight: 700; color: var(--text-muted); }
+  .tm-u.pos { color: var(--good); }
+  .tm-u.neg { color: var(--bad); }
+  .tm-u.mid { color: var(--warn); }
+  .tm-today { display: inline-block; margin-left: 8px; font-size: 0.68rem; font-weight: 700; color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; padding: 0 5px; white-space: nowrap; vertical-align: middle; }
+  @media (max-width: 600px) {
+    .tm-table .col-l8, .tm-table .col-streak, .tm-table .col-tie, .tm-table .col-go { display: none; }
+    .tm-today { display: block; margin: 2px 0 0 32px; width: fit-content; }
+  }
+  .page-title .tlogo, .page-title .team-badge { flex-shrink: 0; }
+  .tm-sec { margin-top: 22px; }
+  .tm-sec .team-section-title { margin-bottom: 8px; }
+  .tm-card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 10px; padding: 11px 14px; }
+  .tm-card + .tm-card { margin-top: 8px; }
+  .tm-ng-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-weight: 700; margin-bottom: 6px; }
+  .tm-when { color: var(--text-muted); font-weight: 600; font-size: 0.86rem; }
+  .tm-opp { display: inline-flex; align-items: center; gap: 6px; }
+  .tm-opp a { color: inherit; }
+  .tm-final { margin-left: auto; font-size: 0.86rem; }
+  .tm-seg-line { display: grid; grid-template-columns: 110px 1fr; gap: 8px; padding: 6px 0; border-top: 1px solid var(--border-soft); font-size: 0.84rem; }
+  .tm-live { color: var(--bad); font-weight: 700; }
+  .tm-muted { color: var(--text-muted); }
+  .tm-res { white-space: nowrap; margin-right: 10px; }
+  .tm-mt { margin-top: 8px; border-top: 1px solid var(--border-soft); padding-top: 6px; }
+  .tm-mt-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.84rem; margin-bottom: 2px; }
+  .tm-mt-head a { color: var(--accent); font-size: 0.8rem; }
+  .tm-mk-card { display: flex; flex-wrap: wrap; gap: 10px 28px; background: var(--panel); border: 1px solid var(--border-soft); border-radius: 10px; padding: 12px 16px; }
+  .tm-mk-card b { display: block; font-size: 1.3rem; }
+  .tm-mk-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .tm-split th { text-align: left; }
+  .tm-split small { color: var(--text-muted); font-weight: 400; }
+  .tm-split .sit-hl { color: var(--accent); }
+  .tm-sub { font-family: 'Source Sans 3', sans-serif; text-transform: none; letter-spacing: 0; font-size: 0.92rem; margin: 6px 0 4px; }
+  .tm-sub small { color: var(--text-muted); font-weight: 400; }
+  .tm-card p { font-size: 0.86rem; margin: 3px 0; }
+  .tm-list { margin: 0; padding-left: 18px; font-size: 0.86rem; line-height: 1.6; }
+  .tm-list a, .tm-card p a { color: inherit; text-decoration: underline dotted; }
+  .tm-plain { font-weight: 600; }
+  .tm-flash { background: color-mix(in srgb, var(--accent) 22%, transparent) !important; transition: background 0.4s; }
+  /* Situational Results on a team page: the next game's rows */
+  .sit-spots { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0 10px; font-size: 0.86rem; }
+  .sit-spots p { margin: 0; }
+  .sit-spots a { color: var(--accent); }
+  .sit-table tr.sit-on td, details.sit-mrow.sit-on { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .sit-tn { display: inline-block; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; padding: 0 4px; vertical-align: middle; }
+  @media (max-width: 600px) {
+    .tm-seg-line { grid-template-columns: 1fr; gap: 2px; }
+    .tm-final { margin-left: 0; }
+  }
+
   /* ---------- Detail drawer ---------- */
   .scrim {
     position: fixed; inset: 0;
