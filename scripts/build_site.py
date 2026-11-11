@@ -35,8 +35,8 @@ root" compatible):
                               page's client JS, instead of being inlined
                               into each page individually.
   nhl/games/index.html     -- the Games page (landing page)
-  nhl/1st-period-stats/index.html -- the Stats page (formerly "Hit Rates"/"Standings")
-  nhl/hit-rates/index.html -- redirect stub to nhl/1st-period-stats/ (old URL)
+  nhl/stats/index.html -- the Stats page, drawn by assets/sport.js from nhl/sport.json
+  nhl/1st-period-stats/, nhl/hit-rates/ -- redirect stubs to nhl/stats/ (old URLs)
   schedule_data.json       -- OVERWRITTEN with the merged result, so the next
                               run's "previous" read carries forward saved odds
 
@@ -64,6 +64,7 @@ import daily  # noqa: E402
 import home  # noqa: E402
 import icons  # noqa: E402
 import nav  # noqa: E402
+import nhl_sport  # noqa: E402
 import sport_build  # noqa: E402
 import trend_rules  # noqa: E402
 import sports  # noqa: E402
@@ -649,7 +650,7 @@ def team_detail_html(sport, team):
 
 SECTION_DESC = {
     'games': '{label} games by date with {segs} odds, scores and results.',
-    'stats': '{label} {segs} results league-wide: {markets} with units, scoring and situational splits.',
+    'stats': '{label} {segs} results league-wide: {markets} with units, the Money Board, Edges and situational splits.',
     'trends': '{label} League Trends for each slate and current team streaks.',
     'odds': '{label} {segs} odds from every sportsbook, exchange and prediction market we track, with the best price outlined.',
 }
@@ -694,7 +695,7 @@ def build_other_sports(template):
             elif section != 'teams' and sport_has_data(sp['key']):
                 meta['desc'] = SECTION_DESC[section].format(
                     label=sp['label'], segs=sports.segment_summary(sp),
-                    markets='SU, ATS and totals' if any(sports.has_ml(s) for s in sp['segments']) else 'ATS and totals')
+                    markets='moneyline, spread and totals' if any(sports.has_ml(s) for s in sp['segments']) else 'spread and totals')
                 if section == 'games' and sp.get('schedule') == 'week':
                     meta['desc'] = meta['desc'].replace('games by date', 'games by week')
                 body = (f'<div id="sportApp" data-section="{section}"><div class="no-games-note">Loading&hellip;</div>'
@@ -892,7 +893,6 @@ def main():
     teams_menu_html = build_teams_menu_html(full_data.get('summary', {}), team_colors)
 
     games_html = render_page(template, 'games', teams_menu_html)
-    hitrates_html = render_page(template, 'hitrates', teams_menu_html)
     trends_html = render_page(template, 'trends', teams_menu_html)
     teamsindex_html = render_page(template, 'teamsindex', teams_menu_html)
 
@@ -925,10 +925,9 @@ def main():
 
     with open(os.path.join(games_dir, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(games_html)
-    with open(os.path.join(hitrates_dir, 'index.html'), 'w', encoding='utf-8') as f:
-        f.write(hitrates_html)
-    with open(os.path.join(hitrates_old_dir, 'index.html'), 'w', encoding='utf-8') as f:
-        f.write(redirect_page_html('../1st-period-stats/'))
+    for old in (hitrates_dir, hitrates_old_dir):   # old Stats URLs
+        with open(os.path.join(old, 'index.html'), 'w', encoding='utf-8') as f:
+            f.write(redirect_page_html('../stats/'))
     with open(os.path.join(trends_dir, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(trends_html)
     with open(os.path.join(teams_dir, 'index.html'), 'w', encoding='utf-8') as f:
@@ -978,11 +977,16 @@ def main():
                             sport_body='<div id="sportApp" data-section="odds"><div class="no-games-note">Loading&hellip;</div>'
                                        '<noscript>This page needs JavaScript.</noscript></div>'), 'nhl/odds')
 
-    # /nhl/stats/ -> NHL's Stats page, so /{slug}/stats/ works for every sport.
-    nhl_stats_alias = os.path.join(ROOT, 'nhl', 'stats')
-    os.makedirs(nhl_stats_alias, exist_ok=True)
-    with open(os.path.join(nhl_stats_alias, 'index.html'), 'w', encoding='utf-8') as f:
-        f.write(redirect_page_html('../1st-period-stats/'))
+    # /nhl/stats/: the Stats page, drawn by assets/sport.js like every
+    # sport's, from NHL's games in the shared shape (scripts/nhl_sport.py)
+    sport_build.write_json(os.path.join(nhl_dir, 'sport.json'), nhl_sport.doc(
+        merged_games, SEASON_START, full_data['seasonLabel'], full_data.get('summary', {}), full_data['divisions'],
+        team_colors, full_data.get('tz'), datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')))
+    stats_meta = {'title': 'RTYB — NHL Stats', 'h1': 'NHL — Stats', 'section': 'stats',
+                  'desc': SECTION_DESC['stats'].format(label='NHL', segs='1st Period', markets='moneyline, Total 1.5, BTTS and 3-way')}
+    write_light(render_page(template, 'sport', teams_menu_html, meta=stats_meta, sport=nhl,
+                            sport_body='<div id="sportApp" data-section="stats"><div class="no-games-note">Loading&hellip;</div>'
+                                       '<noscript>This page needs JavaScript.</noscript></div>'), 'nhl/stats')
 
     other = build_other_sports(template)
     # Home page + Learn, last: they read every sport's data.json.
@@ -998,8 +1002,8 @@ def main():
 
     print(f"wrote index.html (home: {home_info['today']} games today, {home_info['trends']} trends), picks/ ({picks_info['plays']} plays today), learn/, nhl/data.json ({len(data_json)} bytes), "
           f"nhl/games/index.html ({len(games_html)} bytes), "
-          f"nhl/1st-period-stats/index.html ({len(hitrates_html)} bytes), "
-          f"nhl/hit-rates/index.html (redirect stub), "
+          f"nhl/stats/index.html, nhl/sport.json, "
+          f"nhl/1st-period-stats/ + nhl/hit-rates/ (redirect stubs), "
           f"nhl/trends/index.html ({len(trends_html)} bytes), "
           f"nhl/teams/index.html ({len(teamsindex_html)} bytes), "
           f"{len(full_data.get('summary', {}))} nhl/teams/<slug>/index.html pages ({team_bytes} bytes total), "

@@ -12,7 +12,9 @@
  * src: {sport, segments [{key, label, tag}], teams {slug: {name, conference,
  *   division}}, seasons: [{key: 'current', label, games: {date: [game]}},
  *   {key: 'prev', label, load: () => Promise<{date: [game]}>}], conf, rivals,
- *   tz {team: utc offset}, totalCuts {k: [lo, hi]}, locked, lockHtml, url}
+ *   tz {team: utc offset}, totalCuts {k: [lo, hi]}, locked, lockHtml, url,
+ *   today (ET date: rows that fit a game today link to trendsUrl),
+ *   onSeg(k, section) (a segment change; return false to let this file redraw)}
  *
  * Games are in sport.js's shape: {id, start, state, away, home, as, hs,
  * als, hls, neutral, intl, note, post, wk, fs (home full-game spread),
@@ -37,10 +39,11 @@
   }
   function flip(r) { return { W: 'L', L: 'W' }[r] || r; }
   function fmtU(u) { var r = Math.round(u * 100) / 100; return (r > 0 ? '+' : '') + r.toFixed(2) + 'u'; }
-  function pill(u, n, prefix) {
+  // tone: 1 / -1 colors the pill green / red (a real edge); else neutral gray
+  function pill(u, n, prefix, tone) {
     if (!n) return '<span class="u-pill u-none">&mdash;</span>';
     var r = Math.round(u * 100) / 100;
-    var cls = r >= 3 ? 'u-pos2' : r > 0 ? 'u-pos1' : r === 0 ? 'u-zero' : r > -3 ? 'u-neg1' : 'u-neg2';
+    var cls = tone > 0 ? 'u-pos2' : tone < 0 ? 'u-neg2' : 'u-zero';
     return '<span class="u-pill ' + cls + '">' + (prefix || '') + fmtU(r) + '</span>';
   }
   var ET_FMT = null, DATE_FMT = null;
@@ -119,7 +122,7 @@
       return segFav((g.odds || {})[k]) || (g.fs ? (g.fs < 0 ? 'home' : 'away') : null);
     }
 
-    var cache = {};
+    var cache = {}, todayCtx = {};
     // [{c, r}] for one season's games in segment k
     function seasonContexts(games, k, seasonKey) {
       var dates = Object.keys(games).sort();
@@ -170,11 +173,13 @@
           if (mine && mine.id != null) starts[mine.id] = (starts[mine.id] || 0) + 1;
         });
       });
-      var out = [];
+      var out = [], today = [];
       dates.forEach(function(d) {
         games[d].forEach(function(g) {
           var r = (g.res || {})[k];
-          if (!r || !r.sc || r.na) return;
+          var isToday = !!src.today && seasonKey === 'current' && g.state !== 'final' && etDate(g.start) === src.today;
+          var done = r && r.sc && !r.na;
+          if (!done && !isToday) return;
           var fav = fullFav(g, k), et = etParts(g.start), o = (g.odds || {})[k] || {}, date = etDate(g.start);
           var segTotal = (o.total || {}).line;
           ['away', 'home'].forEach(function(side) {
@@ -199,6 +204,8 @@
               goalie: mi.goalie, starter: mi.starter,
               teamConf: confOf(team), oppConf: confOf(opp), oppFcs: !src.teams[opp], oppP4: isP4(opp),
               teamPower: isPower(team), oppPower: isPower(opp), rival: isRival(g.away, g.home) };
+            if (isToday) today.push({ c: c });
+            if (!done) return;
             var res = { margin: r.sc[i] - r.sc[1 - i], lined: !!(o.ats || o.total || o.ml || o.btts) };
             var u = r.u || {};
             if (r.su && r.su !== 'NA') {
@@ -227,6 +234,7 @@
           });
         });
       });
+      if (seasonKey === 'current') todayCtx[k] = today;
       return out;
     }
     function contexts(k, mode) {
@@ -242,11 +250,12 @@
     }
 
     function agg(list) {
-      var a = { gp: 0, lined: 0 };
+      var a = { gp: 0, lined: 0, games: 0 }, seen = {};
       markets.forEach(function(m) { a[m.id] = { a: 0, b: 0, p: 0, d: 0, n: 0, ua: 0, ub: 0, na: 0, nb: 0 }; });
       list.forEach(function(e) {
         var r = e.r;
         a.gp++; if (r.lined) a.lined++;
+        if (!seen[e.c.g.id]) { seen[e.c.g.id] = 1; a.games++; }
         markets.forEach(function(m) {
           var x = a[m.id], v = r[m.id];
           if (v == null) return;
@@ -283,10 +292,19 @@
             return !!row.test(e.c, C);
           });
           var a = agg(list);
-          if (view.mode === 'team' && !a.gp) hidden.push(row); else rows.push({ row: row, agg: a });
+          if (!a.gp) { if (view.mode === 'team') hidden.push(row); } else rows.push({ row: row, agg: a });
         });
         return { group: gr, rows: rows, hidden: hidden };
-      }).filter(function(x) { return x.rows.length || view.mode === 'league'; });
+      }).filter(function(x) { return x.rows.length; });
+    }
+    // does a row fit a game on today's slate (same counting as the table)
+    function fitsToday(row, k, view) {
+      return (todayCtx[k] || []).some(function(e) {
+        if (view.mode === 'league' && !row.own && !view.conf) {
+          if (view.persp === 'fav' ? e.c.fav !== true : !e.c.home) return false;
+        }
+        return !!row.test(e.c, C);
+      });
     }
     function tags(c) {
       var skip = { overall: 1, home: 1, away: 1 }, out = [], rows = REG.rows;
@@ -300,16 +318,12 @@
     }
 
     // ---- state, URL ----
-    var st = { k: null, market: null, season: REG.defaultSeason || 'current', persp: 'home', conf: '', mob: null };
-    var prevSeason = src.seasons.filter(function(s) { return s.key === 'prev'; })[0];
-    var sinceUrl = prevSeason ? 'since-' + String(prevSeason.season || prevSeason.label).slice(0, 4) : 'since';
-    if (!prevSeason) st.season = 'current';
+    var st = { k: null, market: null, persp: 'home', conf: '', mob: null };
     if (src.url) {
       try {
         var q = new URLSearchParams(window.location.search);
         if (q.get('segment')) st.k = q.get('segment');
         if (q.get('market')) markets.forEach(function(m) { if (m.url === q.get('market')) st.market = m.id; });
-        if (q.get('season')) st.season = q.get('season') === 'current' ? 'current' : (prevSeason ? 'since' : 'current');
       } catch (e) {}
     }
     function saveUrl() {
@@ -318,9 +332,26 @@
         var u = new URL(window.location.href);
         if (src.segments.length > 1) u.searchParams.set('segment', st.k);
         u.searchParams.set('market', (markets.filter(function(m) { return m.id === st.market; })[0] || markets[0]).url);
-        if (prevSeason) u.searchParams.set('season', st.season === 'since' ? sinceUrl : 'current');
+        u.searchParams.delete('season');
         history.replaceState(null, '', u.toString());
       } catch (e) {}
+    }
+
+    // The Stats page's groups (Chris's spec): every registry group maps to
+    // one of these, in this order; spread-size rows sit in Matchup.
+    var GROUP_OF = { ha: 'Matchup', spread: 'Matchup', opp: 'Opponent', rank: 'Opponent', tip: 'Start time', drop: 'Start time',
+                     ko: 'Start time', rest: 'Rest', prev: 'Previous game', goalie: 'Goalie', size: 'Total size' };
+    var GROUP_ORDER = ['Matchup', 'Opponent', 'Start time', 'Rest', 'Previous game', 'Goalie', 'Total size'];
+    function merged(groups) {
+      var by = {}, extra = [];
+      groups.forEach(function(G) {
+        var name = GROUP_OF[G.group.id] || G.group.label;
+        if (GROUP_ORDER.indexOf(name) === -1 && extra.indexOf(name) === -1) extra.push(name);
+        var m = by[name] = by[name] || { name: name, rows: [], hidden: [], notes: [] };
+        m.rows = m.rows.concat(G.rows); m.hidden = m.hidden.concat(G.hidden);
+        if (G.group.note) m.notes.push(G.group.note);
+      });
+      return GROUP_ORDER.concat(extra).filter(function(n) { return by[n]; }).map(function(n) { return by[n]; });
     }
 
     function render(box, view) {
@@ -328,129 +359,144 @@
       var k = st.k && src.segments.some(function(s) { return s.key === st.k; }) ? st.k : src.segments[0].key;
       st.k = k;
       if (!st.market || !markets.some(function(m) { return m.id === st.market; })) st.market = markets[0].id;
-      var mode = view.mode === 'league' ? st.season : 'current';
-      if (mode === 'since' && prevSeason && !prevSeason.games) {
-        box.innerHTML = '<div class="season-card sit"><div class="sit-loading">Loading ' + esc(prevSeason.label) + '&hellip;</div></div>';
-        prevSeason.load().then(function(g) { prevSeason.games = g || {}; cache = {}; render(box, view); },
-          function() { prevSeason.games = {}; render(box, view); });
-        return;
-      }
+      var mode = 'current';
       var conf = view.mode === 'league' && REG.conferences ? st.conf : '';
       var v = view.mode === 'league' ? { mode: 'league', persp: st.persp, conf: conf } : view;
-      var groups = table(k, v, mode);
-      var all = contexts(k, mode);
-      var gp = view.mode === 'team' ? all.filter(function(e) { return e.c.team === view.slug && e.c.season === 'current'; }).length
-        : conf ? all.filter(function(e) { return e.c.teamConf === conf; }).length : all.length / 2;
-      var confShort = conf ? (((src.conf || {}).short || {})[conf] || conf) : '';
-      var who = view.mode !== 'league' ? '' : conf ? 'as ' + confShort + ' teams' : 'as ' + (st.persp === 'fav' ? 'favorite' : 'home team');
+      var groups = merged(table(k, v, mode));
+      var league = view.mode === 'league';
+      var who = !league ? '' : conf ? 'as ' + (((src.conf || {}).short || {})[conf] || conf) + ' teams' : 'as ' + (st.persp === 'fav' ? 'favorite' : 'home team');
       var sel = markets.filter(function(m) { return m.id === st.market; })[0];
+      var segTag = (src.segments.filter(function(s) { return s.key === k; })[0] || {}).tag || '';
       // mirrored rows (league view, both sides of every game): a game-level
       // market (O/U, BTTS) reads the same on Away as on Home, so say so once
       var MIRROR = {};
-      if (view.mode === 'league' && !conf && sel.pair) {
+      if (league && !conf && sel.pair) {
         var pairs = { away: 'home', dog: 'fav', d1: 'f1', d4: 'f4', d8: 'f8' };
         REG.rows.forEach(function(r) { if (r && pairs[r.id]) MIRROR[r.id] = (REG.rows.filter(function(x) { return x && x.id === pairs[r.id]; })[0] || {}).label; });
       }
-      var segLabel = src.segments.length > 1 ? '' : '<span class="sit-seglabel">' + esc(src.segments[0].label) + '</span>';
 
-      // controls
-      var ctl = '';
-      if (src.segments.length > 1) ctl += '<div class="seg-toggle" role="group" aria-label="Segment">' + src.segments.map(function(s) {
-        return '<button class="seg-btn" data-sit-seg="' + s.key + '" aria-pressed="' + (s.key === k) + '">' + esc(s.label) + '</button>'; }).join('') + '</div>';
-      if (markets.length > 1) ctl += '<div class="seg-toggle" role="group" aria-label="Market">' + markets.map(function(m) {
-        return '<button class="seg-btn" data-sit-mk="' + m.id + '" aria-pressed="' + (m.id === st.market) + '">' + esc(m.label) + '</button>'; }).join('') + '</div>';
-      if (view.mode === 'league' && prevSeason) ctl += '<select class="conf-select" data-sit-season aria-label="Season">' +
-        '<option value="current"' + (mode === 'current' ? ' selected' : '') + '>This season</option>' +
-        '<option value="since"' + (mode === 'since' ? ' selected' : '') + '>Since ' + esc(prevSeason.label) + '</option></select>';
-      if (view.mode === 'league' && REG.conferences) ctl += '<select class="conf-select" data-sit-conf aria-label="Conference"><option value="">' + esc(REG.allLabel || 'All') + '</option>' +
-        REG.conferences.map(function(c) { return '<option value="' + esc(c) + '"' + (c === conf ? ' selected' : '') + '>' + esc(((src.conf || {}).short || {})[c] || c) + '</option>'; }).join('') + '</select>';
-      if (view.mode === 'league' && !conf && REG.perspectives) ctl += '<div class="seg-toggle sit-persp" role="group" aria-label="View as"><span class="control-label">View as</span>' +
-        REG.perspectives.map(function(p) { return '<button class="seg-btn" data-sit-persp="' + p[0] + '" aria-pressed="' + (st.persp === p[0]) + '">' + p[1] + '</button>'; }).join('') + '</div>';
-      var seasonTxt = mode === 'since' ? 'Since ' + esc(prevSeason.label) : esc(src.seasons[0].label) + ' season';
-      var head = '<div class="season-card-head"><h3>Situational Results' + segLabel + '</h3><div class="sc-right">' + ctl +
-        '<span class="sc-gp">' + seasonTxt + ' &middot; ' + gp + ' GP</span></div></div>';
+      // the control bar: segment, market, then (top bar only on phones) View as / conference
+      function bar(first) {
+        var b = '';
+        if (src.segments.length > 1) b += '<div class="seg-toggle" role="group" aria-label="Segment">' + src.segments.map(function(s) {
+          return '<button class="seg-btn" data-sit-seg="' + s.key + '" aria-pressed="' + (s.key === k) + '">' + esc(s.label) + '</button>'; }).join('') + '</div>';
+        if (markets.length > 1) b += '<div class="seg-toggle" role="group" aria-label="Market">' + markets.map(function(m) {
+          return '<button class="seg-btn" data-sit-mk="' + m.id + '" aria-pressed="' + (m.id === st.market) + '">' + esc(m.label) + '</button>'; }).join('') + '</div>';
+        var full = '';
+        if (league && REG.conferences) full += '<select class="conf-select" data-sit-conf aria-label="Conference"><option value="">' + esc(REG.allLabel || 'All') + '</option>' +
+          REG.conferences.map(function(c) { return '<option value="' + esc(c) + '"' + (c === conf ? ' selected' : '') + '>' + esc(((src.conf || {}).short || {})[c] || c) + '</option>'; }).join('') + '</select>';
+        if (league && !conf && REG.perspectives) full += '<div class="seg-toggle sit-persp" role="group" aria-label="View as"><span class="control-label">View as</span>' +
+          REG.perspectives.map(function(p) { return '<button class="seg-btn" data-sit-persp="' + p[0] + '" aria-pressed="' + (st.persp === p[0]) + '">' + p[1] + '</button>'; }).join('') + '</div>';
+        return '<div class="sit-bar' + (first ? ' sit-bar-top' : '') + '">' + b + (full ? '<div class="sit-full">' + full + '</div>' : '') + '</div>';
+      }
 
       function recTxt(m, x) { return x.n ? x.a + '-' + x.b + (m.pair || m.id === 'ml3' ? (x.p ? '-' + x.p : '') : '-' + x.p) : '&mdash;'; }
       // Moneyline: Win % and Tie % out of every game played (ties count, as in
       // template.html / sport.js winPct). Other markets leave pushes out.
-      function pctOf(m, x) { var d = x.a + x.b + (m.id === 'su' ? x.p : 0); return d ? Math.round(100 * x.a / d) : null; }
+      function decided(m, x) { return x.a + x.b + (m.id === 'su' ? x.p : 0); }
+      function pctOf(m, x) { var d = decided(m, x); return d ? Math.round(100 * x.a / d) : null; }
       function tieOf(x) { var d = x.a + x.b + x.p; return d ? Math.round(100 * (x.p + (x.d || 0)) / d) : null; }
       var isSu = sel.id === 'su' || sel.id === 'ml3';
-      function unitsOf(m, x) {
-        if (!m.pair) return pill(x.ua, x.na);
-        if (!x.na && !x.nb) return pill(0, 0);
-        if (REG.pairUnits === 'both') return '<span class="sit-both">' + pill(x.ua, x.na, m.pair[0] + ' ') + pill(x.ub, x.nb, m.pair[1] + ' ') + '</span>';
+      // the units shown: the market's own, or the better side of a pair
+      function unitsPick(m, x) {
+        if (!m.pair) return { u: x.ua, n: x.na, pre: '' };
+        if (!x.na && !x.nb) return { u: 0, n: 0, pre: '' };
         var useA = x.na && (!x.nb || x.ua >= x.ub);
-        return pill(useA ? x.ua : x.ub, useA ? x.na : x.nb, (useA ? m.pair[0] : m.pair[1]) + ' ');
+        return useA ? { u: x.ua, n: x.na, pre: m.pair[0] + ' ' } : { u: x.ub, n: x.nb, pre: m.pair[1] + ' ' };
       }
-      function desc(row) {
-        var d = typeof row.def === 'function' ? row.def(C, { cuts: (src.totalCuts || {})[k] }) : row.def;
-        return d;
+      // a real edge: a 60%+ (or 40% and under) win / cover rate over 10+
+      // games, ties and pushes left out, or units beyond +/-5;
+      // 1 = green, -1 = red, 0 = neutral gray
+      function edgeOf(m, x) {
+        var d = x.a + x.b, up = unitsPick(m, x);
+        if (up.n && Math.abs(up.u) > 5) return up.u > 0 ? 1 : -1;
+        if (d >= 10) { var p = 100 * x.a / d; return p >= 60 ? 1 : p <= 40 ? -1 : 0; }
+        return 0;
       }
-      function labelCell(row, a) {
+      function unitsOf(m, x, tone) {
+        if (m.pair && REG.pairUnits === 'both' && (x.na || x.nb)) return '<span class="sit-both">' + pill(x.ua, x.na, m.pair[0] + ' ', tone) + pill(x.ub, x.nb, m.pair[1] + ' ', tone) + '</span>';
+        var up = unitsPick(m, x);
+        return pill(up.u, up.n, up.pre, tone);
+      }
+      function desc(row) { return typeof row.def === 'function' ? row.def(C, { cuts: (src.totalCuts || {})[k] }) : row.def; }
+      function perTeam(a) { return a.gp > a.games ? ' <span class="sit-per">per team</span>' : ''; }
+      function todayLink(row, tone) {
+        return league && tone && src.trendsUrl && fitsToday(row, k, v) ? '<a class="sit-today" href="' + esc(src.trendsUrl) + '">On today&rsquo;s board &rarr;</a>' : '';
+      }
+      function labelCell(row, a, tone) {
         return '<td class="sit-label' + (row.indent ? ' ind' : '') + '"><span class="sit-name">' + esc(row.label) + '</span>' +
-          (a.gp && a.gp < (REG.smallSample || 10) ? ' <span class="sit-small">Small sample</span>' : '') +
+          (a.gp && a.gp < (REG.smallSample || 10) ? ' <span class="sit-small">Small sample</span>' : '') + todayLink(row, tone) +
           '<span class="sit-desc">' + esc(desc(row)) + (who && (conf || !row.own) ? ' &middot; ' + who : '') + '</span></td>';
       }
       function cells(row, a) {
-        var x0 = a[sel.id], p = pctOf(sel, x0);
-        var h = labelCell(row, a) + '<td class="num mono' + (a.gp && a.gp < 5 ? ' amber' : '') + '">' + (a.gp || '&mdash;') + '</td>';
-        if (MIRROR[row.id]) return h + '<td class="num sit-same" colspan="3">Same games as ' + MIRROR[row.id] + '</td>' + oddsCell(a);
+        var x0 = a[sel.id], p = pctOf(sel, x0), tone = edgeOf(sel, x0);
+        var h = labelCell(row, a, tone) + '<td class="num mono' + (a.gp && a.gp < 5 ? ' amber' : '') + '">' + (a.gp || '&mdash;') + perTeam(a) + '</td>';
+        if (MIRROR[row.id]) return h + '<td class="num sit-same" colspan="' + (isSu ? 4 : 3) + '">Same games as ' + MIRROR[row.id] + '</td>' + oddsCell(a);
         h += '<td class="num mono sit-sel">' + recTxt(sel, x0) + '</td>' +
-          '<td class="num"><div class="pct-cell"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div></td>' +
+          '<td class="num"><div class="pct-cell' + (tone > 0 ? ' edge-pos' : tone < 0 ? ' edge-neg' : '') + '"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div></td>' +
           (isSu ? '<td class="num mono">' + (tieOf(x0) == null ? '&mdash;' : tieOf(x0) + '%') + '</td>' : '') +
-          '<td class="num">' + unitsOf(sel, x0) + '</td>';
+          '<td class="num">' + unitsOf(sel, x0, tone) + '</td>';
         return h + oddsCell(a);
       }
       function oddsCell(a) {
         var cov = a.gp ? a.lined / a.gp : 0;
         return '<td class="num mono' + (a.gp && cov < 0.8 ? ' amber' : '') + '">' + (a.gp ? a.lined + '/' + a.gp : '&mdash;') + '</td>';
       }
-      // only the picked market's columns (the toggle switches markets)
       var ncol = 6 + (isSu ? 1 : 0);
       var thead = '<tr><th class="sit-label">Split</th><th class="num">GP</th><th class="num">' + esc(sel.head) + '</th><th class="num">' + esc(sel.pctHead) +
         '</th>' + (isSu ? '<th class="num">Tie %</th>' : '') + '<th class="num">Units</th><th class="num">Odds</th></tr>';
-      var body = groups.map(function(G) {
-        // the title sits in the pinned first column; the rest of the row is filler
-        return '<tr class="sit-group"><td class="sit-label">' + esc(G.group.label) +
-            (view.mode === 'league' && !conf && G.group.note ? '<div class="sit-note">' + esc(G.group.note) + '</div>' : '') + '</td>' +
-            '<td colspan="' + (ncol - 1) + '"></td></tr>' +
-          G.rows.map(function(x) { return '<tr>' + cells(x.row, x.agg) + '</tr>'; }).join('') +
-          (G.hidden.length ? '<tr class="sit-notyet"><td colspan="' + ncol + '">Not yet: ' + G.hidden.map(function(r) { return esc(r.label); }).join(' &middot; ') + '</td></tr>' : '');
-      }).join('');
-      var tableHtml = '<div class="sit-desk' + (REG.mobileList ? '' : ' sit-scroll') + '"><div class="sit-wrap"><table class="sit-table"><thead>' + thead + '</thead><tbody>' + body + '</tbody></table></div></div>';
-
-      // phone list (football)
-      var mob = '';
-      if (REG.mobileList) {
-        mob = '<div class="sit-mob">' + groups.map(function(G) {
-          return '<div class="sit-mgroup"><div class="sit-mtitle">' + esc(G.group.label) + '</div>' +
-            (view.mode === 'league' && !conf && G.group.note ? '<div class="sit-note">' + esc(G.group.note) + '</div>' : '') +
-            G.rows.map(function(x) {
-              var a = x.agg, x0 = a[sel.id], p = pctOf(sel, x0);
-              return '<details class="sit-mrow"><summary><span class="sit-mlabel' + (x.row.indent ? ' ind' : '') + '">' + esc(x.row.short) +
-                  (a.gp && a.gp < (REG.smallSample || 10) ? ' <span class="sit-small">Small</span>' : '') +
-                  (who && (conf || !x.row.own) ? '<span class="sit-who">' + who + '</span>' : '') + '</span>' +
-                '<span class="mono sit-mrec">' + recTxt(sel, x0) + '</span><span class="sit-mval">' + (sel.id === 'su' ? '<span class="mono">' + (p == null ? '&mdash;' : p + '%') + '</span>' : unitsOf(sel, x0)) +
-                '</span><span class="sit-chev" aria-hidden="true">&#9662;</span></summary>' +
-                '<div class="sit-mbody"><p>' + esc(desc(x.row)) + '</p>' +
-                  '<div class="pct-cell"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div>' +
-                  '<div class="sit-m3">' + markets.map(function(m) { var xx = a[m.id]; return '<div><b>' + esc(m.label) + '</b><span class="mono">' + recTxt(m, xx) + '</span>' + unitsOf(m, xx) + '</div>'; }).join('') + '</div>' +
-                  '<div class="sit-mfoot' + (a.gp < 5 || (a.gp && a.lined / a.gp < 0.8) ? ' amber' : '') + '">' + a.gp + ' game' + (a.gp === 1 ? '' : 's') + ' &middot; ' + a.lined + ' with closing lines</div></div></details>';
-            }).join('') +
-            (G.hidden.length ? '<div class="sit-notyet">Not yet: ' + G.hidden.map(function(r) { return esc(r.short); }).join(' &middot; ') + '</div>' : '') + '</div>';
-        }).join('') + '</div>';
+      function mobRows(G) {
+        return G.rows.map(function(x) {
+          var a = x.agg, x0 = a[sel.id], p = pctOf(sel, x0), tone = edgeOf(sel, x0);
+          return '<details class="sit-mrow"><summary><span class="sit-mlabel' + (x.row.indent ? ' ind' : '') + '">' + esc(x.row.short) +
+              (a.gp && a.gp < (REG.smallSample || 10) ? ' <span class="sit-small">Small</span>' : '') +
+              (who && (conf || !x.row.own) ? '<span class="sit-who">' + who + '</span>' : '') + '</span>' +
+            '<span class="mono sit-mrec">' + recTxt(sel, x0) + '</span><span class="sit-mval">' + (sel.id === 'su' ? '<span class="mono">' + (p == null ? '&mdash;' : p + '%') + '</span>' : unitsOf(sel, x0, tone)) +
+            '</span><span class="sit-chev" aria-hidden="true">&#9662;</span></summary>' +
+            '<div class="sit-mbody"><p>' + esc(desc(x.row)) + '</p>' + todayLink(x.row, tone) +
+              '<div class="pct-cell' + (tone > 0 ? ' edge-pos' : tone < 0 ? ' edge-neg' : '') + '"><div class="pct-bar"><span style="width:' + (p || 0) + '%"></span></div><span class="pct-num mono">' + (p == null ? '&mdash;' : p + '%') + '</span></div>' +
+              '<div class="sit-m3">' + markets.map(function(m) { var xx = a[m.id]; return '<div><b>' + esc(m.label) + '</b><span class="mono">' + recTxt(m, xx) + '</span>' + unitsOf(m, xx, edgeOf(m, xx)) + '</div>'; }).join('') + '</div>' +
+              '<div class="sit-mfoot' + (a.gp < 5 || (a.gp && a.lined / a.gp < 0.8) ? ' amber' : '') + '">' + a.gp + (a.gp > a.games ? ' team-games' : ' game' + (a.gp === 1 ? '' : 's')) + ' &middot; ' + a.lined + ' with closing lines</div></div></details>';
+        }).join('');
       }
-      var locked = view.mode === 'league' && src.locked && src.locked();
+      var tip = esc(REG.foot || 'Records count every game; units count only games with saved closing odds, 1 unit at the closing price (spreads and totals at -110 when only the line was saved).') +
+        ' Small sample: under ' + (REG.smallSample || 10) + ' games; GP in amber under 5. Odds: games with closing lines, amber under 80%. ' +
+        '&ldquo;Per team&rdquo; rows count each team&rsquo;s game, so one game can count twice. Green and red mark real edges: 60%+ (or 40% and under) over 10+ games, or more than 5 units either way.';
+      var html = '<div class="season-card sit"><div class="season-card-head"><h3>Situational Results <button type="button" class="info-tip tip-left" aria-label="About this table">i<span class="tip-bubble" role="tooltip">' + tip + '</span></button></h3>' +
+        (league ? '' : '<div class="sc-right">' + bar(true) + '</div>') + '</div>';
+      if (!groups.length) html += '<div class="sit-notyet">No games in these splits yet.</div>';
+      html += groups.map(function(G, gi) {
+        var id = 'sit-g-' + G.name.toLowerCase().replace(/[^a-z]+/g, '-');
+        var notes = league && !conf && G.notes.length ? '<div class="sit-note">' + G.notes.map(esc).join(' ') + '</div>' : '';
+        var tbl = '<div class="sit-desk' + (REG.mobileList ? '' : ' sit-scroll') + '"><div class="sit-wrap"><table class="sit-table"><thead>' + thead + '</thead><tbody>' +
+          G.rows.map(function(x) { return '<tr>' + cells(x.row, x.agg) + '</tr>'; }).join('') +
+          (G.hidden.length ? '<tr class="sit-notyet"><td colspan="' + ncol + '">Not yet: ' + G.hidden.map(function(r) { return esc(r.label); }).join(' &middot; ') + '</td></tr>' : '') +
+          '</tbody></table></div></div>';
+        var mob = REG.mobileList ? '<div class="sit-mob">' + mobRows(G) +
+          (G.hidden.length ? '<div class="sit-notyet">Not yet: ' + G.hidden.map(function(r) { return esc(r.short); }).join(' &middot; ') + '</div>' : '') + '</div>' : '';
+        return '<section class="sit-gsec" id="' + id + '"><h4 class="sit-gtitle">' + esc(G.name) + ' <span class="sit-gset">&middot; ' + esc(segTag) + ' &middot; ' + esc(sel.label) + '</span></h4>' +
+          notes + (league ? bar(gi === 0) : '') + tbl + mob + '</section>';
+      }).join('') + '</div>';
+      var locked = league && src.locked && src.locked();
       box.className = 'adv-section' + (locked ? ' locked' : '');
-      box.innerHTML = '<div class="season-card sit">' + head + tableHtml + mob +
-        '<div class="sit-foot">' + esc(REG.foot || 'Records count every game; units count only games with saved closing odds, 1 unit at the closing price (spreads and totals at -110 when only the line was saved). Small sample under ' + (REG.smallSample || 10) + ' games; GP in amber under 5; Odds in amber under 80% coverage.') + '</div></div>' +
-        (locked && src.lockHtml ? src.lockHtml() : '');
-      function on(sel2, ev, fn) { box.querySelectorAll(sel2).forEach(function(el) { el['on' + ev] = function() { fn(el); saveUrl(); render(box, view); }; }); }
-      on('[data-sit-seg]', 'click', function(b) { st.k = b.getAttribute('data-sit-seg'); });
+      box.innerHTML = html + (locked && src.lockHtml ? src.lockHtml() : '');
+      // every bar changes every section, keeping the clicked section where it was
+      function on(sel2, ev, fn) {
+        box.querySelectorAll(sel2).forEach(function(el) {
+          el['on' + ev] = function() {
+            var sec = el.closest('.sit-gsec'), keep = sec ? { id: sec.id, top: sec.getBoundingClientRect().top } : null;
+            var segChange = fn(el);
+            saveUrl();
+            if (segChange && src.onSeg && src.onSeg(st.k, sec) !== false) return;
+            render(box, view);
+            var again = keep && document.getElementById(keep.id);
+            if (again) window.scrollBy(0, again.getBoundingClientRect().top - keep.top);
+          };
+        });
+      }
+      on('[data-sit-seg]', 'click', function(b) { st.k = b.getAttribute('data-sit-seg'); return true; });
       on('[data-sit-mk]', 'click', function(b) { st.market = b.getAttribute('data-sit-mk'); });
       on('[data-sit-persp]', 'click', function(b) { st.persp = b.getAttribute('data-sit-persp'); });
-      on('[data-sit-season]', 'change', function(s) { st.season = s.value; });
       on('[data-sit-conf]', 'change', function(s) { st.conf = s.value; });
     }
     return { render: render, contexts: function(k, mode) { return contexts(k, mode || 'current'); }, tags: tags, reg: REG, state: st };

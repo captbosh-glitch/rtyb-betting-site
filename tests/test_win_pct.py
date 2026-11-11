@@ -61,7 +61,7 @@ class WinPctTest(unittest.TestCase):
 
     def test_situational_table(self):
         # x = {a: wins, b: losses, p: ties}; whole percents
-        js = (helper('assets/situational.js', 'pctOf') + '\n' + helper('assets/situational.js', 'tieOf') + '\n'
+        js = (helper('assets/situational.js', 'decided') + '\n' + helper('assets/situational.js', 'pctOf') + '\n' + helper('assets/situational.js', 'tieOf') + '\n'
               'var x = {a: 5, b: 0, p: 12};'
               'console.log(JSON.stringify([pctOf({id: "su"}, x), tieOf(x), pctOf({id: "ats"}, {a: 5, b: 5, p: 2})]));')
         win, tie, cover = run(js)

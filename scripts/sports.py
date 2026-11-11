@@ -16,8 +16,7 @@ Field reference
                  (a segment without 'ML' shows no moneyline / SU anywhere:
                  game cards, stats, teams, trends, picks, home, admin)
   season_start   month (1-12) the season starts, for "Soon" / return-month labels
-  sections       URL folder for each section; only NHL's Stats differs
-                 (its page lives at /nhl/1st-period-stats/)
+  sections       URL folder for each section (the same for every sport)
   schedule       "day" (default) or "week": football's Games page and Admin
                  go week by week (ESPN's weeks: Week 1.., Wild Card, Bowls)
   launched       True = shown on the site (nav, home, Picks, Streaks).
@@ -37,7 +36,7 @@ SPORTS = [
             {'key': '1p', 'label': '1st Period', 'tag': '1P', 'markets': ['ML', 'O/U 1.5', 'BTTS']},
         ],
         'season_start': 10,
-        'sections': {'games': 'games', 'stats': '1st-period-stats', 'trends': 'trends', 'odds': 'odds', 'teams': 'teams'},
+        'sections': {'games': 'games', 'stats': 'stats', 'trends': 'trends', 'odds': 'odds', 'teams': 'teams'},
     },
     {
         'key': 'nfl', 'label': 'NFL', 'slug': 'nfl', 'sport_type': 'spread', 'schedule': 'week',

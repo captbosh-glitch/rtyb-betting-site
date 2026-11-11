@@ -4,7 +4,7 @@
  * moneyline (0 units). Favorite / underdog by the closing 1st-period
  * moneyline, else the full-game one (ESPN); a pick'em is neither. Times are ET. Rows marked `own`
  * count each team-game from that team's side (so "After a loss" counts
- * every team coming off a loss, as the old Bounce-Back card did); the rest
+ * every team coming off a loss); the rest
  * use "View as" (home team by default).
  */
 (function() {
@@ -33,11 +33,11 @@
     { id: 'late', label: 'Late', short: 'Late', group: 'drop', def: 'Puck drop 8:00 to 9:59 PM ET.', test: function(c) { return c.mins >= 20 * 60 && c.mins < 22 * 60; } },
     { id: 'west', label: 'West Coast late', short: 'West late', group: 'drop', def: 'Puck drop at 10:00 PM ET or later.', test: function(c) { return c.mins >= 22 * 60; } },
 
-    { id: 'rested', label: 'Rested', short: 'Rested', group: 'rest', own: true, def: 'More rest days than the opponent (the old Rest Edge card).', test: function(c) { return c.restDays != null && c.oppRestDays != null && c.restDays > c.oppRestDays; } },
+    { id: 'rested', label: 'Rested', short: 'Rested', group: 'rest', own: true, def: 'More rest days than the opponent.', test: function(c) { return c.restDays != null && c.oppRestDays != null && c.restDays > c.oppRestDays; } },
     { id: 'tired', label: 'Tired', short: 'Tired', group: 'rest', own: true, def: 'Fewer rest days than the opponent.', test: function(c) { return c.restDays != null && c.oppRestDays != null && c.restDays < c.oppRestDays; } },
     { id: 'even', label: 'Even rest', short: 'Even rest', group: 'rest', def: 'Both teams had the same rest.', test: function(c) { return c.restDays != null && c.restDays === c.oppRestDays; } },
     { id: 'b2b', label: 'Back-to-back team', short: 'B2B team', group: 'rest', own: true, def: 'Played yesterday; the opponent didn’t.', test: function(c) { return c.b2b && !c.oppB2b; } },
-    { id: 'ob2b', label: 'Opponent on back-to-back', short: 'Opp on B2B', group: 'rest', own: true, def: 'The opponent played yesterday; this team didn’t (fade the B2B team).', test: function(c) { return c.oppB2b && !c.b2b; } },
+    { id: 'ob2b', label: 'Opponent on back-to-back', short: 'Opp on B2B', group: 'rest', own: true, def: 'The opponent played yesterday; this team didn’t.', test: function(c) { return c.oppB2b && !c.b2b; } },
     { id: 'anyb2b', label: 'Either team on a back-to-back', short: 'Any B2B', group: 'rest', def: 'At least one team played yesterday.', test: function(c) { return c.b2b || c.oppB2b; } },
     { id: 'nob2b', label: 'Neither team on a back-to-back', short: 'No B2B', group: 'rest', def: 'Neither team played yesterday.', test: function(c) { return !c.b2b && !c.oppB2b; } },
     { id: 'three', label: '3 games in 4 nights', short: '3 in 4', group: 'rest', own: true, def: 'The team’s 3rd game within 4 days.', test: function(c) { return c.threeIn4; } },
@@ -46,7 +46,7 @@
     { id: 'tz', label: 'Crossed 2+ time zones', short: '2+ time zones', group: 'rest', own: true, def: 'Two or more time zones from the last game’s arena.', test: function(c) { return c.tzCrossed != null && c.tzCrossed >= 2; } },
 
     { id: 'pw', label: 'After a win', short: 'Off W', group: 'prev', own: true, def: 'Won its previous game.', test: function(c) { return c.prev && c.prev.res === 'W'; } },
-    { id: 'pl', label: 'After a loss', short: 'Off L', group: 'prev', own: true, def: 'Lost its previous game (the old Bounce-Back card).', test: function(c) { return lost(c.prev); } },
+    { id: 'pl', label: 'After a loss', short: 'Off L', group: 'prev', own: true, def: 'Lost its previous game.', test: function(c) { return lost(c.prev); } },
     { id: 'pot', label: 'After an OT or shootout game', short: 'Off OT/SO', group: 'prev', own: true, def: 'Its previous game went past regulation.', test: function(c) { return c.prev && c.prev.ot; } },
     { id: 'p5', label: 'After scoring 5+', short: 'Off 5+ GF', group: 'prev', own: true, def: 'Scored 5 or more last game.', test: function(c) { return c.prev && c.prev.pf >= C.scored; } },
     { id: 'pa5', label: 'After allowing 5+', short: 'Off 5+ GA', group: 'prev', own: true, def: 'Allowed 5 or more last game.', test: function(c) { return c.prev && c.prev.pa >= C.scored; } },
