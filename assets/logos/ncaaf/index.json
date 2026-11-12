@@ -86,6 +86,510 @@
 "eastern-michigan-eagles": {
 "dark": false
 },
+"espn-107": {
+"dark": false
+},
+"espn-111": {
+"dark": false
+},
+"espn-119": {
+"dark": true
+},
+"espn-124179": {
+"dark": false
+},
+"espn-13": {
+"dark": true
+},
+"espn-147": {
+"dark": true
+},
+"espn-149": {
+"dark": true
+},
+"espn-155": {
+"dark": false
+},
+"espn-160": {
+"dark": false
+},
+"espn-172": {
+"dark": false
+},
+"espn-196": {
+"dark": false
+},
+"espn-2000": {
+"dark": true
+},
+"espn-2010": {
+"dark": true
+},
+"espn-2011": {
+"dark": false
+},
+"espn-2016": {
+"dark": false
+},
+"espn-2025": {
+"dark": false
+},
+"espn-2028": {
+"dark": false
+},
+"espn-2029": {
+"dark": false
+},
+"espn-2046": {
+"dark": false
+},
+"espn-2065": {
+"dark": false
+},
+"espn-2071": {
+"dark": false
+},
+"espn-2083": {
+"dark": false
+},
+"espn-2086": {
+"dark": false
+},
+"espn-2097": {
+"dark": true
+},
+"espn-2107": {
+"dark": false
+},
+"espn-2110": {
+"dark": false
+},
+"espn-2115": {
+"dark": false
+},
+"espn-2123": {
+"dark": true
+},
+"espn-2127": {
+"dark": false
+},
+"espn-2142": {
+"dark": true
+},
+"espn-2148": {
+"dark": true
+},
+"espn-2166": {
+"dark": false
+},
+"espn-2168": {
+"dark": false
+},
+"espn-2169": {
+"dark": false
+},
+"espn-2181": {
+"dark": true
+},
+"espn-2184": {
+"dark": true
+},
+"espn-219": {
+"dark": false
+},
+"espn-2191": {
+"dark": false
+},
+"espn-2193": {
+"dark": false
+},
+"espn-2197": {
+"dark": false
+},
+"espn-2198": {
+"dark": true
+},
+"espn-2206": {
+"dark": false
+},
+"espn-2210": {
+"dark": false
+},
+"espn-222": {
+"dark": false
+},
+"espn-2222": {
+"dark": false
+},
+"espn-223": {
+"dark": false
+},
+"espn-2230": {
+"dark": true
+},
+"espn-2241": {
+"dark": false
+},
+"espn-2249": {
+"dark": false
+},
+"espn-2261": {
+"dark": true
+},
+"espn-227": {
+"dark": false
+},
+"espn-2271": {
+"dark": false
+},
+"espn-2275": {
+"dark": true
+},
+"espn-2277": {
+"dark": false
+},
+"espn-2287": {
+"dark": false
+},
+"espn-2296": {
+"dark": false
+},
+"espn-2304": {
+"dark": true
+},
+"espn-231": {
+"dark": false
+},
+"espn-2316": {
+"dark": false
+},
+"espn-2320": {
+"dark": false
+},
+"espn-2329": {
+"dark": false
+},
+"espn-233": {
+"dark": true
+},
+"espn-2331": {
+"dark": false
+},
+"espn-2341": {
+"dark": true
+},
+"espn-236": {
+"dark": false
+},
+"espn-2369": {
+"dark": false
+},
+"espn-2377": {
+"dark": false
+},
+"espn-2382": {
+"dark": true
+},
+"espn-2385": {
+"dark": false
+},
+"espn-2400": {
+"dark": true
+},
+"espn-2402": {
+"dark": false
+},
+"espn-2405": {
+"dark": false
+},
+"espn-241": {
+"dark": false
+},
+"espn-2413": {
+"dark": false
+},
+"espn-2415": {
+"dark": false
+},
+"espn-2428": {
+"dark": false
+},
+"espn-2447": {
+"dark": false
+},
+"espn-2448": {
+"dark": false
+},
+"espn-2450": {
+"dark": true
+},
+"espn-2453": {
+"dark": false
+},
+"espn-2458": {
+"dark": false
+},
+"espn-2460": {
+"dark": false
+},
+"espn-2464": {
+"dark": false
+},
+"espn-2466": {
+"dark": false
+},
+"espn-2502": {
+"dark": false
+},
+"espn-2504": {
+"dark": false
+},
+"espn-2506": {
+"dark": false
+},
+"espn-2519": {
+"dark": false
+},
+"espn-2523": {
+"dark": false
+},
+"espn-2529": {
+"dark": false
+},
+"espn-253": {
+"dark": true
+},
+"espn-2535": {
+"dark": false
+},
+"espn-2542": {
+"dark": true
+},
+"espn-2545": {
+"dark": true
+},
+"espn-2546": {
+"dark": true
+},
+"espn-2559": {
+"dark": false
+},
+"espn-2560": {
+"dark": false
+},
+"espn-2568": {
+"dark": false
+},
+"espn-2569": {
+"dark": false
+},
+"espn-257": {
+"dark": true
+},
+"espn-2570": {
+"dark": false
+},
+"espn-2571": {
+"dark": false
+},
+"espn-2582": {
+"dark": false
+},
+"espn-2584": {
+"dark": false
+},
+"espn-2586": {
+"dark": false
+},
+"espn-2598": {
+"dark": false
+},
+"espn-2617": {
+"dark": false
+},
+"espn-2619": {
+"dark": false
+},
+"espn-2627": {
+"dark": false
+},
+"espn-2630": {
+"dark": false
+},
+"espn-2634": {
+"dark": false
+},
+"espn-2635": {
+"dark": false
+},
+"espn-2640": {
+"dark": true
+},
+"espn-2643": {
+"dark": true
+},
+"espn-2674": {
+"dark": false
+},
+"espn-2676": {
+"dark": false
+},
+"espn-2678": {
+"dark": false
+},
+"espn-2681": {
+"dark": false
+},
+"espn-2687": {
+"dark": false
+},
+"espn-2692": {
+"dark": false
+},
+"espn-2695": {
+"dark": false
+},
+"espn-2698": {
+"dark": false
+},
+"espn-2706": {
+"dark": false
+},
+"espn-2710": {
+"dark": true
+},
+"espn-2717": {
+"dark": false
+},
+"espn-2729": {
+"dark": true
+},
+"espn-2736": {
+"dark": false
+},
+"espn-2747": {
+"dark": false
+},
+"espn-2754": {
+"dark": false
+},
+"espn-2755": {
+"dark": true
+},
+"espn-2771": {
+"dark": false
+},
+"espn-2803": {
+"dark": false
+},
+"espn-2804": {
+"dark": false
+},
+"espn-2805": {
+"dark": false
+},
+"espn-2815": {
+"dark": false
+},
+"espn-282": {
+"dark": false
+},
+"espn-2822": {
+"dark": false
+},
+"espn-2823": {
+"dark": true
+},
+"espn-2837": {
+"dark": false
+},
+"espn-2839": {
+"dark": false
+},
+"espn-284": {
+"dark": false
+},
+"espn-2848": {
+"dark": false
+},
+"espn-2876": {
+"dark": true
+},
+"espn-2882": {
+"dark": true
+},
+"espn-2900": {
+"dark": false
+},
+"espn-2913": {
+"dark": false
+},
+"espn-2916": {
+"dark": false
+},
+"espn-292": {
+"dark": false
+},
+"espn-2938": {
+"dark": false
+},
+"espn-294": {
+"dark": false
+},
+"espn-301": {
+"dark": false
+},
+"espn-302": {
+"dark": true
+},
+"espn-304": {
+"dark": true
+},
+"espn-3066": {
+"dark": true
+},
+"espn-3101": {
+"dark": false
+},
+"espn-311": {
+"dark": false
+},
+"espn-322": {
+"dark": false
+},
+"espn-331": {
+"dark": true
+},
+"espn-399": {
+"dark": false
+},
+"espn-43": {
+"dark": false
+},
+"espn-455": {
+"dark": false
+},
+"espn-46": {
+"dark": false
+},
+"espn-47": {
+"dark": false
+},
+"espn-50": {
+"dark": false
+},
+"espn-568": {
+"dark": false
+},
+"espn-70": {
+"dark": false
+},
+"espn-79": {
+"dark": false
+},
+"espn-93": {
+"dark": false
+},
 "florida-atlantic-owls": {
 "dark": false
 },

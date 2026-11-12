@@ -242,6 +242,474 @@
 "elon-phoenix": {
 "dark": false
 },
+"espn-1": {
+"dark": false
+},
+"espn-101": {
+"dark": false
+},
+"espn-109": {
+"dark": false
+},
+"espn-111913": {
+"dark": false
+},
+"espn-117": {
+"dark": false
+},
+"espn-124942": {
+"dark": false
+},
+"espn-126": {
+"dark": true
+},
+"espn-144": {
+"dark": false
+},
+"espn-178": {
+"dark": false
+},
+"espn-182": {
+"dark": false
+},
+"espn-190": {
+"dark": false
+},
+"espn-196": {
+"dark": false
+},
+"espn-2001": {
+"dark": false
+},
+"espn-2003": {
+"dark": true
+},
+"espn-2013": {
+"dark": false
+},
+"espn-2018": {
+"dark": true
+},
+"espn-2019": {
+"dark": false
+},
+"espn-2025": {
+"dark": false
+},
+"espn-2028": {
+"dark": false
+},
+"espn-2033": {
+"dark": false
+},
+"espn-2047": {
+"dark": false
+},
+"espn-2058": {
+"dark": false
+},
+"espn-2062": {
+"dark": false
+},
+"espn-2064": {
+"dark": false
+},
+"espn-2071": {
+"dark": false
+},
+"espn-2075": {
+"dark": false
+},
+"espn-2079": {
+"dark": false
+},
+"espn-2102": {
+"dark": false
+},
+"espn-2107": {
+"dark": false
+},
+"espn-2113": {
+"dark": false
+},
+"espn-2119": {
+"dark": false
+},
+"espn-2121": {
+"dark": false
+},
+"espn-2124": {
+"dark": true
+},
+"espn-2141": {
+"dark": false
+},
+"espn-2144": {
+"dark": false
+},
+"espn-2145": {
+"dark": true
+},
+"espn-2148": {
+"dark": true
+},
+"espn-2151": {
+"dark": false
+},
+"espn-2155": {
+"dark": false
+},
+"espn-2175": {
+"dark": false
+},
+"espn-2196": {
+"dark": false
+},
+"espn-2207": {
+"dark": false
+},
+"espn-2225": {
+"dark": true
+},
+"espn-2232": {
+"dark": false
+},
+"espn-2233": {
+"dark": false
+},
+"espn-2235": {
+"dark": false
+},
+"espn-2242": {
+"dark": true
+},
+"espn-2256": {
+"dark": false
+},
+"espn-226": {
+"dark": false
+},
+"espn-2262": {
+"dark": false
+},
+"espn-2274": {
+"dark": false
+},
+"espn-2301": {
+"dark": false
+},
+"espn-2304": {
+"dark": true
+},
+"espn-2310": {
+"dark": false
+},
+"espn-2316": {
+"dark": false
+},
+"espn-2318": {
+"dark": true
+},
+"espn-2326": {
+"dark": false
+},
+"espn-2333": {
+"dark": false
+},
+"espn-2359": {
+"dark": false
+},
+"espn-2365": {
+"dark": true
+},
+"espn-237": {
+"dark": true
+},
+"espn-2383": {
+"dark": false
+},
+"espn-2398": {
+"dark": false
+},
+"espn-2403": {
+"dark": false
+},
+"espn-241": {
+"dark": false
+},
+"espn-2424": {
+"dark": true
+},
+"espn-2444": {
+"dark": false
+},
+"espn-247": {
+"dark": false
+},
+"espn-2486": {
+"dark": false
+},
+"espn-2508": {
+"dark": true
+},
+"espn-2519": {
+"dark": false
+},
+"espn-2524": {
+"dark": false
+},
+"espn-2551": {
+"dark": true
+},
+"espn-2557": {
+"dark": false
+},
+"espn-2564": {
+"dark": false
+},
+"espn-2568": {
+"dark": false
+},
+"espn-2591": {
+"dark": false
+},
+"espn-2600": {
+"dark": false
+},
+"espn-2605": {
+"dark": false
+},
+"espn-2614": {
+"dark": false
+},
+"espn-263": {
+"dark": false
+},
+"espn-2639": {
+"dark": false
+},
+"espn-2644": {
+"dark": false
+},
+"espn-2652": {
+"dark": false
+},
+"espn-2654": {
+"dark": false
+},
+"espn-2658": {
+"dark": false
+},
+"espn-268": {
+"dark": false
+},
+"espn-2688": {
+"dark": false
+},
+"espn-2697": {
+"dark": false
+},
+"espn-2701": {
+"dark": false
+},
+"espn-2703": {
+"dark": false
+},
+"espn-2706": {
+"dark": false
+},
+"espn-2725": {
+"dark": false
+},
+"espn-2757": {
+"dark": true
+},
+"espn-2758": {
+"dark": false
+},
+"espn-2776": {
+"dark": false
+},
+"espn-2790": {
+"dark": true
+},
+"espn-2800": {
+"dark": false
+},
+"espn-2816": {
+"dark": false
+},
+"espn-2822": {
+"dark": false
+},
+"espn-2823": {
+"dark": true
+},
+"espn-2827": {
+"dark": false
+},
+"espn-2828": {
+"dark": false
+},
+"espn-2838": {
+"dark": false
+},
+"espn-2839": {
+"dark": false
+},
+"espn-2841": {
+"dark": false
+},
+"espn-2845": {
+"dark": false
+},
+"espn-2850": {
+"dark": true
+},
+"espn-2857": {
+"dark": false
+},
+"espn-2871": {
+"dark": false
+},
+"espn-2876": {
+"dark": true
+},
+"espn-2880": {
+"dark": true
+},
+"espn-2886": {
+"dark": false
+},
+"espn-2891": {
+"dark": false
+},
+"espn-2896": {
+"dark": false
+},
+"espn-29": {
+"dark": false
+},
+"espn-2903": {
+"dark": false
+},
+"espn-2905": {
+"dark": true
+},
+"espn-2913": {
+"dark": false
+},
+"espn-2919": {
+"dark": true
+},
+"espn-2930": {
+"dark": false
+},
+"espn-2938": {
+"dark": false
+},
+"espn-2940": {
+"dark": true
+},
+"espn-2951": {
+"dark": false
+},
+"espn-2964": {
+"dark": false
+},
+"espn-2970": {
+"dark": false
+},
+"espn-2980": {
+"dark": false
+},
+"espn-3071": {
+"dark": false
+},
+"espn-3081": {
+"dark": false
+},
+"espn-3106": {
+"dark": false
+},
+"espn-3141": {
+"dark": false
+},
+"espn-3218": {
+"dark": true
+},
+"espn-3243": {
+"dark": false
+},
+"espn-330": {
+"dark": false
+},
+"espn-332": {
+"dark": false
+},
+"espn-347": {
+"dark": false
+},
+"espn-354": {
+"dark": false
+},
+"espn-366": {
+"dark": true
+},
+"espn-374": {
+"dark": true
+},
+"espn-375": {
+"dark": false
+},
+"espn-386": {
+"dark": false
+},
+"espn-390": {
+"dark": false
+},
+"espn-40": {
+"dark": false
+},
+"espn-402": {
+"dark": false
+},
+"espn-411": {
+"dark": true
+},
+"espn-415": {
+"dark": false
+},
+"espn-417": {
+"dark": false
+},
+"espn-420": {
+"dark": false
+},
+"espn-424": {
+"dark": false
+},
+"espn-455": {
+"dark": false
+},
+"espn-509": {
+"dark": false
+},
+"espn-512": {
+"dark": false
+},
+"espn-548": {
+"dark": false
+},
+"espn-60": {
+"dark": false
+},
+"espn-63": {
+"dark": false
+},
+"espn-80": {
+"dark": true
+},
 "evansville-purple-aces": {
 "dark": false
 },

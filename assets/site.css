@@ -21,8 +21,12 @@
     --premium-muted: #B3A9D6;
     --premium-gold: #F5C542;
     --premium-on-gold: #0B0F14;
-    --good: #33D17A;
-    --good-dim: #17462C;
+    /* Green means "best price" and nothing else (CLAUDE.md naming rule):
+       --best is the best-price outline; --good (wins, positive units) is blue */
+    --best: #33D17A;
+    --best-dim: #17462C;
+    --good: #4DA3FF;
+    --good-dim: #12304F;
     --bad: #FF4D6A;
     --bad-dim: #4A1620;
     --neutral-chip: #2A3542;
@@ -78,8 +82,10 @@
     --premium-muted: #B3A9D6;
     --premium-gold: #F5C542;
     --premium-on-gold: #0B0F14;
-    --good: #158A4B;
-    --good-dim: #E3F6EB;
+    --best: #158A4B;
+    --best-dim: #E3F6EB;
+    --good: #1F6FD1;
+    --good-dim: #E3EEFB;
     --bad: #D42B49;
     --bad-dim: #FCE7EA;
     --neutral-chip: #EEF1F5;
@@ -120,8 +126,10 @@
       --premium-muted: #B3A9D6;
     --premium-gold: #F5C542;
     --premium-on-gold: #0B0F14;
-      --good: #158A4B;
-      --good-dim: #E3F6EB;
+      --best: #158A4B;
+      --best-dim: #E3F6EB;
+      --good: #1F6FD1;
+      --good-dim: #E3EEFB;
       --bad: #D42B49;
       --bad-dim: #FCE7EA;
       --neutral-chip: #EEF1F5;
@@ -608,6 +616,34 @@
   .games-list { display: flex; flex-direction: column; gap: 12px; }
   .game-card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px 16px; }
   .gm-time { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
+  /* Games cards (assets/sport.js gameCard): teams, then one row per market */
+  .gc-teams { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 10px; }
+  .gc-team { display: flex; align-items: center; gap: 8px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.08rem; }
+  .gc-team .gm-team { display: flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; min-width: 0; }
+  .gc-team .gm-team:hover { color: var(--accent); }
+  .gc-seg { font-size: 0.95rem; color: var(--text); }
+  .gc-final { margin-left: auto; font-size: 0.95rem; color: var(--text-muted); }
+  .tn-short { display: none; }
+  .gc-odds { display: flex; flex-direction: column; border-top: 1px solid var(--border-soft); }
+  .gc-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border-soft); }
+  .gc-row:last-child { border-bottom: 0; padding-bottom: 0; }
+  .gc-lbl { flex: 0 0 78px; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; color: var(--text-muted); }
+  .gc-cells { flex: 1; display: grid; grid-template-columns: repeat(var(--gc-n, 2), minmax(0, 1fr)); gap: 8px; }
+  .gc-cells:has(> :nth-child(3)) { --gc-n: 3; }
+  .gc-cell { display: flex; flex-direction: column; align-items: flex-start; }
+  .gc-main { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.86rem; color: var(--text); white-space: nowrap; }
+  .gc-pr { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
+  .gc-mk { font-style: normal; font-weight: 700; margin-left: 2px; }
+  .gc-mk.gc-w { color: var(--good); }
+  .gc-mk.gc-l { color: var(--bad); }
+  .gc-mk.gc-p { color: var(--text-muted); }
+  .gm-stick { position: sticky; top: 0; z-index: 20; background: var(--bg); padding: 6px 0; margin-bottom: 6px; }
+  .gm-results { margin-bottom: 14px; }
+  @media (max-width: 640px) {
+    .tn-full { display: none; }
+    .tn-short { display: inline; }
+    .gc-lbl { flex-basis: 64px; }
+  }
   .game-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
   .game-matchup { display: flex; align-items: center; gap: 8px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.05rem; }
   .game-matchup .gm-team { display: flex; align-items: center; gap: 6px; cursor: pointer; color: inherit; text-decoration: none; }
@@ -1476,9 +1512,9 @@
   .odds-cell a { color: var(--text); text-decoration: none; display: inline-block; padding: 2px 6px; border-radius: 6px; }
   .odds-cell a:hover { background: var(--panel-2); text-decoration: underline; }
   .odds-line { color: var(--text-muted); }
-  .odds-best a, .odds-best { color: var(--good); font-weight: 700; }
-  .odds-best a { background: var(--good-dim); }
-  .odds-best .odds-line { color: var(--good); }
+  .odds-best a, .odds-best { color: var(--best); font-weight: 700; }
+  .odds-best a { background: var(--best-dim); }
+  .odds-best .odds-line { color: var(--best); }
   .odds-na { color: var(--text-muted); }
   .odds-empty { font-size: 0.85rem; color: var(--text-muted); padding: 4px 0; }
   .odds-note { font-size: 0.78rem; color: var(--text-muted); margin-top: 16px; line-height: 1.5; }
@@ -1518,7 +1554,7 @@
   .ob-key td { border-bottom: 0; }
   .ob-note span, .ob-key span { position: sticky; left: 8px; display: inline-flex; align-items: center; gap: 8px; }
   .ob-key-cell { display: inline-block; width: 26px; height: 16px; }
-  .ob-best { box-shadow: inset 0 0 0 1.5px var(--good); border-radius: 6px; }
+  .ob-best { box-shadow: inset 0 0 0 1.5px var(--best); border-radius: 6px; }
   .ob-na { color: var(--text-faint); }
   .ob-logo { height: 22px; width: 22px; object-fit: contain; vertical-align: middle; border-radius: 5px; }
   .ob-bname { font-size: 0.66rem; text-transform: none; letter-spacing: 0; color: var(--text); white-space: normal; display: inline-block; max-width: 70px; line-height: 1.15; }
