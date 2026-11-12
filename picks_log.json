@@ -5816,6 +5816,149 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Minnesota"
+   },
+   {
+    "id": "nba|401909979|1h|ml|away",
+    "game": "nba|401909979",
+    "date": "2026-11-12",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-13T02:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Hornets @ Suns",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 152,
+    "title": "Hornets 1H ML",
+    "est": 0.4365,
+    "edge": 0.0397,
+    "agree": 2,
+    "sample": 11,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "cha",
+    "angles": [
+     [
+      "Hornets 1H ML on the road",
+      "3-1"
+     ],
+     [
+      "Hornets 1H ML, season",
+      "6-5"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Hornets"
+   },
+   {
+    "id": "nba|401909976|1h|total|over",
+    "game": "nba|401909976",
+    "date": "2026-11-12",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-13T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Raptors @ 76ers",
+    "href": "nba/games/",
+    "market": "total",
+    "side": "over",
+    "line": 106.5,
+    "price": -114,
+    "title": "1H Over 106.5",
+    "est": 0.5721,
+    "edge": 0.0393,
+    "agree": 6,
+    "sample": 12,
+    "tier": "C",
+    "tags": [
+     "Over Lover",
+     "Streak Rider"
+    ],
+    "streak": 8,
+    "streakTeam": "tor",
+    "angles": [
+     [
+      "Raptors 1H overs, last 8 (106.5)",
+      "8-0"
+     ],
+     [
+      "Raptors 1H overs, season (106.5)",
+      "10-1"
+     ],
+     [
+      "Raptors 1H overs on the road (106.5)",
+      "5-1"
+     ],
+     [
+      "76ers 1H overs, season (106.5)",
+      "9-3"
+     ]
+    ],
+    "info": "Avg 1H total in their games: 76ers 112.6 \u00b7 Raptors 115.6",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Raptors"
+   },
+   {
+    "id": "nba|401909978|1q|total|under",
+    "game": "nba|401909978",
+    "date": "2026-11-12",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-13T01:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Mavericks @ Timberwolves",
+    "href": "nba/games/",
+    "market": "total",
+    "side": "under",
+    "line": 58.5,
+    "price": -102,
+    "title": "1Q Under 58.5",
+    "est": 0.5356,
+    "edge": 0.0307,
+    "agree": 6,
+    "sample": 11,
+    "tier": "C",
+    "tags": [
+     "Under Grinder"
+    ],
+    "streak": 2,
+    "streakTeam": "min",
+    "angles": [
+     [
+      "Timberwolves 1Q unders at home (58.5)",
+      "5-0"
+     ],
+     [
+      "Timberwolves 1Q unders, last 8 (58.5)",
+      "6-2"
+     ],
+     [
+      "Mavericks 1Q unders, last 8 (58.5)",
+      "6-2"
+     ],
+     [
+      "Mavericks 1Q unders on the road (58.5)",
+      "3-1"
+     ]
+    ],
+    "info": "Avg 1Q total in their games: Timberwolves 55.7 \u00b7 Mavericks 56.1",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Timberwolves"
    }
   ]
  }
