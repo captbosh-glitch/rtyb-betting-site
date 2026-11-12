@@ -9,6 +9,7 @@
  *   sit.contexts(k, 'current')       [{c, r}] for the team-page game log
  *   sit.tags(c)                      registry rows a team-game counts toward
  *   sit.nextFits(k, slug, gameId)    registry rows a team's upcoming game fits
+ *   sit.spots(k, slug, gameId, mkt)  those rows that are real edges (the hub's Team to Watch)
  *
  * src: {sport, segments [{key, label, tag}], teams {slug: {name, conference,
  *   division}}, seasons: [{key: 'current', label, games: {date: [game]}},
@@ -325,6 +326,25 @@
         return !!row.test(c, C);
       });
     }
+    // the rows a team's upcoming game fits (shown rows only: 5+ games) that
+    // are real edges in one market -- the hub's Team to Watch: edge 1 = in
+    // the team's favor, -1 = against it (the team page's 60% / 40% over 10+
+    // games, or more than 5 units either way)
+    function spots(k, slug, gameId, marketId) {
+      var fit = {}, out = [];
+      nextFits(k, slug, gameId).forEach(function(r) { fit[r.id] = 1; });
+      var m = markets.filter(function(x) { return x.id === marketId; })[0] || markets[0];
+      table(k, { mode: 'team', slug: slug }, 'current').forEach(function(G) {
+        G.rows.forEach(function(x) {
+          if (!fit[x.row.id]) return;
+          var a = x.agg[m.id], d = a.a + a.b, u = m.pair ? Math.max(a.ua, a.ub) : a.ua, edge = 0;
+          if ((m.pair ? a.na || a.nb : a.na) && Math.abs(u) > 5) edge = u > 0 ? 1 : -1;
+          else if (d >= 10) edge = a.a / d >= 0.6 ? 1 : a.a / d <= 0.4 ? -1 : 0;
+          if (edge) out.push({ label: x.row.label, rec: a.a + '-' + a.b + (a.p ? '-' + a.p : ''), pct: d ? a.a / d : null, edge: edge });
+        });
+      });
+      return out;
+    }
     function tags(c) {
       var skip = { overall: 1, home: 1, away: 1 }, out = [], rows = REG.rows;
       rows.forEach(function(row, i) {
@@ -547,7 +567,8 @@
         };
       });
     }
-    return { render: render, contexts: function(k, mode) { return contexts(k, mode || 'current'); }, tags: tags, nextFits: nextFits, reg: REG, state: st };
+    return { render: render, contexts: function(k, mode) { return contexts(k, mode || 'current'); }, tags: tags, nextFits: nextFits, spots: spots,
+             markets: markets, reg: REG, state: st };
   }
   window.RTYBSit = { create: create, etParts: etParts };
 })();

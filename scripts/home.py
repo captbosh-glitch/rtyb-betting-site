@@ -514,10 +514,12 @@ def build(template, nhl_data, logo_svg, now_utc=None):
         f'<span class="hs-name">{icons.sport_icon(sp)}{esc(sp["label"])}</span><span class="hs-count">{esc(chip)}</span></a>'
         for sp, chip, live, short in status)
 
-    # hero proof card: yesterday's best result (most units), then 3 more records
+    # hero proof card: yesterday's best result (most units), then up to 3
+    # more -- winning records only (positive units); never a losing one
     all_recs = [r for sp in sports.LAUNCHED for r in records.get(sp['key'], [])]
-    if all_recs:
-        ranked = sorted(all_recs, key=lambda r: (-(r.u if r.u is not None else -99), -r.rate, -r.n))
+    winners = [r for r in all_recs if r.u is not None and r.u > 0]
+    if winners:
+        ranked = sorted(winners, key=lambda r: (-r.u, -r.rate, -r.n))
         best = ranked[0]
         rows = ''.join(f'<div class="ln-row"><span class="ln-sport">{esc(r.sport)}</span><span class="ln-what">{esc(r.what)}</span>'
                        f'<span class="ln-val"><span class="ln-rec">{esc(r.rec)}</span>{units_html(r.u)}</span></div>'
@@ -526,6 +528,10 @@ def build(template, nhl_data, logo_svg, now_utc=None):
                 f'<div class="ln-best"><span class="ln-best-what">{esc(best.sport)} &middot; {esc(best.what)}</span>'
                 f'<span class="ln-best-rec">{esc(best.rec)}</span>{units_html(best.u, "ln-best-u")}</div>'
                 f'{rows}<div class="ln-foot">{len(yday_games)} games graded &middot; <a href="#results">See yesterday&rsquo;s results</a></div></div>')
+    elif yday_games:
+        last = (f'<div class="ln-card"><div class="ln-head"><span>Yesterday on RTYB</span><span>{esc(day_label(yday))}</span></div>'
+                f'<div class="ln-best"><span class="ln-best-what">{len(yday_games)} games graded</span></div>'
+                f'<div class="ln-foot"><a href="#results">See yesterday&rsquo;s results</a></div></div>')
     else:
         last = '<div class="ln-card"><div class="ln-head"><span>Yesterday on RTYB</span></div><p class="muted">No graded games yet.</p></div>'
 

@@ -1166,12 +1166,15 @@ def build(sp, teams_list, now_utc=None):
         os.remove(hist_path)
     write_json(os.path.join(slug_dir, 'data.json'), doc)
     # the Trends page's League Trends cards (scripts/trends.py)
-    write_json(os.path.join(slug_dir, 'trends.json'), trend_cards.page_doc(sp, doc, now_utc))
+    trends_doc = trend_cards.page_doc(sp, doc, now_utc)
+    write_json(os.path.join(slug_dir, 'trends.json'), trends_doc)
     odds_schedule = {d: [{'away': g['away'], 'home': g['home'], 'start': g.get('start'),
                           'state': {'in': 'live', 'final': 'final', 'post': 'final'}.get(g.get('state'), 'pre'),
                           'score': seg_scores(sp, g)} for g in day]
                      for d, day in by_date.items()}
     write_odds_page(sp, slug_dir, now_utc, odds_schedule, weeks=doc.get('weeks'))
+    import hub   # the Arena hub (/{slug}/): Matchup of the Day and The Daily, after the odds files it prices from
+    hub.build(sp, doc, trends_doc, slug_dir, now_utc)
     today = now_utc.astimezone(ET).date().isoformat()
     return {'season': current, 'seasonLabel': doc['seasonLabel'], 'games': len(games), 'graded': sum(1 for g in games if g.get('final')),
             'today': len(by_date.get(today, []))}

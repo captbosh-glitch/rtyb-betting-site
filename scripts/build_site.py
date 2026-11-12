@@ -63,6 +63,7 @@ import seo  # noqa: E402
 import streaks as streaks_page  # noqa: E402
 import daily  # noqa: E402
 import home  # noqa: E402
+import hub  # noqa: E402
 import icons  # noqa: E402
 import nav  # noqa: E402
 import nhl_sport  # noqa: E402
@@ -355,6 +356,8 @@ def apply_sport(out, sport, section):
     out = out.replace('__ACCOUNT_JS__', account.ACCOUNT_JS)
     for sec in ('games', 'stats', 'trends', 'teams'):
         out = out.replace(f'__NAV_HREF_{sec.upper()}__', sports.section_path(sport, sec))
+    out = out.replace('__NAV_HREF_HUB__', f"/{sport['slug']}/")
+    out = out.replace('__NAV_HUB_CURRENT__', ' aria-current="page"' if section == 'hub' else '')
     odds_link = ''
     if 'odds' in sport['sections'] and sport_has_data(sport['key']):
         cur = ' aria-current="page"' if section == 'odds' else ''
@@ -666,6 +669,30 @@ SECTION_DESC = {
 }
 
 
+def hub_words(sp):
+    """'First Quarter & First Half' -- the hub's title words."""
+    return ' & '.join(s['label'].replace('1st ', 'First ') for s in sp['segments'])
+
+
+def write_hub(template, sp, teams_menu_html=''):
+    """/{slug}/: the sport's Arena hub, drawn by assets/sport.js from
+    data.json (NHL: sport.json), trends.json and hub.json (scripts/hub.py)."""
+    weekly = sp.get('schedule') == 'week'
+    when = 'This Week' if weekly else 'Today'
+    info = sport_build.read_json(os.path.join(ROOT, sp['slug'], 'hub.json'), None) or {}
+    meta = {'title': f"{sp['label']} {hub_words(sp)} Odds, Trends & Stats {when} | RTYB",
+            'h1': info.get('h1') or f"{sp['label']} {when}", 'section': 'hub',
+            'desc': (f"{sp['label']} {sports.segment_summary(sp)} betting {when.lower()}: the games, our Matchup of the "
+                     f"{'Week' if weekly else 'Day'}, the trends and streaks to watch, and the best price at every sportsbook.")}
+    if sport_has_data(sp['key']):
+        body = ('<div id="sportApp" data-section="hub"><div class="no-games-note">Loading&hellip;</div>'
+                '<noscript>This page needs JavaScript.</noscript></div>')
+        html = render_page(template, 'sport', teams_menu_html, meta=meta, sport=sp, sport_body=body)
+    else:
+        html = render_page(template, 'empty', teams_menu_html, meta=meta, sport=sp, empty_html=empty_state_html(sp, 'games'))
+    write_light(html, sp['slug'])
+
+
 def write_light(template_html_page, page_dir):
     path = os.path.join(ROOT, page_dir)
     os.makedirs(path, exist_ok=True)
@@ -716,6 +743,7 @@ def build_other_sports(template):
             else:
                 html = render_page(template, 'empty', '', meta=meta, sport=sp, empty_html=empty_state_html(sp, section))
             write_light(html, f"{sp['slug']}/{sp['sections'][section]}")
+        write_hub(template, sp)
         # one page per team
         for t in teams:
             meta = sport_team_meta(sp, t, (SPORT_DATA.get(sp['key']) or {}).get('seasonLabel'))
@@ -982,7 +1010,9 @@ def main():
         merged_games, SEASON_START, full_data['seasonLabel'], full_data.get('summary', {}), full_data['divisions'],
         team_colors, full_data.get('tz'), datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')))
     nhl_doc = json.load(open(os.path.join(nhl_dir, 'sport.json'), encoding='utf-8'))
-    sport_build.write_json(os.path.join(nhl_dir, 'trends.json'), trends.page_doc(nhl, nhl_doc, datetime.now(timezone.utc)))
+    nhl_trends = trends.page_doc(nhl, nhl_doc, datetime.now(timezone.utc))
+    sport_build.write_json(os.path.join(nhl_dir, 'trends.json'), nhl_trends)
+    hub.build(nhl, nhl_doc, nhl_trends, nhl_dir)   # /nhl/'s Matchup of the Day and The Daily (nhl/hub.json)
     trends_meta = {'title': 'RTYB — NHL Trends to Watch', 'h1': 'NHL Trends to Watch', 'section': 'trends',
                    'desc': SECTION_DESC['trends'].format(label='NHL', segs='1st Period')}
     write_light(render_page(template, 'sport', teams_menu_html, meta=trends_meta, sport=nhl,
@@ -1009,6 +1039,7 @@ def main():
                             sport_body='<div id="sportApp" data-section="stats"><div class="no-games-note">Loading&hellip;</div>'
                                        '<noscript>This page needs JavaScript.</noscript></div>'), 'nhl/stats')
 
+    write_hub(template, nhl, teams_menu_html)
     other = build_other_sports(template)
     # Home page + Learn, last: they read every sport's data.json.
     home_info = home.build(template, full_data, LOGO_SVG)

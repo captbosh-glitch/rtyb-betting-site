@@ -1777,7 +1777,7 @@
     });
     var x = leans.ml;
     if (x && x.away && x.home) { if (x.away !== x.home) lab('mismatch', 'ml'); else if (x.away === 'W') lab('heavyweights', 'ml'); }
-    return '<div class="mt-game"><div class="mt-head"><span class="tr-time">' + esc(trTime(g.start)) + '</span>' +
+    return '<div class="mt-game" id="mt-' + esc(g.id) + '"><div class="mt-head"><span class="tr-time">' + esc(trTime(g.start)) + '</span>' +
       badge(g.away, 22) + '<span class="nm-full">' + esc(shortName(g.away)) + '</span><span class="nm-abbr">' + esc(tcode(g.away)) + '</span> @ ' +
       badge(g.home, 22) + '<span class="nm-full">' + esc(shortName(g.home)) + '</span><span class="nm-abbr">' + esc(tcode(g.home)) + '</span>' +
       (labels.length ? '<span class="mt-labels">' + labels.join('') + '</span>' : '') + '</div>' +
@@ -1867,6 +1867,9 @@
     fetch(ROOT + SPORT_SLUG + '/trends.json').then(function(r) { return r.json(); }).then(function(tr) {
       TR = tr;
       if (D.schedule === 'week') renderTrendsByWeek(); else renderTrendsByDay();
+      // the hub's "See the full matchup" link: #mt-<game id>
+      var hit = /^#mt-/.test(location.hash) && document.getElementById(location.hash.slice(1));
+      if (hit) { hit.classList.add('mt-hit'); hit.scrollIntoView({ block: 'start' }); }
     }).catch(function(e) {
       app.innerHTML = emptyNote('Couldn&rsquo;t load the trends. Try reloading.');
       if (window.console) console.error(e);
@@ -2208,6 +2211,201 @@
     });
   }
 
+  // ------------------------------------------------------------- Arena hub
+  // /{sport}/: the sport's front page (Chris's Arena hub spec). Teasers, each
+  // linking to its full page, from data.json (NHL: sport.json), trends.json
+  // and hub.json (scripts/hub.py: Matchup of the Day and its record, The
+  // Daily, the Learn link). Football says "this week" where others say "today".
+  function hubSlate() {
+    if (D.schedule === 'week') { var wk = (D.weeks || []).length ? currentWeek(D.weeks) : null; return { key: wk, games: wk ? weekGames(wk) : [] }; }
+    return { key: todayET(), games: (D.games[todayET()] || []).slice() };
+  }
+  function hubPrev(slate) {
+    if (D.schedule === 'week') {
+      var keys = (D.weeks || []).map(function(w) { return w.key; }), i = keys.indexOf(slate.key);
+      return i > 0 ? weekGames(keys[i - 1]) : [];
+    }
+    return D.games[addDaysStr(todayET(), -1)] || [];
+  }
+  // live = under way by the scoreboard or by the clock (the feed can lag)
+  function hubLive(g) { return g.state === 'in' || (g.state !== 'final' && started(g)); }
+  function hubSec(title, link, body, id) {
+    return '<section class="hub-sec"' + (id ? ' id="' + id + '"' : '') + '><div class="hub-head"><h2>' + title + '</h2>' + (link || '') + '</div>' + body + '</section>';
+  }
+  function hubLink(href, txt) { return '<a class="hub-more" href="' + href + '">' + txt + ' &rarr;</a>'; }
+  // the best Results-box row (record and units) from the last slate; never a losing one
+  function hubBest(prev) {
+    var rows = [];
+    (periodFamily() ? [D.segments[0].key] : D.segments.map(function(s) { return s.key; })).forEach(function(k) {
+      resultRows(prev, k).forEach(function(x) { if (x.n && x.u > 0 && x.w > x.l) rows.push({ x: x, k: k }); });
+    });
+    rows.sort(function(a, b) { return (b.x.pct - a.x.pct) || (b.x.u - a.x.u); });
+    var top = rows[0];
+    if (!top) {
+      var n = prev.filter(function(g) { return g.state === 'final'; }).length;
+      return n ? n + ' game' + (n === 1 ? '' : 's') + ' graded' : 'No games';
+    }
+    var x = top.x, segTxt = periodFamily() || D.segments.length < 2 ? '' : seg(top.k).tag + ' ';
+    return segTxt + x.label.replace(' (moneyline)', ' ML').replace(' (spread)', ' ATS').replace(' (F5 moneyline)', ' F5 ML') + ' went ' + x.w + ' of ' + x.gp + ', ' + fmtUnits(x.u).replace(/\.?0+u$/, 'u');
+  }
+  function hubHero(slate, prev) {
+    var wk = D.schedule === 'week', live = slate.games.filter(hubLive).length;
+    function n(v, l) { return '<div class="hub-num"><b class="mono">' + v + '</b><span>' + l + '</span></div>'; }
+    return '<div class="hub-hero">' + n(slate.games.length, wk ? 'Games this week' : 'Games today') + n(live, 'Live now') +
+      '<div class="hub-num hub-num-wide"><b>' + esc(hubBest(prev)) + '</b><span>' + (wk ? 'Last week&rsquo;s best' : 'Yesterday&rsquo;s best') + '</span></div></div>';
+  }
+  // 3 rows: live games, then the next to start; 3 finals once they're all done
+  function hubGames(slate) {
+    var live = slate.games.filter(hubLive);
+    var pre = slate.games.filter(function(g) { return g.state !== 'final' && !hubLive(g); }).sort(function(a, b) { return (a.start || '') < (b.start || '') ? -1 : 1; });
+    var fin = slate.games.filter(function(g) { return g.state === 'final'; });
+    var rows = live.concat(pre);
+    if (rows.length < 3) rows = rows.concat(fin.slice().reverse());
+    rows = rows.slice(0, 3);
+    if (!rows.length) return '<div class="no-games-note">No ' + esc(D.label) + ' games ' + (D.schedule === 'week' ? 'this week' : 'today') + '.</div>';
+    return '<div class="hub-games">' + rows.map(function(g) {
+      var st = g.state === 'final' ? 'Final' : hubLive(g) ? 'Live' : trTime(g.start);
+      function side(slug, sc) { return '<span class="hub-gt">' + badge(slug, 20) + '<b>' + esc(tcode(slug)) + '</b>' + (sc != null ? '<span class="mono">' + esc(sc) + '</span>' : '') + '</span>'; }
+      var show = (g.state === 'final' || hubLive(g)) && g.as != null;
+      return '<a class="hub-game" href="' + ROOT + SPORT_SLUG + '/games/' + (D.schedule === 'week' ? '?week=' + g.wk : '') + '"><span class="hub-gs' + (hubLive(g) ? ' live' : '') + '">' + esc(st) + '</span>' +
+        side(g.away, show ? g.as : null) + '<span class="hub-at">@</span>' + side(g.home, show ? g.hs : null) + '</a>';
+    }).join('') + '</div>';
+  }
+  function hubPriceTxt(m) {
+    var p = m.price, ln = p.line == null ? '' : m.mk === 'total' ? (m.pick === 'under' ? 'U ' : 'O ') + p.line + ' ' : m.mk === 'ats' ? signed(p.line) + ' ' : '';
+    return ln + signed(p.price);
+  }
+  function hubMotd(H, slate) {
+    var m = H.motd, wk = D.schedule === 'week', rec = H.motdRecord || {}, out;
+    if (!m) out = '<p class="hub-none">No standout matchup ' + (wk ? 'this week' : 'today') + '.</p>';
+    else {
+      var g = findGame(m.id) || m, href = ROOT + SPORT_SLUG + '/trends/?' + (wk ? 'week=' + slate.key : 'date=' + m.date) + '&seg=' + m.seg + '#mt-' + m.id;
+      out = '<div class="hub-motd"><div class="hub-motd-top"><span class="tr-time">' + esc(trTime(g.start)) + '</span>' +
+        (m.label ? '<span class="mt-label">' + esc(m.label) + '</span>' : '') + '</div>' +
+        '<div class="hub-motd-teams">' + badge(m.away, 26) + nameHtml(m.away) + '<span class="hub-at">@</span>' + badge(m.home, 26) + nameHtml(m.home) + '</div>' +
+        '<p class="hub-motd-bet"><b>' + m.n + ' trends agree:</b> ' + esc(m.bet) +
+        (m.price ? ' <span class="hub-price">Best price <b class="mono">' + esc(hubPriceTxt(m)) + '</b> at ' + esc(m.price.book) + '</span>' : '') + '</p>' +
+        '<ul class="hub-motd-list">' + m.trends.map(function(t) { return '<li><span>' + esc(t.text) + '</span>' + (t.kind === 'streak' ? '' : '<b class="mono">' + esc(t.rec) + '</b>') + '</li>'; }).join('') + '</ul>' +
+        hubLink(href, 'See the full matchup') + '</div>';
+    }
+    var last = rec.last, season = rec.season || [0, 0];
+    var foot = (last ? '<span>' + (wk ? 'Last week' : 'Yesterday') + ': ' + ({ W: '✓', L: '✗', P: '–' }[last.result] || '') + ' ' + esc(last.bet) + (last.score ? ' (' + esc(last.score) + ')' : '') + '</span>' : '') +
+      (season[0] + season[1] ? '<span>Season: <b class="mono">' + season[0] + '–' + season[1] + '</b></span>' : '');
+    return out + (foot ? '<div class="hub-motd-rec">' + foot + '</div>' : '');
+  }
+  function hubDaily(H) {
+    var wk = D.schedule === 'week', dl = H.daily || {};
+    var names = wk ? { recap: 'Weekend Recap', preview: 'Week ' + ((((D.weeks || []).filter(function(w) { return w.key === hubSlate().key; })[0] || {}).label || '').replace(/^Week /, '')) + ' Preview' }
+      : { recap: 'The Morning Run', preview: 'On Tap' };
+    return '<div class="hub-daily">' + ['recap', 'preview'].map(function(kind) {
+      var p = dl[kind] || {};
+      if (p.path) return '<a class="dp-card hub-dcard" href="' + ROOT + p.path + '"><span class="hd-kicker">' + esc(names[kind]) + '</span><b>' + esc(p.title) + '</b><span class="muted">' + esc(p.teaser) + '</span><span class="dp-more">Read it &rarr;</span></a>';
+      return '<div class="dp-card hub-dcard soon"><span class="hd-kicker">' + esc(names[kind]) + '</span><b>Coming ' + (wk ? p.due : 'at ' + p.due) + ' ET</b></div>';
+    }).join('') + '</div>';
+  }
+  function hubTrends(slate) {
+    var cards = (((TR || {}).slates || {})[slate.key] || {}).cards || [];
+    // up to 5 rows a card, games still to play first (football weeks run long)
+    function short(c) {
+      var open = c.games.filter(function(x) { var g = findGame(x.id); return g && g.state !== 'final'; });
+      var done = c.games.filter(function(x) { return open.indexOf(x) === -1; });
+      return Object.assign({}, c, { games: open.concat(done).slice(0, 5) });
+    }
+    return cards.length ? '<div class="tr-cards">' + cards.slice(0, 3).map(function(c) { return trendCard(short(c), false); }).join('') + '</div>'
+      : '<p class="hub-none">No trends meet our bar ' + (D.schedule === 'week' ? 'this week' : 'today') + '.</p>';
+  }
+  // the longest run (3+) among teams playing, preferring an opponent on the opposite run
+  function hubStreak(slate) {
+    var before = D.schedule === 'week' ? ((D.weeks || []).filter(function(w) { return w.key === slate.key; })[0] || {}).start : todayET(), best = null;
+    D.segments.forEach(function(s) {
+      var seqs = teamSeqs(before, s.key);
+      (D.markets || []).filter(function(x) { return x[0] === s.key && HIT[x[1]]; }).forEach(function(x) {
+        var m = x[1];
+        slate.games.filter(function(g) { return g.state !== 'final'; }).forEach(function(g) {
+          ['away', 'home'].forEach(function(side) {
+            var me = g[side], opp = g[side === 'away' ? 'home' : 'away'];
+            var st = streakOf(((seqs[me] || {})[m]) || []), os = streakOf(((seqs[opp] || {})[m]) || []);
+            if (!st || st.n < 3) return;
+            var pair = os && os.n >= 3 && os.kind !== st.kind && (m === 'ml' || m === 'ats') ? os : null;
+            var score = [pair ? 1 : 0, st.n, pair ? pair.n : 0];
+            if (!best || score[0] > best.score[0] || (score[0] === best.score[0] && (score[1] > best.score[1] || (score[1] === best.score[1] && score[2] > best.score[2]))))
+              best = { score: score, me: me, opp: opp, m: m, k: s.key, st: st, os: pair };
+          });
+        });
+      });
+    });
+    if (!best) return '<p class="hub-none">No team playing ' + (D.schedule === 'week' ? 'this week' : 'today') + ' is on a run of 3 or more.</p>';
+    var txt = streakWords(best.me, best.m, best.st, best.k) + '. ' + (D.schedule === 'week' ? 'This week' : 'Tonight') + ' vs ' + tcode(best.opp);
+    if (best.os) {
+      var w = best.m === 'ml' ? (best.os.kind === 'W' ? 'won' : 'lost') : (best.os.kind === 'W' ? 'covered' : 'failed to cover');
+      txt += ', who have ' + w + ' ' + best.os.n + ' straight';
+    }
+    return '<div class="hub-line">' + badge(best.me, 26) + '<p>' + esc(txt) + '.</p></div>';
+  }
+  // the team with the most of its next game's situations in its favor
+  function hubTeam(slate) {
+    var e = sitEngine();
+    if (!e || !e.spots) return '<p class="hub-none">Situational results aren&rsquo;t set up for ' + esc(D.label) + ' yet.</p>';
+    var k = D.segments[0].key, mk = (e.markets[0] || {}).id, best = null;
+    slate.games.filter(function(g) { return g.state !== 'final'; }).forEach(function(g) {
+      ['away', 'home'].forEach(function(side) {
+        var sp = e.spots(k, g[side], g.id, mk), win = sp.filter(function(x) { return x.edge > 0; });
+        if (!win.length) return;
+        if (!best || win.length > best.win.length || (win.length === best.win.length && sp.length < best.all.length)) best = { slug: g[side], win: win, all: sp };
+      });
+    });
+    if (!best) return '<p class="hub-none">No team has a situation in its favor ' + (D.schedule === 'week' ? 'this week' : 'tonight') + '.</p>';
+    var mkLabel = (e.markets.filter(function(x) { return x.id === mk; })[0] || {}).label || '';
+    return '<div class="hub-team">' + badge(best.slug, 30) + '<div><b class="hub-team-name">' + nameHtml(best.slug) + '</b>' +
+      '<p class="muted">' + best.all.length + ' spot' + (best.all.length === 1 ? '' : 's') + ', ' + best.win.length + ' winning (' + esc(seg(k).tag + ' ' + mkLabel) + ')</p>' +
+      '<ul class="hub-spots">' + best.win.map(function(x) { return '<li>' + esc(x.label) + ' <b class="mono">' + esc(x.rec) + '</b></li>'; }).join('') + '</ul>' +
+      (teamUrl(best.slug) ? hubLink(teamUrl(best.slug), 'See the team') : '') + '</div></div>';
+  }
+  // one Season Results stat a day (the same for everyone that day)
+  function hubNumber() {
+    var out = [];
+    D.segments.forEach(function(s) {
+      var k = s.key, w = segWord(k), ws = segWords(k), cards = seasonCards(finalGames(), k);
+      var spreadWord = (w + ' spreads').replace(/^(\S+) (\S+) spreads$/, '$1-$2 spreads');
+      var PH = {
+        'Home / Away / Tie': { Home: 'of ' + ws + ' are won by the home team', Away: 'of ' + ws + ' are won by the road team', Tie: 'of ' + ws + ' end tied' },
+        'Favorite / Underdog / Tie': { Favorite: 'of ' + ws + ' are won by the favorite', Underdog: 'of ' + ws + ' are won by the underdog' },
+        'Home / Away / Push': { Home: 'of ' + spreadWord + ' are covered by the home team', Away: 'of ' + spreadWord + ' are covered by the road team' },
+        'Favorite / Underdog / Push': { Favorite: 'of ' + spreadWord + ' are covered by the favorite', Underdog: 'of ' + spreadWord + ' are covered by the underdog' },
+        'Both teams score: Yes / No': { Yes: 'of ' + ws + ' see both teams score' },
+        'A run in the 1st inning': { YRFI: 'of games have a run in the 1st inning' }
+      };
+      cards.forEach(function(c) {
+        var ph = PH[c.sub] || (/^Over \/ Under/.test(c.sub) ? { Over: 'of ' + ws + ' go Over ' + (D.sport === 'nhl' ? '1.5' : 'the total') } : null);
+        if (!ph || c.gp < 10) return;
+        Object.keys(ph).forEach(function(l) { out.push({ pct: Math.round(100 * (c.n[l] || 0) / c.gp), txt: ph[l] }); });
+      });
+    });
+    if (!out.length) return '<p class="hub-none">Stats start once games are graded.</p>';
+    var day = Math.floor(Date.parse(todayET() + 'T12:00:00Z') / 864e5), x = out[day % out.length];
+    return '<p class="hub-number"><b class="mono">' + x.pct + '%</b> ' + esc(x.txt) + ' this season.</p>';
+  }
+  function renderHub() {
+    var slate = hubSlate(), prev = hubPrev(slate), wk = D.schedule === 'week';
+    Promise.all([
+      fetch(ROOT + SPORT_SLUG + '/hub.json').then(function(r) { return r.ok ? r.json() : {}; }).catch(function() { return {}; }),
+      fetch(ROOT + SPORT_SLUG + '/trends.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; })
+    ]).then(function(res) {
+      var H = res[0] || {};
+      TR = res[1] || { slates: {}, tips: {}, markets: [] };
+      var segName = D.segments.map(function(s) { return s.label.toLowerCase(); }).join(' and ');
+      app.innerHTML = hubHero(slate, prev) +
+        hubSec(wk ? 'This Week&rsquo;s Games' : 'Today&rsquo;s Games', slate.games.length ? hubLink(ROOT + SPORT_SLUG + '/games/', 'All ' + slate.games.length + ' games') : '', hubGames(slate)) +
+        hubSec(wk ? 'Matchup of the Week' : 'Matchup of the Day', '', hubMotd(H, slate)) +
+        hubSec('The Daily', hubLink(ROOT + 'daily/', 'All of The Daily'), hubDaily(H)) +
+        hubSec('Trends to Watch', hubLink(ROOT + SPORT_SLUG + '/trends/', 'All trends'), hubTrends(slate)) +
+        hubSec('Streak to Watch', hubLink(ROOT + SPORT_SLUG + '/trends/#streaks', 'See streaks'), hubStreak(slate)) +
+        hubSec('Team to Watch', '', hubTeam(slate)) +
+        hubSec('The Number', hubLink(ROOT + SPORT_SLUG + '/stats/', 'See stats'), hubNumber()) +
+        '<section class="hub-sec hub-learn"><a href="' + ROOT + String(H.learn || '/learn/').replace(/^\//, '') + '">New to ' + esc(segName) + ' betting? Read the guide &rarr;</a></section>';
+    });
+  }
+
   // ---------------------------------------------------------------- boot
   // "i" tooltips open on tap (phones) as well as hover
   document.addEventListener('click', function(e) {
@@ -2216,12 +2414,13 @@
     if (tip) tip.classList.toggle('open');
   });
   // NHL's data.json is its own shape; its Games, Stats, Trends and Teams pages read the shared shape (nhl/sport.json)
-  var DATA_FILE = SPORT_SLUG === 'nhl' && ['games', 'stats', 'trends', 'teams', 'team'].indexOf(SECTION) !== -1 ? 'sport.json' : 'data.json';
+  var DATA_FILE = SPORT_SLUG === 'nhl' && ['hub', 'games', 'stats', 'trends', 'teams', 'team'].indexOf(SECTION) !== -1 ? 'sport.json' : 'data.json';
   fetch(ROOT + SPORT_SLUG + '/' + DATA_FILE).then(function(r) { return r.json(); }).then(function(data) {
     D = data;
     if (SECTION === 'odds') { renderOdds(); return; }   // works from odds.json alone for NHL
     if (!D.segments || !D.segments.length) return;
-    if (SECTION === 'games') renderGames();
+    if (SECTION === 'hub') renderHub();
+    else if (SECTION === 'games') renderGames();
     else if (SECTION === 'stats') renderStats();
     else if (SECTION === 'trends') renderTrends();
     else if (SECTION === 'team') renderTeam();
