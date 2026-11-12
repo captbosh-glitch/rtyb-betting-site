@@ -5953,6 +5953,48 @@
     "streakTeamName": "Tennessee Tech"
    },
    {
+    "id": "ncaab|401920412|1h|ml|away",
+    "game": "ncaab|401920412",
+    "date": "2026-11-12",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
+    "start": "2026-11-13T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Southern Utah @ High Point",
+    "href": "college-basketball/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 800,
+    "title": "Southern Utah 1H ML",
+    "est": 0.1465,
+    "edge": 0.0354,
+    "agree": 2,
+    "sample": 3,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 3,
+    "streakTeam": "southern-utah-thunderbirds",
+    "angles": [
+     [
+      "Southern Utah 1H ML, season",
+      "3-0"
+     ],
+     [
+      "Southern Utah 1H ML, last 8",
+      "3-0"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Southern Utah"
+   },
+   {
     "id": "nba|401909978|1q|total|under",
     "game": "nba|401909978",
     "date": "2026-11-12",
