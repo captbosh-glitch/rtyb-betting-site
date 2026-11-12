@@ -5856,56 +5856,6 @@
     "streakTeamName": "Hornets"
    },
    {
-    "id": "nhl|2026020300|1p|ml|away",
-    "game": "nhl|2026020300",
-    "date": "2026-11-12",
-    "sport": "nhl",
-    "label": "NHL",
-    "slug": "nhl",
-    "start": "2026-11-13T00:00:00Z",
-    "seg": "1p",
-    "segTag": "1P",
-    "matchup": "Minnesota @ Toronto",
-    "href": "nhl/games/?date=2026-11-12",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": -145,
-    "title": "Minnesota 1P ML",
-    "est": 0.6338,
-    "edge": 0.042,
-    "agree": 4,
-    "sample": 12,
-    "tier": "B",
-    "tags": [
-     "Chalk Eater"
-    ],
-    "streak": 0,
-    "streakTeam": "MIN",
-    "angles": [
-     [
-      "Minnesota 1P ML, last 8",
-      "5-0-3"
-     ],
-     [
-      "Minnesota 1P ML, season",
-      "9-3-8"
-     ],
-     [
-      "Minnesota 1P ML on the road",
-      "5-2-6"
-     ],
-     [
-      "Toronto\u2019s opponents 1P ML, Toronto at home",
-      "7-3-2"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Minnesota"
-   },
-   {
     "id": "nba|401909976|1h|total|over",
     "game": "nba|401909976",
     "date": "2026-11-12",
@@ -6001,6 +5951,56 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Chicago"
+   },
+   {
+    "id": "nhl|2026020300|1p|ml|away",
+    "game": "nhl|2026020300",
+    "date": "2026-11-12",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-13T00:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Minnesota @ Toronto",
+    "href": "nhl/games/?date=2026-11-12",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": -150,
+    "title": "Minnesota 1P ML",
+    "est": 0.6397,
+    "edge": 0.0397,
+    "agree": 4,
+    "sample": 12,
+    "tier": "C",
+    "tags": [
+     "Chalk Eater"
+    ],
+    "streak": 0,
+    "streakTeam": "MIN",
+    "angles": [
+     [
+      "Minnesota 1P ML, last 8",
+      "5-0-3"
+     ],
+     [
+      "Minnesota 1P ML, season",
+      "9-3-8"
+     ],
+     [
+      "Minnesota 1P ML on the road",
+      "5-2-6"
+     ],
+     [
+      "Toronto\u2019s opponents 1P ML, Toronto at home",
+      "7-3-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Minnesota"
    },
    {
     "id": "ncaab|401916288|1h|ml|away",
