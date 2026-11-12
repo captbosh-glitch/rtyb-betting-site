@@ -5768,6 +5768,48 @@
  "2026-11-12": {
   "plays": [
    {
+    "id": "nba|401909979|1h|ml|away",
+    "game": "nba|401909979",
+    "date": "2026-11-12",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-13T02:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Hornets @ Suns",
+    "href": "nba/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 160,
+    "title": "Hornets 1H ML",
+    "est": 0.4275,
+    "edge": 0.0429,
+    "agree": 2,
+    "sample": 11,
+    "tier": "B",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "cha",
+    "angles": [
+     [
+      "Hornets 1H ML on the road",
+      "3-1"
+     ],
+     [
+      "Hornets 1H ML, season",
+      "6-5"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Hornets"
+   },
+   {
     "id": "nhl|2026020300|1p|ml|away",
     "game": "nhl|2026020300",
     "date": "2026-11-12",
@@ -5816,48 +5858,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Minnesota"
-   },
-   {
-    "id": "nba|401909979|1h|ml|away",
-    "game": "nba|401909979",
-    "date": "2026-11-12",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-13T02:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Hornets @ Suns",
-    "href": "nba/games/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 152,
-    "title": "Hornets 1H ML",
-    "est": 0.4365,
-    "edge": 0.0397,
-    "agree": 2,
-    "sample": 11,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 1,
-    "streakTeam": "cha",
-    "angles": [
-     [
-      "Hornets 1H ML on the road",
-      "3-1"
-     ],
-     [
-      "Hornets 1H ML, season",
-      "6-5"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Hornets"
    },
    {
     "id": "nba|401909976|1h|total|over",
