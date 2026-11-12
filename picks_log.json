@@ -5550,10 +5550,10 @@
     "market": "total",
     "side": "under",
     "line": 59.5,
-    "price": -105,
+    "price": -110,
     "title": "1Q Under 59.5",
-    "est": 0.5564,
-    "edge": 0.0442,
+    "est": 0.5647,
+    "edge": 0.0409,
     "agree": 6,
     "sample": 12,
     "tier": "B",
@@ -5670,8 +5670,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Wizards"
    },
    {
