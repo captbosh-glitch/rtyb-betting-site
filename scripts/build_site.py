@@ -1048,7 +1048,7 @@ def main():
     home.write_picks(template, full_data, LOGO_SVG, picks_body)
     streaks_page.write(template, full_data, LOGO_SVG)
     # The Daily's latest recap and preview at the top of each Games page
-    daily.inject_arena({'nhl': 'nhl/games', 'nba': 'nba/games'}, datetime.now(sport_build.ET).date().isoformat())
+    daily.inject_arena({sp['key']: f"{sp['slug']}/games" for sp in sports.SPORTS}, datetime.now(sport_build.ET).date().isoformat())
     # Last: share tags, analytics and footer links on every page; sitemap.xml, robots.txt
     sitemap_urls = seo.finish()
 

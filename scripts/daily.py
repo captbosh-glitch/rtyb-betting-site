@@ -14,9 +14,11 @@ content/columns/):
   ---
   **The hook line.** Then the body...
 
-Pages: /daily/ (everything, newest first), /{sport}/recap/{date}/,
-/{sport}/preview/{date}/ and /column/{slug}/. The latest recap and preview
-also show on the home page's Daily section and at the top of each sport's
+Pages: /daily/ (everything, newest first), /{sport slug}/recap/{date}/,
+/{sport slug}/preview/{date}/ and /column/{slug}/. Every sport in
+scripts/sports.py can have them; football's are weekly (the Weekend Recap
+and the Week Preview). The latest recap and preview also show on the home
+page's Daily section, the sport's hub (scripts/hub.py) and the top of its
 Games page (inject_arena).
 """
 import html
@@ -25,9 +27,12 @@ import os
 import re
 from datetime import date
 
+import sports
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PUBLISHED = os.path.join(ROOT, 'content', 'published')
 KIND = {'recap': ('The Morning Run', 'recap'), 'preview': ('On Tap', 'preview'), 'column': ('Running Tab', 'column')}
+WEEKLY_KIND = {'recap': 'Weekend Recap', 'preview': 'Week Preview'}
 FOOT = '<p class="dp-21">21+ only. Gambling problem? Call 1-800-GAMBLER.</p>'
 
 
@@ -113,10 +118,10 @@ def load():
         if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', day):
             continue
         sport = meta.get('sport') if kind != 'column' else None
-        if kind != 'column' and sport not in ('nhl', 'nba'):
+        if kind != 'column' and sport not in sports.BY_KEY:
             continue
         slug = re.sub(r'[^a-z0-9-]+', '-', str(meta.get('slug') or name[:-3].replace('column-', '')).lower()).strip('-')
-        path = f'column/{slug}/' if kind == 'column' else f'{sport}/{kind}/{day}/'
+        path = f'column/{slug}/' if kind == 'column' else f"{sports.BY_KEY[sport]['slug']}/{kind}/{day}/"
         hook, teaser = hook_and_teaser(body)
         out.append({'kind': kind, 'sport': sport, 'date': day, 'slug': slug, 'path': path, 'body': body,
                     'title': meta.get('title') or hook or name[:-3], 'hook': hook, 'teaser': teaser})
@@ -129,8 +134,11 @@ def nice_date(day):
 
 
 def kicker(p):
-    name = KIND[p['kind']][0]
-    return f"{name} &middot; {p['sport'].upper()}" if p['sport'] else name
+    if not p['sport']:
+        return KIND[p['kind']][0]
+    sp = sports.BY_KEY[p['sport']]
+    name = WEEKLY_KIND[p['kind']] if sp.get('schedule') == 'week' else KIND[p['kind']][0]
+    return f"{name} &middot; {sp['label']}"
 
 
 def card(p, href, label=None):
@@ -172,12 +180,12 @@ def write_pages(page, status, logo_svg, pieces=None):
                        f'<b>{esc(p["title"])}</b><span class="muted">{esc(p["hook"] or p["teaser"])}</span></a></li>' for p in pieces)
         body = (f'<section class="hp-sec dp-index"><h1>The Daily</h1>'
                 f'<p class="lead">The Morning Run (yesterday&rsquo;s recap), On Tap (today&rsquo;s preview) and the Running Tab column, '
-                f'for the NHL and NBA. Newest first.</p><ul class="dp-list">{rows}</ul></section>')
+                f'for every sport we cover. Newest first.</p><ul class="dp-list">{rows}</ul></section>')
     else:
         body = ('<section class="hp-sec hd-soon"><h1>The Daily</h1>'
                 '<p class="lead">Coming soon: The Morning Run (yesterday&rsquo;s recap), On Tap (today&rsquo;s preview) and the weekly '
-                'Running Tab column, for the NHL and NBA.</p><p><a href="../">Back to today&rsquo;s games</a></p></section>')
-    out = page('RTYB — The Daily', 'Recaps, previews and the weekly column from RTYB, for NHL and NBA first-segment bettors.',
+                'Running Tab column, for every sport we cover.</p><p><a href="../">Back to today&rsquo;s games</a></p></section>')
+    out = page('RTYB — The Daily', 'Recaps, previews and the weekly column from RTYB, for first-period, first-quarter and first-half bettors.',
                body, status, depth='../').replace('__LOGO_SVG__', logo_svg)
     os.makedirs(os.path.join(ROOT, 'daily'), exist_ok=True)
     with open(os.path.join(ROOT, 'daily', 'index.html'), 'w', encoding='utf-8') as f:
@@ -188,11 +196,13 @@ def write_pages(page, status, logo_svg, pieces=None):
 def arena_html(pieces, sport, today):
     """The latest preview and recap for one sport, as two cards."""
     out = []
+    weekly = sports.BY_KEY[sport].get('schedule') == 'week'
     for kind, when in (('preview', "today's preview"), ('recap', 'yesterday')):
         p = latest(pieces, kind, sport)
         if not p:
             continue
-        label = f"{KIND[kind][0]} &middot; {when if p['date'] == today else esc(date.fromisoformat(p['date']).strftime('%b %-d'))}"
+        name = WEEKLY_KIND[kind] if weekly else KIND[kind][0]
+        label = f"{name} &middot; {when if p['date'] == today and not weekly else esc(date.fromisoformat(p['date']).strftime('%b %-d'))}"
         out.append(card(p, '/' + p['path'], label))
     return f'<div class="dp-arena">{"".join(out)}</div>' if out else ''
 

@@ -1,8 +1,14 @@
 """
 The Daily's drafts, written by Claude from the site's own numbers:
 
-  recap    The Morning Run: last night's NHL / NBA results, from 8 AM ET
+  recap    The Morning Run: last night's results, from 8 AM ET
   preview  On Tap: today's slate, from 11 AM ET
+
+for every sport with games that day (scripts/sports.py). Football is
+weekly: the Weekend Recap on Monday from 8 AM ET and the Week Preview on
+Thursday from 9 AM ET. Previews tease (games, start times, streaks, where
+our trends stack up) with no records, hit rates, prices or picks, and end
+with a link to the sport's Trends page.
 
 Each run of the refresh workflow calls this (no arguments). A draft is
 written once per sport and day, on the first run inside its window, to
@@ -26,14 +32,18 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import grading  # noqa: E402
+import sports  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ET = ZoneInfo('America/New_York')
 DRAFTS = os.path.join(ROOT, 'content', 'drafts')
 PUBLISHED = os.path.join(ROOT, 'content', 'published')
-SPORTS = ('nhl', 'nba')
-# kind -> (first ET hour, last ET hour) a scheduled run may write it
-WINDOWS = {'recap': (8, 14), 'preview': (11, 18)}
+SPORTS = tuple(sp['key'] for sp in sports.SPORTS)   # a sport with no games that day gets no draft
+# kind -> (weekday, first ET hour, last ET hour) a scheduled run may write
+# it; weekday None is every day. Football's pieces are weekly: the Weekend
+# Recap on Monday, the Week Preview on Thursday.
+WINDOWS = {'recap': (None, 8, 14), 'preview': (None, 11, 18)}
+WEEKLY_WINDOWS = {'recap': (0, 8, 14), 'preview': (3, 9, 18)}
 MODEL = 'claude-opus-5-5'
 STREAK_MIN = 3   # runs this long are worth a mention
 
@@ -190,37 +200,46 @@ def nhl_preview(day):
     slate = (D.get('schedule', {}).get('games') or {}).get(day, [])
     if not slate:
         return None
+    # a tease (teaser_games): start, how many trends land on it, streaks
     log = read_json(os.path.join(ROOT, 'league_trends_log.json'), {})
-    picks = {}
+    on = {}
     for t in (log.get(day) or {}).get('trends') or []:
         if t.get('kind') and t.get('strength') != 'weak':
             for p in t['games']:
-                picks.setdefault(p['key'], []).append({'trend': t['title'], 'strength': t['strength'], 'season_record': t.get('record'), 'pick': p.get('label')})
-    seqs = nhl_seqs(D, day)
+                on[p['key']] = on.get(p['key'], 0) + 1
+    seqs = nhl_seqs(D, (date.fromisoformat(day) - timedelta(days=1)).isoformat())
     games = []
     for g in slate:
         a, h = g['away'], g['home']
-        o = g.get('odds') or {}
         games.append({'matchup': f'{nhl_name(D, a)} at {nhl_name(D, h)}', 'start': et_time(g.get('startTimeUTC')),
-                      'prices_1p': {'moneyline': o.get('ml'), '3-way': o.get('ml3'), 'total_1.5': (o.get('totals') or {}).get('1.5'),
-                                    'btts_yes': o.get('btts_yes'), 'btts_no': o.get('btts_no')},
-                      'trends': picks.get(f'{day}|{a}|{h}', []),
-                      'streaks': active_streaks(seqs, {a, h}, NHL_LABELS)})
-    return {'sport': 'NHL', 'segment': '1st period', 'date': day, 'games': games}
+                      'trends_on_this_game': on.get(f'{day}|{a}|{h}', 0),
+                      'streaks': [f"{x['team']} {x['streak']}" for x in active_streaks(seqs, {a, h}, NHL_LABELS)][:4]})
+    return {'sport': 'NHL', 'segment': '1st period', 'date': day, 'games': games, 'trends_page': '/nhl/trends/'}
 
 
-# ----------------------------------------------------------------- NBA
+# ------------------------------------------------- every other sport
+# The shared data.json shape (scripts/sport_build.py), so one builder covers
+# the NBA, WNBA, NCAAB and MLB by day and the NFL and NCAAF by week.
 
-NBA_LABELS = {'su': {'W': 'won', 'L': 'lost'}, 'ats': {'W': 'covered', 'L': 'failed to cover'}, 'tot': {'O': 'Over', 'U': 'Under'}}
+LABELS = {'su': {'W': 'won', 'L': 'lost'}, 'ats': {'W': 'covered', 'L': 'failed to cover'}, 'tot': {'O': 'Over', 'U': 'Under'},
+          'rfi': {'Y': 'had a run in the 1st inning', 'N': 'had no run in the 1st inning'}}
 FLIP = {'W': 'L', 'L': 'W'}
 
 
-def nba_team(D, slug):
-    t = D['teams'].get(slug) or D.get('otherTeams', {}).get(slug) or {}
-    return t.get('name', slug), t.get('code', slug.upper())
+def doc_of(key):
+    return read_json(os.path.join(ROOT, sports.BY_KEY[key]['slug'], 'data.json'), {})
 
 
-def nba_seqs(D, through):
+def team_of(D, slug):
+    t = D['teams'].get(slug)
+    if t:
+        return t.get('name', slug), t.get('code', slug.upper())
+    name = D.get('otherTeams', {}).get(slug) or slug   # non-Division I opponents: a name only
+    return name, name
+
+
+def seqs_of(D, through):
+    """{(team code, 'seg:market'): results oldest first}, games on or before `through`."""
     seqs = {}
     for d in sorted(D.get('games') or {}):
         if d > through:
@@ -228,31 +247,43 @@ def nba_seqs(D, through):
         for g in D['games'][d]:
             for k, r in (g.get('res') or {}).items():
                 for side in ('away', 'home'):
-                    code = nba_team(D, g[side])[1]
-                    for m in ('su', 'ats', 'tot'):
+                    code = team_of(D, g[side])[1]
+                    for m in LABELS:
                         x = r.get(m)
                         if x in (None, 'NA'):
                             continue
-                        if m != 'tot' and side == 'home':
+                        if m in ('su', 'ats') and side == 'home':
                             x = FLIP.get(x, x)
                         seqs.setdefault((code, f'{k}:{m}'), []).append(x)
     return seqs
 
 
-def nba_labels(D):
-    return {f"{s['key']}:{m}": {r: f'{w} the {s["tag"]}' if m != 'tot' else f'{w} in the {s["tag"]}' for r, w in NBA_LABELS[m].items()}
-            for s in D['segments'] for m in NBA_LABELS}
+def labels_of(D):
+    out = {}
+    for s in D['segments']:
+        for m, words in LABELS.items():
+            if m == 'rfi':
+                out[f"{s['key']}:{m}"] = dict(words)
+            else:
+                out[f"{s['key']}:{m}"] = {r: f'{w} the {s["tag"]}' if m != 'tot' else f'{w} in the {s["tag"]}' for r, w in words.items()}
+    return out
 
 
-def nba_recap(day):
-    D = read_json(os.path.join(ROOT, 'nba', 'data.json'), {})
-    finals = [g for g in (D.get('games') or {}).get(day, []) if g.get('state') == 'final' and g.get('res')]
-    if not finals:
-        return None
+def seg_words(key):
+    return ' and '.join(s['label'] for s in sports.BY_KEY[key]['segments']).lower()
+
+
+def finals_between(D, first, last):
+    return [g for d in sorted(D.get('games') or {}) if first <= d <= last for g in D['games'][d]
+            if g.get('state') == 'final' and g.get('res')]
+
+
+def results_packet(key, D, finals):
+    """Every finished game's segment results, and the bets for best / worst."""
     seg_tag = {s['key']: s['tag'] for s in D['segments']}
     games, bets = [], []
     for g in finals:
-        (an, ac), (hn, hc) = nba_team(D, g['away']), nba_team(D, g['home'])
+        (an, ac), (hn, hc) = team_of(D, g['away']), team_of(D, g['home'])
         row = {'matchup': f'{an} at {hn}', 'final': f"{ac} {g['as']} - {hc} {g['hs']}", 'segments': {}}
         for k, r in g['res'].items():
             o = (g.get('odds') or {}).get(k) or {}
@@ -271,8 +302,10 @@ def nba_recap(day):
                 seg['total'] = {'line': tot.get('line'), 'result': {'O': 'Over', 'U': 'Under', 'P': 'Push'}[r['tot']],
                                 'over_price': tot.get('over'), 'under_price': tot.get('under'),
                                 'over_units': (u.get('tot') or [None])[0], 'under_units': (u.get('tot') or [None, None])[1]}
+            if r.get('rfi') in ('Y', 'N'):
+                seg['run_in_1st_inning'] = 'Yes' if r['rfi'] == 'Y' else 'No'
             row['segments'][seg_tag.get(k, k)] = seg
-            for name, m in (('moneyline', 'ml'), ('spread', 'ats')):
+            for name in ('moneyline', 'spread'):
                 for code, v in (seg.get(name) or {}).items():
                     bets.append({'bet': f"{code} {seg_tag.get(k, k)} {name}" + (f" {v['line']:+g}" if v.get('line') is not None else ''),
                                  'game': row['matchup'], 'price': v.get('price'), 'result': v['result'], 'units': v.get('units')})
@@ -282,45 +315,124 @@ def nba_recap(day):
                     bets.append({'bet': f"{side} {t['line']} {seg_tag.get(k, k)}", 'game': row['matchup'], 'price': t[side.lower() + '_price'],
                                  'result': res if t['result'] != 'Push' else 'P', 'units': t[side.lower() + '_units']})
         games.append(row)
-    log = read_json(os.path.join(ROOT, 'trends_log', 'nba.json'), {})
-    labels = nba_labels(D)
-    played = {nba_team(D, g[s])[1] for g in finals for s in ('away', 'home')}
+    return games, bets
+
+
+def sport_recap(key, day):
+    """Daily sports: the night of `day`."""
+    D = doc_of(key)
+    finals = finals_between(D, day, day)
+    if not finals:
+        return None
+    games, bets = results_packet(key, D, finals)
+    log = read_json(os.path.join(ROOT, 'trends_log', f'{key}.json'), {})
+    labels, seqs = labels_of(D), seqs_of(D, day)
+    played = {team_of(D, g[s])[1] for g in finals for s in ('away', 'home')}
     today = (date.fromisoformat(day) + timedelta(days=1)).isoformat()
     tonight = (D.get('games') or {}).get(today, [])
-    return {'sport': 'NBA', 'segments': '1st quarter and 1st half', 'date_of_games': day, 'games': games,
+    return {'sport': sports.BY_KEY[key]['label'], 'segments': seg_words(key), 'date_of_games': day, 'games': games,
             'league_trends': {'record': (log.get(day) or {}).get('record'), 'picks': trend_results(log.get(day))},
-            'streaks': streak_changes(nba_seqs(D, day), played, labels),
+            'streaks': streak_changes(seqs, played, labels),
             'night': best_and_worst(bets),
             'carries_into_today': {'date': today, 'games_today': len(tonight),
                                    'active_streaks_for_teams_playing_today': active_streaks(
-                                       nba_seqs(D, day), {nba_team(D, g[s])[1] for g in tonight for s in ('away', 'home')}, labels)[:8]}}
+                                       seqs, {team_of(D, g[s])[1] for g in tonight for s in ('away', 'home')}, labels)[:8]}}
 
 
-def nba_preview(day):
-    D = read_json(os.path.join(ROOT, 'nba', 'data.json'), {})
+def teaser_games(key, D, slate, log_entry, through):
+    """Previews tease: each game's start, how many of our trends land on it
+    and the teams' active streaks -- no records, hit rates, prices or picks."""
+    on = {}
+    for t in (log_entry or {}).get('trends') or []:
+        if t.get('kind') and t.get('strength') != 'weak':
+            for p in t.get('games') or []:
+                on[p.get('key')] = on.get(p.get('key'), 0) + 1
+    seqs, labels = seqs_of(D, through), labels_of(D)
+    weekly = D.get('schedule') == 'week'
+    out = []
+    for g in slate:
+        (an, ac), (hn, hc) = team_of(D, g['away']), team_of(D, g['home'])
+        start = g.get('start')
+        when = (datetime.fromisoformat(start.replace('Z', '+00:00')).astimezone(ET).strftime('%A %-I:%M %p ET') if weekly and start
+                else et_time(start))
+        out.append({'matchup': f'{an} at {hn}', 'start': when, 'trends_on_this_game': on.get(g['id'], 0),
+                    'streaks': [f"{x['team']} {x['streak']}" for x in active_streaks(seqs, {ac, hc}, labels)][:4]})
+    return busiest(out)
+
+
+PREVIEW_MAX = 15   # a college slate can run 60+ games: tease the ones with the most going on
+
+
+def busiest(games):
+    if len(games) <= PREVIEW_MAX:
+        return games
+    keep = sorted(range(len(games)), key=lambda i: (-games[i]['trends_on_this_game'], -len(games[i]['streaks']), i))[:PREVIEW_MAX]
+    return [games[i] for i in sorted(keep)]
+
+
+def sport_preview(key, day):
+    D = doc_of(key)
     slate = (D.get('games') or {}).get(day, [])
     if not slate:
         return None
-    seg_tag = {s['key']: s['tag'] for s in D['segments']}
-    log = read_json(os.path.join(ROOT, 'trends_log', 'nba.json'), {})
-    picks = {}
-    for t in (log.get(day) or {}).get('trends') or []:
-        if t.get('kind') and t.get('strength') != 'weak':
-            for p in t['games']:
-                picks.setdefault(p['key'], []).append({'trend': t['title'], 'strength': t['strength'], 'season_record': t.get('record'), 'pick': p.get('label')})
-    seqs, labels = nba_seqs(D, day), nba_labels(D)
-    games = []
-    for g in slate:
-        (an, ac), (hn, hc) = nba_team(D, g['away']), nba_team(D, g['home'])
-        games.append({'matchup': f'{an} at {hn}', 'start': et_time(g.get('start')),
-                      'prices': {seg_tag.get(k, k): {m: v[m] for m in ('ml', 'ats', 'total') if m in v} for k, v in (g.get('odds') or {}).items()},
-                      'trends': picks.get(g['id'], []),
-                      'streaks': active_streaks(seqs, {ac, hc}, labels)})
-    return {'sport': 'NBA', 'segments': '1st quarter and 1st half', 'date': day, 'games': games}
+    log = read_json(os.path.join(ROOT, 'trends_log', f'{key}.json'), {})
+    sp = sports.BY_KEY[key]
+    return {'sport': sp['label'], 'segments': seg_words(key), 'date': day, 'games_on_the_slate': len(slate),
+            'games': teaser_games(key, D, slate, log.get(day), (date.fromisoformat(day) - timedelta(days=1)).isoformat()),
+            'trends_page': f"/{sp['slug']}/trends/"}
 
 
-BUILDERS = {('recap', 'nhl'): nhl_recap, ('recap', 'nba'): nba_recap,
-            ('preview', 'nhl'): nhl_preview, ('preview', 'nba'): nba_preview}
+def week_of(D, day):
+    """The week `day` falls in, else the next one."""
+    weeks = D.get('weeks') or []
+    return next((w for w in weeks if w['start'] <= day <= w['end']), None) or next((w for w in weeks if w['start'] > day), None)
+
+
+def week_recap(key, day):
+    """Football, Monday: the week's games through Sunday."""
+    D = doc_of(key)
+    yday = (date.fromisoformat(day) - timedelta(days=1)).isoformat()
+    wk = next((w for w in D.get('weeks') or [] if w['start'] <= yday <= w['end']), None)
+    if not wk:
+        return None
+    finals = [g for g in finals_between(D, wk['start'], yday) if g.get('wk') == wk['key']]
+    if not finals:
+        return None
+    games, bets = results_packet(key, D, finals)
+    log = read_json(os.path.join(ROOT, 'trends_log', f'{key}.json'), {})
+    labels, seqs = labels_of(D), seqs_of(D, yday)
+    played = {team_of(D, g[s])[1] for g in finals for s in ('away', 'home')}
+    return {'sport': sports.BY_KEY[key]['label'], 'segments': seg_words(key), 'week': wk['label'],
+            'games_from': wk['start'], 'games_through': yday, 'games': games,
+            'league_trends': {'record': (log.get(wk['key']) or {}).get('record'), 'picks': trend_results(log.get(wk['key']))},
+            'streaks': streak_changes(seqs, played, labels),
+            'weekend': best_and_worst(bets)}
+
+
+def week_preview(key, day):
+    """Football, Thursday: the week's games still to play."""
+    D = doc_of(key)
+    wk = week_of(D, day)
+    if not wk:
+        return None
+    slate = sorted((g for d in sorted(D.get('games') or {}) for g in D['games'][d]
+                    if g.get('wk') == wk['key'] and g.get('state') not in ('final', 'post')), key=lambda g: g.get('start') or '')
+    if not slate:
+        return None
+    log = read_json(os.path.join(ROOT, 'trends_log', f'{key}.json'), {})
+    sp = sports.BY_KEY[key]
+    return {'sport': sp['label'], 'segments': seg_words(key), 'week': wk['label'], 'games_on_the_slate': len(slate),
+            'games': teaser_games(key, D, slate, log.get(wk['key']), (date.fromisoformat(wk['start']) - timedelta(days=1)).isoformat()),
+            'trends_page': f"/{sp['slug']}/trends/"}
+
+
+def builder(kind, key):
+    if key == 'nhl':
+        return nhl_recap if kind == 'recap' else nhl_preview
+    if sports.BY_KEY[key].get('schedule') == 'week':
+        return lambda day: (week_recap if kind == 'recap' else week_preview)(key, day)
+    return lambda day: (sport_recap if kind == 'recap' else sport_preview)(key, day)
+
 
 # --------------------------------------------------------------- writing
 
@@ -335,16 +447,29 @@ Rules, all of them strict:
 - Start with one bold line that works as a hook, then the body.
 - Finish with one sentence that ends on '21+. Gambling problem? Call 1-800-GAMBLER.' only if you have room; the site adds that line anyway, so it's optional."""
 
+PREVIEW = (" It's a tease, not a tip sheet: name games, start times and streaks as given, and say where several of our trends land on one game, "
+           "but give no records, hit rates, percentages, prices or specific bets. End with one sentence sending readers to the Trends page "
+           "for the full picture, as a Markdown link to the packet's trends_page.")
 TASK = {
     'recap': "Write The Morning Run, today's recap of last night's {sport} {seg} betting results, from this packet. Cover the biggest results, how RTYB's league trends did, the night's best and worst results, and the streaks that were extended or snapped. End with what carries into today (the 'carries_into_today' part).",
-    'preview': "Write On Tap, today's {sport} {seg} betting preview, from this packet. Name only games in the packet, with their start times and prices as given, and the trends and streaks on each game. Point out where several trends line up on one game. Don't promise outcomes.",
+    'preview': "Write On Tap, today's {sport} {seg} betting preview, from this packet." + PREVIEW,
+    'week_recap': "Write the Weekend Recap, the {sport} {seg} betting results of {week} so far, from this packet. Cover the biggest results, how RTYB's league trends did, the weekend's best and worst results, and the streaks that were extended or snapped.",
+    'week_preview': "Write the {week} Preview, this week's {sport} {seg} betting preview, from this packet." + PREVIEW,
 }
 
 
-def title(kind, sport, day):
-    seg = 'First Period' if sport == 'nhl' else 'First Quarter and Half'
+def weekly(sport):
+    return sports.BY_KEY[sport].get('schedule') == 'week'
+
+
+def title(kind, sport, day, packet=None):
+    sp = sports.BY_KEY[sport]
+    seg = ' and '.join(s['label'].replace('1st ', 'First ') for s in sp['segments'])
     when = date.fromisoformat(day).strftime('%b %-d, %Y')
-    return f"{sport.upper()} {seg} Betting {'Recap' if kind == 'recap' else 'Preview'} — {when}"
+    if weekly(sport):
+        week = (packet or {}).get('week') or 'Week'
+        return f"{sp['label']} {seg} Betting {'Weekend Recap' if kind == 'recap' else week + ' Preview'} — {when}"
+    return f"{sp['label']} {seg} Betting {'Recap' if kind == 'recap' else 'Preview'} — {when}"
 
 
 def numbers_in(text):
@@ -368,7 +493,8 @@ def write_piece(kind, sport, day, packet):
     import anthropic   # only the scheduled run needs the SDK
     client = anthropic.Anthropic()
     seg = packet.get('segment') or packet.get('segments')
-    prompt = TASK[kind].format(sport=packet['sport'], seg=seg) + '\n\n<packet>\n' + json.dumps(packet, indent=1, ensure_ascii=False) + '\n</packet>'
+    task = TASK[('week_' if weekly(sport) else '') + kind]
+    prompt = task.format(sport=packet['sport'], seg=seg, week=packet.get('week')) + '\n\n<packet>\n' + json.dumps(packet, indent=1, ensure_ascii=False) + '\n</packet>'
     # A declined request falls back server-side to Anthropic's recommended model
     response = client.beta.messages.create(
         model=MODEL, max_tokens=16000,
@@ -392,7 +518,7 @@ def draft_path(kind, sport, day):
 def save(kind, sport, day, body, model, packet):
     os.makedirs(DRAFTS, exist_ok=True)
     check = unchecked_numbers(body, packet)
-    front = ['---', f'title: {json.dumps(title(kind, sport, day), ensure_ascii=False)}', f'sport: {sport}', f'kind: {kind}',
+    front = ['---', f'title: {json.dumps(title(kind, sport, day, packet), ensure_ascii=False)}', f'sport: {sport}', f'kind: {kind}',
              f'date: {day}', f"written: {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%MZ')}", f'model: {model}',
              f'check: {json.dumps(check)}', '---', '']
     with open(draft_path(kind, sport, day), 'w', encoding='utf-8') as f:
@@ -410,8 +536,10 @@ def exists(kind, sport, day):
 
 def packet_for(kind, sport, day):
     """The recap dated `day` covers the games the night before."""
+    if weekly(sport):   # the week's own rules (week_recap / week_preview)
+        return builder(kind, sport)(day)
     games_day = (date.fromisoformat(day) - timedelta(days=1)).isoformat() if kind == 'recap' else day
-    return BUILDERS[(kind, sport)](games_day)
+    return builder(kind, sport)(games_day)
 
 
 def scheduled(now=None):
@@ -420,10 +548,11 @@ def scheduled(now=None):
         print('ANTHROPIC_API_KEY not set; no drafts written')
         return
     day = now.date().isoformat()
-    for kind, (start, end) in WINDOWS.items():
-        if not start <= now.hour <= end:
-            continue
+    for kind in WINDOWS:
         for sport in SPORTS:
+            wday, start, end = (WEEKLY_WINDOWS if weekly(sport) else WINDOWS)[kind]
+            if (wday is not None and now.weekday() != wday) or not start <= now.hour <= end:
+                continue
             if exists(kind, sport, day):
                 continue
             packet = packet_for(kind, sport, day)
