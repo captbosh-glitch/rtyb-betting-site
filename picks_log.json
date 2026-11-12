@@ -5911,6 +5911,48 @@
     "streakTeamName": "Raptors"
    },
    {
+    "id": "ncaab|401916288|1h|ml|away",
+    "game": "ncaab|401916288",
+    "date": "2026-11-12",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
+    "start": "2026-11-12T23:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Tennessee Tech @ Indiana",
+    "href": "college-basketball/games/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 1000,
+    "title": "Tennessee Tech 1H ML",
+    "est": 0.1281,
+    "edge": 0.0372,
+    "agree": 2,
+    "sample": 3,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 2,
+    "streakTeam": "tennessee-tech-golden-eagles",
+    "angles": [
+     [
+      "Tennessee Tech 1H ML, season",
+      "2-1"
+     ],
+     [
+      "Tennessee Tech 1H ML, last 8",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Tennessee Tech"
+   },
+   {
     "id": "nba|401909978|1q|total|under",
     "game": "nba|401909978",
     "date": "2026-11-12",
