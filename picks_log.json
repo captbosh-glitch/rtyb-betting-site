@@ -6178,6 +6178,56 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Colorado"
+   },
+   {
+    "id": "nba|401909978|1q|total|under",
+    "game": "nba|401909978",
+    "date": "2026-11-12",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-13T01:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Mavericks @ Timberwolves",
+    "href": "nba/games/",
+    "market": "total",
+    "side": "under",
+    "line": 58.5,
+    "price": -102,
+    "title": "1Q Under 58.5",
+    "est": 0.5356,
+    "edge": 0.0307,
+    "agree": 6,
+    "sample": 11,
+    "tier": "C",
+    "tags": [
+     "Under Grinder"
+    ],
+    "streak": 2,
+    "streakTeam": "min",
+    "angles": [
+     [
+      "Timberwolves 1Q unders at home (58.5)",
+      "5-0"
+     ],
+     [
+      "Timberwolves 1Q unders, last 8 (58.5)",
+      "6-2"
+     ],
+     [
+      "Mavericks 1Q unders, last 8 (58.5)",
+      "6-2"
+     ],
+     [
+      "Mavericks 1Q unders on the road (58.5)",
+      "3-1"
+     ]
+    ],
+    "info": "Avg 1Q total in their games: Timberwolves 55.7 \u00b7 Mavericks 56.1",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Timberwolves"
    }
   ]
  }
