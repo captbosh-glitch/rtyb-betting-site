@@ -1682,6 +1682,9 @@
   .ft-signup h2 { font-size: 1.3rem; margin: 0 0 4px; }
   .ft-signup p { margin: 0 0 10px; color: var(--text-muted); font-size: 0.9rem; }
   .rt-signup { max-width: 460px; }
+  /* the iframe's color scheme matches Beehiiv's light document, so it stays
+     see-through on the dark theme (a mismatch paints white behind its corners) */
+  .rt-form iframe { color-scheme: normal; background: transparent; }
   .rt-done { display: none; margin: 8px 0 0; font-weight: 700; color: var(--text); }
   .rt-subbed .rt-form { display: none; }
   .rt-subbed .rt-done { display: block; }
