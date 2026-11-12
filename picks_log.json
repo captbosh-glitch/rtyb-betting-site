@@ -5828,10 +5828,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 160,
+    "price": 162,
     "title": "Hornets 1H ML",
-    "est": 0.4275,
-    "edge": 0.0429,
+    "est": 0.4254,
+    "edge": 0.0437,
     "agree": 2,
     "sample": 11,
     "tier": "B",
@@ -5854,57 +5854,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Hornets"
-   },
-   {
-    "id": "nba|401909976|1h|total|over",
-    "game": "nba|401909976",
-    "date": "2026-11-12",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-13T00:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Raptors @ 76ers",
-    "href": "nba/games/",
-    "market": "total",
-    "side": "over",
-    "line": 107.5,
-    "price": -110,
-    "title": "1H Over 107.5",
-    "est": 0.5657,
-    "edge": 0.0419,
-    "agree": 6,
-    "sample": 12,
-    "tier": "B",
-    "tags": [
-     "Over Lover",
-     "Streak Rider"
-    ],
-    "streak": 8,
-    "streakTeam": "tor",
-    "angles": [
-     [
-      "Raptors 1H overs, last 8 (107.5)",
-      "8-0"
-     ],
-     [
-      "Raptors 1H overs, season (107.5)",
-      "10-1"
-     ],
-     [
-      "Raptors 1H overs on the road (107.5)",
-      "5-1"
-     ],
-     [
-      "76ers 1H overs, season (107.5)",
-      "9-3"
-     ]
-    ],
-    "info": "Avg 1H total in their games: 76ers 112.6 \u00b7 Raptors 115.6",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Raptors"
    },
    {
     "id": "nhl|2026020305|1p|btts|yes",
@@ -6001,6 +5950,57 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Minnesota"
+   },
+   {
+    "id": "nba|401909976|1h|total|over",
+    "game": "nba|401909976",
+    "date": "2026-11-12",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-13T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Raptors @ 76ers",
+    "href": "nba/games/",
+    "market": "total",
+    "side": "over",
+    "line": 107.5,
+    "price": -115,
+    "title": "1H Over 107.5",
+    "est": 0.5736,
+    "edge": 0.0387,
+    "agree": 6,
+    "sample": 12,
+    "tier": "C",
+    "tags": [
+     "Over Lover",
+     "Streak Rider"
+    ],
+    "streak": 8,
+    "streakTeam": "tor",
+    "angles": [
+     [
+      "Raptors 1H overs, last 8 (107.5)",
+      "8-0"
+     ],
+     [
+      "Raptors 1H overs, season (107.5)",
+      "10-1"
+     ],
+     [
+      "Raptors 1H overs on the road (107.5)",
+      "5-1"
+     ],
+     [
+      "76ers 1H overs, season (107.5)",
+      "9-3"
+     ]
+    ],
+    "info": "Avg 1H total in their games: 76ers 112.6 \u00b7 Raptors 115.6",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Raptors"
    },
    {
     "id": "ncaab|401916288|1h|ml|away",
