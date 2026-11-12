@@ -5768,57 +5768,6 @@
  "2026-11-12": {
   "plays": [
    {
-    "id": "nba|401909976|1h|total|over",
-    "game": "nba|401909976",
-    "date": "2026-11-12",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-13T00:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Raptors @ 76ers",
-    "href": "nba/games/",
-    "market": "total",
-    "side": "over",
-    "line": 107.5,
-    "price": -105,
-    "title": "1H Over 107.5",
-    "est": 0.5574,
-    "edge": 0.0452,
-    "agree": 6,
-    "sample": 12,
-    "tier": "B",
-    "tags": [
-     "Over Lover",
-     "Streak Rider"
-    ],
-    "streak": 8,
-    "streakTeam": "tor",
-    "angles": [
-     [
-      "Raptors 1H overs, last 8 (107.5)",
-      "8-0"
-     ],
-     [
-      "Raptors 1H overs, season (107.5)",
-      "10-1"
-     ],
-     [
-      "Raptors 1H overs on the road (107.5)",
-      "5-1"
-     ],
-     [
-      "76ers 1H overs, season (107.5)",
-      "9-3"
-     ]
-    ],
-    "info": "Avg 1H total in their games: 76ers 112.6 \u00b7 Raptors 115.6",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Raptors"
-   },
-   {
     "id": "nba|401909979|1h|ml|away",
     "game": "nba|401909979",
     "date": "2026-11-12",
@@ -5859,6 +5808,57 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Hornets"
+   },
+   {
+    "id": "nba|401909976|1h|total|over",
+    "game": "nba|401909976",
+    "date": "2026-11-12",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-13T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Raptors @ 76ers",
+    "href": "nba/games/",
+    "market": "total",
+    "side": "over",
+    "line": 107.5,
+    "price": -110,
+    "title": "1H Over 107.5",
+    "est": 0.5657,
+    "edge": 0.0419,
+    "agree": 6,
+    "sample": 12,
+    "tier": "B",
+    "tags": [
+     "Over Lover",
+     "Streak Rider"
+    ],
+    "streak": 8,
+    "streakTeam": "tor",
+    "angles": [
+     [
+      "Raptors 1H overs, last 8 (107.5)",
+      "8-0"
+     ],
+     [
+      "Raptors 1H overs, season (107.5)",
+      "10-1"
+     ],
+     [
+      "Raptors 1H overs on the road (107.5)",
+      "5-1"
+     ],
+     [
+      "76ers 1H overs, season (107.5)",
+      "9-3"
+     ]
+    ],
+    "info": "Avg 1H total in their games: 76ers 112.6 \u00b7 Raptors 115.6",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Raptors"
    },
    {
     "id": "nhl|2026020300|1p|ml|away",
@@ -5993,6 +5993,57 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Southern Utah"
+   },
+   {
+    "id": "nba|401909979|1h|total|over",
+    "game": "nba|401909979",
+    "date": "2026-11-12",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-13T02:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Hornets @ Suns",
+    "href": "nba/games/",
+    "market": "total",
+    "side": "over",
+    "line": 104.5,
+    "price": -102,
+    "title": "1H Over 104.5",
+    "est": 0.5367,
+    "edge": 0.0318,
+    "agree": 5,
+    "sample": 11,
+    "tier": "C",
+    "tags": [
+     "Over Lover",
+     "Streak Rider"
+    ],
+    "streak": 5,
+    "streakTeam": "cha",
+    "angles": [
+     [
+      "Suns 1H overs, season (104.5)",
+      "9-1"
+     ],
+     [
+      "Suns 1H overs, last 8 (104.5)",
+      "7-1"
+     ],
+     [
+      "Suns 1H overs at home (104.5)",
+      "6-1"
+     ],
+     [
+      "Hornets 1H overs, season (104.5)",
+      "7-4"
+     ]
+    ],
+    "info": "Avg 1H total in their games: Suns 114.5 \u00b7 Hornets 108.6",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Hornets"
    },
    {
     "id": "nba|401909978|1q|total|under",
