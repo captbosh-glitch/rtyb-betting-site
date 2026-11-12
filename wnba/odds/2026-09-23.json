@@ -1,1 +1,1 @@
-{"date":"2026-09-23","games":[{"books":{},"opens":{},"away":"atl","home":"ny","start":"2026-09-24T00:00Z","state":"final","best":{},"open":{}},{"books":{},"opens":{},"away":"dal","home":"sea","start":"2026-09-24T02:00Z","state":"final","best":{},"open":{}}]}
+{"date":"2026-09-23","games":[{"books":{},"away":"atl","home":"ny","start":"2026-09-24T00:00Z","state":"final","best":{},"open":{},"score":{"1q":[18,19],"1h":[41,26]}},{"books":{},"away":"dal","home":"sea","start":"2026-09-24T02:00Z","state":"final","best":{},"open":{},"score":{"1q":[29,12],"1h":[49,42]}}]}

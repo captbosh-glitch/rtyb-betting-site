@@ -1,1 +1,1 @@
-{"date":"2026-10-22","games":[{"books":{},"opens":{},"away":"cle","home":"phi","start":"2026-10-22T23:00Z","state":"final","best":{},"open":{}},{"books":{},"opens":{},"away":"den","home":"okc","start":"2026-10-23T01:30Z","state":"final","best":{},"open":{}}]}
+{"date":"2026-10-22","games":[{"books":{},"away":"cle","home":"phi","start":"2026-10-22T23:00Z","state":"final","best":{},"open":{},"score":{"1q":[35,18],"1h":[69,45]}},{"books":{},"away":"den","home":"okc","start":"2026-10-23T01:30Z","state":"final","best":{},"open":{},"score":{"1q":[27,24],"1h":[48,44]}}]}

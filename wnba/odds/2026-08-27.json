@@ -1,1 +1,1 @@
-{"date":"2026-08-27","games":[{"books":{},"opens":{},"away":"gs","home":"ny","start":"2026-08-28T00:00Z","state":"final","best":{},"open":{}},{"books":{},"opens":{},"away":"wsh","home":"phx","start":"2026-08-28T02:00Z","state":"final","best":{},"open":{}}]}
+{"date":"2026-08-27","games":[{"books":{},"away":"gs","home":"ny","start":"2026-08-28T00:00Z","state":"final","best":{},"open":{},"score":{"1q":[21,19],"1h":[42,30]}},{"books":{},"away":"wsh","home":"phx","start":"2026-08-28T02:00Z","state":"final","best":{},"open":{},"score":{"1q":[20,18],"1h":[40,37]}}]}

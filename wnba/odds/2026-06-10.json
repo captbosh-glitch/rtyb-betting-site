@@ -1,1 +1,1 @@
-{"date":"2026-06-10","games":[{"books":{},"opens":{},"away":"con","home":"tor","start":"2026-06-10T23:00Z","state":"final","best":{},"open":{}},{"books":{},"opens":{},"away":"la","home":"sea","start":"2026-06-11T02:00Z","state":"final","best":{},"open":{}}]}
+{"date":"2026-06-10","games":[{"books":{},"away":"con","home":"tor","start":"2026-06-10T23:00Z","state":"final","best":{},"open":{},"score":{"1q":[31,30],"1h":[57,46]}},{"books":{},"away":"la","home":"sea","start":"2026-06-11T02:00Z","state":"final","best":{},"open":{},"score":{"1q":[22,17],"1h":[40,40]}}]}
