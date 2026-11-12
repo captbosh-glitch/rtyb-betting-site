@@ -1492,17 +1492,25 @@
   .odds-na { color: var(--text-muted); }
   .odds-empty { font-size: 0.85rem; color: var(--text-muted); padding: 4px 0; }
   .odds-note { font-size: 0.78rem; color: var(--text-muted); margin-top: 16px; line-height: 1.5; }
-  /* Odds board (assets/sport.js renderOdds): one table, Team and Open
-     pinned on the left, a column per source scrolling sideways */
-  .ob-sub { margin: 0 0 10px; color: var(--text-muted); font-size: 0.9rem; }
-  .ob-rows { margin: 6px 0 12px; font-size: 0.8rem; color: var(--text-muted); }
-  .ob-scroll { overflow-x: auto; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--panel); -webkit-overflow-scrolling: touch; }
-  .ob-grid { --ob-team: 128px; --ob-open: 66px; border-collapse: separate; border-spacing: 0; min-width: 0; width: max-content; font-size: 0.84rem; }
+  /* Odds board (assets/sport.js renderOdds): Team and Open pinned on the
+     left, a column per source scrolling sideways. The controls and the
+     header row (its own table, same column widths) stay pinned at the top. */
+  .ob-stick { position: sticky; top: 0; z-index: 20; background: var(--bg); padding-top: 4px; }
+  .ob-stick .odds-controls { margin-bottom: 8px; }
+  .ob-head, .ob-scroll { width: fit-content; max-width: 100%; }
+  .ob-head { overflow-x: auto; scrollbar-width: none; border: 1px solid var(--border-soft); border-bottom: 0; border-radius: 12px 12px 0 0; background: var(--panel); }
+  .ob-head::-webkit-scrollbar { display: none; }
+  .ob-scroll { overflow-x: auto; border: 1px solid var(--border-soft); border-top: 0; border-radius: 0 0 12px 12px; background: var(--panel); -webkit-overflow-scrolling: touch; }
+  .ob-grid { --ob-team: 150px; --ob-open: 66px; --ob-src: 66px; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 0.84rem; min-width: 0;
+    width: calc(var(--ob-team) + var(--ob-open) + var(--n, 0) * var(--ob-src)); }
+  .ob-w-team { width: var(--ob-team); }
+  .ob-w-open { width: var(--ob-open); }
+  .ob-w-src { width: var(--ob-src); }
   .ob-grid th, .ob-grid td { padding: 4px 6px; border-bottom: 1px solid var(--border-soft); text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .ob-grid thead th { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600; height: 34px; }
   .ob-grid .ob-c-team { position: sticky; left: 0; z-index: 1; width: var(--ob-team); min-width: var(--ob-team); max-width: var(--ob-team); text-align: left; background: var(--panel); }
   .ob-grid .ob-c-open { position: sticky; left: var(--ob-team); z-index: 1; width: var(--ob-open); min-width: var(--ob-open); background: var(--panel); color: var(--text-muted); border-right: 1px solid var(--border); }
-  .ob-grid .ob-src { min-width: 62px; }
+  .ob-grid .ob-src { overflow: hidden; }
   .ob-ghead td { position: static; text-align: left; padding: 8px 8px 3px; background: var(--panel-2); border-bottom: 1px solid var(--border-soft); }
   .ob-time { position: sticky; left: 8px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); }
   .ob-team { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; font-weight: 700; color: var(--text); }
@@ -1512,9 +1520,14 @@
   .ob-cell a, .ob-cell > span:first-child { color: var(--text); text-decoration: none; }
   .ob-cell a { display: block; border-radius: 6px; padding: 1px 2px; }
   .ob-cell a:hover { background: var(--panel-2); }
-  .ob-ln { display: block; font-size: 0.72rem; color: var(--text-muted); line-height: 1.2; }
+  .ob-ln { display: block; font-size: 0.9rem; font-weight: 700; color: var(--text); line-height: 1.2; }
   .ob-pr { display: block; font-weight: 600; line-height: 1.25; }
-  .ob-was { display: block; font-size: 0.66rem; color: var(--text-faint); line-height: 1.2; }
+  .ob-pr.ob-pr-sm { font-size: 0.7rem; font-weight: 500; color: var(--text-muted); }
+  .ob-sc { margin-left: auto; padding-left: 6px; font-weight: 700; color: var(--text); }
+  .ob-note td, .ob-key td { text-align: left; padding: 6px 8px; font-size: 0.74rem; color: var(--text-muted); border-bottom: 1px solid var(--border-soft); }
+  .ob-key td { border-bottom: 0; }
+  .ob-note span, .ob-key span { position: sticky; left: 8px; display: inline-flex; align-items: center; gap: 8px; }
+  .ob-key-cell { display: inline-block; width: 26px; height: 16px; }
   .ob-best { box-shadow: inset 0 0 0 1.5px var(--good); border-radius: 6px; }
   .ob-na { color: var(--text-faint); }
   .ob-logo { height: 22px; width: 22px; object-fit: contain; vertical-align: middle; border-radius: 5px; }
@@ -1541,7 +1554,7 @@
   .cal-key { margin: 10px 0 0; font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
   .cal-key i { position: static; display: inline-block; margin: 0; }
   @media (max-width: 640px) {
-    .ob-grid { --ob-team: 76px; --ob-open: 58px; font-size: 0.8rem; }
+    .ob-grid { --ob-team: 96px; --ob-open: 58px; --ob-src: 60px; font-size: 0.8rem; }
     .ob-team .tn-full { display: none; }
     .ob-team .tn-short { display: inline; }
     .ob-tie { padding-left: 0; }

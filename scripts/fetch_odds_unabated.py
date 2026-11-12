@@ -505,7 +505,7 @@ def archive_started(sport, games_doc, now):
     return moved
 
 
-def run_sport(sport, sport_type, segments, has_ml, now, ml3=False):
+def run_sport(sport, sport_type, segments, has_ml, now):
     path = os.path.join(OUT_DIR, sport + '.json')
     doc = read_json(path, {})
     games_doc = doc.get('games') or {}
@@ -533,8 +533,6 @@ def run_sport(sport, sport_type, segments, has_ml, now, ml3=False):
 
     status, unmatched, filled = {}, set(), 0
     bets = NHL_BETS if sport == 'nhl' else [b for b in (BT_ML, BT_SPREAD, BT_TOTAL) if b != BT_ML or has_ml]
-    if ml3 and has_ml and BT_ML3 not in bets:   # 3-way (tie included), for the 3-way records' units
-        bets = bets + [BT_ML3]
     for bet in bets:
         data, err = get_retry(f'/market/{league}/straight/odds?betTypeId={bet}')
         status[str(bet)] = 'ok' if err is None else f'failed: {err}'
@@ -588,8 +586,7 @@ def main():
         segs = {s['key'] for s in sp['segments']}
         has_ml = any(sports.has_ml(s) for s in sp['segments'])
         try:
-            # launched sports also get the 3-way moneyline (one more request each)
-            run_sport(sp['key'], sp['sport_type'], segs, has_ml, now, ml3=bool(sp.get('launched')))
+            run_sport(sp['key'], sp['sport_type'], segs, has_ml, now)   # 3-way ML: NHL only (NHL_BETS)
         except Exception as e:   # one sport's surprise shouldn't stop the others
             print(f"{sp['key']}: skipped -- {e.__class__.__name__}: {e}", file=sys.stderr)
     try:

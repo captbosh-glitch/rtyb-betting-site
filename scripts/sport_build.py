@@ -151,7 +151,8 @@ def book_names():
 
 
 EXTRA_BOOKS = {'consensus': 'Consensus'}
-HIDDEN_BOOKS = {'60'}   # theScore CA (RTYB is for US bettors)
+# Every source shows on the Odds page; these never set the best price
+NO_BEST = {'60'}   # theScore CA (RTYB is for US bettors)
 # Logos: assets/books/{source id}.{ext}, downloaded from Unabated's /sources
 # thumbnails by fetch_odds_unabated.py; else a hand-made assets/books/{key}.svg
 # or .png. The page shows the source's name when there's neither.
@@ -196,7 +197,7 @@ def best_price(market, books):
     if market == 'btts':
         row = next(iter(books.values()))
         return {s: (row.get(s) or {}).get('price') for s in ('yes', 'no')}
-    sharp = {b for b in books if b not in EXCHANGES and b not in EXTRA_BOOKS}
+    sharp = {b for b in books if b not in EXCHANGES and b not in EXTRA_BOOKS and b not in NO_BEST}
     try:
         return feed.best_of(market, books, sharp)
     except (KeyError, TypeError, ValueError):
@@ -218,8 +219,8 @@ def write_odds_page(sp, slug_dir, now_utc, schedule, meta=None, extra=None, week
     data_feed/unabated/history/, without links. `best` is the best price per
     side (the green outline), `open` the best opening price (the Open column).
 
-    schedule: {date: [{away, home, start, state}]}, state 'pre' | 'live' |
-    'final'. `meta` (NHL, whose data.json has another shape) carries label,
+    schedule: {date: [{away, home, start, state, score?}]}, state 'pre' |
+    'live' | 'final', score {segment: [away, home]} once the game starts. `meta` (NHL, whose data.json has another shape) carries label,
     segments and teams. `extra` (NHL's admin-entered BTTS) adds markets the
     feed doesn't carry: [{date, away, home, start, books: {seg: {m: {book: row}}}}]
     under the book ids EXTRA_BOOKS names."""
@@ -233,8 +234,11 @@ def write_odds_page(sp, slug_dir, now_utc, schedule, meta=None, extra=None, week
         for seg, mk in x['books'].items():
             extras.setdefault((x['date'], x['away'], x['home']), {}).setdefault(seg, {}).update(mk)
 
+    shown = {(x[0], x[1]) for x in sp['family_markets']}
+
     def clean(books):
-        return {seg: {m: {b: v for b, v in by.items() if b not in HIDDEN_BOOKS} for m, by in mk.items()}
+        """Every source, in the markets this sport's pages show (3-way: NHL only)."""
+        return {seg: {m: dict(by) for m, by in mk.items() if (seg, m) in shown}
                 for seg, mk in (books or {}).items()}
 
     def merge(a, b):
@@ -264,18 +268,17 @@ def write_odds_page(sp, slug_dir, now_utc, schedule, meta=None, extra=None, week
                 state = 'live'
             h = hist.get(f"{sg['away']}|{sg['home']}") or {}
             lg = live.get(key) or {}
+            plain_extra = {seg: {m: _unlinked(v) for m, v in mk.items()} for seg, mk in (extras.get(key) or {}).items()}
             if state == 'pre':
                 books = merge(clean(lg.get('books')), extras.get(key))
-                opens = merge(clean(lg.get('opens')), {seg: {m: _unlinked(v) for m, v in mk.items()}
-                                                       for seg, mk in (extras.get(key) or {}).items()})
-                game = {'books': books}
             else:
-                close = h.get('close') or _unlinked(lg.get('books'))
-                books = merge(clean(close), {seg: {m: _unlinked(v) for m, v in mk.items()} for seg, mk in (extras.get(key) or {}).items()})
-                opens = clean(h.get('open') or lg.get('opens'))
-                game = {'books': books, 'opens': opens}
-            game.update({'away': sg['away'], 'home': sg['home'], 'start': sg.get('start'), 'state': state,
-                         'best': bests(books), 'open': bests(opens) if opens else {}})
+                books = merge(clean(h.get('close') or _unlinked(lg.get('books'))), plain_extra)
+            # the Open column keeps the opening line before, during and after the game
+            opens = merge(clean(h.get('open') or lg.get('opens')), plain_extra)
+            game = {'books': books, 'away': sg['away'], 'home': sg['home'], 'start': sg.get('start'), 'state': state,
+                    'best': bests(books), 'open': bests(opens) if opens else {}}
+            if state != 'pre' and sg.get('score'):
+                game['score'] = sg['score']   # {segment: [away, home]} so far
             for seg, mk in books.items():
                 for m, by in mk.items():
                     if by:
@@ -299,6 +302,19 @@ def write_odds_page(sp, slug_dir, now_utc, schedule, meta=None, extra=None, week
                                                  **({'x': 1} if b in EXCHANGES else {})) for b in used}))
 
 
+def seg_scores(sp, g):
+    """{segment: [away, home]} over the periods played so far (a data.json game; live games
+    show the score in progress), or None before the first one."""
+    out = {}
+    for s in sp['segments']:
+        n = {'1i': 1, 'f5': 5}.get(s['key']) or grading.SEGMENT_PERIODS.get(sp['key'], grading.SEGMENT_PERIODS['default']).get(s['key'])
+        a = [x for x in (g.get('als') or [])[:n or 0] if grading.num(x) is not None]
+        h = [x for x in (g.get('hls') or [])[:n or 0] if grading.num(x) is not None]
+        if a and h:
+            out[s['key']] = [sum(a), sum(h)]
+    return out or None
+
+
 def merge_odds(admin, feed):
     """Odds the pages grade against: the Unabated feed (fetch_odds_unabated.py,
     auto-published) with the admin's saved odds on top. A market Chris saved
@@ -310,8 +326,9 @@ def merge_odds(admin, feed):
         for seg in set(a.get('segments') or {}) | set(f.get('segments') or {}):
             mine = (a.get('segments') or {}).get(seg) or {}
             auto = (f.get('segments') or {}).get(seg) or {}
-            merged = {m: v for m, v in auto.items() if v is not None}
-            merged.update({m: v for m, v in mine.items() if v is not None})
+            # 3-way ML is NHL only (nhl_sport.py); this builds the other sports
+            merged = {m: v for m, v in auto.items() if v is not None and m != 'ml3'}
+            merged.update({m: v for m, v in mine.items() if v is not None and m != 'ml3'})
             if merged:
                 segs[seg] = merged
         base = a or f
@@ -1056,7 +1073,7 @@ def logo_flag(sport_key, slug):
 
 def page_markets(sp):
     """[[segment, market, label, kind]] for the pages, in order."""
-    return [list(m) for m in sp['family_markets'] if m[1] != 'ml3' or sp['family'] == 'period']
+    return [list(m) for m in sp['family_markets']]
 
 
 def build(sp, teams_list, now_utc=None):
@@ -1144,7 +1161,8 @@ def build(sp, teams_list, now_utc=None):
     # the Trends page's League Trends cards (scripts/trends.py)
     write_json(os.path.join(slug_dir, 'trends.json'), trend_cards.page_doc(sp, doc, now_utc))
     odds_schedule = {d: [{'away': g['away'], 'home': g['home'], 'start': g.get('start'),
-                          'state': {'in': 'live', 'final': 'final', 'post': 'final'}.get(g.get('state'), 'pre')} for g in day]
+                          'state': {'in': 'live', 'final': 'final', 'post': 'final'}.get(g.get('state'), 'pre'),
+                          'score': seg_scores(sp, g)} for g in day]
                      for d, day in by_date.items()}
     write_odds_page(sp, slug_dir, now_utc, odds_schedule, weeks=doc.get('weeks'))
     today = now_utc.astimezone(ET).date().isoformat()

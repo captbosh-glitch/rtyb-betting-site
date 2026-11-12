@@ -954,7 +954,9 @@ def main():
                          'best': {'1p': {'btts': {'yes': o.get('btts_yes'), 'no': o.get('btts_no')}}}})
     nhl_state = {'LIVE': 'live', 'CRIT': 'live', 'FINAL': 'final', 'OFF': 'final'}
     nhl_schedule = {d: [{'away': g['away'], 'home': g['home'], 'start': g.get('startTimeUTC'),
-                         'state': nhl_state.get(g.get('state'), 'pre')} for g in games]
+                         'state': nhl_state.get(g.get('state'), 'pre'),
+                         'score': {'1p': [g['awayP1'], g['homeP1']]} if g.get('awayP1') is not None and g.get('homeP1') is not None else None}
+                        for g in games]
                     for d, games in merged_games.items() if d >= SEASON_START}
     two_word = ('Blue Jackets', 'Maple Leafs', 'Red Wings', 'Golden Knights')
     sport_build.write_odds_page(nhl, nhl_dir, datetime.now(timezone.utc), nhl_schedule, extra=btts, meta={

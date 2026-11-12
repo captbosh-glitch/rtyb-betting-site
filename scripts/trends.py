@@ -606,5 +606,5 @@ def page_doc(sp, doc, now_utc, log_path=None):
     """{slug}/trends.json: the cards per slate, the rules and the tooltips."""
     T = tips()
     return {'sport': sp['key'], 'shown': RULES['shown'], 'slates': update(sp, doc, now_utc, log_path),
-            'markets': [[seg, m, label] for seg, m, label, _ in sp['family_markets'] if m != 'ml3' or sp['family'] == 'period'],
+            'markets': [[seg, m, label] for seg, m, label, _ in sp['family_markets']],
             'tips': {k: T[k] for k in ('footer', 'direction', 'market_notes', 'matchup_labels', 'streaks', 'status_icons', 'record_line', 'todays_record')}}

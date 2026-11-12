@@ -12,14 +12,14 @@ import sports  # noqa: E402
 
 
 class MarketsTest(unittest.TestCase):
-    def test_no_three_way_for_the_spread_family(self):
-        for key in ('nba', 'wnba', 'ncaab', 'nfl', 'ncaaf'):
+    def test_three_way_is_nhl_only(self):
+        for key in ('nba', 'wnba', 'ncaab', 'nfl', 'ncaaf', 'mlb'):
             self.assertNotIn('ml3', [m[1] for m in sport_build.page_markets(sports.BY_KEY[key])], key)
 
     def test_period_family_pills_in_order(self):
         self.assertEqual([m[1] for m in sport_build.page_markets(sports.BY_KEY['nhl'])], ['ml', 'total', 'btts', 'ml3'])
         self.assertEqual([(m[0], m[1]) for m in sport_build.page_markets(sports.BY_KEY['mlb'])],
-                         [('1i', 'rfi'), ('f5', 'ml'), ('f5', 'ats'), ('f5', 'total'), ('f5', 'ml3')])
+                         [('1i', 'rfi'), ('f5', 'ml'), ('f5', 'ats'), ('f5', 'total')])   # 3-way: NHL only
 
     def test_ncaab_has_one_segment(self):
         self.assertEqual({m[0] for m in sport_build.page_markets(sports.BY_KEY['ncaab'])}, {'1h'})

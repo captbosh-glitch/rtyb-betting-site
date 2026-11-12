@@ -242,6 +242,17 @@
     return GAME_INDEX[id];
   }
 
+  // pin an element (position: sticky) just under the site header, which is
+  // sticky too; its height changes with the viewport
+  function stickBelowNav(el) {
+    if (!el) return;
+    function place() { var hn = document.querySelector('.hn'); el.style.top = (hn ? hn.getBoundingClientRect().height : 0) + 'px'; }
+    place();
+    if (!stickBelowNav.wired) { stickBelowNav.wired = true; window.addEventListener('resize', function() { document.querySelectorAll('[data-stick]').forEach(function(x) { x.__place && x.__place(); }); }); }
+    el.setAttribute('data-stick', '');
+    el.__place = place;
+  }
+
   // ------------------------------------------------------------ date bar
   // cal: add the calendar button (openCalendar, wired by the page)
   function dateBar(cur, dates, cal) {
@@ -2022,8 +2033,9 @@
   // the left, then a column per source (major sportsbooks, other sportsbooks,
   // then exchanges and prediction markets). Games that haven't started link
   // each price to its source (Gambly links with the partner code); started
-  // and finished games show each source's closing line, with its opening line
-  // under it when it moved. The best price per side gets a green outline.
+  // and finished games show each source's closing line; Open is always the
+  // opening line. The best price per side gets a green outline (the key at
+  // the bottom says so). The controls and the header row stay pinned.
   var MKT_CUR = null;
   var MKT_WORD = { ml: 'moneyline', ml3: '3-way moneyline', ats: 'spread', total: 'total', btts: 'BTTS', rfi: 'NRFI / YRFI' };
   var YN_SIDES = { total: ['over', 'under'], btts: ['yes', 'no'], rfi: ['yrfi', 'nrfi'] };
@@ -2089,80 +2101,87 @@
       }
       function same(a, b) { return !!a && !!b && a.price === b.price && String(a.line) === String(b.line); }
       function counts(b, m) { return m === 'ml3' || m === 'btts' || !(sources[b] || {}).x; }
-      function cellTxt(v) { return (v.line != null ? '<span class="ob-ln">' + esc(v.line) + '</span>' : '') + '<span class="ob-pr">' + esc(signed(v.price)) + '</span>'; }
+      // a line market's cell: the line on top, its price under it, smaller
+      function cellTxt(v) { return v.line != null ? '<span class="ob-ln">' + esc(v.line) + '</span><span class="ob-pr ob-pr-sm">' + esc(signed(v.price)) + '</span>' : '<span class="ob-pr">' + esc(signed(v.price)) + '</span>'; }
       function name(b) { return (sources[b] || {}).name || 'Source ' + b; }
       function head(b) {
         var s = sources[b] || {};
         return s.logo ? '<img class="ob-logo" src="' + ROOT + s.logo + '" alt="' + esc(name(b)) + '" title="' + esc(name(b)) + '" loading="lazy">' : '<span class="ob-bname">' + esc(name(b)) + '</span>';
       }
-      function teamCell(g, sd) {
+      // the team (and, once the game starts, its score in the segment)
+      function teamCell(g, sd, k) {
         if (sd[1]) return '<span class="ob-team"><span class="ob-tie">' + esc(sd[1]) + '</span></span>';
-        var slug = g[sd[2] || sd[0]];
-        return '<span class="ob-team">' + badge(slug, 20) + '<span class="tn-full">' + esc(shortName(slug)) + '</span><span class="tn-short mono">' + esc(code(slug)) + '</span></span>';
+        var side = sd[2] || sd[0], slug = g[side], sc = g.state !== 'pre' && g.score && g.score[k];
+        return '<span class="ob-team">' + badge(slug, 20) + '<span class="tn-full">' + esc(shortName(slug)) + '</span><span class="tn-short mono">' + esc(code(slug)) + '</span>' +
+          (sc ? '<span class="ob-sc mono">' + esc(sc[side === 'away' ? 0 : 1]) + '</span>' : '') + '</span>';
       }
-      function table(games, k, m, kind) {
+      // Team, Open and one column per source; the header is its own table so
+      // it can stay pinned with the controls while the games scroll under it
+      function colgroup(cols) { return '<colgroup><col class="ob-w-team"><col class="ob-w-open">' + cols.map(function() { return '<col class="ob-w-src">'; }).join('') + '</colgroup>'; }
+      function headTable(cols) {
+        return '<div class="ob-head"><table class="ob-grid" style="--n:' + cols.length + '">' + colgroup(cols) + '<thead><tr><th class="ob-c-team" scope="col">Team</th><th class="ob-c-open" scope="col">Open</th>' +
+          cols.map(function(b) { return '<th scope="col" class="ob-src">' + head(b) + '</th>'; }).join('') + '</tr></thead></table></div>';
+      }
+      var ROW_NOTE = { total: 'Top: Over &middot; Bottom: Under', btts: 'Top: Yes &middot; Bottom: No', rfi: 'Top: Yes &middot; Bottom: No' };
+      function columns(games, k, m) {
         var ids = {};
         games.forEach(function(g) { Object.keys((((g.books || {})[k] || {})[m]) || {}).forEach(function(b) { ids[b] = 1; }); });
-        var cols = order.filter(function(b) { return ids[b]; });
+        return order.filter(function(b) { return ids[b]; });
+      }
+      function table(games, k, m, kind, cols, lined) {
         var span = 2 + cols.length;
         var body = games.map(function(g) {
-          var books = ((g.books || {})[k] || {})[m] || {}, opens = ((g.opens || {})[k] || {})[m] || {};
+          var books = ((g.books || {})[k] || {})[m] || {};
           var best = ((g.best || {})[k] || {})[m], open = ((g.open || {})[k] || {})[m];
           var past = g.state !== 'pre';
           var rows = sides(m, kind).map(function(sd) {
             var s = sd[0], b = top(best, m, s), o = top(open, m, s);
-            return '<tr><th scope="row" class="ob-c-team">' + teamCell(g, sd) + '</th>' +
-              '<td class="ob-c-open mono">' + (o ? cellTxt(o) : '<span class="ob-na">&ndash;</span>') + '</td>' +
+            return '<tr><th scope="row" class="ob-c-team">' + teamCell(g, sd, k) + '</th>' +
+              '<td class="ob-c-open mono">' + (o ? cellTxt(o) : '') + '</td>' +
               cols.map(function(id) {
                 var v = val(books[id], m, s);
-                if (!v) return '<td class="ob-na">&ndash;</td>';
-                var was = past ? val(opens[id], m, s) : null;
-                var inner = cellTxt(v) + (was && !same(was, v) ? '<span class="ob-was">op ' + esc((was.line != null ? was.line + ' ' : '') + signed(was.price)) + '</span>' : '');
+                if (!v) return '<td class="ob-na"></td>';
                 var cls = 'ob-cell' + (counts(id, m) && same(v, b) ? ' ob-best' : '');
-                return '<td class="' + cls + '">' + (v.link && !past ? '<a href="' + esc(v.link) + '" target="_blank" rel="sponsored noopener" title="' + esc(name(id)) + '">' + inner + '</a>' : inner) + '</td>';
+                return '<td class="' + cls + '">' + (v.link && !past ? '<a href="' + esc(v.link) + '" target="_blank" rel="sponsored noopener" title="' + esc(name(id)) + '">' + cellTxt(v) + '</a>' : cellTxt(v)) + '</td>';
               }).join('') + '</tr>';
           }).join('');
-          return '<tbody class="ob-game"><tr class="ob-ghead"><td colspan="' + span + '"><span class="ob-time">' +
-            (weeks && g.start ? esc(new Date(g.start).toLocaleDateString('en-US', { weekday: 'short', timeZone: 'America/New_York' })) + ' ' : '') +
-            (g.start ? esc(timeET(g.start)) : 'TBD') + '</span></td></tr>' + rows + '</tbody>';
+          // timeET already names the day in week view
+          var day = weeks && g.start && !(D && D.schedule === 'week') ? new Date(g.start).toLocaleDateString('en-US', { weekday: 'short', timeZone: 'America/New_York' }) + ' ' : '';
+          return '<tbody class="ob-game"><tr class="ob-ghead"><td colspan="' + span + '"><span class="ob-time">' + esc(day) + (g.start ? esc(timeET(g.start)) : 'TBD') + '</span></td></tr>' + rows + '</tbody>';
         }).join('');
-        return '<div class="ob-scroll"><table class="ob-grid"><thead><tr><th class="ob-c-team" scope="col">Team</th><th class="ob-c-open" scope="col">Open</th>' +
-          cols.map(function(b) { return '<th scope="col" class="ob-src">' + head(b) + '</th>'; }).join('') + '</tr></thead>' + body + '</table></div>';
-      }
-      function ago(iso) {
-        var min = Math.round((Date.now() - Date.parse(iso)) / 60000);
-        if (!(min >= 0)) return '';
-        return min < 1 ? 'updated just now' : min < 60 ? 'updated ' + min + ' min ago' : min < 1440 ? 'updated ' + Math.floor(min / 60) + ' hr ago' : 'updated ' + timeET(iso);
+        var note = ROW_NOTE[m] && games.length ? '<tbody><tr class="ob-note"><td colspan="' + span + '"><span>' + ROW_NOTE[m] + '</span></td></tr></tbody>' : '';
+        var key = lined ? '<tbody><tr class="ob-key"><td colspan="' + span + '"><span><i class="ob-key-cell ob-best"></i>Best odds</span></td></tr></tbody>' : '';
+        return '<div class="ob-scroll" id="obBody"><table class="ob-grid" style="--n:' + cols.length + '">' + colgroup(cols) + note + body + key + '</table></div>';
       }
       function draw(docs) {
         var k = getSeg(), ms = markets(k);
         var games = [];
         docs.forEach(function(doc) { (doc.games || []).forEach(function(g) { games.push(g); }); });
+        // football weeks: finished games drop to the bottom, in start order
+        if (weeks) games = games.filter(function(g) { return g.state !== 'final'; }).concat(games.filter(function(g) { return g.state === 'final'; }));
         if (!ms.some(function(x) { return x[1] === MKT_CUR; })) {
           // start on the first market with lines on this slate
           var withLines = ms.filter(function(x) { return games.some(function(g) { var b = ((g.books || {})[k] || {})[x[1]]; return b && Object.keys(b).length; }); });
           MKT_CUR = ((withLines[0] || ms[0]) || [])[1] || null;
         }
         var mk = ms.filter(function(x) { return x[1] === MKT_CUR; })[0];
+        var m = mk ? mk[1] : null;
+        var lined = mk && games.some(function(g) { var b = ((g.books || {})[k] || {})[m]; return b && Object.keys(b).length; });
+        var cols = games.length ? columns(games, k, m) : [];
         var html = weeks ? weekBar(weeks, cur, thisWeek) : dateBar(cur, dates, true);
-        html += '<p class="ob-sub">' + esc(seg(k).label) + ' odds from every source we track' + (O.updated ? ' &middot; ' + esc(ago(O.updated)) : '') + '.</p>';
-        html += '<div class="sport-seg-row odds-controls">' + (D.segments.length > 1 ? segToggle('pageSeg', k) : '') +
+        html += '<div class="ob-stick" id="obStick"><div class="sport-seg-row odds-controls">' + (D.segments.length > 1 ? segToggle('pageSeg', k) : '') +
           '<div class="seg-toggle" id="oddsMkt">' + ms.map(function(x) {
             return '<button class="seg-btn" data-mkt="' + x[1] + '" aria-pressed="' + (x[1] === MKT_CUR) + '">' + esc(x[2]) + '</button>';
-          }).join('') + '</div></div>' +
-          '<p class="ob-rows">Top row: Over / Yes. Bottom row: Under / No.</p>';
-        var lined = mk && games.some(function(g) { var b = ((g.books || {})[k] || {})[mk[1]]; return b && Object.keys(b).length; });
+          }).join('') + '</div></div>' + (games.length ? headTable(cols) : '') + '</div>';
         var first = slate()[0];
         if (!games.length) html += '<div class="no-games-note">No ' + esc(D.label) + ' games ' + (weeks ? 'this week' : 'on ' + esc(dateLabel(cur))) + '.</div>';
         else {
-          if (!lined) html += '<div class="no-games-note">' + (first && first < todayET() ? 'Lines not available.' : 'No ' + esc(seg(k).label) + ' ' + (mk ? MKT_WORD[mk[1]] || esc(mk[2]) : 'lines') + ' posted yet.') + '</div>';
-          html += table(games, k, mk ? mk[1] : null, mk ? mk[3] : 'side');
+          if (!lined) html += '<div class="no-games-note">' + (first && first < todayET() ? 'Lines not available.' : 'No ' + esc(seg(k).label) + ' ' + (mk ? MKT_WORD[m] || esc(mk[2]) : 'lines') + ' posted yet.') + '</div>';
+          html += table(games, k, m, mk ? mk[3] : 'side', cols, lined);
         }
-        if (mk && mk[1] === 'btts') html += '<p class="odds-note">Both teams to score in the 1st period. BTTS isn&rsquo;t on our odds feed, so this is a consensus price across the books, entered by our team.</p>';
-        html += '<p class="odds-note">Green outline: the best price for each side at the sportsbooks (for spreads and totals, at the line most books post). ' +
-          'Open: the best price when lines first appeared. Finished games show each source&rsquo;s closing line, with its opening line (&ldquo;op&rdquo;) when it moved. ' +
-          'Odds via Unabated, refreshed every 10 minutes; prices can move before you open a link. 21+. Gambling problem? Call 1-800-GAMBLER.</p>';
+        if (m === 'btts') html += '<p class="odds-note">Both teams to score in the 1st period. BTTS isn&rsquo;t on our odds feed, so this is a consensus price across the books, entered by our team.</p>';
         app.innerHTML = html;
+        pinHead();
         if (weeks) {
           var keys = weeks.map(function(w) { return w.key; }), i = keys.indexOf(cur);
           var p = document.getElementById('weekPrev'), n = document.getElementById('weekNext'), now = document.getElementById('weekNowBtn');
@@ -2174,6 +2193,16 @@
         var ps = document.getElementById('pageSeg');
         if (ps) ps.onclick = function(e) { var b = e.target.closest('[data-seg]'); if (b) { setSeg(b.getAttribute('data-seg')); show(); } };
         document.getElementById('oddsMkt').onclick = function(e) { var b = e.target.closest('[data-mkt]'); if (b) { MKT_CUR = b.getAttribute('data-mkt'); show(); } };
+      }
+      // the pinned header scrolls sideways with the games
+      function pinHead() {
+        stickBelowNav(document.getElementById('obStick'));
+        var body = document.getElementById('obBody'), headEl = document.querySelector('#obStick .ob-head');
+        if (!body || !headEl) return;
+        var busy = false;
+        function sync(from, to) { return function() { if (busy) { busy = false; return; } busy = true; to.scrollLeft = from.scrollLeft; }; }
+        body.addEventListener('scroll', sync(body, headEl), { passive: true });
+        headEl.addEventListener('scroll', sync(headEl, body), { passive: true });
       }
       function show() { load(slate()).then(draw); }
       show();
