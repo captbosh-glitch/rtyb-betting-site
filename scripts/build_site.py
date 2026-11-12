@@ -723,9 +723,8 @@ def build_other_sports(template):
             meta = {'title': f'RTYB — {sp["label"]} {"Trends to Watch" if section == "trends" else label}', 'h1': h1,
                     'desc': f'{sp["label"]} {sports.segment_summary(sp)} {EMPTY_COPY[section][1]}.', 'section': section}
             if section == 'teams' and teams:
-                meta['desc'] = (f'Every {sp["label"]} team’s {sports.segment_summary(sp)} record, win % and units this season'
-                                + (', by conference' if sp['key'] in ('ncaaf', 'ncaab') else '')
-                                + '. Pick a period, market and side, and tap any team for its full page.')
+                meta['desc'] = (f'Every {sp["label"]} team’s {sports.segment_summary(sp)} record, win % and units this season. '
+                                'Pick a period, market and side, filter by conference, and tap any team for its full page.')
                 body = teams_index_html(sp, teams)
                 if sport_has_data(sp['key']):
                     # assets/sport.js swaps the plain list for record cards

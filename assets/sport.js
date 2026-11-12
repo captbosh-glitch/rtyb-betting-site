@@ -514,11 +514,12 @@
     if (!run) return '&mdash;';
     return '<span class="tl-streak ' + (run.r === 'W' ? 'good' : run.r === 'L' ? 'bad' : 'flat') + '">' + tmLetter(run.r, m) + run.n + '</span>';
   }
-  // last 8, oldest to newest: hit (--good), gray miss, yellow tie / push
-  function tmDots(seq) {
-    return '<span class="tm-dots" aria-label="Last 8">' + seq.slice(-8).map(function(r) {
-      return '<i class="' + (r === 'W' ? 'hit' : r === 'L' ? 'miss' : 'tie') + '"></i>';
-    }).join('') + '</span>';
+  // the last 10 as a record: "6-3-1" (a market that can't push: "6-4")
+  function tmL10(seq, m) {
+    var x = seq.slice(-10), w = 0, l = 0, t = 0;
+    if (!x.length) return '&mdash;';
+    x.forEach(function(r) { if (r === 'W') w++; else if (r === 'L') l++; else t++; });
+    return w + '-' + l + (tmNoPush(m) ? '' : '-' + t);
   }
   // only the number is colored: --good above +0.5u, red below -0.5u, yellow between
   function tmUnits(a) {
@@ -538,6 +539,8 @@
     return D.games[todayET()] || [];
   }
   function tmShortTime(g) {
+    if (g.state === 'in') return 'LIVE';
+    if (g.state === 'final' || g.state === 'post') return 'Final';
     if (!g.start) return '';
     var o = { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' };
     if (D.schedule === 'week') o.weekday = 'short';
@@ -566,14 +569,37 @@
   }
 
   // ----------------------------------------------------------- Teams list
-  var tl = { k: null, m: null, side: 'all', q: '', sortKey: 'units', sortDir: -1, today: false };
-  function confOrder(a, b) {
-    if (/Independent/.test(a) !== /Independent/.test(b)) return /Independent/.test(a) ? 1 : -1;
-    return a < b ? -1 : a > b ? 1 : 0;
+  var tl = { k: null, m: null, side: 'all', q: '', sortKey: 'units', sortDir: -1, today: false, grp: '' };
+  var TL_MIN = 5;   // fewer games than this in the market: listed below everyone else, muted
+  // The "All teams" filter: college groups (Power 4 / Group of 5 /
+  // Independents; Power conferences / Mid-majors) then each conference;
+  // pro sports each conference, then each division. [{v, label, test}]
+  var POWER4 = /^(Southeastern|Big Ten|Big 12|Atlantic Coast) Conference$/;
+  var POWER_HOOPS = /^(Southeastern|Big Ten|Big 12|Atlantic Coast|Big East) Conference$/;
+  function tlGroups() {
+    function vals(f) { var o = {}; Object.keys(D.teams).forEach(function(s) { var v = D.teams[s][f]; if (v) o[v] = 1; }); return Object.keys(o).sort(); }
+    function conf(s) { return D.teams[s].conference || ''; }
+    var out = [{ v: '', label: 'All teams', test: function() { return true; } }];
+    if (D.sport === 'ncaaf') {
+      out.push({ v: 'p4', label: 'Power 4', test: function(s) { return POWER4.test(conf(s)); } },
+               { v: 'g5', label: 'Group of 5', test: function(s) { return !POWER4.test(conf(s)) && !/Independent/.test(conf(s)); } },
+               { v: 'ind', label: 'Independents', test: function(s) { return /Independent/.test(conf(s)); } });
+    } else if (D.sport === 'ncaab') {
+      out.push({ v: 'power', label: 'Power conferences', test: function(s) { return POWER_HOOPS.test(conf(s)); } },
+               { v: 'mid', label: 'Mid-majors', test: function(s) { return !POWER_HOOPS.test(conf(s)); } });
+    }
+    vals('conference').filter(function(c) { return D.sport !== 'ncaaf' || !/Independent/.test(c); }).forEach(function(c) {
+      var label = D.sport === 'ncaaf' || D.sport === 'ncaab' ? c.replace(/ Conference$/, '') : { East: 'Eastern Conference', West: 'Western Conference' }[c] || c;
+      out.push({ v: 'c:' + c, label: label, test: function(s) { return conf(s) === c; } });
+    });
+    vals('division').forEach(function(d) {
+      out.push({ v: 'd:' + d, label: d + (/\s/.test(d) ? '' : ' Division'), test: function(s) { return D.teams[s].division === d; } });
+    });
+    return out;
   }
   function renderTeamsIndex() {
     if (!D.season) return;   // keep the plain list
-    var college = D.sport === 'ncaaf' || D.sport === 'ncaab', weekly = D.schedule === 'week';
+    var weekly = D.schedule === 'week';
     var byTeam = {};
     Object.keys(D.teams).forEach(function(s) { byTeam[s] = teamGames(s); });
     var playing = {};
@@ -583,12 +609,16 @@
       playing[g.home] = { g: g, opp: g.away, at: false };
     });
     var anyPlaying = Object.keys(playing).some(function(s) { return D.teams[s]; });
+    var groups = tlGroups();
+    if (!groups.some(function(x) { return x.v === tl.grp; })) tl.grp = '';
     if (!tl.k) tl.k = getSeg();
     function draw() {
       var pills = tmPills(tl.k), p = tmPick(tl, pills), k = p.k, m = p.m, hasTie = m === 'ml3';
+      var grp = groups.filter(function(x) { return x.v === tl.grp; })[0];
       var list = Object.keys(D.teams).filter(function(s) {
         var t = D.teams[s];
         if (tl.today && !playing[s]) return false;
+        if (!grp.test(s)) return false;
         return !tl.q || (t.name + ' ' + (t.code || '') + ' ' + (t.short || '')).toLowerCase().indexOf(tl.q) !== -1;
       }).map(function(s) {
         var a = tmAgg(s, k, m, tl.side, byTeam[s]);
@@ -597,7 +627,12 @@
         return a;
       });
       var key = { units: 'u', streak: 'runV', rec: 'w', tie: 'tiePct' }[tl.sortKey] || tl.sortKey, dir = tl.sortDir;
+      // teams with too few games sit below the rest, and no games at the very bottom, whatever the sort
+      // (when no team has TL_MIN games yet, early in a market, nobody is set apart)
+      var few = list.some(function(a) { return a.gp >= TL_MIN; }) ? TL_MIN : 1;
+      function tier(a) { return !a.gp ? 2 : a.gp < few ? 1 : 0; }
       list.sort(function(a, b) {
+        if (tier(a) !== tier(b)) return tier(a) - tier(b);
         if (key === 'name') return a.name.localeCompare(b.name) * dir;
         var va = a[key], vb = b[key];
         if (va === vb || (va == null && vb == null)) return (b.w + b.l) - (a.w + a.l) || a.name.localeCompare(b.name);
@@ -606,26 +641,20 @@
         return (va - vb) * dir;
       });
       function rowHtml(r) {
-        var pl = playing[r.slug], w = r.pct == null ? 0 : Math.round(r.pct * 100);
-        var tag = pl ? '<span class="tm-today">' + (pl.at ? '@ ' : 'vs ') + esc(tcode(pl.opp)) + ' ' + esc(tmShortTime(pl.g)) + '</span>' : '';
-        return '<tr class="tl-row" data-href="' + teamUrl(r.slug) + '">' +
-          '<td class="team-cell">' + badge(r.slug, 24) + '<a class="tl-name" href="' + teamUrl(r.slug) + '"><span class="tl-full">' + esc(r.name) + '</span><span class="tl-short">' + esc(shortName(r.slug)) + '</span></a>' + tag + '</td>' +
+        var pl = playing[r.slug], w = r.pct == null ? 0 : Math.round(r.pct * 100), tt = pl ? tmShortTime(pl.g) : '';
+        var tag = pl ? '<span class="tm-today' + (tt === 'LIVE' ? ' live' : '') + '">' + esc(tt) + '</span>' : '';
+        return '<tr class="tl-row' + (r.gp < few ? ' tl-few' : '') + '" data-href="' + teamUrl(r.slug) + '">' +
+          '<td class="team-cell">' + badge(r.slug, 24) + '<a class="tl-name" href="' + teamUrl(r.slug) + '"><span class="tl-full">' + esc(r.name) + '</span><span class="tl-short">' + esc(tcode(r.slug)) + '</span></a>' + tag + '</td>' +
           '<td class="num rec-cell mono col-rec"><b>' + tmRecTxt(r, m) + '</b></td>' +
           '<td class="num col-pct"><div class="pct-cell"><div class="pct-bar"><span style="width:' + w + '%"></span></div><span class="pct-num mono">' + tmPct(r.pct) + '</span></div></td>' +
           (hasTie ? '<td class="num col-tie mono">' + tmPct(r.tiePct) + '</td>' : '') +
-          '<td class="num col-l8">' + tmDots(r.seq) + '</td>' +
+          '<td class="num col-l8 mono">' + tmL10(r.seq, m) + '</td>' +
           '<td class="num col-streak mono">' + tmRunHtml(r.run, m) + '</td>' +
-          '<td class="num col-units mono">' + tmUnits(r) + '</td><td class="col-go" aria-hidden="true">&rsaquo;</td></tr>';
+          '<td class="num col-units mono">' + tmUnits(r) + '</td></tr>';
       }
-      var ncol = hasTie ? 8 : 7, body;
-      if (!list.length) body = '<tr><td colspan="' + ncol + '"><div class="empty-state">' + (tl.q ? 'No teams match &ldquo;' + esc(tl.q) + '&rdquo;.' : 'No teams playing ' + (weekly ? 'this week' : 'today') + '.') + '</div></td></tr>';
-      else if (college) {
-        var groups = {};
-        list.forEach(function(r) { (groups[r.conf] = groups[r.conf] || []).push(r); });
-        body = Object.keys(groups).sort(confOrder).map(function(c) {
-          return '<tr class="tl-group"><td colspan="' + ncol + '">' + esc(c) + ' <span class="tc-count">' + groups[c].length + '</span></td></tr>' + groups[c].map(rowHtml).join('');
-        }).join('');
-      } else body = list.map(rowHtml).join('');
+      var ncol = hasTie ? 7 : 6, body;
+      if (!list.length) body = '<tr><td colspan="' + ncol + '"><div class="empty-state">' + (tl.q ? 'No teams match &ldquo;' + esc(tl.q) + '&rdquo;.' : tl.today ? 'No teams playing ' + (weekly ? 'this week' : 'today') + '.' : 'No teams in ' + esc(grp.label) + '.') + '</div></td></tr>';
+      else body = list.map(rowHtml).join('');
       function th(key, label, cls) {
         var on = tl.sortKey === key;
         return '<th class="' + (cls || '') + '" data-sort="' + key + '">' + label + '<span class="arrow">' + (on ? (tl.sortDir < 0 ? '▼' : '▲') : '') + '</span></th>';
@@ -633,16 +662,20 @@
       function sidePill(v, label) { return '<button class="seg-btn" data-tl-side="' + v + '" aria-pressed="' + (tl.side === v) + '">' + label + '</button>'; }
       app.innerHTML = '<div id="teamView"><div class="controls tm-controls">' + tmControls(tl, pills, 'tlPills') +
         '<div class="seg-toggle">' + sidePill('all', 'All') + sidePill('home', 'Home') + sidePill('away', 'Away') + '</div>' +
-        (anyPlaying ? '<button class="seg-btn tm-today-btn" id="tlToday" aria-pressed="' + tl.today + '">' + (weekly ? 'Playing this week' : 'Playing today') + '</button>' : '') +
+        (anyPlaying ? '<button class="seg-btn tm-today-btn" id="tlToday" aria-pressed="' + tl.today + '">' + (weekly ? 'This week' : 'Today') + '</button>' : '') +
+        (groups.length > 1 ? '<select class="tm-filter" id="tlGroup" aria-label="Filter teams">' + groups.map(function(x) {
+          return '<option value="' + esc(x.v) + '"' + (x.v === tl.grp ? ' selected' : '') + '>' + esc(x.label) + '</option>'; }).join('') + '</select>' : '') +
         '<input class="search-box" id="tlSearch" type="search" placeholder="Search team&hellip;" aria-label="Search teams" value="' + esc(tl.q) + '"></div>' +
         '<div class="table-wrap"><div class="table-scroll"><table id="leagueTable" class="tm-table"><thead><tr>' +
         th('name', 'Team') + th('rec', tmRecHead(m), 'num col-rec') + th('pct', TM_INFO[m].pct, 'num col-pct') + (hasTie ? th('tie', 'Tie %', 'num col-tie') : '') +
-        '<th class="num col-l8">Last 8</th>' + th('streak', 'Streak', 'num col-streak') + th('units', 'Units', 'num col-units') + '<th class="col-go" aria-hidden="true"></th>' +
+        '<th class="num col-l8">L10</th>' + th('streak', 'Streak', 'num col-streak') + th('units', 'Units', 'num col-units') +
         '</tr></thead><tbody>' + body + '</tbody></table></div></div>' +
         '<p class="tl-note">' + esc(seg(k).label) + ' &middot; ' + esc(D.seasonLabel || '') + ' season &middot; ' + tmMarketNote(m) +
-        ' &middot; Units: 1 unit a game at the closing price, only where prices were saved.</p></div>';
+        ' &middot; Units: 1 unit a game at the closing price, only where prices were saved &middot; Fewer than ' + TL_MIN + ' games: listed last, dimmed.</p></div>';
       wireTmControls(app, tl, draw);
       app.querySelectorAll('[data-tl-side]').forEach(function(b) { b.onclick = function() { tl.side = b.getAttribute('data-tl-side'); draw(); }; });
+      var gs = document.getElementById('tlGroup');
+      if (gs) gs.onchange = function() { tl.grp = gs.value; draw(); };
       var tb = document.getElementById('tlToday');
       if (tb) tb.onclick = function() { tl.today = !tl.today; draw(); };
       app.querySelectorAll('th[data-sort]').forEach(function(h) {
