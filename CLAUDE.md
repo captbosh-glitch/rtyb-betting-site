@@ -18,3 +18,16 @@ refresh job (`.github/workflows/refresh.yml`) every 10 minutes. Tests:
 - Hidden sports (`launched: False`) stay out of menus and noindexed, but get
   every new layout so they're ready the day they're switched on. Off-season
   sports must render from last season's data.
+
+## Naming rule (every page)
+
+- Pro sports (NHL, NBA, WNBA, NFL, MLB): desktop shows the team nickname
+  (Lightning, Celtics); mobile shows the abbreviation (TB, BOS).
+- College sports (NCAAB, NCAAF): desktop shows the school name (Kentucky,
+  Arizona), never the nickname; mobile shows the school abbreviation (UK, ARIZ).
+- Inside cards, odds rows and records: abbreviations on every device.
+- Every team shows its logo (scripts/fetch_sport_logos.py also fetches the
+  non-Division I opponents'). No logo: a small colored badge with the
+  abbreviation.
+- Green means "best price" everywhere on the site and nothing else
+  (`--best` in template.html; wins and positive units use `--good`, blue).

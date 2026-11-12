@@ -691,7 +691,8 @@ def build_other_sports(template):
         teams = load_teams(sp)
         for section in ('games', 'stats', 'trends', 'odds', 'teams'):
             label = sports.SECTION_LABELS[section]
-            h1 = f'{sp["label"]} Trends to Watch' if section == 'trends' else f'{sp["label"]} — {label}'
+            h1 = (f'{sp["label"]} Trends to Watch' if section == 'trends' else f'{sp["label"]} Games' if section == 'games'
+                  else f'{sp["label"]} — {label}')
             meta = {'title': f'RTYB — {sp["label"]} {"Trends to Watch" if section == "trends" else label}', 'h1': h1,
                     'desc': f'{sp["label"]} {sports.segment_summary(sp)} {EMPTY_COPY[section][1]}.', 'section': section}
             if section == 'teams' and teams:
@@ -901,7 +902,13 @@ def main():
     team_colors = extract_team_true_colors(template)
     teams_menu_html = build_teams_menu_html(full_data.get('summary', {}), team_colors)
 
-    games_html = render_page(template, 'games', teams_menu_html)
+    # /nhl/games/: the shared Games page (assets/sport.js), from nhl/sport.json
+    nhl = sports.BY_KEY['nhl']
+    games_meta = {'title': 'RTYB — NHL Games', 'h1': 'NHL Games', 'section': 'games',
+                  'desc': SECTION_DESC['games'].format(label='NHL', segs='1st Period')}
+    games_html = render_page(template, 'sport', teams_menu_html, meta=games_meta, sport=nhl,
+                             sport_body='<div id="sportApp" data-section="games"><div class="no-games-note">Loading&hellip;</div>'
+                                        '<noscript>This page needs JavaScript.</noscript></div>')
 
     nhl_dir = os.path.join(ROOT, 'nhl')
     games_dir = os.path.join(ROOT, 'nhl', 'games')
@@ -930,8 +937,7 @@ def main():
     with open(os.path.join(nhl_dir, 'data.json'), 'w', encoding='utf-8') as f:
         f.write(data_json)
 
-    with open(os.path.join(games_dir, 'index.html'), 'w', encoding='utf-8') as f:
-        f.write(games_html)
+    write_light(games_html, 'nhl/games')
     for old in (hitrates_dir, hitrates_old_dir):   # old Stats URLs
         with open(os.path.join(old, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(redirect_page_html('../stats/'))
@@ -940,7 +946,6 @@ def main():
     # like the other sports' (nhl/odds.json carries the team names and logos)
     # BTTS isn't on the feed: it's the price entered in the admin (or
     # SportsGameOdds), shown as one "Consensus" row
-    nhl = sports.BY_KEY['nhl']
     btts = []
     for date_str, games in merged_games.items():
         for g in games:

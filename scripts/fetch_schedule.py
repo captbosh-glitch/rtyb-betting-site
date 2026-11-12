@@ -148,6 +148,13 @@ def main():
                 if g.get('gameOutcome', {}).get('lastPeriodType') in ('OT', 'SO'):
                     ot = g['gameOutcome']['lastPeriodType']
                 entry['ot'] = ot
+                if state in ('LIVE', 'CRIT'):
+                    # the clock for the Games cards: "12:34 - 2nd", "End 1st"
+                    pd, clock = g.get('periodDescriptor') or {}, g.get('clock') or {}
+                    num = pd.get('number') or 0
+                    name = {1: '1st', 2: '2nd', 3: '3rd'}.get(num) or pd.get('periodType') or ''
+                    entry['period'] = num
+                    entry['detail'] = f'End {name}' if clock.get('inIntermission') else f"{clock.get('timeRemaining') or ''} - {name}".strip(' -')
                 # Pull the goals[] breakdown, if present in this payload, for 1P score
                 goals = g.get('goals')
                 if goals is not None and first_period_over(g, state):

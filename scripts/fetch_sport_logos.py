@@ -82,18 +82,45 @@ def resized(url):
     return url
 
 
+GAMES_DIR = os.path.join(ROOT, 'data_seed', 'games')
+RETRY_MISSING = 7 * 86400   # a logo ESPN doesn't have is asked for again a week later
+
+
+def other_teams(key):
+    """Opponents outside the league (non-Division I schools, slug "espn-<id>")
+    from the saved games, as team rows the fetcher can use."""
+    out = {}
+    folder = os.path.join(GAMES_DIR, key)
+    for name in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
+        if not name.endswith('.json'):
+            continue
+        games = json.load(open(os.path.join(folder, name), encoding='utf-8')).get('games') or []
+        for g in games.values() if isinstance(games, dict) else games:
+            for side in ('away', 'home'):
+                slug = g.get(side) or ''
+                if slug.startswith('espn-'):
+                    out[slug] = {'slug': slug, 'espn_id': slug[5:], 'code': ''}
+    return list(out.values())
+
+
 def fetch_sport(key):
     path, folder = SOURCES[key]
     teams = json.load(open(os.path.join(TEAMS_DIR, f'{key}.json'), encoding='utf-8'))['teams']
+    if folder == 'ncaa':
+        teams = teams + other_teams(key)
     out_dir = os.path.join(LOGOS_DIR, key)
     os.makedirs(out_dir, exist_ok=True)
     index_path = os.path.join(out_dir, 'index.json')
     index = json.load(open(index_path, encoding='utf-8')) if os.path.exists(index_path) else {}
-    todo = [t for t in teams if not os.path.exists(os.path.join(out_dir, f"{t['slug']}.png"))]
+    missing_path = os.path.join(out_dir, 'missing.json')   # {slug: last tried, epoch seconds}
+    tried = json.load(open(missing_path, encoding='utf-8')) if os.path.exists(missing_path) else {}
+    now = time.time()
+    todo = [t for t in teams if not os.path.exists(os.path.join(out_dir, f"{t['slug']}.png"))
+            and now - tried.get(t['slug'], 0) > RETRY_MISSING]
     listed = espn_logos(path) if todo else {}
 
     def one(t):
-        urls = listed.get(t['espn_id']) or {}
+        urls = listed.get(t['espn_id']) or {}   # opponents outside the league aren't listed: the CDN path by id
         ident = t['espn_id'] if folder == 'ncaa' else (t['code'] or '').lower()
         default = urls.get('default') or f'https://a.espncdn.com/i/teamlogos/{folder}/500/{ident}.png'
         dark = urls.get('dark') or f'https://a.espncdn.com/i/teamlogos/{folder}/500-dark/{ident}.png'
@@ -117,6 +144,12 @@ def fetch_sport(key):
             index[slug] = info
     with open(index_path, 'w', encoding='utf-8') as f:
         json.dump(dict(sorted(index.items())), f, indent=0)
+    if folder == 'ncaa':
+        tried.update({slug: int(now) for slug in missing})
+        for slug in index:
+            tried.pop(slug, None)
+        with open(missing_path, 'w', encoding='utf-8') as f:
+            json.dump(dict(sorted(tried.items())), f, indent=0)
     print(f'{key}: {len(index)} of {len(teams)} logos'
           + (f' ({len(results) - len(missing)} new)' if results else '')
           + (f'; missing: {", ".join(missing[:8])}' if missing else ''))

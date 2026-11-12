@@ -8,7 +8,8 @@ Written to nhl/sport.json by build_site.py. One segment, the 1st period:
                tot [over, under], btts [yes, no]}}
   odds['1p'] = {ml {away, home}, ml3 {away, draw, home},
                 total {line 1.5, over, under}, btts {yes, no}}
-als / hls are the period scores (1st, 2nd, 3rd); as / hs the final score,
+als / hls are the period scores so far (1st, 2nd, 3rd; a live 1st period
+counts the goals so far); detail the live clock; as / hs the final score,
 which counts OT goals and the shootout winner, the way books grade it.
 The same rules as nhlSitGame in template.html: a tied 1st period is a push
 on the moneyline (0 units), a loss for both teams on the 3-way.
@@ -35,11 +36,18 @@ def game(g, date):
            'state': STATE.get(g.get('state'), 'pre'), 'away': g['away'], 'home': g['home'],
            'as': g.get('awayFinal'), 'hs': g.get('homeFinal'), 'ot': g.get('ot') or '',
            'firstGoal': g.get('firstGoal'), 'ag': g.get('awayGoalie'), 'hg': g.get('homeGoalie'),
-           'fml': g.get('fgMl')}
+           'fml': g.get('fgMl'), 'detail': g.get('detail') or ''}
     periods = [(g.get(f'awayP{i}'), g.get(f'homeP{i}')) for i in (1, 2, 3)]
-    if all(a is not None and h is not None for a, h in periods):
-        out['als'] = [a for a, _ in periods]
-        out['hls'] = [h for _, h in periods]
+    known = []
+    for a, h in periods:   # the periods scored so far, in order
+        if a is None or h is None:
+            break
+        known.append((a, h))
+    if not known and out['state'] == 'in' and g.get('period') == 1 and out['as'] is not None:
+        known = [(out['as'], out['hs'])]   # the 1st period in progress
+    if known:
+        out['als'] = [a for a, _ in known]
+        out['hls'] = [h for _, h in known]
     o = g.get('odds') or {}
     ml = o.get('ml') or {}
     t = (o.get('totals') or {}).get('1.5') or {}

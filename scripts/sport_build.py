@@ -1071,6 +1071,9 @@ def logo_flag(sport_key, slug):
     return None if info is None else ('d' if info.get('dark') else 'l')
 
 
+COLLEGE = ('ncaab', 'ncaaf')
+
+
 def page_markets(sp):
     """[[segment, market, label, kind]] for the pages, in order."""
     return [list(m) for m in sp['family_markets']]
@@ -1114,8 +1117,12 @@ def build(sp, teams_list, now_utc=None):
         'season': current, 'seasonLabel': season_label(sp['key'], current) if current else None,
         'generated': now_utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
         'teams': {t['slug']: dict({k: t.get(k) for k in ('name', 'short', 'code', 'color', 'conference', 'division')},
+                                  # naming rule: college teams go by the school name, never the nickname
+                                  **({'short': t.get('location') or t.get('short')} if sp['key'] in COLLEGE else {}),
                                   logo=logo_flag(sp['key'], t['slug'])) for t in teams_list},
         'otherTeams': extra,
+        # logos for the opponents outside the league (non-Division I schools)
+        'otherLogos': {slug: f for slug, f in ((slug, logo_flag(sp['key'], slug)) for slug in extra) if f},
         'games': by_date,
         'stats': stats,
         'streaks': team_streaks(sp, games),
