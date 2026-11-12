@@ -5814,57 +5814,6 @@
     "streakTeamName": "Montreal"
    },
    {
-    "id": "nba|401909976|1h|total|over",
-    "game": "nba|401909976",
-    "date": "2026-11-12",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-13T00:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Raptors @ 76ers",
-    "href": "nba/games/",
-    "market": "total",
-    "side": "over",
-    "line": 107.5,
-    "price": -105,
-    "title": "1H Over 107.5",
-    "est": 0.5574,
-    "edge": 0.0452,
-    "agree": 6,
-    "sample": 12,
-    "tier": "B",
-    "tags": [
-     "Over Lover",
-     "Streak Rider"
-    ],
-    "streak": 8,
-    "streakTeam": "tor",
-    "angles": [
-     [
-      "Raptors 1H overs, last 8 (107.5)",
-      "8-0"
-     ],
-     [
-      "Raptors 1H overs, season (107.5)",
-      "10-1"
-     ],
-     [
-      "Raptors 1H overs on the road (107.5)",
-      "5-1"
-     ],
-     [
-      "76ers 1H overs, season (107.5)",
-      "9-3"
-     ]
-    ],
-    "info": "Avg 1H total in their games: 76ers 112.6 \u00b7 Raptors 115.6",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Raptors"
-   },
-   {
     "id": "nba|401909979|1h|ml|away",
     "game": "nba|401909979",
     "date": "2026-11-12",
@@ -5905,6 +5854,107 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Hornets"
+   },
+   {
+    "id": "nhl|2026020300|1p|ml|away",
+    "game": "nhl|2026020300",
+    "date": "2026-11-12",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-13T00:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Minnesota @ Toronto",
+    "href": "nhl/games/?date=2026-11-12",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": -145,
+    "title": "Minnesota 1P ML",
+    "est": 0.6338,
+    "edge": 0.042,
+    "agree": 4,
+    "sample": 12,
+    "tier": "B",
+    "tags": [
+     "Chalk Eater"
+    ],
+    "streak": 0,
+    "streakTeam": "MIN",
+    "angles": [
+     [
+      "Minnesota 1P ML, last 8",
+      "5-0-3"
+     ],
+     [
+      "Minnesota 1P ML, season",
+      "9-3-8"
+     ],
+     [
+      "Minnesota 1P ML on the road",
+      "5-2-6"
+     ],
+     [
+      "Toronto\u2019s opponents 1P ML, Toronto at home",
+      "7-3-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Minnesota"
+   },
+   {
+    "id": "nba|401909976|1h|total|over",
+    "game": "nba|401909976",
+    "date": "2026-11-12",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-13T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Raptors @ 76ers",
+    "href": "nba/games/",
+    "market": "total",
+    "side": "over",
+    "line": 107.5,
+    "price": -110,
+    "title": "1H Over 107.5",
+    "est": 0.5657,
+    "edge": 0.0419,
+    "agree": 6,
+    "sample": 12,
+    "tier": "B",
+    "tags": [
+     "Over Lover",
+     "Streak Rider"
+    ],
+    "streak": 8,
+    "streakTeam": "tor",
+    "angles": [
+     [
+      "Raptors 1H overs, last 8 (107.5)",
+      "8-0"
+     ],
+     [
+      "Raptors 1H overs, season (107.5)",
+      "10-1"
+     ],
+     [
+      "Raptors 1H overs on the road (107.5)",
+      "5-1"
+     ],
+     [
+      "76ers 1H overs, season (107.5)",
+      "9-3"
+     ]
+    ],
+    "info": "Avg 1H total in their games: 76ers 112.6 \u00b7 Raptors 115.6",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Raptors"
    },
    {
     "id": "nhl|2026020305|1p|btts|yes",
@@ -5953,56 +6003,6 @@
     "streakTeamName": "Chicago"
    },
    {
-    "id": "nhl|2026020300|1p|ml|away",
-    "game": "nhl|2026020300",
-    "date": "2026-11-12",
-    "sport": "nhl",
-    "label": "NHL",
-    "slug": "nhl",
-    "start": "2026-11-13T00:00:00Z",
-    "seg": "1p",
-    "segTag": "1P",
-    "matchup": "Minnesota @ Toronto",
-    "href": "nhl/games/?date=2026-11-12",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": -150,
-    "title": "Minnesota 1P ML",
-    "est": 0.6397,
-    "edge": 0.0397,
-    "agree": 4,
-    "sample": 12,
-    "tier": "C",
-    "tags": [
-     "Chalk Eater"
-    ],
-    "streak": 0,
-    "streakTeam": "MIN",
-    "angles": [
-     [
-      "Minnesota 1P ML, last 8",
-      "5-0-3"
-     ],
-     [
-      "Minnesota 1P ML, season",
-      "9-3-8"
-     ],
-     [
-      "Minnesota 1P ML on the road",
-      "5-2-6"
-     ],
-     [
-      "Toronto\u2019s opponents 1P ML, Toronto at home",
-      "7-3-2"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Minnesota"
-   },
-   {
     "id": "ncaab|401916288|1h|ml|away",
     "game": "ncaab|401916288",
     "date": "2026-11-12",
@@ -6017,10 +6017,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 950,
+    "price": 1260,
     "title": "Tennessee Tech 1H ML",
-    "est": 0.132,
-    "edge": 0.0368,
+    "est": 0.1123,
+    "edge": 0.0388,
     "agree": 2,
     "sample": 3,
     "tier": "C",
@@ -6059,10 +6059,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 950,
+    "price": 980,
     "title": "Southern Utah 1H ML",
-    "est": 0.132,
-    "edge": 0.0368,
+    "est": 0.1296,
+    "edge": 0.037,
     "agree": 2,
     "sample": 3,
     "tier": "C",
