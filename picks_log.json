@@ -5531,8 +5531,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "UMass"
    },
    {
@@ -5689,10 +5689,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 105,
+    "price": 106,
     "title": "Thunder 1Q ML",
-    "est": 0.526,
-    "edge": 0.0382,
+    "est": 0.5242,
+    "edge": 0.0388,
     "agree": 3,
     "sample": 11,
     "tier": "C",
