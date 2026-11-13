@@ -1033,6 +1033,9 @@
       if (mb) mb.onclick = function() { tm.logAll = !tm.logAll; drawLog(); };
       box.querySelectorAll('[data-log-seg]').forEach(function(b) { b.onclick = function() { tm.logK = b.getAttribute('data-log-seg'); drawLog(); }; });
     }
+    // one header line for a top-5 closer or fader, linking to Edges
+    var er = edgeRank(slug), head = document.querySelector('.page-head');
+    if (er && head && !head.querySelector('.tm-edge-rank')) head.insertAdjacentHTML('beforeend', '<p class="tm-edge-rank"><a href="' + statsUrl('edges') + '">' + esc(edgeRankWords(er)) + ' &rarr;</a></p>');
     app.innerHTML = nextHtml() + lastHtml() + '<div id="tmMarkets"></div>' + streaksHtml() + linesHtml() + resultsHtml() + sitHtml() + '<div id="tmLogBox"></div>';
     drawMarkets();
     drawLog();
@@ -1537,15 +1540,18 @@
   var LEAD_CUTS = {
     nhl: { '1p': [1, 2] },
     nba: { '1q': [4, 9], '1h': [6, 12] }, wnba: { '1q': [4, 9], '1h': [6, 12] }, ncaab: { '1h': [5, 10] },
-    nfl: { '1q': [3, 7], '1h': [7, 14] }, ncaaf: { '1q': [3, 7], '1h': [7, 14] }
+    nfl: { '1q': [3, 7], '1h': [7, 14] }, ncaaf: { '1q': [3, 7], '1h': [7, 14] },
+    mlb: { 'f5': [1, 3] }
   };
-  var EDGE_NAME = { '1p': ['Intermission Edge', 'After the 1st period'], '1q': ['Quarter Edge', 'After the 1st quarter'], '1h': ['Halftime Edge', 'After the 1st half'] };
+  var EDGE_NAME = { '1p': ['Intermission Edge', 'After the 1st period'], '1q': ['Quarter Edge', 'After the 1st quarter'], '1h': ['Halftime Edge', 'After the 1st half'],
+                    'f5': ['F5 Edge', 'After 5 innings'] };
+  function edgeSegs() { return D.segments.filter(function(s) { return (LEAD_CUTS[D.sport] || {})[s.key]; }); }
   function fbu(res) { return res === 'W' ? 0.9091 : res === 'L' ? -1 : 0; }   // spreads and totals at -110
   function mlu(won, price) { return typeof price !== 'number' ? null : won ? (price < 0 ? 100 / -price : price / 100) : -1; }
   function edgeRows(games, k) {
     var cuts = (LEAD_CUTS[D.sport] || {})[k];
     var basketball = ['nba', 'wnba', 'ncaab'].indexOf(D.sport) !== -1, football = isFootball(), hockey = D.sport === 'nhl';
-    var unit = hockey ? 'goal' : 'point';
+    var unit = hockey ? 'goal' : D.sportType === 'baseball' ? 'run' : 'point';
     function lbl(a, b) { return b === 999 ? a + '+' : a === b ? String(a) : a + '&ndash;' + b; }
     var sizes = [[1, cuts[0]], [cuts[0] + 1, cuts[1]], [cuts[1] + 1, 999]];
     var R = {};
@@ -1584,8 +1590,8 @@
       // segment total -> game total
       if (g.ft != null && r.tot && r.tot !== 'NA' && r.tot !== 'P' && fa + fh !== g.ft) {
         var gOver = fa + fh > g.ft;
-        if (r.tot === 'O') add('oo', 'Segment Over, game Over', gOver, fbu(gOver ? 'W' : 'L'));
-        else add('uu', 'Segment Under, game Under', !gOver, fbu(!gOver ? 'W' : 'L'));
+        if (r.tot === 'O') add('oo', seg(k).tag + ' O/U went Over: the game goes Over too', gOver, fbu(gOver ? 'W' : 'L'));
+        else add('uu', seg(k).tag + ' O/U went Under: the game goes Under too', !gOver, fbu(!gOver ? 'W' : 'L'));
       }
       // after the half: a high- or low-scoring 1st half, then the 2nd half
       var tl = (((g.odds || {})[k] || {}).total || {}).line;
@@ -2587,35 +2593,46 @@
       });
     });
     if (!best) return '<p class="hub-none">No team has a situation in its favor ' + (D.schedule === 'week' ? 'this week' : 'tonight') + '.</p>';
-    var mkLabel = (e.markets.filter(function(x) { return x.id === mk; })[0] || {}).label || '';
+    var mkLabel = (e.markets.filter(function(x) { return x.id === mk; })[0] || {}).label || '', rank = edgeRank(best.slug);
     return '<div class="hub-team">' + badge(best.slug, 30) + '<div><b class="hub-team-name">' + nameHtml(best.slug) + '</b>' +
       '<p class="muted">' + best.all.length + ' spot' + (best.all.length === 1 ? '' : 's') + ', ' + best.win.length + ' winning (' + esc(seg(k).tag + ' ' + mkLabel) + ')</p>' +
       '<ul class="hub-spots">' + best.win.map(function(x) { return '<li>' + esc(x.label) + ' <b class="mono">' + esc(x.rec) + '</b></li>'; }).join('') + '</ul>' +
+      (rank ? '<p class="hub-rank"><a href="' + statsUrl('edges') + '">' + esc(edgeRankWords(rank)) + '</a></p>' : '') +
       (teamUrl(best.slug) ? hubLink(teamUrl(best.slug), 'See the team') : '') + '</div></div>';
   }
-  // one Season Results stat a day (the same for everyone that day)
+  // one stat a day (the same for everyone that day), from all three Stats
+  // pages: Season Results, the Splits standout, the Edges rows; links to its page
   function hubNumber() {
     var out = [];
     D.segments.forEach(function(s) {
-      var k = s.key, w = segWord(k), ws = segWords(k), cards = seasonCards(finalGames(), k);
-      var spreadWord = (w + ' spreads').replace(/^(\S+) (\S+) spreads$/, '$1-$2 spreads');
-      var PH = {
-        'Home / Away / Tie': { Home: 'of ' + ws + ' are won by the home team', Away: 'of ' + ws + ' are won by the road team', Tie: 'of ' + ws + ' end tied' },
-        'Favorite / Underdog / Tie': { Favorite: 'of ' + ws + ' are won by the favorite', Underdog: 'of ' + ws + ' are won by the underdog' },
-        'Home / Away / Push': { Home: 'of ' + spreadWord + ' are covered by the home team', Away: 'of ' + spreadWord + ' are covered by the road team' },
-        'Favorite / Underdog / Push': { Favorite: 'of ' + spreadWord + ' are covered by the favorite', Underdog: 'of ' + spreadWord + ' are covered by the underdog' },
-        'Both teams score: Yes / No': { Yes: 'of ' + ws + ' see both teams score' },
-        'A run in the 1st inning': { YRFI: 'of games have a run in the 1st inning' }
+      var k = s.key, ws = segWords(k), list = graded(finalGames(), k), cards = seasonCards(finalGames(), k);
+      var spreads = s.tag + ' spreads', P = {
+        ml: { home: ['w', 'of ' + ws + ' are won by the home team (ties left out)'], tie: ['tie', 'of ' + ws + ' end tied'] },
+        mlfd: { fav: ['w', 'of ' + ws + ' are won by the favorite (ties left out)'] },
+        fd: { mlfav: ['w', 'of ' + ws + ' are won by the moneyline favorite (ties left out)'], spfav: ['w', 'of ' + spreads + ' are covered by the favorite'] },
+        ats: { home: ['w', 'of ' + spreads + ' are covered by the home team'] },
+        tot: { over: ['w', 'of ' + ws + ' go Over ' + (D.sport === 'nhl' ? '1.5' : 'the total')] },
+        btts: { yes: ['w', 'of ' + ws + ' see both teams score'] },
+        rfi: { YRFI: ['w', 'of games have a run in the 1st inning'] }
       };
       cards.forEach(function(c) {
-        var ph = PH[c.sub] || (/^Over \/ Under/.test(c.sub) ? { Over: 'of ' + ws + ' go Over ' + (D.sport === 'nhl' ? '1.5' : 'the total') } : null);
+        var ph = P[c.id];
         if (!ph || c.gp < 10) return;
-        Object.keys(ph).forEach(function(l) { out.push({ pct: Math.round(100 * (c.n[l] || 0) / c.gp), txt: ph[l] }); });
+        Object.keys(ph).forEach(function(id) {
+          var x = ph[id][0] === 'tie' ? { p: c.tie / c.gp } : (function(r) { return r.w + r.l ? { p: r.w / (r.w + r.l) } : null; })((c.by[id] || {}).r || sRec());
+          if (x && (ph[id][0] !== 'tie' || c.tie != null)) out.push({ pct: Math.round(100 * x.p), txt: ph[id][1] + ' this season', href: statsUrl(), go: 'See stats' });
+        });
+      });
+      if (list.length < 10) return;
+      var sd = splitReg() ? splitsStandout(k) : null;
+      if (sd) out.push({ pct: sd.pct, txt: s.tag + ' ' + sd.market + ' ' + sd.pctHead.replace(' %', '').toLowerCase() + ' rate: ' + sd.label + ' (' + sd.rec + ')', href: statsUrl('splits'), go: 'See splits' });
+      if ((LEAD_CUTS[D.sport] || {})[k]) edgeData(k).rows.forEach(function(x) {
+        if (x.n >= 10) out.push({ pct: Math.round(100 * x.hit / x.n), txt: EDGE_NAME[k][1].toLowerCase() + ': ' + x.label.replace(/^./, function(c) { return c.toLowerCase(); }), href: statsUrl('edges'), go: 'See edges' });
       });
     });
-    if (!out.length) return '<p class="hub-none">Stats start once games are graded.</p>';
+    if (!out.length) return { html: '<p class="hub-none">Stats start once games are graded.</p>', href: statsUrl(), go: 'See stats' };
     var day = Math.floor(Date.parse(todayET() + 'T12:00:00Z') / 864e5), x = out[day % out.length];
-    return '<p class="hub-number"><b class="mono">' + x.pct + '%</b> ' + esc(x.txt) + ' this season.</p>';
+    return { html: '<p class="hub-number"><b class="mono">' + x.pct + '%</b> ' + x.txt.replace(/&(?![a-z]+;)/g, '&amp;') + '.</p>', href: x.href, go: x.go };
   }
   function renderHub() {
     var slate = hubSlate(), prev = hubPrev(slate), wk = D.schedule === 'week';
@@ -2625,7 +2642,7 @@
     ]).then(function(res) {
       var H = res[0] || {};
       TR = res[1] || { slates: {}, tips: {}, markets: [] };
-      var segName = D.segments.map(function(s) { return s.label.toLowerCase(); }).join(' and ');
+      var segName = D.segments.map(function(s) { return s.label.toLowerCase(); }).join(' and '), num = hubNumber();
       app.innerHTML = hubHero(slate, prev) +
         hubSec(wk ? 'This Week&rsquo;s Matchups' : 'Today&rsquo;s Matchups', slate.games.length ? hubLink(ROOT + SPORT_SLUG + '/matchups/', 'All ' + slate.games.length + ' matchups') : '', hubGames(slate)) +
         hubSec(wk ? 'Matchup of the Week' : 'Matchup of the Day', '', hubMotd(H, slate)) +
@@ -2633,7 +2650,7 @@
         hubSec('Trends to Watch', hubLink(ROOT + SPORT_SLUG + '/trends/', 'All trends'), hubTrends(slate)) +
         hubSec('Streak to Watch', hubLink(ROOT + SPORT_SLUG + '/trends/#streaks', 'See streaks'), hubStreak(slate)) +
         hubSec('Team to Watch', '', hubTeam(slate)) +
-        hubSec('The Number', hubLink(ROOT + SPORT_SLUG + '/stats/', 'See stats'), hubNumber()) +
+        hubSec('The Number', hubLink(num.href, num.go), num.html) +
         '<section class="hub-sec hub-learn"><a href="' + ROOT + String(H.learn || '/learn/').replace(/^\//, '') + '">New to ' + esc(segName) + ' betting? Read the guide &rarr;</a></section>';
     });
   }
