@@ -623,33 +623,47 @@
   .games-list { display: flex; flex-direction: column; gap: 12px; }
   .game-card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px 16px; }
   .gm-time { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
-  /* Games cards (assets/sport.js gameCard): teams, then one row per market */
-  .gc-teams { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 10px; }
-  .gc-team { display: flex; align-items: center; gap: 8px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.08rem; }
-  .gc-team .gm-team { display: flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; min-width: 0; }
-  .gc-team .gm-team:hover { color: var(--accent); }
-  .gc-seg { font-size: 0.95rem; color: var(--text); }
-  .gc-final { margin-left: auto; font-size: 0.95rem; color: var(--text-muted); }
+  /* Matchups cards (assets/sport.js gameCard): a compact table, teams on
+     the rows and markets across; two to a row on desktop, the same height */
+  .mc-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
+  @media (max-width: 900px) { .mc-list { grid-template-columns: minmax(0, 1fr); } }
+  .game-card.mc { display: flex; flex-direction: column; padding: 10px 12px; }
+  .mc-grid { width: 100%; min-width: 0; table-layout: fixed; border-collapse: separate; border-spacing: 0 3px; font-variant-numeric: tabular-nums; }
+  .mc-grid th, .mc-grid td { padding: 3px 4px; text-align: center; white-space: nowrap; }
+  .mc-grid thead th { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-muted); padding-bottom: 2px; overflow: hidden; text-overflow: ellipsis; }
+  .mc-grid thead .mc-st { width: 40%; text-align: left; font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.03em; white-space: normal; }
+  .mc-grid .mc-team { text-align: left; }
+  .mc-tw { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .mc-tn { min-width: 0; overflow: hidden; }
+  .mc-tn .gm-team { display: flex; align-items: center; gap: 7px; color: var(--text); text-decoration: none; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.04rem; min-width: 0; }
+  .mc-tn .gm-team:hover { color: var(--accent); }
+  .mc-tn .tn-full { overflow: hidden; text-overflow: ellipsis; }
+  .mc-sc { margin-left: auto; padding-left: 6px; font: 800 1.1rem 'Barlow Condensed', sans-serif; color: var(--text); }
+  .mc-tie-lbl { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-muted); padding-left: 29px; }
+  .mc-cell { border-radius: 6px; vertical-align: middle; }
+  .mc-cell .ob-ln { font-size: 0.86rem; }
+  .mc-dash { color: var(--text-faint); }
+  /* finished games, highlight only: won = soft green, lost = dimmed,
+     tie / push = soft yellow (CLAUDE.md color rule) */
+  /* (the same on the Odds page past dates) */
+  .mc-cell.mc-w, .ob-grid td.mc-w { background: color-mix(in srgb, var(--good) 26%, var(--panel)); }
+  .mc-w .ob-ln, .mc-w .ob-pr { color: var(--text); }
+  .mc-cell.mc-l, .ob-grid td.mc-l { opacity: 0.5; }
+  .mc-cell.mc-p, .ob-grid td.mc-p { background: color-mix(in srgb, var(--push) 22%, var(--panel)); }
+  .mc-full { margin-top: auto; display: flex; align-items: baseline; gap: 10px; padding-top: 8px; border-top: 1px solid var(--border-soft); font-size: 0.8rem; }
+  .mc-full-lbl { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-muted); white-space: nowrap; }
+  .mc-full-sc { font-family: 'JetBrains Mono', monospace; color: var(--text); white-space: nowrap; }
+  .mc-fs-win { font-weight: 800; color: var(--text); }
+  .mc-fs-lose { color: var(--text-muted); }
+  .mc-ot { font-size: 0.72rem; color: var(--text-muted); }
   .tn-short { display: none; }
-  .gc-odds { display: flex; flex-direction: column; border-top: 1px solid var(--border-soft); }
-  .gc-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border-soft); }
-  .gc-row:last-child { border-bottom: 0; padding-bottom: 0; }
-  .gc-lbl { flex: 0 0 78px; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; color: var(--text-muted); }
-  .gc-cells { flex: 1; display: grid; grid-template-columns: repeat(var(--gc-n, 2), minmax(0, 1fr)); gap: 8px; }
-  .gc-cells:has(> :nth-child(3)) { --gc-n: 3; }
-  .gc-cell { display: flex; flex-direction: column; align-items: flex-start; }
-  .gc-main { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.86rem; color: var(--text); white-space: nowrap; }
-  .gc-pr { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
-  .gc-mk { font-style: normal; font-weight: 700; margin-left: 2px; }
-  .gc-mk.gc-w { color: var(--good); }
-  .gc-mk.gc-l { color: var(--bad); }
-  .gc-mk.gc-p { color: var(--text-muted); }
   .gm-stick { position: sticky; top: 0; z-index: 20; background: var(--bg); padding: 6px 0; margin-bottom: 6px; }
   .gm-results { margin-bottom: 14px; }
   @media (max-width: 640px) {
     .tn-full { display: none; }
     .tn-short { display: inline; }
-    .gc-lbl { flex-basis: 64px; }
+    .mc-grid thead .mc-st { width: 34%; }
+    .mc-tie-lbl { padding-left: 0; }
   }
   .game-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
   .game-matchup { display: flex; align-items: center; gap: 8px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.05rem; }
@@ -1512,7 +1526,7 @@
   .section-empty .empty-tags { display: inline-flex; gap: 6px; margin-left: 6px; vertical-align: middle; }
   .section-empty .empty-tags span { font-size: 0.68rem; font-weight: 700; color: var(--accent); border: 1px solid var(--accent); padding: 0 6px; border-radius: 4px; }
 
-  /* ---------- Other sports: Games / Stats / Trends (assets/sport.js) ---------- */
+  /* ---------- Other sports: Matchups / Stats / Trends (assets/sport.js) ---------- */
   .sport-seg-row { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
   .sport-seg-row .seg-toggle { margin-bottom: 0; }
   .gm-trends-line { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; padding: 7px 10px; border-radius: 8px; background: var(--trend-dim); color: var(--text); font-size: 0.8rem; text-decoration: none; }
@@ -1779,7 +1793,7 @@
     html.rtyb-signed-in .hm-signin { display: none; }
   }
   @media (min-width: 481px) and (max-width: 640px) { .hm-signin { display: none; } }
-  /* the sport pages' own row: NHL · Games · Stats · Trends · Odds · Teams */
+  /* the sport pages' own row: NHL · Matchups · Stats · Trends · Odds · Teams */
   .sn { border-bottom: 1px solid var(--border-soft); background: var(--bg); }
   .sn-inner { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; gap: 4px; overflow-x: auto; scrollbar-width: none; }
   .sn-inner::-webkit-scrollbar { display: none; }

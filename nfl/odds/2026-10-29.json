@@ -1,1 +1,1 @@
-{"date":"2026-10-29","games":[{"books":{},"away":"car","home":"gb","start":"2026-10-30T00:15Z","state":"final","best":{},"open":{},"score":{"1q":[3,6],"1h":[10,20]}}]}
+{"date":"2026-10-29","games":[{"books":{},"away":"car","home":"gb","start":"2026-10-30T00:15Z","state":"final","best":{},"open":{},"score":{"1q":[3,6],"1h":[10,20]},"res":{"1q":{"sc":[3,6],"su":"L","ats":"L","tot":"U"},"1h":{"sc":[10,20],"su":"L","ats":"L","tot":"O"}}}]}
