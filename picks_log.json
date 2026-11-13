@@ -6411,46 +6411,46 @@
     "streakTeamName": "Pittsburgh"
    },
    {
-    "id": "ncaab|401906760|1h|ml|away",
-    "game": "ncaab|401906760",
+    "id": "ncaab|401909696|1h|ml|away",
+    "game": "ncaab|401909696",
     "date": "2026-11-13",
     "sport": "ncaab",
     "label": "NCAAB",
     "slug": "college-basketball",
-    "start": "2026-11-14T02:00Z",
+    "start": "2026-11-13T22:00Z",
     "seg": "1h",
     "segTag": "1H",
-    "matchup": "Seton Hall @ Alabama",
+    "matchup": "Texas A&M-Corpus Christi @ Florida State",
     "href": "college-basketball/matchups/",
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 680,
-    "title": "Seton Hall 1H ML",
-    "est": 0.162,
-    "edge": 0.0338,
+    "price": 1040,
+    "title": "Texas A&M-Corpus Christi 1H ML",
+    "est": 0.1252,
+    "edge": 0.0375,
     "agree": 2,
     "sample": 3,
     "tier": "C",
     "tags": [
      "Dog Hunter"
     ],
-    "streak": 3,
-    "streakTeam": "seton-hall-pirates",
+    "streak": 2,
+    "streakTeam": "texas-aandm-corpus-christi-islanders",
     "angles": [
      [
-      "Seton Hall 1H ML, season",
-      "3-0"
+      "Texas A&M-Corpus Christi 1H ML, season",
+      "2-1"
      ],
      [
-      "Seton Hall 1H ML, last 8",
-      "3-0"
+      "Texas A&M-Corpus Christi 1H ML, last 8",
+      "2-1"
      ]
     ],
     "info": null,
     "status": "pending",
     "units": null,
-    "streakTeamName": "Seton Hall"
+    "streakTeamName": "Texas A&M-Corpus Christi"
    },
    {
     "id": "nba|401909304|1h|ml|home",
@@ -6493,6 +6493,48 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Clippers"
+   },
+   {
+    "id": "ncaab|401906760|1h|ml|away",
+    "game": "ncaab|401906760",
+    "date": "2026-11-13",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
+    "start": "2026-11-14T02:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Seton Hall @ Alabama",
+    "href": "college-basketball/matchups/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 590,
+    "title": "Seton Hall 1H ML",
+    "est": 0.1772,
+    "edge": 0.0323,
+    "agree": 2,
+    "sample": 3,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 3,
+    "streakTeam": "seton-hall-pirates",
+    "angles": [
+     [
+      "Seton Hall 1H ML, season",
+      "3-0"
+     ],
+     [
+      "Seton Hall 1H ML, last 8",
+      "3-0"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Seton Hall"
    },
    {
     "id": "ncaab|401925755|1h|ml|away",
