@@ -2116,7 +2116,7 @@
     if (SIT || !splitReg() || !window.RTYBSit) return SIT;
     var seasons = [{ key: 'current', label: D.seasonLabel, games: D.games }];
     SIT = window.RTYBSit.create({ sport: D.sport, segments: D.segments, teams: D.teams, seasons: seasons, conf: D.conf, rivals: D.rivals,
-      totalCuts: D.totalCuts, tz: D.tz || null, url: SECTION === 'stats', today: todayET(), trendsUrl: ROOT + SPORT_SLUG + '/trends/',
+      totalCuts: D.totalCuts, tz: D.tz || null, url: SECTION === 'splits', today: todayET(), comboLocked: function() { return premiumLocked('splitCombine'); },
       onSeg: function(k, anchor) { if (SIT_ON_SEG) SIT_ON_SEG(k, anchor); else return false; },
       ties: periodFamily(), tonightLocked: function() { return premiumLocked('tonightOnly'); },
       locked: function() { return !IS_PREMIUM; }, lockHtml: function() { return LOCK_HTML; } });
