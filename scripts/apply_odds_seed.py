@@ -18,7 +18,7 @@ Run this ONCE, from the repo root:
     python3 scripts/apply_odds_seed.py
     python3 scripts/build_site.py
 
-Then check nhl/games/ for Sept 29, Sept 30, and Oct 1 -- those 16 games
+Then check nhl/matchups/ for Sept 29, Sept 30, and Oct 1 -- those 16 games
 should now show the real moneyline/total/BTTS pills instead of a dash.
 Oct 2-4 are deliberately left out (no odds in the spreadsheet yet for
 those days), so you can also confirm the "future day, no odds published"

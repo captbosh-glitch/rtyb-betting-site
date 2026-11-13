@@ -19,7 +19,7 @@ Pages: /daily/ (everything, newest first), /{sport slug}/recap/{date}/,
 scripts/sports.py can have them; football's are weekly (the Weekend Recap
 and the Week Preview). The latest recap and preview also show on the home
 page's Daily section, the sport's hub (scripts/hub.py) and the top of its
-Games page (inject_arena).
+Matchups page (inject_arena).
 """
 import html
 import json
@@ -208,8 +208,8 @@ def arena_html(pieces, sport, today):
 
 
 def inject_arena(sport_dirs, today, pieces=None):
-    """Put the cards at the top of each sport's Games page, under its menu.
-    sport_dirs: {sport: games page dir}."""
+    """Put the cards at the top of each sport's Matchups page, under its menu.
+    sport_dirs: {sport: Matchups page dir}."""
     pieces = load() if pieces is None else pieces
     for sport, d in sport_dirs.items():
         path = os.path.join(ROOT, d, 'index.html')

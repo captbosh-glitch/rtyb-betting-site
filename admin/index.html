@@ -134,7 +134,7 @@
     <div id="draftsView" hidden>
       <div class="card">
         <h2>The Daily &mdash; drafts and columns</h2>
-        <p class="sub" style="margin-bottom:0">Recaps (8 AM ET) and previews (11 AM ET) are drafted from the site&rsquo;s numbers. Read each one against the results, edit the text, then Publish: it goes live on /daily/, its own page and the sport&rsquo;s Games page on the next refresh (within about 10 minutes). Columns are Markdown files in <code>content/columns/</code> and publish the same way.</p>
+        <p class="sub" style="margin-bottom:0">Recaps (8 AM ET) and previews (11 AM ET) are drafted from the site&rsquo;s numbers. Read each one against the results, edit the text, then Publish: it goes live on /daily/, its own page and the sport&rsquo;s Matchups page on the next refresh (within about 10 minutes). Columns are Markdown files in <code>content/columns/</code> and publish the same way.</p>
         <div class="actions"><button class="save" id="draftsReload" type="button">Reload</button></div>
         <p class="status" id="draftsStatus"></p>
         <div id="draftsList"></div>
@@ -218,7 +218,7 @@
 
     <div class="card">
       <h2>Matchups Tool</h2>
-      <p class="sub" style="margin-bottom:0">Save pushes these odds live to that day&rsquo;s Games section immediately. Moneyline is the 2-way 1st-period price (a tied period is a push), not the 3-way. No number means the odds are read as +; a leading &ndash; is kept as &ndash;.</p>
+      <p class="sub" style="margin-bottom:0">Save pushes these odds live to that day&rsquo;s Matchups page immediately. Moneyline is the 2-way 1st-period price (a tied period is a push), not the 3-way. No number means the odds are read as +; a leading &ndash; is kept as &ndash;.</p>
       <table id="matchupsTable">
         <thead><tr>
           <th>Matchup</th><th>ML Away</th><th>ML Home</th>
@@ -823,7 +823,7 @@
   function sportDate() { return document.getElementById('sportDate').value; }
   function gameKey(date, away, home) { return date + '|' + away + '|' + home; }
 
-  // Football (NFL, NCAAF) works week by week like its Games page; every
+  // Football (NFL, NCAAF) works week by week like its Matchups page; every
   // other sport by date. Either way each game keeps its own date, which is
   // what odds are saved under.
   function isWeekly() { return !!SPORT && SPORT.schedule === 'week'; }

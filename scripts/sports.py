@@ -2,7 +2,7 @@
 Sport registry: the one place every sport RTYB covers is defined.
 
 The build (build_site.py) generates each sport's pages from this list:
-/{slug}/games, /{slug}/stats, /{slug}/trends, /{slug}/teams and
+/{slug}/matchups, /{slug}/stats, /{slug}/trends, /{slug}/teams and
 /{slug}/teams/{team-slug}, plus the sport selector in the top nav. Adding a
 sport means adding an entry here, not copying pages.
 
@@ -17,7 +17,7 @@ Field reference
                  game cards, stats, teams, trends, picks, home, admin)
   season_start   month (1-12) the season starts, for "Soon" / return-month labels
   sections       URL folder for each section (the same for every sport)
-  schedule       "day" (default) or "week": football's Games page and Admin
+  schedule       "day" (default) or "week": football's Matchups page and Admin
                  go week by week (ESPN's weeks: Week 1.., Wild Card, Bowls)
   launched       True = shown on the site (nav, home, Picks, Streaks).
                  False = hidden: its data is still fetched, graded and built,
@@ -36,7 +36,7 @@ SPORTS = [
             {'key': '1p', 'label': '1st Period', 'tag': '1P', 'markets': ['ML', 'O/U 1.5', 'BTTS']},
         ],
         'season_start': 10,
-        'sections': {'games': 'games', 'stats': 'stats', 'trends': 'trends', 'odds': 'odds', 'teams': 'teams'},
+        'sections': {'games': 'matchups', 'stats': 'stats', 'trends': 'trends', 'odds': 'odds', 'teams': 'teams'},
     },
     {
         'key': 'nfl', 'label': 'NFL', 'slug': 'nfl', 'sport_type': 'spread', 'schedule': 'week',
@@ -93,9 +93,11 @@ SPORTS = [
     },
 ]
 
-# 'odds' is the book-by-book comparison page (Unabated feed).
-DEFAULT_SECTIONS = {'games': 'games', 'stats': 'stats', 'trends': 'trends', 'odds': 'odds', 'teams': 'teams'}
-SECTION_LABELS = {'games': 'Games', 'stats': 'Stats', 'trends': 'Trends', 'odds': 'Odds', 'teams': 'Teams'}
+# 'odds' is the book-by-book comparison page (Unabated feed). The 'games'
+# section is the Matchups page (/{slug}/matchups/; /{slug}/games/ forwards).
+DEFAULT_SECTIONS = {'games': 'matchups', 'stats': 'stats', 'trends': 'trends', 'odds': 'odds', 'teams': 'teams'}
+SECTION_LABELS = {'games': 'Matchups', 'stats': 'Stats', 'trends': 'Trends', 'odds': 'Odds', 'teams': 'Teams'}
+OLD_SECTION_DIRS = {'games': 'games'}   # moved sections: old folder -> a forwarding stub
 MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
           'August', 'September', 'October', 'November', 'December']
 

@@ -123,7 +123,7 @@ def nhl_games(nhl_data, colors):
                 'lines': [f"ML {g['away']} {signed(ml.get(g['away']))} · {g['home']} {signed(ml.get(g['home']))}"] if ml.get(g['away']) is not None else [],
                 'extra': [f"O/U 1.5 {signed(tot.get('over'))}/{signed(tot.get('under'))}"] if tot.get('over') is not None else [],
                 'ml': ml, 'total15': tot, 'btts': (o.get('btts_yes'), o.get('btts_no')),
-                'href': f'nhl/games/?date={d}',
+                'href': f"{sports.section_path('nhl', 'games').lstrip('/')}?date={d}",
             })
     return out
 
@@ -161,7 +161,7 @@ def sport_games(doc):
                 'seg': seg.get('tag'), 'segScore': tuple(res['sc']) if res.get('sc') else None,
                 'segFinal': bool(res.get('sc')), 'res': res, 'segKey': k,
                 'lines': lines, 'extra': [], 'note': g.get('note'),
-                'href': f"{doc['slug']}/games/?date={d}",
+                'href': f"{sports.section_path(doc['sport'], 'games').lstrip('/')}?date={d}",
             })
     return out
 
@@ -206,7 +206,8 @@ class Tally:
 
     @property
     def rate(self):
-        return self.w / self.n if self.n else 0
+        """Win %: ties and pushes stay out (2-0-4 is 100%)."""
+        return self.w / (self.w + self.l) if self.w + self.l else 0
 
 
 def nhl_records(games):
@@ -555,7 +556,7 @@ def build(template, nhl_data, logo_svg, now_utc=None):
         cards += ''.join(game_card(g, 'today').replace('class="hc-card"', f'class="hc-card" data-sport="{sp["key"]}"', 1)
                          for g in games[:TODAY_SHOWN])
         links += (f'<a class="hp-all" data-sport="{sp["key"]}" href="{sports.section_path(sp, "games").lstrip("/")}?date={today}">'
-                  f'All {len(games)} {esc(sp["label"])} game{"s" if len(games) != 1 else ""} &rarr;</a>')
+                  f'All {len(games)} {esc(sp["label"])} matchup{"s" if len(games) != 1 else ""} &rarr;</a>')
     filters = ''
     if len(today_sports) > 1:
         filters = ('<div class="seg-toggle hp-filter" role="group" aria-label="Sport">'

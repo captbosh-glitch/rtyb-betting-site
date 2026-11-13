@@ -95,7 +95,7 @@ def load_games(nhl_data, nhl_city):
                 'sport': 'nhl', 'label': 'NHL', 'slug': 'nhl', 'key': f"nhl|{g.get('id')}", 'start': g.get('startTimeUTC'),
                 'date': d, 'state': st, 'away': g['away'], 'home': g['home'],
                 'names': {g['away']: names.get(g['away'], g['away']), g['home']: names.get(g['home'], g['home'])},
-                'href': f'nhl/games/?date={d}',
+                'href': f"{sports.section_path('nhl', 'games').lstrip('/')}?date={d}",
                 'segs': {'1p': {'tag': '1P', 'label': '1st Period',
                                 'sc': p1 if st == 'final' and None not in p1 else None,
                                 'odds': {'ml': {'away': ml.get(g['away']), 'home': ml.get(g['home'])},
@@ -118,7 +118,7 @@ def load_games(nhl_data, nhl_city):
                     nm[g[side]] = t.get('short') or t.get('name') or g.get(side + 'Name') or g[side]
                 G = {'sport': sp['key'], 'label': sp['label'], 'slug': sp['slug'], 'key': f"{sp['key']}|{g['id']}",
                      'start': g.get('start'), 'date': d, 'state': st, 'away': g['away'], 'home': g['home'], 'names': nm,
-                     'href': f"{sp['slug']}/games/", 'segs': {}}
+                     'href': sports.section_path(sp, 'games').lstrip('/'), 'segs': {}}
                 for s in segs:
                     k = s['key']
                     r = ((g.get('res') or {}).get(k)) or {}
@@ -540,6 +540,16 @@ def esc(s):
     return html.escape('' if s is None else str(s), quote=True)
 
 
+def page_href(href):
+    """A logged pick's Matchups link: picks logged before the rename point at
+    /{slug}/games/, which now forwards to /{slug}/matchups/."""
+    for sp in sports.SPORTS:
+        old = f"{sp['slug']}/games/"
+        if href.startswith(old):
+            return sports.section_path(sp, 'games').lstrip('/') + href[len(old):]
+    return href
+
+
 def units_html(u, n):
     if not n:
         return '<span class="pk-u zero">0.0u</span>'
@@ -568,7 +578,7 @@ def play_card(p, idx, free, depth):
             f'<span class="pk-edge">Edge {p["edge"] * 100:+.1f}%</span></div>'
             f'<div class="pk-angles">{rows}</div>'
             f'<div class="pk-foot"><div class="pk-tags">{tags}<span class="pk-agree">{p["agree"]} angles agree</span></div>'
-            f'<a class="pk-link" href="{depth}{esc(p["href"])}">Matchup stats &rarr;</a></div>')
+            f'<a class="pk-link" href="{depth}{esc(page_href(p["href"]))}">Matchup stats &rarr;</a></div>')
     attrs = (f'data-sport="{esc(p["sport"])}" data-tags="{esc("|".join(p["tags"]))}" data-edge="{p["edge"]}" '
              f'data-streak="{abs(p["streak"])}" data-start="{esc(p["start"])}" data-rank="{idx}"')
     if free:
@@ -605,7 +615,7 @@ def render(log, plays_today, evaluated, now_utc, depth='../'):
                f'<span class="pk-meta">{esc(g["label"])} · {esc(time_et(g["start"]))}</span></div>'
                f'<h2 class="pk-f-title">{esc(g["matchup"])}</h2>'
                f'<p class="pk-f-sub">{g["agree"]} separate angles point the same way: <b>{esc(g["title"])}</b></p>'
-               f'<div class="pk-angles">{rows}</div><a class="pk-link" href="{depth}{esc(g["href"])}">Full matchup stats &rarr;</a></div>')
+               f'<div class="pk-angles">{rows}</div><a class="pk-link" href="{depth}{esc(page_href(g["href"]))}">Full matchup stats &rarr;</a></div>')
     # Streak to Watch: the longest active streak at today's line
     stw = ''
     cands = [e for e in evaluated if abs(e['streak']) >= RULES['streak_min'] and e['streak'] > 0]

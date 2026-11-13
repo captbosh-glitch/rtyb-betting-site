@@ -633,33 +633,47 @@
   .games-list { display: flex; flex-direction: column; gap: 12px; }
   .game-card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px 16px; }
   .gm-time { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
-  /* Games cards (assets/sport.js gameCard): teams, then one row per market */
-  .gc-teams { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 10px; }
-  .gc-team { display: flex; align-items: center; gap: 8px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.08rem; }
-  .gc-team .gm-team { display: flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; min-width: 0; }
-  .gc-team .gm-team:hover { color: var(--accent); }
-  .gc-seg { font-size: 0.95rem; color: var(--text); }
-  .gc-final { margin-left: auto; font-size: 0.95rem; color: var(--text-muted); }
+  /* Matchups cards (assets/sport.js gameCard): a compact table, teams on
+     the rows and markets across; two to a row on desktop, the same height */
+  .mc-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
+  @media (max-width: 900px) { .mc-list { grid-template-columns: minmax(0, 1fr); } }
+  .game-card.mc { display: flex; flex-direction: column; padding: 10px 12px; }
+  .mc-grid { width: 100%; min-width: 0; table-layout: fixed; border-collapse: separate; border-spacing: 0 3px; font-variant-numeric: tabular-nums; }
+  .mc-grid th, .mc-grid td { padding: 3px 4px; text-align: center; white-space: nowrap; }
+  .mc-grid thead th { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-muted); padding-bottom: 2px; overflow: hidden; text-overflow: ellipsis; }
+  .mc-grid thead .mc-st { width: 40%; text-align: left; font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.03em; white-space: normal; }
+  .mc-grid .mc-team { text-align: left; }
+  .mc-tw { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .mc-tn { min-width: 0; overflow: hidden; }
+  .mc-tn .gm-team { display: flex; align-items: center; gap: 7px; color: var(--text); text-decoration: none; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.04rem; min-width: 0; }
+  .mc-tn .gm-team:hover { color: var(--accent); }
+  .mc-tn .tn-full { overflow: hidden; text-overflow: ellipsis; }
+  .mc-sc { margin-left: auto; padding-left: 6px; font: 800 1.1rem 'Barlow Condensed', sans-serif; color: var(--text); }
+  .mc-tie-lbl { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-muted); padding-left: 29px; }
+  .mc-cell { border-radius: 6px; vertical-align: middle; }
+  .mc-cell .ob-ln { font-size: 0.86rem; }
+  .mc-dash { color: var(--text-faint); }
+  /* finished games, highlight only: won = soft green, lost = dimmed,
+     tie / push = soft yellow (CLAUDE.md color rule) */
+  /* (the same on the Odds page past dates) */
+  .mc-cell.mc-w, .ob-grid td.mc-w { background: color-mix(in srgb, var(--good) 26%, var(--panel)); }
+  .mc-w .ob-ln, .mc-w .ob-pr { color: var(--text); }
+  .mc-cell.mc-l, .ob-grid td.mc-l { opacity: 0.5; }
+  .mc-cell.mc-p, .ob-grid td.mc-p { background: color-mix(in srgb, var(--push) 22%, var(--panel)); }
+  .mc-full { margin-top: auto; display: flex; align-items: baseline; gap: 10px; padding-top: 8px; border-top: 1px solid var(--border-soft); font-size: 0.8rem; }
+  .mc-full-lbl { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-muted); white-space: nowrap; }
+  .mc-full-sc { font-family: 'JetBrains Mono', monospace; color: var(--text); white-space: nowrap; }
+  .mc-fs-win { font-weight: 800; color: var(--text); }
+  .mc-fs-lose { color: var(--text-muted); }
+  .mc-ot { font-size: 0.72rem; color: var(--text-muted); }
   .tn-short { display: none; }
-  .gc-odds { display: flex; flex-direction: column; border-top: 1px solid var(--border-soft); }
-  .gc-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border-soft); }
-  .gc-row:last-child { border-bottom: 0; padding-bottom: 0; }
-  .gc-lbl { flex: 0 0 78px; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; color: var(--text-muted); }
-  .gc-cells { flex: 1; display: grid; grid-template-columns: repeat(var(--gc-n, 2), minmax(0, 1fr)); gap: 8px; }
-  .gc-cells:has(> :nth-child(3)) { --gc-n: 3; }
-  .gc-cell { display: flex; flex-direction: column; align-items: flex-start; }
-  .gc-main { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.86rem; color: var(--text); white-space: nowrap; }
-  .gc-pr { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
-  .gc-mk { font-style: normal; font-weight: 700; margin-left: 2px; }
-  .gc-mk.gc-w { color: var(--good); }
-  .gc-mk.gc-l { color: var(--bad); }
-  .gc-mk.gc-p { color: var(--text-muted); }
   .gm-stick { position: sticky; top: 0; z-index: 20; background: var(--bg); padding: 6px 0; margin-bottom: 6px; }
   .gm-results { margin-bottom: 14px; }
   @media (max-width: 640px) {
     .tn-full { display: none; }
     .tn-short { display: inline; }
-    .gc-lbl { flex-basis: 64px; }
+    .mc-grid thead .mc-st { width: 34%; }
+    .mc-tie-lbl { padding-left: 0; }
   }
   .game-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
   .game-matchup { display: flex; align-items: center; gap: 8px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.05rem; }
@@ -1522,7 +1536,7 @@
   .section-empty .empty-tags { display: inline-flex; gap: 6px; margin-left: 6px; vertical-align: middle; }
   .section-empty .empty-tags span { font-size: 0.68rem; font-weight: 700; color: var(--accent); border: 1px solid var(--accent); padding: 0 6px; border-radius: 4px; }
 
-  /* ---------- Other sports: Games / Stats / Trends (assets/sport.js) ---------- */
+  /* ---------- Other sports: Matchups / Stats / Trends (assets/sport.js) ---------- */
   .sport-seg-row { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
   .sport-seg-row .seg-toggle { margin-bottom: 0; }
   .gm-trends-line { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; padding: 7px 10px; border-radius: 8px; background: var(--trend-dim); color: var(--text); font-size: 0.8rem; text-decoration: none; }
@@ -1789,7 +1803,7 @@
     html.rtyb-signed-in .hm-signin { display: none; }
   }
   @media (min-width: 481px) and (max-width: 640px) { .hm-signin { display: none; } }
-  /* the sport pages' own row: NHL · Games · Stats · Trends · Odds · Teams */
+  /* the sport pages' own row: NHL · Matchups · Stats · Trends · Odds · Teams */
   .sn { border-bottom: 1px solid var(--border-soft); background: var(--bg); }
   .sn-inner { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; gap: 4px; overflow-x: auto; scrollbar-width: none; }
   .sn-inner::-webkit-scrollbar { display: none; }
@@ -1878,7 +1892,7 @@ __SITE_NAV__
 <nav class="sn" aria-label="__SPORT_LABEL__ pages">
   <div class="sn-inner">
     <a class="sn-sport" href="__NAV_HREF_HUB__" __NAV_HUB_CURRENT__>__SPORT_ICON__ __SPORT_LABEL__</a>
-    <a class="sn-link" href="__NAV_HREF_GAMES__" __NAV_GAMES_CURRENT__>Games</a>
+    <a class="sn-link" href="__NAV_HREF_GAMES__" __NAV_GAMES_CURRENT__>Matchups</a>
     <a class="sn-link" href="__NAV_HREF_STATS__" __NAV_HITRATES_CURRENT__>Stats</a>
     <a class="sn-link" href="__NAV_HREF_TRENDS__" __NAV_TRENDS_CURRENT__>Trends</a>
     __NAV_ODDS_LINK__
@@ -2248,9 +2262,9 @@ __ACCOUNT_JS__
     if (n === null || n === 0) return null;
     return n < 0 ? 100 / Math.abs(n) : n / 100;
   }
-  // Win % and Tie % of every game played: a 5-0-12 team is 29% wins, 71% ties
-  // (not 100%). Keep in step with winPct in assets/sport.js and situational.js.
-  function winPct(w, l, t) { var n = w + l + (t || 0); return n ? w / n : null; }
+  // Win % leaves ties and pushes out (2-0-4 is 100%); Tie % is out of every
+  // game played. Keep in step with winPct in assets/sport.js and situational.js.
+  function winPct(w, l, t) { var n = w + l; return n ? w / n : null; }
   function tiePct(w, l, t) { var n = w + l + (t || 0); return n ? (t || 0) / n : null; }
   // result: 'W' | 'L' | 'T'. null = a win with no saved price (left out of the sum).
   function betUnits(result, price) {
@@ -2702,7 +2716,7 @@ __ACCOUNT_JS__
       }
     });
     if (market === 'ml3' && !r.priced) r.units = null;   // 3-way prices only since Nov 2026
-    r.pct = winPct(r.w, r.l, r.t);   // ties count as games played (only 'win' has them)
+    r.pct = winPct(r.w, r.l, r.t);   // ties stay out of the win % (only 'win' has them)
     r.tiePct = market === 'win' ? tiePct(r.w, r.l, r.t) : market === 'ml3' ? (r.gp ? r.d / r.gp : null) : null;
     r.rec = market === 'win' ? (r.w + '-' + r.l + '-' + r.t) : (r.w + '-' + r.l);
     // the current run (the log is oldest first): W4 / L3, O / U for Overs, Y / N for BTTS
@@ -2935,7 +2949,7 @@ __ACCOUNT_JS__
   }
 
   function summaryRowView(r) {
-    var p = winPct(r.w, r.l, r.t), pct = p === null ? null : Math.round(p * 100); // ties count as games
+    var p = winPct(r.w, r.l, r.t), pct = p === null ? null : Math.round(p * 100); // ties stay out
     return {
       rec: r.w + '-' + r.l + (r.hasTies ? '-' + r.t : ''),
       pct: pct === null ? '&mdash;' : pct + '%',
@@ -3832,7 +3846,7 @@ __ACCOUNT_JS__
       var bttsPrice = (odds.btts_yes != null) ? fmtAmerican(odds.btts_yes) : '&mdash;';
       nextGameEl.innerHTML = '<div class="daily-summary"><h3>Next Game</h3>' +
         '<div class="ds-row"><span class="ds-label">' + (isHome ? 'vs ' : '@ ') + teamLink(oppCode, oppName) + '</span>' +
-          '<span class="ds-right"><a href="' + SITE_ROOT + '/nhl/games/?date=' + dateStr + '">' + escapeHtml(dateLabelText(dateStr)) + ' &middot; ' + fmtGameTime(g.startTimeUTC) + '</a></span></div>' +
+          '<span class="ds-right"><a href="' + SITE_ROOT + '/nhl/matchups/?date=' + dateStr + '">' + escapeHtml(dateLabelText(dateStr)) + ' &middot; ' + fmtGameTime(g.startTimeUTC) + '</a></span></div>' +
         '<div class="ds-row"><span class="ds-label">Moneyline</span><span class="ds-right mono">' + mlPrice + '</span></div>' +
         '<div class="ds-row"><span class="ds-label">Over 1.5</span><span class="ds-right mono">' + ouPrice + '</span></div>' +
         '<div class="ds-row"><span class="ds-label">BTTS</span><span class="ds-right mono">' + bttsPrice + '</span></div>' +
@@ -3861,7 +3875,7 @@ __ACCOUNT_JS__
       var finalStr = (tFinal != null && oFinal != null) ? (tFinal + '-' + oFinal + (lg.ot ? ' ' + lg.ot : '')) : '&mdash;';
       lastGameEl.innerHTML = '<div class="daily-summary"><h3>Last Game</h3>' +
         '<div class="ds-row"><span class="ds-label">' + (lHome ? 'vs ' : '@ ') + teamLink(lOpp, lOppName) + '</span>' +
-          '<span class="ds-right"><a href="' + SITE_ROOT + '/nhl/games/?date=' + lDate + '">' + escapeHtml(dateLabelText(lDate)) + '</a></span></div>' +
+          '<span class="ds-right"><a href="' + SITE_ROOT + '/nhl/matchups/?date=' + lDate + '">' + escapeHtml(dateLabelText(lDate)) + '</a></span></div>' +
         '<div class="ds-row"><span class="ds-label">1st Period</span><span class="ds-right mono">' + tP1 + '-' + oP1 + '</span></div>' +
         '<div class="ds-row"><span class="ds-label">Moneyline</span><span class="ds-right mono">' + mlRow + '</span></div>' +
         '<div class="ds-row"><span class="ds-label">Over 1.5</span><span class="ds-right mono">' + (lOver ? 'Over ' : 'Under ') + fmtAmerican(lOver ? lTot.over : lTot.under) + '</span></div>' +

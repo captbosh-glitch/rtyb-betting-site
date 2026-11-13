@@ -34,7 +34,7 @@ root" compatible):
                               written ONCE and fetched by every generated
                               page's client JS, instead of being inlined
                               into each page individually.
-  nhl/games/index.html     -- the Games page (landing page)
+  nhl/matchups/index.html  -- the Matchups page (nhl/games/ forwards to it)
   nhl/stats/index.html, nhl/trends/index.html -- drawn by assets/sport.js from nhl/sport.json
                          (and nhl/trends.json, scripts/trends.py)
   nhl/1st-period-stats/, nhl/hit-rates/ -- redirect stubs to nhl/stats/ (old URLs)
@@ -79,8 +79,8 @@ TEAM_COLOR_RE = re.compile(r"(\w+):\s*'(#[0-9A-Fa-f]{6})'")
 
 PAGE_META = {
     'games': {
-        'title': 'RTYB — NHL Games',
-        'h1': 'NHL — Games',
+        'title': 'NHL Matchups Today: 1st Period Odds and Results | RTYB',
+        'h1': 'NHL Matchups',
         'desc': ('First-period matchups, odds, and season hit rates for every NHL game day. '
                   'Pick a date above to see that day’s card.'),
     },
@@ -115,7 +115,7 @@ TEAM_DIVISIONS = {
 
 
 # First day of the 2026-27 regular season. Stats, trends, team pages and
-# the Games-page calendar only cover games from this date on -- anything
+# the Matchups-page calendar only cover games from this date on -- anything
 # earlier is preseason.
 SEASON_START = periods.SEASON_START
 
@@ -469,7 +469,7 @@ def render_page(template, page_key, teams_menu_html, meta=None, team_code='', sp
 
 
 
-def redirect_page_html(relative_target):
+def redirect_page_html(relative_target, keep_query=False):
     """A tiny redirect stub for a URL that moved -- e.g. the old
     /nhl/hit-rates/ now living at /nhl/1st-period-stats/. `relative_target`
     is relative to the redirect page's own folder (both pages sit one level
@@ -484,7 +484,7 @@ def redirect_page_html(relative_target):
 <meta http-equiv="refresh" content="0; url={relative_target}">
 <link rel="canonical" href="{relative_target}">
 <title>RTYB</title>
-<script>location.replace('{relative_target}');</script>
+<script>location.replace('{relative_target}'{" + location.search + location.hash" if keep_query else ""});</script>
 </head>
 <body>
 <p>This page moved. Redirecting to <a href="{relative_target}">{relative_target}</a>&hellip;</p>
@@ -494,7 +494,7 @@ def redirect_page_html(relative_target):
 
 
 EMPTY_COPY = {
-    'games': ('No {label} games yet', 'odds, results and trends'),
+    'games': ('No {label} matchups yet', 'odds, results and trends'),
     'stats': ('No {label} stats yet', 'records, hit rates and units'),
     'trends': ('No {label} trends yet', 'streaks and league trends'),
     'teams': ('No {label} teams yet', 'team pages with records and splits'),
@@ -662,24 +662,25 @@ def sport_team_meta(sport, team, season_label):
 
 
 SECTION_DESC = {
-    'games': '{label} games by date with {segs} odds, scores and results.',
+    'games': '{label} matchups by date with {segs} odds, scores and results.',
     'stats': '{label} {segs} results league-wide: {markets} with units, the Money Board, Edges and situational splits.',
     'trends': '{label} League Trends, Matchup Trends and Streak Trends for every slate, graded as games finish.',
     'odds': '{label} {segs} odds from every sportsbook, exchange and prediction market we track, with the best price outlined.',
 }
 
 
-# "How to read this page" box under the Odds table: one template per page
-# type, filled per sport. Static HTML (not drawn by assets/sport.js) so the
+# "How to read this page" box under the Odds table and the Matchups cards:
+# one template per page type, filled per sport. Static HTML (not drawn by assets/sport.js) so the
 # SEO paragraph is in the page source.
 # SEO_COPY: {(section, sport key): paragraph}. Empty for now; the SEO prompt
 # fills it in. A page without one keeps an empty, marked spot.
 SEO_COPY = {}
 
 
-def row_order_line(sp):
+def row_order_line(sp, section):
     """Which row is which in the two-row markets this sport has."""
-    words = 'O/U: the top row is the Over, the bottom row is the Under.'
+    words = ('O/U: the top row is the Over, the bottom row is the Under.' if section == 'odds'
+             else 'O/U: top row is the Over, bottom row the Under.')
     if sp['key'] == 'nhl':
         words += ' BTTS: top is Yes, bottom is No.'
     if sp['key'] == 'mlb':
@@ -689,8 +690,15 @@ def row_order_line(sp):
 
 def how_to_read_html(sp, section):
     if section == 'odds':
-        lines = [row_order_line(sp),
+        lines = [row_order_line(sp, section),
                  'Open is the first price we saved. The green box is the best price on that side right now.']
+    elif section == 'games':
+        # the score next to each team: MLB's cards show First 5
+        segs = ['f5'] if sp['family'] == 'period' and sp['key'] == 'mlb' else [s['key'] for s in sp['segments']]
+        seg_words = ' or '.join(sports.SEGMENT_WORDS[k] for k in segs)
+        lines = [row_order_line(sp, section),
+                 f'Green: the side that won. Yellow: a tie or push. The big number next to each team is the '
+                 f'{seg_words} score; the full game is underneath.']
     else:
         return ''
     seo = SEO_COPY.get((section, sp['key']))
@@ -699,6 +707,29 @@ def how_to_read_html(sp, section):
             + f'<!-- SEO paragraph ({section}, {sp["key"]}): scripts/build_site.py SEO_COPY -->'
             + (f'<p class="htr-seo">{esc(seo)}</p>' if seo else '<div class="htr-seo" data-seo-slot></div>')
             + '</aside>')
+
+
+def matchups_meta(sp):
+    """The Matchups page's title, h1 and description."""
+    when = 'This Week' if sp.get('schedule') == 'week' else 'Today'
+    desc = SECTION_DESC['games'].format(label=sp['label'], segs=sports.segment_summary(sp))
+    if sp.get('schedule') == 'week':
+        desc = desc.replace('by date', 'by week')
+    return {'title': f"{sp['label']} Matchups {when}: {' & '.join(s['label'] for s in sp['segments'])} Odds and Results | RTYB",
+            'h1': f"{sp['label']} Matchups", 'section': 'games', 'desc': desc}
+
+
+def write_moved_stubs(sp):
+    """A forwarding stub at each moved section's old address (/{slug}/games/
+    -> /{slug}/matchups/), keeping ?date= / ?week=."""
+    for sec, old in sports.OLD_SECTION_DIRS.items():
+        new = sp['sections'][sec]
+        if new == old:
+            continue
+        path = os.path.join(ROOT, sp['slug'], old)
+        os.makedirs(path, exist_ok=True)
+        with open(os.path.join(path, 'index.html'), 'w', encoding='utf-8') as f:
+            f.write(redirect_page_html(f'../{new}/', keep_query=True))
 
 
 def sport_app_body(sp, section):
@@ -740,7 +771,7 @@ def write_light(template_html_page, page_dir):
 
 
 def build_other_sports(template):
-    """Pages for every non-NHL sport in the registry. Games / Stats / Trends
+    """Pages for every non-NHL sport in the registry. Matchups / Stats / Trends
     are rendered in the browser by assets/sport.js from {slug}/data.json
     (written by build_sport_data); a sport with no games loaded yet gets a
     clean empty state instead."""
@@ -757,7 +788,7 @@ def build_other_sports(template):
         teams = load_teams(sp)
         for section in ('games', 'stats', 'trends', 'odds', 'teams'):
             label = sports.SECTION_LABELS[section]
-            h1 = (f'{sp["label"]} Trends to Watch' if section == 'trends' else f'{sp["label"]} Games' if section == 'games'
+            h1 = (f'{sp["label"]} Trends to Watch' if section == 'trends' else f'{sp["label"]} Matchups' if section == 'games'
                   else f'{sp["label"]} — {label}')
             meta = {'title': f'RTYB — {sp["label"]} {"Trends to Watch" if section == "trends" else label}', 'h1': h1,
                     'desc': f'{sp["label"]} {sports.segment_summary(sp)} {EMPTY_COPY[section][1]}.', 'section': section}
@@ -773,13 +804,14 @@ def build_other_sports(template):
                 meta['desc'] = SECTION_DESC[section].format(
                     label=sp['label'], segs=sports.segment_summary(sp),
                     markets='moneyline, spread and totals' if any(sports.has_ml(s) for s in sp['segments']) else 'spread and totals')
-                if section == 'games' and sp.get('schedule') == 'week':
-                    meta['desc'] = meta['desc'].replace('games by date', 'games by week')
+                if section == 'games':
+                    meta = matchups_meta(sp)
                 html = render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=sport_app_body(sp, section))
             else:
                 html = render_page(template, 'empty', '', meta=meta, sport=sp, empty_html=empty_state_html(sp, section))
             write_light(html, f"{sp['slug']}/{sp['sections'][section]}")
         write_hub(template, sp)
+        write_moved_stubs(sp)
         # one page per team
         for t in teams:
             meta = sport_team_meta(sp, t, (SPORT_DATA.get(sp['key']) or {}).get('seasonLabel'))
@@ -966,16 +998,13 @@ def main():
     team_colors = extract_team_true_colors(template)
     teams_menu_html = build_teams_menu_html(full_data.get('summary', {}), team_colors)
 
-    # /nhl/games/: the shared Games page (assets/sport.js), from nhl/sport.json
+    # /nhl/matchups/: the shared Matchups page (assets/sport.js), from nhl/sport.json
     nhl = sports.BY_KEY['nhl']
-    games_meta = {'title': 'RTYB — NHL Games', 'h1': 'NHL Games', 'section': 'games',
-                  'desc': SECTION_DESC['games'].format(label='NHL', segs='1st Period')}
-    games_html = render_page(template, 'sport', teams_menu_html, meta=games_meta, sport=nhl,
-                             sport_body='<div id="sportApp" data-section="games"><div class="no-games-note">Loading&hellip;</div>'
-                                        '<noscript>This page needs JavaScript.</noscript></div>')
+    games_html = render_page(template, 'sport', teams_menu_html, meta=matchups_meta(nhl), sport=nhl,
+                             sport_body=sport_app_body(nhl, 'games'))
 
     nhl_dir = os.path.join(ROOT, 'nhl')
-    games_dir = os.path.join(ROOT, 'nhl', 'games')
+    games_dir = os.path.join(ROOT, 'nhl', nhl['sections']['games'])
     hitrates_dir = os.path.join(ROOT, 'nhl', '1st-period-stats')
     hitrates_old_dir = os.path.join(ROOT, 'nhl', 'hit-rates')  # old URL -- kept as a redirect stub, see below
     trends_dir = os.path.join(ROOT, 'nhl', 'trends')
@@ -1001,7 +1030,8 @@ def main():
     with open(os.path.join(nhl_dir, 'data.json'), 'w', encoding='utf-8') as f:
         f.write(data_json)
 
-    write_light(games_html, 'nhl/games')
+    write_light(games_html, f"nhl/{nhl['sections']['games']}")
+    write_moved_stubs(nhl)   # /nhl/games/ -> /nhl/matchups/
     for old in (hitrates_dir, hitrates_old_dir):   # old Stats URLs
         with open(os.path.join(old, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(redirect_page_html('../stats/'))
@@ -1027,7 +1057,8 @@ def main():
     nhl_schedule = {d: [{'away': g['away'], 'home': g['home'], 'start': g.get('startTimeUTC'),
                          'state': nhl_state.get(g.get('state'), 'pre'),
                          'score': {'1p': [g['awayP1'], g['homeP1']]} if g.get('awayP1') is not None and g.get('homeP1') is not None else None,
-                         'detail': g.get('detail') or ''}
+                         'detail': g.get('detail') or '',
+                         'res': nhl_sport.game(g, d).get('res') if nhl_state.get(g.get('state')) == 'final' else None}
                         for g in games]
                     for d, games in merged_games.items() if d >= SEASON_START}
     two_word = ('Blue Jackets', 'Maple Leafs', 'Red Wings', 'Golden Knights')
@@ -1085,13 +1116,13 @@ def main():
     picks_body, picks_info = picks.build(full_data, TEAM_CITY)
     home.write_picks(template, full_data, LOGO_SVG, picks_body)
     streaks_page.write(template, full_data, LOGO_SVG)
-    # The Daily's latest recap and preview at the top of each Games page
-    daily.inject_arena({sp['key']: f"{sp['slug']}/games" for sp in sports.SPORTS}, datetime.now(sport_build.ET).date().isoformat())
+    # The Daily's latest recap and preview at the top of each Matchups page
+    daily.inject_arena({sp['key']: sports.section_path(sp, 'games').strip('/') for sp in sports.SPORTS}, datetime.now(sport_build.ET).date().isoformat())
     # Last: share tags, analytics and footer links on every page; sitemap.xml, robots.txt
     sitemap_urls = seo.finish()
 
     print(f"wrote index.html (home: {home_info['today']} games today, {home_info['trends']} trends), picks/ ({picks_info['plays']} plays today), learn/, nhl/data.json ({len(data_json)} bytes), "
-          f"nhl/games/index.html ({len(games_html)} bytes), "
+          f"nhl/matchups/index.html ({len(games_html)} bytes), "
           f"nhl/stats/index.html, nhl/sport.json, "
           f"nhl/1st-period-stats/ + nhl/hit-rates/ (redirect stubs), "
           f"nhl/trends/index.html + nhl/trends.json, "

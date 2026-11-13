@@ -1,5 +1,5 @@
 """
-Data for the non-NHL sports' Games, Stats, Trends and team pages.
+Data for the non-NHL sports' Matchups, Stats, Trends and team pages.
 
 For each sport in scripts/sports.py: reads the games the loader saved
 (data_seed/games/{sport}/{season}.json), the odds saved in the admin
@@ -219,9 +219,9 @@ def write_odds_page(sp, slug_dir, now_utc, schedule, meta=None, extra=None, week
     data_feed/unabated/history/, without links. `best` is the best price per
     side (the green outline), `open` the best opening price (the Open column).
 
-    schedule: {date: [{away, home, start, state, score?, detail?}]}, state 'pre' |
-    'live' | 'final', score {segment: [away, home]} once the game starts,
-    detail the live clock. `meta` (NHL, whose data.json has another shape) carries label,
+    schedule: {date: [{away, home, start, state, score?, detail?, res?}]}, state
+    'pre' | 'live' | 'final', score {segment: [away, home]} once the game
+    starts, detail the live clock, res the graded result once it's final. `meta` (NHL, whose data.json has another shape) carries label,
     segments and teams. `extra` (NHL's admin-entered BTTS) adds markets the
     feed doesn't carry: [{date, away, home, start, books: {seg: {m: {book: row}}}}]
     under the book ids EXTRA_BOOKS names."""
@@ -280,6 +280,10 @@ def write_odds_page(sp, slug_dir, now_utc, schedule, meta=None, extra=None, week
                     'best': bests(books), 'open': bests(opens) if opens else {}}
             if state != 'pre' and sg.get('score'):
                 game['score'] = sg['score']   # {segment: [away, home]} so far
+            if state == 'final' and sg.get('res'):
+                # each segment's result, from the away side (su / ats / tot /
+                # btts / rfi): past dates show which side won each market
+                game['res'] = {seg: {m: v for m, v in r.items() if m != 'u'} for seg, r in sg['res'].items() if r}
             if state == 'live' and sg.get('detail'):
                 game['detail'] = sg['detail']   # the live clock: "4:58 - 3rd", "End 1st"
             for seg, mk in books.items():
@@ -1048,7 +1052,7 @@ def week_key(g):
 
 
 def week_list(games):
-    """Weeks in order: [{key, label, start, end, games}] for the Games page
+    """Weeks in order: [{key, label, start, end, games}] for the Matchups page
     and Admin of week-scheduled sports."""
     weeks = {}
     for g in games:
@@ -1173,7 +1177,8 @@ def build(sp, teams_list, now_utc=None):
     write_json(os.path.join(slug_dir, 'trends.json'), trends_doc)
     odds_schedule = {d: [{'away': g['away'], 'home': g['home'], 'start': g.get('start'),
                           'state': {'in': 'live', 'final': 'final', 'post': 'final'}.get(g.get('state'), 'pre'),
-                          'score': seg_scores(sp, g), 'detail': g.get('detail') or ''} for g in day]
+                          'score': seg_scores(sp, g), 'detail': g.get('detail') or '',
+                          'res': g.get('res') if g.get('state') in ('final', 'post') else None} for g in day]
                      for d, day in by_date.items()}
     write_odds_page(sp, slug_dir, now_utc, odds_schedule, weeks=doc.get('weeks'))
     import hub   # the Arena hub (/{slug}/): Matchup of the Day and The Daily, after the odds files it prices from

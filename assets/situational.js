@@ -439,9 +439,9 @@
       }
 
       function recTxt(m, x) { return x.n ? x.a + '-' + x.b + (m.pair || m.id === 'ml3' ? (x.p ? '-' + x.p : '') : '-' + x.p) : '&mdash;'; }
-      // Moneyline: Win % and Tie % out of every game played (ties count, as in
-      // template.html / sport.js winPct). Other markets leave pushes out.
-      function decided(m, x) { return x.a + x.b + (m.id === 'su' && src.ties ? x.p : 0); }
+      // Win % leaves ties and pushes out (2-0-4 is 100%), as in template.html /
+      // sport.js winPct; Tie % is out of every game played.
+      function decided(m, x) { return x.a + x.b; }
       function pctOf(m, x) { var d = decided(m, x); return d ? Math.round(100 * x.a / d) : null; }
       function tieOf(x) { var d = x.a + x.b + x.p; return d ? Math.round(100 * (x.p + (x.d || 0)) / d) : null; }
       var isSu = sel.id === 'ml3' || (sel.id === 'su' && !!src.ties);

@@ -1,5 +1,5 @@
 /*
- * Games, Stats, Trends and team pages for every sport except NHL (NHL's
+ * Matchups, Stats, Trends and team pages for every sport except NHL (NHL's
  * pages run their own code in template.html). Reads {slug}/data.json,
  * written by scripts/sport_build.py, and renders into #sportApp:
  *   <div id="sportApp" data-section="games|stats|trends|odds|team" data-team="slug">
@@ -65,9 +65,9 @@
   function unitCls(u) { var r = Math.round(u * 100) / 100; return r > 0.5 ? 'pos' : r < -0.5 ? 'neg' : 'mid'; }
   function pct(w, l) { return (w + l) ? Math.round(1000 * w / (w + l)) / 10 : null; }
   function pctTxt(w, l) { var p = pct(w, l); return p == null ? '&mdash;' : p.toFixed(1) + '%'; }
-  // Moneyline (SU) Win % and Tie % count ties as games played: 5-0-12 is
-  // 29% wins, 71% ties, not 100%. Same rule as winPct in template.html (NHL).
-  function winPct(w, l, t) { var n = w + l + (t || 0); return n ? w / n : null; }
+  // Win % leaves ties and pushes out (Favorites 2-0-4 is 100%); Tie % is out
+  // of every game played. Same rule as winPct in template.html (NHL).
+  function winPct(w, l, t) { var n = w + l; return n ? w / n : null; }
   function tiePct(w, l, t) { var n = w + l + (t || 0); return n ? (t || 0) / n : null; }
   function pct1(x) { return x == null ? null : Math.round(1000 * x) / 10; }
   function suPctTxt(r) { var p = pct1(winPct(r[0], r[1], r[2])); return p == null ? '&mdash;' : p.toFixed(1) + '%'; }
@@ -129,13 +129,14 @@
   function emptyNote(html) { return '<div class="section-empty">' + html + '</div>'; }
   function allDates() { return Object.keys(D.games || {}).sort(); }
 
-  // ----------------------------------------------------------- game card
-  // Chris's Games spec: one card for every sport. The top line is the start
-  // time, "Live · clock · period" or "Final"; each team (name per the naming
-  // rule: desktop name, phone abbreviation) gets its score in the selected
-  // segment once the game starts, and the final score on the right. Then one
-  // row per market, best price per side (g.odds); a finished game marks every
-  // side ✓ (won), ✗ (lost) or – (push, tie or no action).
+  // -------------------------------------------------------- matchup card
+  // Chris's Matchups spec: one compact table per game for every sport, teams
+  // on the rows (name per the naming rule: desktop name, phone abbreviation)
+  // and the sport's markets across the top. Top-left: the start time, "LIVE
+  // · clock · period" or "FINAL · segment". Each team gets its segment score
+  // once the game starts; the full game sits under a divider. A finished
+  // game shows its results by highlight only (resultCls): the side that won
+  // a soft green fill, the side that lost dimmed, a tie or push soft yellow.
   function flipRes(r) { return { W: 'L', L: 'W' }[r] || r; }
   function nameHtml(slug) { return '<span class="tn-full">' + esc(shortName(slug)) + '</span><span class="tn-short">' + esc(tcode(slug)) + '</span>'; }
   // periods in a segment, for the score so far
@@ -149,79 +150,94 @@
     if (!a.length || !h.length) return null;
     return [a.reduce(function(s, x) { return s + x; }, 0), h.reduce(function(s, x) { return s + x; }, 0)];
   }
-  function statusText(g) {
-    if (g.state === 'final') {
-      var ot = g.ot || ((g.detail || '').split('/')[1] || '');
-      return 'Final' + (ot ? ' · ' + ot : '');
-    }
-    if (g.state === 'in') return 'Live' + (g.detail ? ' · ' + g.detail.replace(' - ', ' · ') : '');
-    if (g.state === 'pre') return timeET(g.start);
-    return g.detail || g.state;
-  }
   // the segment whose score shows next to the names (MLB: First 5)
   function cardSeg(k) { return D.sportType === 'baseball' ? 'f5' : k; }
-  var MARK = { W: ['✓', 'gc-w'], L: ['✗', 'gc-l'], P: ['–', 'gc-p'] };
-  // one side: text (abbreviation), price, line (line markets) and result
-  function gcCell(txt, price, line, r) {
-    var top = esc(txt) + (line != null ? ' ' + esc(line) : price != null && line == null ? ' ' + esc(signed(price)) : '');
-    var m = r && MARK[r];
-    return '<span class="gc-cell"><span class="gc-main">' + top + (m ? ' <i class="gc-mk ' + m[1] + '">' + m[0] + '</i>' : '') + '</span>' +
-      (line != null && price != null ? '<span class="gc-pr">' + esc(signed(price)) + '</span>' : '') + '</span>';
+  // "OT", "2OT", "SO" after a final score
+  function otTag(g) { return g.ot || ((g.detail || '').split('/')[1] || '').trim(); }
+  // the live clock as [clock, period]: "4:58 - 3rd" -> ['4:58', '3RD']
+  function liveClock(g) {
+    var p = String(g.detail || '').split(' - ');
+    return p.length > 1 ? [p[0].trim(), p[p.length - 1].trim().toUpperCase()] : ['', livePeriod(g)];
   }
-  function gcRow(label, cells) { return '<div class="gc-row"><span class="gc-lbl">' + label + '</span><span class="gc-cells">' + cells.join('') + '</span></div>'; }
-  function cardMarkets(g, k) {
-    var fin = g.state === 'final', a = tcode(g.away), h = tcode(g.home), rows = [];
-    function R(key) { var r = (g.res || {})[key]; return fin && r && r.sc ? r : null; }
-    function side(r, x, home) { if (!r) return null; if (r.na || !x || x === 'NA') return 'P'; x = home ? flipRes(x) : x; return x === 'W' || x === 'L' ? x : 'P'; }
-    function ou(r, x, want) { if (!r) return null; if (r.na || !x || x === 'NA' || x === 'P') return 'P'; return x === want ? 'W' : 'L'; }
-    function ml(key, label) {
-      var o = ((g.odds || {})[key] || {}).ml, r = R(key);
-      if (!o && !r) return;
-      rows.push(gcRow(label, [gcCell(a, o ? o.away : null, null, side(r, r && r.su, false)), gcCell(h, o ? o.home : null, null, side(r, r && r.su, true))]));
+  function cardStatus(g, k) {
+    if (g.state === 'final') return 'FINAL &middot; ' + esc(seg(cardSeg(k)).tag);
+    if (g.state === 'in') {
+      var c = liveClock(g);
+      return '<span class="st-live">LIVE' + (c[0] ? ' &middot; ' + esc(c[0]) : '') + (c[1] ? ' &middot; ' + esc(c[1]) : '') + '</span>';
     }
-    function spread(key, label) {
-      var o = ((g.odds || {})[key] || {}).ats, r = R(key);
-      if (!o && !r) return;
-      rows.push(gcRow(label, [gcCell(a, o ? o.away.price : null, o ? signed(o.away.line) : null, side(r, r && r.ats, false)),
-                              gcCell(h, o ? o.home.price : null, o ? signed(o.home.line) : null, side(r, r && r.ats, true))]));
+    return g.start ? esc(timeET(g.start)) : 'TBD';
+  }
+  // W (won) / L (lost) / P (tie or push) -> the cell's highlight
+  function resultCls(r) { return r === 'W' ? ' mc-w' : r === 'L' ? ' mc-l' : r === 'P' ? ' mc-p' : ''; }
+  // the markets across the top: [market, header]
+  function cardCols(k) {
+    if (D.sport === 'nhl') return [['ml', 'ML'], ['total', 'O/U'], ['btts', 'BTTS'], ['ml3', '3-WAY']];
+    if (D.sportType === 'baseball') return [['rfi', 'NRFI/YRFI'], ['ml', 'F5 ML'], ['ats', 'F5 RUN LINE'], ['total', 'F5 O/U']];
+    return [['ats', 'SPREAD'], ['total', 'O/U']].concat(hasMl(k) ? [['ml', 'ML']] : []);
+  }
+  // one cell: row 0 = away (Over / Yes / YRFI), 1 = home (Under / No / NRFI),
+  // 2 = the tie (NHL 3-way only)
+  function cardCell(g, k, m, row) {
+    var sk = m === 'rfi' ? '1i' : cardSeg(k), o = ((g.odds || {})[sk] || {}), fin = g.state === 'final';
+    var r = (g.res || {})[sk], done = fin && r && r.sc ? r : null, home = row === 1, res = null, line = null, price = null, tip = '';
+    function side(x) { if (!done) return null; if (done.na || !x || x === 'NA') return 'P'; x = home ? flipRes(x) : x; return x === 'W' || x === 'L' ? x : 'P'; }
+    function yn(x, want) { if (!done) return null; if (done.na || !x || x === 'NA' || x === 'P') return 'P'; return x === want ? 'W' : 'L'; }
+    if (m === 'ml') {
+      if (row === 2) return '<td class="mc-cell mc-none"></td>';
+      price = o.ml ? o.ml[home ? 'home' : 'away'] : null; res = side(done && done.su);
+    } else if (m === 'ats') {
+      if (row === 2) return '<td class="mc-cell mc-none"></td>';
+      var a = o.ats && o.ats[home ? 'home' : 'away'];
+      if (a) { line = signed(a.line); price = a.price; }
+      res = side(done && done.ats);
+    } else if (m === 'total') {
+      if (row === 2) return '<td class="mc-cell mc-none"></td>';
+      var ln = o.total ? o.total.line : D.sport === 'nhl' ? 1.5 : null;
+      if (o.total) { line = ln; price = o.total[home ? 'under' : 'over']; }
+      if (ln != null) tip = (home ? 'Under ' : 'Over ') + ln;
+      res = yn(done && done.tot, home ? 'U' : 'O');
+    } else if (m === 'btts') {
+      if (row === 2) return '<td class="mc-cell mc-none"></td>';
+      price = o.btts ? o.btts[home ? 'no' : 'yes'] : null; tip = home ? 'BTTS No' : 'BTTS Yes';
+      res = yn(done && done.btts, home ? 'N' : 'Y');
+    } else if (m === 'rfi') {
+      if (row === 2) return '<td class="mc-cell mc-none"></td>';
+      price = o.nrfi_yrfi ? o.nrfi_yrfi[home ? 'nrfi' : 'yrfi'] : null; tip = home ? 'NRFI' : 'YRFI';
+      res = yn(done && done.rfi, home ? 'N' : 'Y');
+    } else if (m === 'ml3') {
+      var want = ['W', 'L', 'T'][row];
+      price = o.ml3 ? o.ml3[['away', 'home', 'draw'][row]] : null;
+      // only the outcome that hit is green; a tied period is the TIE cell
+      if (done) res = done.na || !done.su || done.su === 'NA' ? 'P' : done.su === want ? 'W' : 'L';
     }
-    function total(key, label) {
-      var o = ((g.odds || {})[key] || {}).total, r = R(key);
-      if (!o && !r) return;
-      var ln = o ? o.line : D.sport === 'nhl' ? 1.5 : null;
-      rows.push(gcRow(label, [gcCell('O', o ? o.over : null, ln, ou(r, r && r.tot, 'O')), gcCell('U', o ? o.under : null, ln, ou(r, r && r.tot, 'U'))]));
-    }
-    if (D.sport === 'nhl') {
-      ml('1p', 'ML'); total('1p', 'TOTAL');
-      var bt = ((g.odds || {})['1p'] || {}).btts, r1 = R('1p');
-      if (bt || r1) rows.push(gcRow('BTTS', [gcCell('Y', bt ? bt.yes : null, null, ou(r1, r1 && r1.btts, 'Y')), gcCell('N', bt ? bt.no : null, null, ou(r1, r1 && r1.btts, 'N'))]));
-      var m3 = ((g.odds || {})['1p'] || {}).ml3;
-      if (m3 || r1) {
-        var su = r1 && !r1.na ? r1.su : null;
-        function t3(want) { return r1 ? (su ? (su === want ? 'W' : 'L') : 'P') : null; }
-        rows.push(gcRow('3-WAY ML', [gcCell(a, m3 ? m3.away : null, null, t3('W')), gcCell('TIE', m3 ? m3.draw : null, null, t3('T')), gcCell(h, m3 ? m3.home : null, null, t3('L'))]));
-      }
-    } else if (D.sportType === 'baseball') {
-      var rf = ((g.odds || {})['1i'] || {}).nrfi_yrfi, ri = R('1i');
-      if (rf || ri) rows.push(gcRow('NRFI/YRFI', [gcCell('NRFI', rf ? rf.nrfi : null, null, ou(ri, ri && ri.rfi, 'N')), gcCell('YRFI', rf ? rf.yrfi : null, null, ou(ri, ri && ri.rfi, 'Y'))]));
-      ml('f5', 'F5 ML'); spread('f5', 'F5 RUN LINE'); total('f5', 'F5 TOTAL');
-    } else {
-      spread(k, 'SPREAD'); total(k, 'TOTAL');
-      if (hasMl(k)) ml(k, 'ML');
-    }
-    return rows.length ? '<div class="gc-odds">' + rows.join('') + '</div>' : '';
+    var none = line == null && price == null, body = none ? '<span class="mc-dash">&ndash;</span>' : oddsCell(line, price);
+    // no price, nothing to highlight
+    return '<td class="mc-cell' + (none ? '' : resultCls(res)) + '"' + (tip ? ' data-tip="' + esc(tip) + '" data-tap title="' + esc(tip) + '"' : '') + '>' + body + '</td>';
+  }
+  // "FULL GAME  WSH 101 · IND 114 OT", away first, the winner bold
+  function fullGameRow(g) {
+    if (g.as == null || g.hs == null || (g.state !== 'final' && g.state !== 'in')) return '';
+    var fin = g.state === 'final', lbl = 'FULL GAME';
+    if (!fin) { var c = liveClock(g); lbl += ' &middot; <span class="st-live">LIVE' + (c[1] || c[0] ? ' &middot; ' + esc((c[1] + ' ' + c[0]).trim()) : '') + '</span>'; }
+    function sc(slug, n, other) { return '<span class="mc-fs' + (fin ? (n > other ? ' mc-fs-win' : n < other ? ' mc-fs-lose' : '') : '') + '">' + esc(tcode(slug)) + ' ' + esc(n) + '</span>'; }
+    var ot = fin ? otTag(g) : '';
+    return '<div class="mc-full"><span class="mc-full-lbl">' + lbl + '</span><span class="mc-full-sc">' + sc(g.away, g.as, g.hs) + ' &middot; ' + sc(g.home, g.hs, g.as) +
+      (ot ? ' <span class="mc-ot">' + esc(ot) + '</span>' : '') + '</span></div>';
   }
   function gameCard(g, k) {
-    var sk = cardSeg(k), sc = g.state !== 'pre' ? segScore(g, sk) : null, fin = g.state === 'final' && g.as != null;
-    function line(slug, i) {
-      return '<div class="gc-team">' + teamLink(slug, badge(slug, 22) + nameHtml(slug)) +
-        (sc ? '<span class="gc-seg mono">' + esc(sc[i]) + '</span>' : '') +
-        (fin ? '<span class="gc-final mono">' + esc(i ? g.hs : g.as) + '</span>' : '') + '</div>';
+    var cols = cardCols(k), sc = g.state !== 'pre' ? segScore(g, cardSeg(k)) : null;
+    function teamRow(slug, i) {
+      return '<tr><th scope="row" class="mc-team"><div class="mc-tw"><span class="mc-tn">' + teamLink(slug, badge(slug, 22) + nameHtml(slug)) + '</span>' +
+        (sc ? '<b class="mc-sc">' + esc(sc[i]) + '</b>' : '') + '</div></th>' +
+        cols.map(function(c) { return cardCell(g, k, c[0], i); }).join('') + '</tr>';
     }
-    return '<div class="game-card gc" data-game="' + esc(g.id) + '">' +
-      '<div class="gm-time">' + esc(statusText(g)) + '</div>' +
-      '<div class="gc-teams">' + line(g.away, 0) + line(g.home, 1) + '</div>' +
-      cardMarkets(g, k) + '</div>';
+    // NHL: a TIE row under the teams, only the 3-way column filled
+    var tie = D.sport === 'nhl' ? '<tr class="mc-tie"><th scope="row" class="mc-team"><span class="mc-tie-lbl">TIE &middot; 3-WAY</span></th>' +
+      cols.map(function(c) { return c[0] === 'ml3' ? cardCell(g, k, 'ml3', 2) : '<td class="mc-cell mc-none"></td>'; }).join('') + '</tr>' : '';
+    return '<div class="game-card mc" data-game="' + esc(g.id) + '" style="--mc-n:' + cols.length + '">' +
+      '<table class="mc-grid"><thead><tr><th scope="col" class="mc-st">' + cardStatus(g, k) + '</th>' +
+      cols.map(function(c) { return '<th scope="col">' + esc(c[1]) + '</th>'; }).join('') + '</tr></thead>' +
+      '<tbody>' + teamRow(g.away, 0) + teamRow(g.home, 1) + tie + '</tbody></table>' + fullGameRow(g) + '</div>';
   }
 
   var GAME_INDEX = null, GAME_DAY = {};
@@ -246,10 +262,13 @@
 
   // ------------------------------------------------------------ date bar
   // cal: add the calendar button (openCalendar, wired by the page)
-  function dateBar(cur, dates, cal) {
+  // words: "Today · Thu, Nov 12" (Matchups)
+  function dateBar(cur, dates, cal, words) {
+    var lbl = dateLabel(cur);
+    if (words && (lbl === 'Today' || lbl === 'Yesterday')) lbl += ' · ' + new Date(cur + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
     return '<div class="date-bar">' +
       '<button class="date-nav" id="datePrev" aria-label="Previous day"' + (cur <= dates[0] ? ' disabled' : '') + '>&lsaquo;</button>' +
-      '<div class="date-label-wrap"><span class="date-label">' + esc(dateLabel(cur)) + '</span>' +
+      '<div class="date-label-wrap"><span class="date-label">' + esc(lbl) + '</span>' +
       (cur !== todayET() ? '<button class="date-today-btn" id="dateTodayBtn" type="button">Today</button>' : '') + (cal ? CAL_BTN : '') + '</div>' +
       '<button class="date-nav" id="dateNext" aria-label="Next day"' + (cur >= dates[dates.length - 1] ? ' disabled' : '') + '>&rsaquo;</button>' +
     '</div>';
@@ -285,8 +304,8 @@
   // ------------------------------------------------------- Results box
   // "[Weekday] [M/D] Results" (football: "Week N Results"): the finished
   // games' record, win % and units for the sport's markets in plain words,
-  // in the sport's market order. NHL / MLB moneylines count a tied segment
-  // as a game played; elsewhere ties and pushes stay out of the win %.
+  // in the sport's market order. Ties and pushes stay out of the win %
+  // (Favorites 2-0-4 is 100%).
   function resultRows(games, k) {
     var rows = [];
     function acc(label, opts) { var x = { label: label, w: 0, l: 0, t: 0, u: 0, n: 0, ties: !!opts.ties, noTie: !!opts.noTie, always: !!opts.always }; rows.push(x); return x; }
@@ -297,9 +316,8 @@
     }
     function done(g, key) { var r = (g.res || {})[key]; return g.state === 'final' && r && r.sc && !r.na ? r : null; }
     function suSide(r, home) { var x = r.su; if (!x || x === 'NA') return null; x = home ? flipRes(x) : x; return x === 'W' || x === 'L' ? x : 'T'; }
-    var tie = periodFamily();
     if (D.sport === 'nhl') {
-      var hm = acc('Home teams', { ties: true }), fv = acc('Favorites', { ties: true }), ov = acc('Over 1.5', { noTie: true }),
+      var hm = acc('Home teams', { ties: true }), fv = acc('Favorites', { ties: true }), ov = acc('O/U: Over 1.5', { noTie: true }),
           bt = acc('BTTS Yes', { noTie: true }), m3 = acc('3-way ML (home team)', { noTie: true, always: true });
       games.forEach(function(g) {
         var r = done(g, '1p'); if (!r) return;
@@ -312,7 +330,7 @@
         if (r.su && r.su !== 'NA') add(m3, r.su === 'L' ? 'W' : 'L', u.ml3 ? u.ml3[1] : null);
       });
     } else if (D.sportType === 'baseball') {
-      var bh = acc('Home teams (F5 moneyline)', { ties: true }), bf = acc('Favorites (F5)', { ties: true }), yr = acc('YRFI', { noTie: true }), fo = acc('F5 Over', {});
+      var bh = acc('Home teams (F5 moneyline)', { ties: true }), bf = acc('Favorites (F5)', { ties: true }), yr = acc('YRFI', { noTie: true }), fo = acc('F5 O/U: Over', {});
       games.forEach(function(g) {
         var r = done(g, 'f5'), ri = done(g, '1i');
         if (ri && (ri.rfi === 'Y' || ri.rfi === 'N')) add(yr, ri.rfi === 'Y' ? 'W' : 'L', ri.u && ri.u.rfi ? ri.u.rfi[0] : null);
@@ -326,7 +344,7 @@
     } else {
       var ml = hasMl(k);
       var sh = ml ? acc('Home teams (moneyline)', {}) : null, sf = ml ? acc('Favorites (moneyline)', {}) : null,
-          sa = acc('Favorites (spread)', {}), so = acc('Over', {});
+          sa = acc('Favorites (spread)', {}), so = acc('O/U: Over', {});
       games.forEach(function(g) {
         var r = done(g, k); if (!r) return;
         var u = r.u || {}, o = (g.odds || {})[k] || {};
@@ -343,7 +361,7 @@
         if (r.tot && r.tot !== 'NA') add(so, { O: 'W', U: 'L' }[r.tot] || 'T', u.tot ? u.tot[0] : null);
       });
     }
-    rows.forEach(function(x) { var d = x.w + x.l + (x.ties && tie ? x.t : 0); x.pct = d ? x.w / d : null; x.gp = x.w + x.l + x.t; });
+    rows.forEach(function(x) { var d = x.w + x.l; x.pct = d ? x.w / d : null; x.gp = x.w + x.l + x.t; });
     return rows.filter(function(x) { return x.gp || (x.always && games.some(function(g) { return g.state === 'final'; })); });
   }
   function resultsTitle(d) {
@@ -364,10 +382,11 @@
       }).join('') + '</div>';
   }
 
-  // ---------------------------------------------------------- Games page
+  // ------------------------------------------------------- Matchups page
   // One template for every sport: the date bar (football: the week bar),
   // a pinned segment toggle (spread sports with two segments), the Results
-  // box, then the cards. Football weeks list finished games last.
+  // box, then the cards, two to a row on desktop. Football weeks list
+  // finished games last.
   function weekGames(key) {
     var out = [];
     allDates().forEach(function(d) { D.games[d].forEach(function(g) { if (g.wk === key) out.push(g); }); });
@@ -389,7 +408,7 @@
   function renderGames() {
     var weeks = D.schedule === 'week' ? D.weeks || [] : null;
     var dates = allDates();
-    if (weeks ? !weeks.length : !dates.length) { app.innerHTML = emptyNote('No ' + esc(D.label) + ' games loaded yet.'); return; }
+    if (weeks ? !weeks.length : !dates.length) { app.innerHTML = emptyNote('No ' + esc(D.label) + ' matchups loaded yet.'); return; }
     var keys = weeks ? weeks.map(function(w) { return w.key; }) : null;
     var thisWeek = weeks ? currentWeek(weeks) : null, cur;
     if (weeks) { var want = new URLSearchParams(location.search).get('week'); cur = keys.indexOf(want) !== -1 ? want : thisWeek; }
@@ -408,10 +427,11 @@
         games = (D.games[cur] || []).slice().sort(function(a, b) { return (a.start || '') < (b.start || '') ? -1 : (a.start || '') > (b.start || '') ? 1 : 0; });
         title = resultsTitle(cur); none = 'on ' + dateLabel(cur);
       }
-      var html = (weeks ? weekBar(weeks, cur, thisWeek) : dateBar(cur, dates, true)) + gmSegBar(k) + resultsBox(games, k, title);
-      if (!games.length) html += '<div class="no-games-note">No ' + esc(D.label) + ' games ' + esc(none) + '.</div>';
-      html += '<div class="games-list">' + games.map(function(g) { return gameCard(g, k); }).join('') + '</div>';
+      var html = (weeks ? weekBar(weeks, cur, thisWeek) : dateBar(cur, dates, true, true)) + gmSegBar(k) + resultsBox(games, k, title);
+      if (!games.length) html += '<div class="no-games-note">No ' + esc(D.label) + ' matchups ' + esc(none) + '.</div>';
+      html += '<div class="games-list mc-list">' + games.map(function(g) { return gameCard(g, k); }).join('') + '</div>';
       app.innerHTML = html;
+      wireTips(app);
       stickBelowNav(document.getElementById('gmStick'));
       if (weeks) {
         var i = keys.indexOf(cur), p = document.getElementById('weekPrev'), n = document.getElementById('weekNext'), t = document.getElementById('weekNowBtn');
@@ -501,8 +521,8 @@
       if (b.r === 'W') a.w++; else if (b.r === 'L') a.l++; else a.t++;
       if (b.u != null) { a.units += b.u; a.priced++; }
     });
-    // NHL / MLB moneyline and every 3-way: ties count as games played
-    var d = m === 'ml3' || (m === 'ml' && tieSport()) ? a.w + a.l + a.t : a.w + a.l;
+    // ties and pushes stay out of the win % (a 3-way bet loses on a tie)
+    var d = m === 'ml3' ? a.w + a.l + a.t : a.w + a.l;
     a.pct = d ? a.w / d : null;
     a.tiePct = m === 'ml3' && a.gp ? a.t / a.gp : null;
     var n = 0, last = a.seq[a.seq.length - 1];
@@ -1928,7 +1948,7 @@
     }
     draw();
   }
-  // Football: one slate per week, like its Games page
+  // Football: one slate per week, like its Matchups page
   function renderTrendsByWeek() {
     var weeks = D.weeks || [];
     if (!weeks.length) { app.innerHTML = emptyNote('No ' + esc(D.label) + ' games loaded yet &mdash; trends appear once games are played.'); return; }
@@ -2086,6 +2106,25 @@
     if ((g.state === 'live' || g.state === 'in') && !stale) { var p = livePeriod(g); return ' &middot; <span class="st-live">LIVE' + (p ? ' &middot; ' + esc(p) : '') + '</span>'; }
     return '';
   }
+  // one side's result on a finished game (the Odds page's past dates): W / L
+  // / P, from the game's res (away side: su, ats; tot O/U; btts and rfi Y/N)
+  function oddsSideRes(g, k, m, s) {
+    var r = g.state === 'final' && (g.res || {})[k];
+    if (!r || !r.sc) return null;
+    if (r.na) return 'P';
+    function yn(x, yes, flip) { var v = !x || x === 'NA' || x === 'P' ? 'P' : x === yes ? 'W' : 'L'; return flip ? flipRes(v) : v; }
+    if (m === 'ml' || m === 'ats') {
+      var x = r[m === 'ml' ? 'su' : 'ats'];
+      if (!x || x === 'NA') return 'P';
+      x = s === 'home' ? flipRes(x) : x;
+      return x === 'W' || x === 'L' ? x : 'P';
+    }
+    if (m === 'ml3') return !r.su || r.su === 'NA' ? 'P' : r.su === { away: 'W', home: 'L', draw: 'T' }[s] ? 'W' : 'L';
+    if (m === 'total') return yn(r.tot, 'O', s === 'under');
+    if (m === 'btts') return yn(r.btts, 'Y', s === 'no');
+    if (m === 'rfi') return yn(r.rfi, 'Y', s === 'nrfi');
+    return null;
+  }
   // One cell style for Odds and Matchups: the line on top (large, bold), the
   // price under it (small, muted); a moneyline cell shows the price in the
   // line style.
@@ -2217,12 +2256,14 @@
           var past = g.state !== 'pre';
           var rows = sides(m, kind).map(function(sd) {
             var s = sd[0], b = top(best, m, s), o = top(open, m, s);
+            // a finished game: the side that won green, the loser dimmed, a tie or push yellow
+            var rc = resultCls(oddsSideRes(g, k, m, s));
             return '<tr><th scope="row" class="ob-c-team">' + teamCell(g, sd, k) + '</th>' +
-              '<td class="ob-c-open">' + (o ? cellTxt(o) : '') + '</td>' +
+              '<td class="ob-c-open' + (o ? rc : '') + '">' + (o ? cellTxt(o) : '') + '</td>' +
               cols.map(function(id) {
                 var v = val(books[id], m, s);
                 if (!v) return '<td class="ob-na"></td>';
-                var cls = 'ob-cell' + (counts(id, m) && same(v, b) ? ' ob-best' : '');
+                var cls = 'ob-cell' + rc + (counts(id, m) && same(v, b) ? ' ob-best' : '');
                 return '<td class="' + cls + '">' + (v.link && !past ? '<a href="' + esc(v.link) + '" target="_blank" rel="sponsored noopener" title="' + esc(name(id)) + '">' + cellTxt(v) + '</a>' : cellTxt(v)) + '</td>';
               }).join('') + '</tr>';
           }).join('');
@@ -2319,12 +2360,13 @@
       return n ? n + ' game' + (n === 1 ? '' : 's') + ' graded' : 'No games';
     }
     var x = top.x, segTxt = periodFamily() || D.segments.length < 2 ? '' : seg(top.k).tag + ' ';
-    return segTxt + x.label.replace(' (moneyline)', ' ML').replace(' (spread)', ' ATS').replace(' (F5 moneyline)', ' F5 ML') + ' went ' + x.w + ' of ' + x.gp + ', ' + fmtUnits(x.u).replace(/\.?0+u$/, 'u');
+    var ties = x.t ? ' (' + x.t + ' ' + (x.ties ? 'tie' : 'push') + (x.t === 1 ? '' : x.ties ? 's' : 'es') + ')' : '';
+    return segTxt + x.label.replace(' (moneyline)', ' ML').replace(' (spread)', ' ATS').replace(' (F5 moneyline)', ' F5 ML') + ' went ' + x.w + '–' + x.l + ties + ', ' + fmtUnits(x.u).replace(/\.?0+u$/, 'u');
   }
   function hubHero(slate, prev) {
     var wk = D.schedule === 'week', live = slate.games.filter(hubLive).length;
     function n(v, l) { return '<div class="hub-num"><b class="mono">' + v + '</b><span>' + l + '</span></div>'; }
-    return '<div class="hub-hero">' + n(slate.games.length, wk ? 'Games this week' : 'Games today') + n(live, 'Live now') +
+    return '<div class="hub-hero">' + n(slate.games.length, wk ? 'Matchups this week' : 'Matchups today') + n(live, 'Live now') +
       '<div class="hub-num hub-num-wide"><b>' + esc(hubBest(prev)) + '</b><span>' + (wk ? 'Last week&rsquo;s best' : 'Yesterday&rsquo;s best') + '</span></div></div>';
   }
   // 3 rows: live games, then the next to start; 3 finals once they're all done
@@ -2340,7 +2382,7 @@
       var st = g.state === 'final' ? 'Final' : hubLive(g) ? 'Live' : trTime(g.start);
       function side(slug, sc) { return '<span class="hub-gt">' + badge(slug, 20) + '<b>' + esc(tcode(slug)) + '</b>' + (sc != null ? '<span class="mono">' + esc(sc) + '</span>' : '') + '</span>'; }
       var show = (g.state === 'final' || hubLive(g)) && g.as != null;
-      return '<a class="hub-game" href="' + ROOT + SPORT_SLUG + '/games/' + (D.schedule === 'week' ? '?week=' + g.wk : '') + '"><span class="hub-gs' + (hubLive(g) ? ' live' : '') + '">' + esc(st) + '</span>' +
+      return '<a class="hub-game" href="' + ROOT + SPORT_SLUG + '/matchups/' + (D.schedule === 'week' ? '?week=' + g.wk : '') + '"><span class="hub-gs' + (hubLive(g) ? ' live' : '') + '">' + esc(st) + '</span>' +
         side(g.away, show ? g.as : null) + '<span class="hub-at">@</span>' + side(g.home, show ? g.hs : null) + '</a>';
     }).join('') + '</div>';
   }
@@ -2468,7 +2510,7 @@
       TR = res[1] || { slates: {}, tips: {}, markets: [] };
       var segName = D.segments.map(function(s) { return s.label.toLowerCase(); }).join(' and ');
       app.innerHTML = hubHero(slate, prev) +
-        hubSec(wk ? 'This Week&rsquo;s Games' : 'Today&rsquo;s Games', slate.games.length ? hubLink(ROOT + SPORT_SLUG + '/games/', 'All ' + slate.games.length + ' games') : '', hubGames(slate)) +
+        hubSec(wk ? 'This Week&rsquo;s Matchups' : 'Today&rsquo;s Matchups', slate.games.length ? hubLink(ROOT + SPORT_SLUG + '/matchups/', 'All ' + slate.games.length + ' matchups') : '', hubGames(slate)) +
         hubSec(wk ? 'Matchup of the Week' : 'Matchup of the Day', '', hubMotd(H, slate)) +
         hubSec('The Daily', hubLink(ROOT + 'daily/', 'All of The Daily'), hubDaily(H)) +
         hubSec('Trends to Watch', hubLink(ROOT + SPORT_SLUG + '/trends/', 'All trends'), hubTrends(slate)) +
@@ -2486,7 +2528,7 @@
     document.querySelectorAll('.info-tip.open').forEach(function(t) { if (t !== tip) t.classList.remove('open'); });
     if (tip) tip.classList.toggle('open');
   });
-  // NHL's data.json is its own shape; its Games, Stats, Trends and Teams pages read the shared shape (nhl/sport.json)
+  // NHL's data.json is its own shape; its Matchups, Stats, Trends and Teams pages read the shared shape (nhl/sport.json)
   var DATA_FILE = SPORT_SLUG === 'nhl' && ['hub', 'games', 'stats', 'trends', 'teams', 'team'].indexOf(SECTION) !== -1 ? 'sport.json' : 'data.json';
   fetch(ROOT + SPORT_SLUG + '/' + DATA_FILE).then(function(r) { return r.json(); }).then(function(data) {
     D = data;
