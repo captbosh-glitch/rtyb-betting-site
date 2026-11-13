@@ -6225,6 +6225,53 @@
     "streakTeamName": "Georgia Southern"
    },
    {
+    "id": "nba|401909302|1h|ats|away",
+    "game": "nba|401909302",
+    "date": "2026-11-13",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-14T02:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Warriors @ Spurs",
+    "href": "nba/matchups/",
+    "market": "ats",
+    "side": "away",
+    "line": 6.5,
+    "price": -102,
+    "title": "Warriors 1H +6.5",
+    "est": 0.5549,
+    "edge": 0.05,
+    "agree": 3,
+    "sample": 12,
+    "tier": "B",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 11,
+    "streakTeam": "gs",
+    "angles": [
+     [
+      "Warriors 1H ATS at +6.5, last 8",
+      "8-0"
+     ],
+     [
+      "Warriors 1H ATS at +6.5, season",
+      "11-1"
+     ],
+     [
+      "Warriors 1H ATS at +6.5 on the road",
+      "4-1"
+     ]
+    ],
+    "info": "Warriors avg 1H margin on the road: -0.4",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Warriors"
+   },
+   {
     "id": "nhl|2026020311|1p|ml|away",
     "game": "nhl|2026020311",
     "date": "2026-11-13",
@@ -6269,53 +6316,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Nashville"
-   },
-   {
-    "id": "nba|401909302|1h|ats|away",
-    "game": "nba|401909302",
-    "date": "2026-11-13",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-14T02:30Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Warriors @ Spurs",
-    "href": "nba/matchups/",
-    "market": "ats",
-    "side": "away",
-    "line": 6.5,
-    "price": -108,
-    "title": "Warriors 1H +6.5",
-    "est": 0.5651,
-    "edge": 0.0459,
-    "agree": 3,
-    "sample": 12,
-    "tier": "B",
-    "tags": [
-     "Dog Hunter",
-     "Streak Rider"
-    ],
-    "streak": 11,
-    "streakTeam": "gs",
-    "angles": [
-     [
-      "Warriors 1H ATS at +6.5, last 8",
-      "8-0"
-     ],
-     [
-      "Warriors 1H ATS at +6.5, season",
-      "11-1"
-     ],
-     [
-      "Warriors 1H ATS at +6.5 on the road",
-      "4-1"
-     ]
-    ],
-    "info": "Warriors avg 1H margin on the road: -0.4",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Warriors"
    },
    {
     "id": "nba|401909302|1h|total|over",
