@@ -6583,6 +6583,57 @@
     "streakTeamName": "Clippers"
    },
    {
+    "id": "nba|401909300|1h|total|under",
+    "game": "nba|401909300",
+    "date": "2026-11-13",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-14T01:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Grizzlies @ Pelicans",
+    "href": "nba/matchups/",
+    "market": "total",
+    "side": "under",
+    "line": 121.5,
+    "price": -105,
+    "title": "1H Under 121.5",
+    "est": 0.5452,
+    "edge": 0.033,
+    "agree": 6,
+    "sample": 12,
+    "tier": "C",
+    "tags": [
+     "Under Grinder",
+     "Streak Rider"
+    ],
+    "streak": 8,
+    "streakTeam": "mem",
+    "angles": [
+     [
+      "Grizzlies 1H unders, last 8 (121.5)",
+      "8-0"
+     ],
+     [
+      "Grizzlies 1H unders, season (121.5)",
+      "10-1"
+     ],
+     [
+      "Grizzlies 1H unders on the road (121.5)",
+      "4-1"
+     ],
+     [
+      "Pelicans 1H unders, last 8 (121.5)",
+      "5-3"
+     ]
+    ],
+    "info": "Avg 1H total in their games: Pelicans 116.8 \u00b7 Grizzlies 116.4",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Grizzlies"
+   },
+   {
     "id": "ncaab|401906760|1h|ml|away",
     "game": "ncaab|401906760",
     "date": "2026-11-13",
@@ -6623,57 +6674,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Seton Hall"
-   },
-   {
-    "id": "nba|401909300|1h|total|under",
-    "game": "nba|401909300",
-    "date": "2026-11-13",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-14T01:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Grizzlies @ Pelicans",
-    "href": "nba/matchups/",
-    "market": "total",
-    "side": "under",
-    "line": 121.5,
-    "price": -108,
-    "title": "1H Under 121.5",
-    "est": 0.5502,
-    "edge": 0.031,
-    "agree": 6,
-    "sample": 12,
-    "tier": "C",
-    "tags": [
-     "Under Grinder",
-     "Streak Rider"
-    ],
-    "streak": 8,
-    "streakTeam": "mem",
-    "angles": [
-     [
-      "Grizzlies 1H unders, last 8 (121.5)",
-      "8-0"
-     ],
-     [
-      "Grizzlies 1H unders, season (121.5)",
-      "10-1"
-     ],
-     [
-      "Grizzlies 1H unders on the road (121.5)",
-      "4-1"
-     ],
-     [
-      "Pelicans 1H unders, last 8 (121.5)",
-      "5-3"
-     ]
-    ],
-    "info": "Avg 1H total in their games: Pelicans 116.8 \u00b7 Grizzlies 116.4",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Grizzlies"
    },
    {
     "id": "ncaab|401925755|1h|ml|away",
