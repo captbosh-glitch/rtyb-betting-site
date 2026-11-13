@@ -5879,10 +5879,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 162,
+    "price": 160,
     "title": "Hornets 1H ML",
-    "est": 0.4254,
-    "edge": 0.0437,
+    "est": 0.4275,
+    "edge": 0.0429,
     "agree": 2,
     "sample": 11,
     "tier": "B",
@@ -6087,6 +6087,52 @@
     "streakTeamName": "Southern Utah"
    },
    {
+    "id": "ncaaf|401862824|1h|ml|home",
+    "game": "ncaaf|401862824",
+    "date": "2026-11-12",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-13T01:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Memphis @ South Florida",
+    "href": "college-football/games/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 154,
+    "title": "South Florida 1H ML",
+    "est": 0.4256,
+    "edge": 0.0319,
+    "agree": 3,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 0,
+    "streakTeam": "south-florida-bulls",
+    "angles": [
+     [
+      "South Florida 1H ML at home",
+      "4-1"
+     ],
+     [
+      "South Florida 1H ML, season",
+      "5-3-1"
+     ],
+     [
+      "South Florida 1H ML, last 8",
+      "4-3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "South Florida"
+   },
+   {
     "id": "nhl|2026020301|1p|btts|yes",
     "game": "nhl|2026020301",
     "date": "2026-11-12",
@@ -6127,52 +6173,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Colorado"
-   },
-   {
-    "id": "ncaaf|401862824|1h|ml|home",
-    "game": "ncaaf|401862824",
-    "date": "2026-11-12",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-11-13T01:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Memphis @ South Florida",
-    "href": "college-football/games/",
-    "market": "ml",
-    "side": "home",
-    "line": null,
-    "price": 150,
-    "title": "South Florida 1H ML",
-    "est": 0.4306,
-    "edge": 0.0306,
-    "agree": 3,
-    "sample": 8,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 0,
-    "streakTeam": "south-florida-bulls",
-    "angles": [
-     [
-      "South Florida 1H ML at home",
-      "4-1"
-     ],
-     [
-      "South Florida 1H ML, season",
-      "5-3-1"
-     ],
-     [
-      "South Florida 1H ML, last 8",
-      "4-3-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "South Florida"
    }
   ]
  }
