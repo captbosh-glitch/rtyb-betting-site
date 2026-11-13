@@ -6583,48 +6583,6 @@
     "streakTeamName": "Clippers"
    },
    {
-    "id": "ncaab|401925755|1h|ml|away",
-    "game": "ncaab|401925755",
-    "date": "2026-11-13",
-    "sport": "ncaab",
-    "label": "NCAAB",
-    "slug": "college-basketball",
-    "start": "2026-11-14T00:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Northern Iowa @ Michigan State",
-    "href": "college-basketball/matchups/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 1800,
-    "title": "Northern Iowa 1H ML",
-    "est": 0.0848,
-    "edge": 0.0322,
-    "agree": 2,
-    "sample": 3,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 1,
-    "streakTeam": "northern-iowa-panthers",
-    "angles": [
-     [
-      "Northern Iowa 1H ML, season",
-      "2-1"
-     ],
-     [
-      "Northern Iowa 1H ML, last 8",
-      "2-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Northern Iowa"
-   },
-   {
     "id": "nba|401909300|1q|total|under",
     "game": "nba|401909300",
     "date": "2026-11-13",
@@ -6673,6 +6631,48 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Grizzlies"
+   },
+   {
+    "id": "ncaab|401925755|1h|ml|away",
+    "game": "ncaab|401925755",
+    "date": "2026-11-13",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
+    "start": "2026-11-14T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Northern Iowa @ Michigan State",
+    "href": "college-basketball/matchups/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 1550,
+    "title": "Northern Iowa 1H ML",
+    "est": 0.0921,
+    "edge": 0.0315,
+    "agree": 2,
+    "sample": 3,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "northern-iowa-panthers",
+    "angles": [
+     [
+      "Northern Iowa 1H ML, season",
+      "2-1"
+     ],
+     [
+      "Northern Iowa 1H ML, last 8",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Northern Iowa"
    },
    {
     "id": "ncaab|401906760|1h|ml|away",
