@@ -1063,9 +1063,9 @@
     return null;
   }
   // ---- Stats page time filter ----
-  // Daily sports: All / Current Week / Last Week (weeks run Monday-Sunday,
-  // like NHL's). Weekly sports (NFL, NCAAF): Season / Current Week / Last
-  // Week by the league's own weeks, plus a Week dropdown for any week so far.
+  // Season / This week / Last week (Overview and Splits). Daily sports' weeks
+  // run Monday-Sunday, like NHL's; weekly sports (NFL, NCAAF) use the
+  // league's own weeks, plus a Week dropdown for any week so far.
   var tf = { mode: 'all', wk: '' };
   function addDaysStr(d, n) { return new Date(new Date(d + 'T12:00:00Z').getTime() + n * 864e5).toISOString().slice(0, 10); }
   function mondayOf(d) { var day = new Date(d + 'T12:00:00Z').getUTCDay(); return addDaysStr(d, -((day + 6) % 7)); }
@@ -1075,49 +1075,56 @@
     var w = (D.weeks || []).filter(function(x) { return x.start <= t; });
     return w.length ? w : (D.weeks || []).slice(0, 1);
   }
-  // {games, line}: the graded games in the selected range, and the range
-  function tfRange() {
+  // the selected range: null (the season), {from, to, label}, or {none: true}
+  function tfDates() {
+    if (tf.mode === 'all') return null;
     if (weeklySport()) {
       var ws = startedWeeks(), w = null;
       if (tf.mode === 'week') w = ws[ws.length - 1];
       else if (tf.mode === 'lastweek') w = ws[ws.length - 2];
       else if (tf.mode === 'wk') w = (D.weeks || []).filter(function(x) { return x.key === tf.wk; })[0];
-      if (tf.mode === 'all') return { games: finalGames(), line: '' };
-      if (!w) return { games: [], line: '<div class="sc-week">No week to show yet</div>' };
-      return { games: finalGames().filter(function(g) { return g.wk === w.key; }),
-               line: '<div class="sc-week">' + esc(w.label) + ' (' + shortDay(w.start) + ' &ndash; ' + shortDay(w.end) + ')</div>' };
+      return w ? { from: w.start, to: w.end, wk: w.key, label: esc(w.label) + ' (' + shortDay(w.start) + ' &ndash; ' + shortDay(w.end) + ')' } : { none: true };
     }
-    if (tf.mode === 'all') return { games: finalGames(), line: '' };
     var mon = addDaysStr(mondayOf(todayET()), tf.mode === 'week' ? 0 : -7), sun = addDaysStr(mon, 6);
-    return { games: finalGames(mon, sun), line: '<div class="sc-week">(' + shortDay(mon) + ' &ndash; ' + shortDay(sun) + ')</div>' };
+    return { from: mon, to: sun, label: '(' + shortDay(mon) + ' &ndash; ' + shortDay(sun) + ')' };
+  }
+  // {games, line}: the graded games in the selected range, and the range
+  function tfRange() {
+    var r = tfDates();
+    if (!r) return { games: finalGames(), line: '' };
+    if (r.none) return { games: [], line: '<div class="sc-week">No week to show yet</div>' };
+    var games = r.wk ? finalGames().filter(function(g) { return g.wk === r.wk; }) : finalGames(r.from, r.to);
+    return { games: games, line: '<div class="sc-week">' + r.label + '</div>' };
   }
   function tfControls() {
-    function btn(mode, full, short) {
-      return '<button class="seg-btn" data-tf="' + mode + '" aria-pressed="' + (tf.mode === mode) + '">' +
-        (short ? '<span class="lbl-full">' + full + '</span><span class="lbl-short">' + short + '</span>' : full) + '</button>';
-    }
+    function btn(mode, label) { return '<button class="seg-btn" data-tf="' + mode + '" aria-pressed="' + (tf.mode === mode) + '">' + label + '</button>'; }
     var weekly = weeklySport();
-    return '<div class="seg-toggle" role="group" aria-label="Time range">' + btn('all', weekly ? 'Season' : 'All') +
-      btn('week', 'Current Week', 'Cur Wk') + btn('lastweek', 'Last Week', 'Last Wk') + '</div>' +
+    return '<div class="seg-toggle" role="group" aria-label="Time range">' + btn('all', 'Season') + btn('week', 'This week') + btn('lastweek', 'Last week') + '</div>' +
       (weekly ? '<select class="conf-select tf-week" id="tfWeek" aria-label="Pick a week"><option value="">Week&hellip;</option>' +
         startedWeeks().map(function(w) { return '<option value="' + esc(w.key) + '"' + (tf.mode === 'wk' && tf.wk === w.key ? ' selected' : '') + '>' + esc(w.label) + '</option>'; }).join('') +
         '</select>' : '');
   }
-  function wireTf(draw) {
-    app.querySelectorAll('[data-tf]').forEach(function(b) { b.onclick = function() { tf.mode = b.getAttribute('data-tf'); tf.wk = ''; draw(); }; });
+  // before(): return false to keep the old range (Splits: a premium-locked filter combination)
+  function wireTf(draw, before) {
+    function set(mode, wk) { var was = { mode: tf.mode, wk: tf.wk }; tf.mode = mode; tf.wk = wk; if (before && before() === false) { tf.mode = was.mode; tf.wk = was.wk; } draw(); }
+    app.querySelectorAll('[data-tf]').forEach(function(b) { b.onclick = function() { set(b.getAttribute('data-tf'), ''); }; });
     var sel = document.getElementById('tfWeek');
-    if (sel) sel.onchange = function() { if (sel.value) { tf.mode = 'wk'; tf.wk = sel.value; } else tf.mode = 'all'; draw(); };
+    if (sel) sel.onchange = function() { if (sel.value) set('wk', sel.value); else set('all', ''); };
   }
 
-  // ---- Football scoring (NFL / NCAAF Stats page) ----
-  // Two cards on one game sample (the time filter's graded games with a
-  // score for the period): Most Common Scores (exact score, higher first)
-  // and Scoring Distribution (combined points in fixed buckets, sortable by
-  // count or range). One 1Q / 1H toggle drives both; period and sort live in
-  // the URL (?period=1q|1h, ?sort=common|range) so a view can be linked.
+  // ---- Scoring (Stats Overview; NHL has Goal Stats instead) ----
+  // Three cards on the time filter's graded games with a score for the
+  // segment the page toggle picks: the averages (and how often the segment
+  // ends tied; MLB adds the NRFI rate), Most Common Scores (exact score,
+  // higher first) and Scoring Distribution (combined score in buckets,
+  // sortable by count or range; ?sort=common|range keeps the view linkable).
   var FB_BUCKETS = {
     '1q': [[0, 0], [1, 3], [4, 7], [8, 10], [11, 14], [15, 17], [18, 21], [22, null]],
     '1h': [[0, 0], [1, 3], [4, 7], [8, 10], [11, 14], [15, 17], [18, 21], [22, 24], [25, 28], [29, 31], [32, 35], [36, null]],
+  };
+  var MLB_BUCKETS = {
+    '1i': [[0, 0], [1, 1], [2, 2], [3, null]],
+    'f5': [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [8, 9], [10, null]],
   };
   var fbState = null;
   function isFootball() { return D.sport === 'nfl' || D.sport === 'ncaaf'; }
@@ -1125,12 +1132,11 @@
     if (fbState) return;
     var q = {};
     try { new URLSearchParams(window.location.search).forEach(function(v, key) { q[key] = v; }); } catch (e) {}
-    fbState = { k: seg(q.period) ? q.period : D.segments[0].key, sort: q.sort === 'range' ? 'range' : 'common', open: false };
+    fbState = { sort: q.sort === 'range' ? 'range' : 'common', open: false };
   }
   function fbSaveUrl() {
     try {
       var u = new URL(window.location.href);
-      u.searchParams.set('period', fbState.k);
       u.searchParams.set('sort', fbState.sort);
       history.replaceState(null, '', u.toString());
     } catch (e) {}
@@ -1150,15 +1156,40 @@
       '<div class="hd-track">' + (w ? '<div class="hd-bar" style="width:' + w + '%">' + (inside ? '<span class="hd-val in">' + val + '</span>' : '') + '</div>' : '') +
       (inside ? '' : '<span class="hd-val out">' + val + '</span>') + '</div></div>';
   }
-  function fbScoringHtml(games) {
-    var k = fbState.k, sample = [], missing = 0;
+  // the distribution's buckets: football and baseball fixed, basketball
+  // from the sample (5-point steps for a quarter, 10 for a half; the
+  // thinnest 3% at each end pooled into "or fewer" / "+" buckets)
+  function scoreBuckets(k, totals) {
+    if (isFootball()) return FB_BUCKETS[k] || FB_BUCKETS['1q'];
+    if (D.sportType === 'baseball') return MLB_BUCKETS[k] || MLB_BUCKETS.f5;
+    if (!totals.length) return [];
+    var step = k === '1q' ? 5 : 10, srt = totals.slice().sort(function(a, b) { return a - b; });
+    var lo = Math.floor(srt[Math.floor(srt.length * 0.03)] / step) * step, hi = Math.floor(srt[Math.ceil(srt.length * 0.97) - 1] / step) * step;
+    var out = [[null, lo - 1]];
+    for (var x = lo; x <= hi; x += step) out.push([x, x + step - 1]);
+    out.push([hi + step, null]);
+    return out.filter(function(b) { return totals.some(function(t) { return (b[0] == null || t >= b[0]) && (b[1] == null || t <= b[1]); }); });
+  }
+  function bucketLabel(b) { return b[0] == null ? '≤' + b[1] : b[1] == null ? b[0] + '+' : b[0] === b[1] ? String(b[0]) : b[0] + '–' + b[1]; }
+  function scoringHtml(games, k) {
+    var sample = [], missing = 0, rfiN = 0, rfiY = 0;
     games.forEach(function(g) {
       var r = (g.res || {})[k];
-      if (r && r.sc && !r.na) sample.push(r.sc);
+      if (r && r.sc && !r.na) { sample.push(r.sc); if (r.rfi === 'Y' || r.rfi === 'N') { rfiN++; if (r.rfi === 'N') rfiY++; } }
       else if (g.state === 'final') missing++;
     });
-    var n = sample.length;
-    // card 1: exact scores, order-agnostic
+    var n = sample.length, s = seg(k), unit = scoreUnit();
+    var totals = sample.map(function(sc) { return sc[0] + sc[1]; });
+    var tied = sample.filter(function(sc) { return sc[0] === sc[1]; }).length;
+    var avg = n ? totals.reduce(function(a, b) { return a + b; }, 0) / n : null;
+    // card 1: averages
+    var segName = isRfi(k) ? '1st-inning' : s.tag;
+    var stats = [['Avg ' + segName + ' ' + unit, avg == null ? '&mdash;' : avg.toFixed(D.sportType === 'baseball' ? 2 : 1)],
+                 ['Avg per team', avg == null ? '&mdash;' : (avg / 2).toFixed(D.sportType === 'baseball' ? 2 : 1)]];
+    if (isRfi(k)) stats.push(['NRFI rate', rfiN ? fbPct(rfiY, rfiN) : '&mdash;']);
+    var card0 = stats.map(function(x) { return '<div class="st-row st-stat"><span class="st-lbl">' + x[0] + '</span><span class="st-num mono">' + x[1] + '</span></div>'; }).join('') +
+      (n && !isRfi(k) ? '<p class="st-line">' + fbPct(tied, n) + ' of ' + esc(segWords(k)) + ' end tied.</p>' : '');
+    // card 2: exact scores, order-agnostic
     var scores = {};
     sample.forEach(function(sc) {
       var hi = Math.max(sc[0], sc[1]), lo = Math.min(sc[0], sc[1]), key = hi + '-' + lo;
@@ -1174,38 +1205,35 @@
     var card1 = top.map(function(x) { return fbRow(x.label, x.n, n, max1); }).join('') +
       (!fbState.open && rest.length ? fbRow('Other', other, n, max1) : '') +
       (rest.length ? '<button type="button" class="fb-more" id="fbMore">' + (fbState.open ? 'Show less &#9652;' : 'Show all (' + rest.length + ' more) &#9662;') + '</button>' : '');
-    // card 2: combined points in buckets
-    var buckets = FB_BUCKETS[k] || FB_BUCKETS['1q'];
-    var rows = buckets.map(function(b, i) {
-      var c = sample.filter(function(sc) { var t = sc[0] + sc[1]; return t >= b[0] && (b[1] == null || t <= b[1]); }).length;
-      return { i: i, label: b[1] == null ? b[0] + '+' : b[0] === b[1] ? String(b[0]) : b[0] + '–' + b[1], n: c };
+    // card 3: combined score in buckets
+    var rows = scoreBuckets(k, totals).map(function(b, i) {
+      var c = totals.filter(function(t) { return (b[0] == null || t >= b[0]) && (b[1] == null || t <= b[1]); }).length;
+      return { i: i, label: bucketLabel(b), n: c };
     });
     if (fbState.sort === 'common') rows.sort(function(a, b) { return b.n - a.n || a.i - b.i; });
     var max2 = Math.max.apply(null, rows.map(function(r) { return r.n; }).concat([0]));
     var card2 = rows.map(function(r) { return fbRow(r.label, r.n, n, max2, r.label); }).join('');
-    var sub = n + ' game' + (n === 1 ? '' : 's') + (missing ? '<span class="fb-missing"> &middot; ' + missing + ' game' + (missing === 1 ? '' : 's') + ' missing period data</span>' : '');
+    var sub = n + ' game' + (n === 1 ? '' : 's') + (missing ? ' &middot; ' + missing + ' missing ' + esc(segWord(k)) + ' scores' : '');
     function sortLink(v, label) {
       return '<button type="button" class="fb-sort' + (fbState.sort === v ? ' on' : '') + '" data-fb-sort="' + v + '" aria-pressed="' + (fbState.sort === v) + '">' + label + '</button>';
     }
-    return '<div class="fb-scoring"><div class="season-card-head fb-head"><h3>Scoring</h3><div class="seg-toggle" role="group" aria-label="Period">' +
-      D.segments.map(function(sg) { return '<button class="seg-btn" data-fb-seg="' + sg.key + '" aria-pressed="' + (sg.key === k) + '">' + esc(sg.label) + '</button>'; }).join('') +
-      '</div></div><div class="fb-cards">' +
-      '<div class="season-card fb-card"><div class="fb-card-head"><div><h3>Most Common Scores</h3><div class="fb-sub">' + sub + '</div></div></div>' +
-        '<div class="hdist">' + (n ? card1 : emptyNote('No games with ' + esc(seg(k).label) + ' scores in this range.')) + '</div></div>' +
-      '<div class="season-card fb-card"><div class="fb-card-head"><div><h3>Scoring Distribution</h3><div class="fb-sub">' + sub + '</div></div>' +
-        '<div class="fb-sorts">Sort: ' + sortLink('common', 'Common') + ' <span aria-hidden="true">|</span> ' + sortLink('range', 'Range') + '</div></div>' +
-        '<div class="hdist" id="fbDist">' + (n ? card2 : emptyNote('No games with ' + esc(seg(k).label) + ' scores in this range.')) + '</div></div>' +
-      '</div></div>';
+    var none = emptyNote('No games with ' + esc(s.label) + ' scores in this range.');
+    return '<div class="st-grid">' +
+      stCard(s.tag === 'NRFI' ? '1st Inning' : s.tag + ' Scoring', sub, n ? card0 : none) +
+      stCard('Most Common Scores', sub, '<div class="hdist">' + (n ? card1 : none) + '</div>') +
+      stCard('Scoring Distribution', sub, '<div class="fb-sorts">Sort: ' + sortLink('common', 'Common') + ' <span aria-hidden="true">|</span> ' + sortLink('range', 'Range') + '</div>' +
+        '<div class="hdist" id="fbDist">' + (n ? card2 : none) + '</div>') +
+      '</div>';
   }
-  function renderFbScoring(games) {
-    var box = document.getElementById('statsScoring');
+  function renderScoring(games, k) {
+    var box = document.getElementById('statsScoringBody');
     if (!box) return;
     fbInit();
     // FLIP: remember where each bucket row was, re-render, then slide rows
     // from their old spots to the new ones (~200ms), unless reduced motion
     var before = {};
     box.querySelectorAll('#fbDist [data-fb-key]').forEach(function(el) { before[el.getAttribute('data-fb-key')] = el.getBoundingClientRect().top; });
-    box.innerHTML = fbScoringHtml(games);
+    box.innerHTML = scoringHtml(games, k);
     var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!still) {
       box.querySelectorAll('#fbDist [data-fb-key]').forEach(function(el) {
@@ -1221,30 +1249,30 @@
         });
       });
     }
-    box.querySelectorAll('[data-fb-seg]').forEach(function(b) {
-      b.onclick = function() { fbState.k = b.getAttribute('data-fb-seg'); fbState.open = false; fbSaveUrl(); renderFbScoring(games); };
-    });
     box.querySelectorAll('[data-fb-sort]').forEach(function(b) {
-      b.onclick = function() { fbState.sort = b.getAttribute('data-fb-sort'); fbSaveUrl(); renderFbScoring(games); };
+      b.onclick = function() { fbState.sort = b.getAttribute('data-fb-sort'); fbSaveUrl(); renderScoring(games, k); };
     });
     var more = document.getElementById('fbMore');
-    if (more) more.onclick = function() { fbState.open = !fbState.open; renderFbScoring(games); };
+    if (more) more.onclick = function() { fbState.open = !fbState.open; renderScoring(games, k); };
   }
 
-  // ------------------------------------------------------------ Stats page
-  // One layout for every sport (Chris's Stats spec, the sport-families rule
-  // in CLAUDE.md): Season Results cards, the scoring section (NHL Goal
-  // Stats, football scoring), Money Board, Edges, Situational Results.
-  // Everything is counted here from the graded games: res[k] (from the away
-  // side) and u[market] units on each game, the same as the Teams pages.
+  // ------------------------------------------------------------ Stats pages
+  // Three pages for every sport (Chris's spec, the sport-families rule in
+  // CLAUDE.md): Overview (/stats/: Season Results, Scoring, Money Board and
+  // a teaser for each other page), Splits (/stats/splits/: Situational
+  // Results) and Edges (/stats/edges/: what happens after the opening
+  // segment, Best Closers and Biggest Faders). Everything is counted here
+  // from the graded games: res[k] (from the away side) and u[market] units
+  // on each game, the same as the Teams pages.
   //
   // PREMIUM: one flag per section. Off = everyone sees it all. On = free
   // visitors (IS_PREMIUM false, or ?free=1) see each card's first 2 rows
-  // and the rest blurred behind "Unlock with Premium".
-  var PREMIUM = { board: false, edge1q: false, edge1h: false, edge1p: false, tonightOnly: false };
+  // and the rest blurred behind "Unlock with Premium". splitCombine: more
+  // than one Splits filter at once; edgesPage: the whole Edges page.
+  var PREMIUM = { board: false, edge1q: false, edge1h: false, edge1p: false, edgef5: false, tonightOnly: false, splitCombine: false, edgesPage: false };
   function periodFamily() { return D.sport === 'nhl' || D.sport === 'mlb'; }
-  function spreadWord() { return D.sportType === 'baseball' ? 'Run Line' : D.sport === 'nhl' ? 'Puck Line' : 'Spread'; }
-  function totalWord(k) { return D.sport === 'nhl' && k === '1p' ? 'Total 1.5' : 'Total'; }
+  function spreadWord() { return 'Spread'; }
+  function totalWord(k) { return D.sport === 'nhl' && k === '1p' ? 'O/U 1.5' : 'O/U'; }
   function scoreUnit() { return D.sport === 'nhl' ? 'goals' : D.sportType === 'baseball' ? 'runs' : 'points'; }
   function pctOf(n, of) { return of ? Math.round(100 * n / of) : null; }
   function pctCell(n, of) { var p = pctOf(n, of); return p == null ? '&mdash;' : p + '%'; }
@@ -1270,111 +1298,136 @@
   function infoTip(html, left) {
     return '<button type="button" class="info-tip' + (left ? ' tip-left' : '') + '" aria-label="About this section">i<span class="tip-bubble" role="tooltip">' + html + '</span></button>';
   }
+  function statsUrl(page) { return ROOT + SPORT_SLUG + '/stats/' + (page ? page + '/' : ''); }
+  // the one card style (Part 4): caps title, at most one muted subtitle,
+  // chips in a fixed row under the header, rows on the shared grid
+  function stCard(title, sub, body, chips, cls) {
+    return '<div class="st-card' + (cls ? ' ' + cls : '') + '"><div class="st-head"><h4>' + title + '</h4>' + (sub ? '<div class="st-sub">' + sub + '</div>' : '') + '</div>' +
+      (chips ? '<div class="st-chips">' + chips + '</div>' : '') + body + '</div>';
+  }
+  function stSection(id, title, controls, body) {
+    return '<section class="st-sec" id="' + id + '"><div class="st-sec-head"><h2>' + title + '</h2>' + (controls ? '<div class="st-ctl">' + controls + '</div>' : '') + '</div>' + body + '</section>';
+  }
+  function stUnits(r) { return r.pr ? '<span class="st-u ' + unitCls(r.u) + '">' + fmtUnits(r.u) + '</span>' : '<span class="st-u st-none">&mdash;</span>'; }
+  function stPct(w, l) { return w + l ? Math.round(100 * w / (w + l)) + '%' : '&mdash;'; }
+  // one row: label | record | % | units, the columns lined up across cards
+  function stRow(label, recTxt, pctTxt, unitsTxt, cls) {
+    return '<div class="st-row' + (cls ? ' ' + cls : '') + '"><span class="st-lbl">' + label + '</span><span class="st-rec mono">' + recTxt + '</span>' +
+      '<span class="st-pct mono">' + pctTxt + '</span>' + (unitsTxt == null ? '<span class="st-u"></span>' : unitsTxt) + '</div>';
+  }
+  function stHead(a, b, c) { return '<div class="st-row st-colhead"><span class="st-lbl"></span><span class="st-rec">' + a + '</span><span class="st-pct">' + b + '</span><span class="st-u">' + c + '</span></div>'; }
 
-  // ---- Season Results: one row of cards, following the segment toggle ----
-  // card = {title, sub, gp, lines [[label, n]], units [[label, sum, priced]], note}
-  function newCard(title, sub) { return { title: title, sub: sub, gp: 0, n: {}, u: {}, pr: {}, order: [], uorder: [] }; }
-  function cHit(c, label) { if (c.order.indexOf(label) === -1) c.order.push(label); c.n[label] = (c.n[label] || 0) + 1; }
-  function cUnit(c, label, u) {
-    if (c.uorder.indexOf(label) === -1) c.uorder.push(label);
-    if (u == null) return;
-    c.u[label] = (c.u[label] || 0) + u; c.pr[label] = (c.pr[label] || 0) + 1;
+  // ---- Season Results ----
+  // card = {id, title, gp, rows [{id, label, r {w, l, t, u, pr}, fmt 'T'|'P'|''}], tie (ML: tied games), stat}
+  function sRec() { return { w: 0, l: 0, t: 0, u: 0, pr: 0 }; }
+  function sAdd(r, res, u) {
+    if (res === 'W') r.w++; else if (res === 'L') r.l++; else r.t++;
+    if (u != null) { r.u += u; r.pr++; }
+  }
+  function newCard(id, title, rows, fmt) {
+    var c = { id: id, title: title, gp: 0, rows: [], by: {} };
+    rows.forEach(function(x) { var row = { id: x[0], label: x[1], r: sRec(), fmt: fmt }; c.rows.push(row); c.by[x[0]] = row; });
+    return c;
   }
   function seasonCards(games, k) {
-    var list = graded(games, k), cards = [];
+    var list = graded(games, k), t = seg(k).tag, nhl = D.sport === 'nhl';
+    var pre = isRfi(k) ? '' : t + ' ';
     if (isRfi(k)) {
-      var rf = newCard('NRFI / YRFI', 'A run in the 1st inning');
-      rf.order = ['YRFI', 'NRFI'];
+      var rf = newCard('rfi', 'NRFI/YRFI', [['YRFI', 'YRFI'], ['NRFI', 'NRFI']], '');
       list.forEach(function(g) {
         var r = g.res[k], u = (r.u || {}).rfi;
         if (r.rfi !== 'Y' && r.rfi !== 'N') return;
-        rf.gp++; cHit(rf, r.rfi === 'Y' ? 'YRFI' : 'NRFI');
-        cUnit(rf, 'YRFI', u ? u[0] : null); cUnit(rf, 'NRFI', u ? u[1] : null);
+        rf.gp++;
+        sAdd(rf.by.YRFI.r, r.rfi === 'Y' ? 'W' : 'L', u ? u[0] : null);
+        sAdd(rf.by.NRFI.r, r.rfi === 'N' ? 'W' : 'L', u ? u[1] : null);
       });
-      cards.push(rf);
-    } else {
-      var ha = newCard('Moneyline', 'Home / Away / Tie'), fd = newCard('Moneyline', 'Favorite / Underdog / Tie');
-      var sha = newCard(spreadWord(), 'Home / Away / Push'), sfd = newCard(spreadWord(), 'Favorite / Underdog / Push');
-      var tot = newCard(totalWord(k), 'Over / Under' + (D.sport === 'nhl' ? '' : ' / Push')), bt = newCard('BTTS', 'Both teams score: Yes / No');
-      var m3 = newCard('3-way ML', 'Home / Tie / Away at 3-way prices');
-      ha.order = ['Home', 'Away', 'Tie']; fd.order = ['Favorite', 'Underdog', 'Tie']; sha.order = ['Home', 'Away', 'Push'];
-      sfd.order = ['Favorite', 'Underdog', 'Push']; tot.order = D.sport === 'nhl' ? ['Over', 'Under'] : ['Over', 'Under', 'Push'];
-      bt.order = ['Yes', 'No']; m3.order = ['Home', 'Tie', 'Away'];
-      list.forEach(function(g) {
-        var r = g.res[k], u = r.u || {}, o = (g.odds || {})[k] || {};
-        if (hasMl(k) && r.su && r.su !== 'NA') {
-          var hw = { W: 'Away', L: 'Home' }[r.su] || 'Tie';
-          ha.gp++; cHit(ha, hw); cUnit(ha, 'Home', u.su ? u.su[1] : null); cUnit(ha, 'Away', u.su ? u.su[0] : null);
-          var f = segFavSide(g, k);
-          if (f) {
-            var fi = f === 'away' ? 0 : 1, won = hw === 'Tie' ? 'Tie' : (hw.toLowerCase() === f ? 'Favorite' : 'Underdog');
-            fd.gp++; cHit(fd, won); cUnit(fd, 'Fav', u.su ? u.su[fi] : null); cUnit(fd, 'Dog', u.su ? u.su[1 - fi] : null);
-          }
-          if (u.ml3) {
-            m3.gp++; cHit(m3, hw); cUnit(m3, 'Home', u.ml3[1]); cUnit(m3, 'Tie', u.ml3[2]); cUnit(m3, 'Away', u.ml3[0]);
-          }
-        }
-        if (r.ats && r.ats !== 'NA') {
-          var hc = { W: 'Away', L: 'Home' }[r.ats] || 'Push';
-          sha.gp++; cHit(sha, hc); cUnit(sha, 'Home', u.ats ? u.ats[1] : null); cUnit(sha, 'Away', u.ats ? u.ats[0] : null);
-          var line = ((o.ats || {}).away || {}).line;
-          if (typeof line === 'number' && line !== 0) {
-            var sf = line < 0 ? 'away' : 'home', si = sf === 'away' ? 0 : 1;
-            sfd.gp++; cHit(sfd, hc === 'Push' ? 'Push' : (hc.toLowerCase() === sf ? 'Favorite' : 'Underdog'));
-            cUnit(sfd, 'Fav', u.ats ? u.ats[si] : null); cUnit(sfd, 'Dog', u.ats ? u.ats[1 - si] : null);
-          }
-        }
-        if (r.tot && r.tot !== 'NA') {
-          tot.gp++; cHit(tot, { O: 'Over', U: 'Under' }[r.tot] || 'Push');
-          cUnit(tot, 'Over', u.tot ? u.tot[0] : null); cUnit(tot, 'Under', u.tot ? u.tot[1] : null);
-        }
-        if (r.btts === 'Y' || r.btts === 'N') {
-          bt.gp++; cHit(bt, r.btts === 'Y' ? 'Yes' : 'No');
-          cUnit(bt, 'Yes', u.btts ? u.btts[0] : null); cUnit(bt, 'No', u.btts ? u.btts[1] : null);
-        }
-      });
-      cards = [ha, fd, sha, sfd, tot, bt, m3].filter(function(c) { return c.gp; });
+      return [rf];
     }
-    cards.push(scoringCard(list, k));
-    return cards;
-  }
-  // Scoring: the period family's 0-0 and tied rates; the spread family's
-  // average closing total and how often games beat it
-  function scoringCard(list, k) {
-    var s = seg(k), n = list.length, pts = 0, zero = 0, tied = 0, lines = [], ln = 0;
+    var ml = newCard('ml', pre + 'Moneyline', [['home', 'Home'], ['away', 'Away']], 'T');
+    var mlfd = newCard('mlfd', pre + 'Moneyline', [['fav', 'Favorite'], ['dog', 'Underdog']], 'T');
+    var sp = newCard('ats', pre + 'Spread', [['home', 'Home'], ['away', 'Away']], 'P');
+    var tot = newCard('tot', pre + totalWord(k), [['over', 'Over'], ['under', 'Under']], nhl ? '' : 'P');
+    var bt = newCard('btts', pre + 'BTTS', [['yes', 'Yes'], ['no', 'No']], '');
+    var m3 = newCard('ml3', pre + '3-way ML', [['home', 'Home'], ['away', 'Away'], ['tie', 'Tie']], '');
+    var fd = newCard('fd', pre + 'Favorites/Underdogs', [['mlfav', 'ML Fav'], ['mldog', 'ML Dog'], ['spfav', 'Spread Fav'], ['spdog', 'Spread Dog']], '');
+    fd.rows[0].fmt = fd.rows[1].fmt = 'T'; fd.rows[2].fmt = fd.rows[3].fmt = 'P';
+    var ha = newCard('ha', pre + 'Home/Away', [['hfav', 'Home Fav'], ['hdog', 'Home Dog'], ['rfav', 'Road Fav'], ['rdog', 'Road Dog']], 'P');
+    ml.tie = 0; mlfd.tie = 0;
+    var fdSeen = {};
     list.forEach(function(g) {
-      var sc = g.res[k].sc, t = sc[0] + sc[1];
-      pts += t; if (!t) zero++; if (sc[0] === sc[1]) tied++;
-      var tl = (((g.odds || {})[k] || {}).total || {}).line;
-      if (typeof tl === 'number') { lines.push({ t: t, l: tl }); ln += tl; }
+      var r = g.res[k], u = r.u || {}, o = (g.odds || {})[k] || {};
+      if (hasMl(k) && r.su && r.su !== 'NA') {
+        var aRes = r.su === 'P' ? 'T' : r.su, hRes = flipRes(aRes), us = u.su;
+        ml.gp++; if (aRes === 'T') ml.tie++;
+        sAdd(ml.by.home.r, hRes, us ? us[1] : null); sAdd(ml.by.away.r, aRes, us ? us[0] : null);
+        var f = segFavSide(g, k);
+        if (f) {
+          var fi = f === 'away' ? 0 : 1, fRes = f === 'away' ? aRes : hRes;
+          mlfd.gp++; if (aRes === 'T') mlfd.tie++;
+          sAdd(mlfd.by.fav.r, fRes, us ? us[fi] : null); sAdd(mlfd.by.dog.r, flipRes(fRes), us ? us[1 - fi] : null);
+          sAdd(fd.by.mlfav.r, fRes, us ? us[fi] : null); sAdd(fd.by.mldog.r, flipRes(fRes), us ? us[1 - fi] : null);
+          fdSeen[g.id] = 1;
+        }
+        if (u.ml3) {
+          m3.gp++;
+          sAdd(m3.by.home.r, hRes === 'W' ? 'W' : 'L', u.ml3[1]); sAdd(m3.by.away.r, aRes === 'W' ? 'W' : 'L', u.ml3[0]);
+          sAdd(m3.by.tie.r, aRes === 'T' ? 'W' : 'L', u.ml3[2]);
+        }
+      }
+      if (r.ats && r.ats !== 'NA') {
+        var aA = r.ats === 'T' ? 'P' : r.ats, hA = flipRes(aA), ua = u.ats;
+        sp.gp++; sAdd(sp.by.home.r, hA, ua ? ua[1] : null); sAdd(sp.by.away.r, aA, ua ? ua[0] : null);
+        var line = ((o.ats || {}).away || {}).line;
+        if (typeof line === 'number' && line !== 0) {
+          var sf = line < 0 ? 'away' : 'home', si = sf === 'away' ? 0 : 1, fA = sf === 'away' ? aA : hA;
+          fdSeen[g.id] = 1;
+          sAdd(fd.by.spfav.r, fA, ua ? ua[si] : null); sAdd(fd.by.spdog.r, flipRes(fA), ua ? ua[1 - si] : null);
+          ha.gp++;
+          sAdd(ha.by[sf === 'home' ? 'hfav' : 'hdog'].r, hA, ua ? ua[1] : null);
+          sAdd(ha.by[sf === 'away' ? 'rfav' : 'rdog'].r, aA, ua ? ua[0] : null);
+        }
+      }
+      if (r.tot && r.tot !== 'NA') {
+        tot.gp++;
+        var oRes = r.tot === 'O' ? 'W' : r.tot === 'U' ? 'L' : 'P';
+        sAdd(tot.by.over.r, oRes, u.tot ? u.tot[0] : null); sAdd(tot.by.under.r, flipRes(oRes), u.tot ? u.tot[1] : null);
+      }
+      if (r.btts === 'Y' || r.btts === 'N') {
+        bt.gp++;
+        sAdd(bt.by.yes.r, r.btts === 'Y' ? 'W' : 'L', u.btts ? u.btts[0] : null); sAdd(bt.by.no.r, r.btts === 'N' ? 'W' : 'L', u.btts ? u.btts[1] : null);
+      }
     });
-    var avg = n ? (pts / n).toFixed(periodFamily() ? 2 : 1) : '&mdash;';
-    var c = { title: 'Scoring', sub: s.label + ' ' + scoreUnit(), gp: n, stat: [] };
-    c.stat.push(['Avg ' + s.tag + ' ' + scoreUnit(), avg]);
-    if (periodFamily()) {
-      c.stat.push(['0&ndash;0', n ? zero + ' <small>(' + pctCell(zero, n) + ')</small>' : '&mdash;']);
-      c.stat.push(['Tied after ' + (D.sport === 'nhl' ? 'one' : s.tag), n ? tied + ' <small>(' + pctCell(tied, n) + ')</small>' : '&mdash;']);
-    } else {
-      var avgLine = lines.length ? ln / lines.length : null;
-      var over = avgLine == null ? 0 : lines.filter(function(x) { return x.t > avgLine; }).length;
-      c.stat.push(['Avg closing total', avgLine == null ? '&mdash;' : avgLine.toFixed(1)]);
-      c.stat.push(['Over the avg line', lines.length ? over + ' <small>(' + pctCell(over, lines.length) + ')</small>' : '&mdash;']);
-    }
-    return c;
+    fd.gp = Object.keys(fdSeen).length;
+    // NHL: Moneyline, O/U 1.5, BTTS, 3-way ML, Scoring, then Moneyline by
+    // favorite. Spread family (and MLB's F5): Moneyline, Spread, O/U,
+    // Favorites/Underdogs, Home/Away.
+    var cards = nhl ? [ml, tot, bt, m3, scoringCard(list, k), mlfd] : [ml, sp, tot, fd, ha];
+    return cards.filter(function(c) { return c.stat || c.gp; });
   }
-  function cardHtml(c) {
+  // NHL's Scoring card: the average 1st-period goals, 0-0 and tied rates
+  function scoringCard(list, k) {
+    var s = seg(k), n = list.length, pts = 0, zero = 0, tied = 0;
+    list.forEach(function(g) { var sc = g.res[k].sc, t = sc[0] + sc[1]; pts += t; if (!t) zero++; if (sc[0] === sc[1]) tied++; });
+    return { id: 'scoring', title: s.tag + ' Scoring', gp: n, stat: [
+      ['Avg ' + s.tag + ' goals', n ? (pts / n).toFixed(2) : '&mdash;'],
+      ['0&ndash;0', n ? zero + ' <small>(' + pctCell(zero, n) + ')</small>' : '&mdash;'],
+      ['Tied after one', n ? tied + ' <small>(' + pctCell(tied, n) + ')</small>' : '&mdash;']] };
+  }
+  function recOf(r, fmt) { return r.w + '-' + r.l + (fmt ? '-' + r.t : ''); }
+  function cardHtml(c, total) {
     var body;
-    if (c.stat) body = c.stat.map(function(x) { return '<div class="sc-line"><span>' + x[0] + '</span><span class="sc-val">' + x[1] + '</span></div>'; }).join('');
+    if (c.stat) body = c.stat.map(function(x) { return '<div class="st-row st-stat"><span class="st-lbl">' + x[0] + '</span><span class="st-num mono">' + x[1] + '</span></div>'; }).join('');
     else {
-      body = c.order.map(function(l) {
-        var n = c.n[l] || 0;
-        return '<div class="sc-line"><span>' + l + '</span><span class="sc-val">' + n + ' <small>(' + pctCell(n, c.gp) + ')</small></span></div>';
-      }).join('');
-      var us = c.uorder.filter(function(l) { return c.pr[l]; });
-      if (us.length) body += '<div class="sc-units">' + us.map(function(l) { return '<span class="sc-u">' + l + ' ' + unitsPill(c.u[l], true) + '</span>'; }).join('') + '</div>';
+      var mark = c.gp < total ? '<sup class="st-mark" title="Games without a saved line aren&rsquo;t counted">*</sup>' : '';
+      var fmts = c.rows.map(function(x) { return x.fmt; }).filter(Boolean);
+      body = stHead(fmts.length ? (fmts.indexOf('T') !== -1 && fmts.indexOf('P') !== -1 ? 'Record' : 'W-L-' + fmts[0]) : 'W-L', '%', 'Units') +
+        c.rows.map(function(x) { return stRow(x.label, recOf(x.r, x.fmt) + mark, stPct(x.r.w, x.r.l), stUnits(x.r)); }).join('');
+      // ML only: a tied segment is a tie (0u); its own row, % of every game
+      if (c.tie != null) body += stRow('Tie', String(c.tie), pctCell(c.tie, c.gp), null, 'st-tie');
     }
-    return '<div class="sc-block"><h4>' + c.title + '</h4><div class="sc-sub">' + c.sub + ' &middot; ' + c.gp + ' GP</div>' + body + '</div>';
+    return stCard(c.title, '', body);
   }
+  function seasonMarked(cards, total) { return cards.some(function(c) { return !c.stat && c.gp < total; }); }
 
   // ---- NHL Goal Stats: 1st-period goals (from the old NHL page) ----
   function goalStats(games) {
@@ -1383,7 +1436,7 @@
     function cnt(arr, fn) { return arr.filter(fn).length; }
     function bars(rows, of) {
       return rows.map(function(r) {
-        return '<div class="sc-line"><span>' + r[0] + '</span><span class="sc-val">' + r[1] + ' <small>(' + pctCell(r[1], of) + ')</small></span></div>' +
+        return '<div class="st-row st-stat"><span class="st-lbl">' + r[0] + '</span><span class="st-num mono">' + r[1] + ' <small>(' + pctCell(r[1], of) + ')</small></span></div>' +
           '<div class="adv-bar"><span style="width:' + (pctOf(r[1], of) || 0) + '%"></span></div>';
       }).join('');
     }
@@ -1405,13 +1458,10 @@
     var cards = [
       ['Overs Ladder', 'Games over each 1st-period total', n, bars([['Over 0.5', cnt(list, function(g) { return tp(g) > 0; })], ['Over 1.5', cnt(list, function(g) { return tp(g) > 1; })], ['Over 2.5', cnt(list, function(g) { return tp(g) > 2; })]], n)],
       ['1P Goal Split', 'Total goals in the 1st period', n, bars([['0 goals', cnt(list, function(g) { return tp(g) === 0; })], ['1 goal', cnt(list, function(g) { return tp(g) === 1; })], ['2 goals', cnt(list, function(g) { return tp(g) === 2; })], ['3+ goals', cnt(list, function(g) { return tp(g) >= 3; })]], n)],
-      ['Off a Shutout &middot; Goals Scored', 'Team&rsquo;s own 1P goals the game after being shut out', m, bars([['0 goals', offShut.filter(function(x) { return x === 0; }).length], ['1 goal', offShut.filter(function(x) { return x === 1; }).length], ['2+ goals', offShut.filter(function(x) { return x >= 2; }).length]], m)],
-      ['Off a Shutout &middot; 1P Total', 'Both teams, the game after a shutout loss', sg.length, bars([['Over 0.5', cnt(sg, function(g) { return tp(g) > 0; })], ['Over 1.5', cnt(sg, function(g) { return tp(g) > 1; })], ['Over 2.5', cnt(sg, function(g) { return tp(g) > 2; })]], sg.length)]
+      ['Off a Shutout: Goals Scored', 'Team&rsquo;s own 1P goals the game after being shut out', m, bars([['0 goals', offShut.filter(function(x) { return x === 0; }).length], ['1 goal', offShut.filter(function(x) { return x === 1; }).length], ['2+ goals', offShut.filter(function(x) { return x >= 2; }).length]], m)],
+      ['Off a Shutout: 1P Goals', 'Both teams, the game after a shutout loss', sg.length, bars([['Over 0.5', cnt(sg, function(g) { return tp(g) > 0; })], ['Over 1.5', cnt(sg, function(g) { return tp(g) > 1; })], ['Over 2.5', cnt(sg, function(g) { return tp(g) > 2; })]], sg.length)]
     ];
-    return '<div class="season-card"><div class="season-card-head"><h3>Goal Stats</h3><div class="sc-right"><span class="sc-gp">1st-period totals &middot; ' + n + ' GP</span></div></div>' +
-      '<div class="sc-grid">' + cards.map(function(c) {
-        return '<div class="sc-block"><h4>' + c[0] + '</h4><div class="sc-sub">' + c[1] + ' &middot; ' + c[2] + ' GP</div>' + c[3] + '</div>';
-      }).join('') + '</div></div>';
+    return '<div class="st-grid">' + cards.map(function(c) { return stCard(c[0], c[1] + ' &middot; ' + c[2] + ' games', c[3]); }).join('') + '</div>';
   }
 
   // ---- Money Board: the segment's moneyline by side and price; spread
@@ -1423,14 +1473,11 @@
     if (u != null) { a.u += u; a.pr++; }
   }
   function boardRow(label, a) {
-    var d = a.w + a.l, val = boardState.view === 'pct'
-      ? '<span class="u-pill u-zero">' + (d ? Math.round(100 * a.w / d) + '%' : '&mdash;') + '</span>'
-      : unitsPill(a.u, a.pr);
-    return '<div class="mb-row"><div><div class="mb-label">' + label + '</div><div class="mb-rec mono">' + a.w + '-' + a.l + '-' + a.t + '</div></div>' + val + '</div>';
+    return stRow(label, a.w + '-' + a.l + '-' + a.t, boardState.view === 'pct' ? stPct(a.w, a.l) : '', boardState.view === 'pct' ? null : stUnits(a));
   }
-  function boardCard(title, sub, rows, note) {
-    return '<div class="sc-block adv-card"><h4>' + title + '</h4><div class="adv-card-sub">' + sub + '</div>' +
-      lockRows(rows, 'board') + (note ? '<div class="adv-note">' + note + '</div>' : '') + '</div>';
+  function boardCard(title, sub, rows, note, fmt) {
+    return stCard(title, sub, stHead(fmt, boardState.view === 'pct' ? 'Win %' : '', boardState.view === 'pct' ? '' : 'Units') +
+      lockRows(rows, 'board') + (note ? '<div class="st-note">' + note + '</div>' : ''));
   }
   function moneyBoard(games, k) {
     var list = graded(games, k), s = seg(k);
@@ -1457,8 +1504,8 @@
           for (var i = 0; i < tiers.length; i++) if (tiers[i][1](ml[x[0]])) { addRec(tr[i], x[1], x[2]); break; }
         });
       });
-      cards.push(boardCard('Home / Road Fav &amp; Dog', s.tag + ' moneyline by side', Object.keys(groups).map(function(g) { return boardRow(g, groups[g]); }), priced + ' games with a closing ' + s.tag + ' moneyline'));
-      cards.push(boardCard('Odds Tiers', s.tag + ' moneyline by closing price', tiers.map(function(t, i) { return boardRow(t[0], tr[i]); }), 'W-L-T &middot; ties are pushes (0u), left out of win %'));
+      cards.push(boardCard('Home / Road Fav &amp; Dog', s.tag + ' moneyline by side', Object.keys(groups).map(function(g) { return boardRow(g, groups[g]); }), priced + ' games with a closing ' + s.tag + ' moneyline', 'W-L-T'));
+      cards.push(boardCard('Odds Tiers', s.tag + ' moneyline by closing price', tiers.map(function(t, i) { return boardRow(t[0], tr[i]); }), 'Ties are 0u, left out of win %', 'W-L-T'));
     } else {
       var B = [['0.5&ndash;2.5', 0.5, 2.5], ['3&ndash;4.5', 3, 4.5], ['5+', 5, 999]];
       var fav = B.map(newRec), dog = B.map(newRec);
@@ -1474,17 +1521,15 @@
           break;
         }
       });
-      cards.push(boardCard('Favorites by line', s.tag + ' ' + spreadWord().toLowerCase() + ' cover rate', B.map(function(b, i) { return boardRow('Favored by ' + b[0], fav[i]); }), 'W-L-P &middot; pushes left out of cover %'));
-      cards.push(boardCard('Underdogs by line', s.tag + ' ' + spreadWord().toLowerCase() + ' cover rate', B.map(function(b, i) { return boardRow('Getting ' + b[0], dog[i]); }), 'Units at the closing price (-110 when only the line was saved)'));
+      cards.push(boardCard('Favorites by line', s.tag + ' Spread cover rate', B.map(function(b, i) { return boardRow('Favored by ' + b[0], fav[i]); }), 'Pushes left out of cover %', 'W-L-P'));
+      cards.push(boardCard('Underdogs by line', s.tag + ' Spread cover rate', B.map(function(b, i) { return boardRow('Getting ' + b[0], dog[i]); }), 'Units at the closing price (-110 when only the line was saved)', 'W-L-P'));
     }
-    var pills = '<div class="adv-pills">' +
-      (canMl && canAts ? '<div class="seg-toggle" role="group" aria-label="Market"><button class="seg-btn" data-board-mk="ml" aria-pressed="' + (mk === 'ml') + '">Moneyline</button>' +
-        '<button class="seg-btn" data-board-mk="ats" aria-pressed="' + (mk === 'ats') + '">' + spreadWord() + '</button></div>' : '') +
+    var pills = (canMl && canAts ? '<div class="seg-toggle" role="group" aria-label="Market"><button class="seg-btn" data-board-mk="ml" aria-pressed="' + (mk === 'ml') + '">Moneyline</button>' +
+        '<button class="seg-btn" data-board-mk="ats" aria-pressed="' + (mk === 'ats') + '">Spread</button></div>' : '') +
       '<div class="seg-toggle" role="group" aria-label="Show"><button class="seg-btn" data-board-view="pct" aria-pressed="' + (boardState.view === 'pct') + '">Win %</button>' +
-      '<button class="seg-btn" data-board-view="units" aria-pressed="' + (boardState.view === 'units') + '">Profit</button></div></div>';
-    return '<div class="season-card adv-section"><div class="adv-head"><div class="adv-head-left"><h3>Money Board</h3><span class="adv-sub">' +
-      esc(s.label) + ' &middot; ' + (mk === 'ml' ? 'moneyline' : spreadWord().toLowerCase()) + ' at closing prices</span></div>' + pills + '</div>' +
-      '<div class="sc-grid adv-grid">' + cards.join('') + '</div></div>';
+      '<button class="seg-btn" data-board-view="units" aria-pressed="' + (boardState.view === 'units') + '">Profit</button></div>';
+    return stSection('statsBoard', 'Money Board', pills, '<p class="st-sec-sub">' + esc(s.tag) + ' ' + (mk === 'ml' ? 'Moneyline' : 'Spread') + ' at closing prices</p>' +
+      '<div class="st-grid st-grid-2">' + cards.join('') + '</div>');
   }
 
   // ---- Edges: what happens after the opening segment ----
@@ -1578,71 +1623,143 @@
     var order = ['lead0', 'lead1', 'lead2', 'cover', 'blown', 'tiehome', 'tiefav', 'favback', 'favcover', 'dogwin', 'bigfav', 'oo', 'uu', 'hi', 'lo', 'bounce', 'fbq', 'fb7h', 'fb7f'];
     return { rows: order.filter(function(id) { return R[id] && R[id].n; }).map(function(id) { return R[id]; }), n: list.length, later: later };
   }
-  function edgeSection(games, k) {
-    if (!(LEAD_CUTS[D.sport] || {})[k]) return '';
-    var E = edgeRows(games, k), name = EDGE_NAME[k], flag = 'edge' + k;
-    if (!E.n) return '';
-    var rows = E.rows.map(function(x) {
-      var p = pctOf(x.hit, x.n);
-      return '<div class="edge-row"><span class="edge-label">' + x.label + '</span><span class="edge-n mono">' + x.n + '</span>' +
-        '<span class="edge-rate mono">' + (p == null ? '&mdash;' : p + '%') + '</span><span class="edge-u">' + (x.pr ? unitsPill(x.u, true) : '<span class="edge-none">&mdash;</span>') + '</span></div>';
-    });
-    var rest = k === '1p' ? 'periods 2&ndash;3 (and OT)' : k === '1q' ? 'quarters 2&ndash;4' : 'the 2nd half';
+  // every finished game's edges per segment, counted once a page load
+  var EDGE_CACHE = {};
+  function edgeData(k) { return EDGE_CACHE[k] || (EDGE_CACHE[k] = edgeRows(finalGames(), k)); }
+  function edgeRest(k) { return k === '1p' ? 'periods 2&ndash;3 (and OT)' : k === '1q' ? 'quarters 2&ndash;4' : k === 'f5' ? 'innings 6&ndash;9' : 'the 2nd half'; }
+  // Best Closers / Biggest Faders: each team's record over the rest of the
+  // game (after the segment); 3+ games, win % leaves ties out
+  function closerBoards(k) {
+    var E = edgeData(k);
     var teams = Object.keys(E.later).filter(function(t) { return D.teams[t]; }).map(function(t) {
-      var x = E.later[t], d = x.w + x.l + x.t; return { t: t, x: x, p: d ? x.w / d : 0, q: d ? x.l / d : 0, d: d };
-    }).filter(function(e) { return e.d >= 3; });
-    function lb(arr, key) {
-      return arr.slice().sort(function(a, b) { return b[key] - a[key] || b.d - a.d; }).slice(0, 5).map(function(e) {
-        return '<div class="edge-row edge-team"><span class="edge-label">' + teamLink(e.t, badge(e.t, 18) + ' ' + esc(shortName(e.t))) + '</span>' +
-          '<span class="edge-n mono">' + e.x.w + '-' + e.x.l + '-' + e.x.t + '</span><span class="edge-rate mono">' + Math.round(100 * e[key]) + '%</span><span class="edge-u"></span></div>';
+      var x = E.later[t], d = x.w + x.l; return { t: t, x: x, p: d ? x.w / d : 0, q: d ? x.l / d : 0, d: d };
+    }).filter(function(e) { return e.x.w + e.x.l + e.x.t >= 3 && e.d; });
+    function by(key) { return teams.slice().sort(function(a, b) { return b[key] - a[key] || b.d - a.d || (a.t < b.t ? -1 : 1); }); }
+    return { best: by('p'), worst: by('q') };
+  }
+  // a team's spot in the top 5 of either board: {k, kind 'best' | 'worst', rank}
+  function edgeRank(slug) {
+    var out = null;
+    ['best', 'worst'].forEach(function(kind) {
+      edgeSegs().forEach(function(s) {
+        if (out) return;
+        var i = closerBoards(s.key)[kind].slice(0, 5).map(function(e) { return e.t; }).indexOf(slug);
+        if (i !== -1) out = { k: s.key, kind: kind, rank: i + 1 };
       });
-    }
+    });
+    return out;
+  }
+  function ordinal(n) { return n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'); }
+  // "3rd-best closer in the NHL" / "Biggest fader: 2nd" (with the segment's tag when the sport has two)
+  function edgeRankWords(x) {
+    var tag = edgeSegs().length > 1 ? seg(x.k).tag + ' ' : '';
+    if (x.kind === 'best') return (x.rank === 1 ? 'Best ' : ordinal(x.rank) + '-best ') + tag + 'closer in the ' + D.label;
+    return 'Biggest ' + tag + 'fader' + (x.rank === 1 ? ' in the ' + D.label : ': ' + ordinal(x.rank));
+  }
+  function closerRow(e, key) {
+    return stRow(teamLink(e.t, badge(e.t, 22) + '<span class="st-abbr">' + esc(tcode(e.t)) + '</span>'), e.x.w + '-' + e.x.l + '-' + e.x.t, Math.round(100 * e[key]) + '%', null, 'st-team');
+  }
+  function edgeSection(k) {
+    if (!(LEAD_CUTS[D.sport] || {})[k]) return '';
+    var E = edgeData(k), name = EDGE_NAME[k], flag = 'edge' + k, cuts = LEAD_CUTS[D.sport][k];
+    if (!E.n) return stSection('edges-' + k, name[0], '', emptyNote('No finished games with the ' + esc(seg(k).label) + ' graded yet.'));
+    var rows = E.rows.map(function(x) { return stRow(x.label, String(x.n), pctCell(x.hit, x.n), x.pr ? stUnits({ u: x.u, pr: x.pr }) : null); });
     var tip = 'Games: finished games with the ' + esc(seg(k).label) + ' graded. Rate: how often the row came true. ' +
       'Units: 1 unit on that side at the closing pregame price (spreads and totals at -110); live prices after the break will differ. ' +
-      'Lead sizes: ' + (LEAD_CUTS[D.sport][k][0] === 1 ? '1' : '1&ndash;' + LEAD_CUTS[D.sport][k][0]) + ' small, ' + (LEAD_CUTS[D.sport][k][0] + 1) + '&ndash;' + LEAD_CUTS[D.sport][k][1] + ' medium, ' + (LEAD_CUTS[D.sport][k][1] + 1) + '+ big.';
-    var head = '<div class="edge-row edge-headrow"><span class="edge-label"></span><span class="edge-n">Games</span><span class="edge-rate">Rate</span><span class="edge-u">Units</span></div>';
-    return '<div class="season-card adv-section"><div class="adv-head"><div class="adv-head-left"><h3>' + name[0] + ' ' + infoTip(tip, true) + '</h3>' +
-      '<span class="adv-sub">' + name[1] + ' &middot; ' + E.n + ' games</span></div></div>' +
-      '<div class="edge-list">' + head + lockRows(rows, flag) + '</div>' +
-      (teams.length ? '<div class="edge-boards"><div class="edge-list"><h4>Best closers</h4><div class="adv-card-sub">Win ' + rest + ' most</div>' + lockRows(lb(teams, 'p'), flag) + '</div>' +
-        '<div class="edge-list"><h4>Biggest faders</h4><div class="adv-card-sub">Lose ' + rest + ' most</div>' + lockRows(lb(teams, 'q'), flag) + '</div></div>' : '') +
-      '</div>';
+      'Lead sizes: ' + (cuts[0] === 1 ? '1' : '1&ndash;' + cuts[0]) + ' small, ' + (cuts[0] + 1) + '&ndash;' + cuts[1] + ' medium, ' + (cuts[1] + 1) + '+ big.';
+    var B = closerBoards(k);
+    var boards = B.best.length ? '<div class="st-grid st-grid-2">' +
+      stCard('Best Closers', 'Win ' + edgeRest(k) + ' most', stHead('W-L-T', 'Win %', '') + lockRows(B.best.slice(0, 5).map(function(e) { return closerRow(e, 'p'); }), flag)) +
+      stCard('Biggest Faders', 'Lose ' + edgeRest(k) + ' most', stHead('W-L-T', 'Loss %', '') + lockRows(B.worst.slice(0, 5).map(function(e) { return closerRow(e, 'q'); }), flag)) +
+      '</div>' : '';
+    return stSection('edges-' + k, name[0] + ' ' + infoTip(tip, true), '',
+      '<p class="st-sec-sub">' + name[1] + ' &middot; ' + E.n + ' games</p>' +
+      stCard(seg(k).tag + ' Edges', 'What happens over ' + edgeRest(k), stHead('Games', 'Rate', 'Units') + lockRows(rows, flag), '', 'st-wide') + boards);
   }
 
-  function throughDate() {
-    var last = null;
-    allDates().forEach(function(d) { if (D.games[d].some(function(g) { return g.state === 'final'; })) last = d; });
-    return last ? new Date(last + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }) : null;
+  // the page's segment toggle, pinned under the header like Matchups / Odds
+  function statsSegBar(k) {
+    return D.segments.length > 1 ? '<div class="ob-stick" id="stStick"><div class="sport-seg-row odds-controls">' + segToggle('statsSeg', k) + '</div></div>' : '';
+  }
+  function wireStatsSeg(draw) {
+    var segEl = document.getElementById('statsSeg');
+    if (segEl) segEl.onclick = function(e) { var b = e.target.closest('[data-seg]'); if (b) { setSeg(b.getAttribute('data-seg')); draw(); } };
+    stickBelowNav(document.getElementById('stStick'));
+  }
+  function noStats() { app.innerHTML = emptyNote('No ' + esc(D.label) + ' games loaded yet &mdash; stats appear once games are played.'); }
+  function keepPlace(anchor) {
+    var keep = anchor ? { id: anchor.id, top: anchor.getBoundingClientRect().top } : null;
+    return function() { if (keep) { var el = document.getElementById(keep.id); if (el) window.scrollBy(0, el.getBoundingClientRect().top - keep.top); } };
+  }
+  function splitsStandout(k) { var e = sitEngine(); return e && e.standout ? e.standout(k) : null; }
+  function teaser(href, title, body, go) {
+    return '<a class="st-card st-teaser" href="' + href + '"><div class="st-head"><h4>' + title + '</h4></div><p>' + body + '</p><span class="st-go">' + go + ' &rarr;</span></a>';
+  }
+  function statsTeasers(k) {
+    var sd = splitReg() ? splitsStandout(k) : null;
+    var t1 = sd ? teaser(statsUrl('splits'), 'Splits: ' + esc(sd.label), '<b class="mono">' + esc(sd.rec) + '</b> &middot; ' + sd.pct + '% ' + esc(sd.pctHead.replace(' %', '').toLowerCase()) + ' rate, ' + esc(seg(k).tag + ' ' + sd.market) + (sd.own ? '' : ' (home team)'), 'See all splits')
+      : teaser(statsUrl('splits'), 'Splits', 'Records by home and road, favorite and underdog, rest and schedule.', 'See all splits');
+    var es = edgeSegs()[0], top = es ? closerBoards(es.key).best[0] : null;
+    var t2 = top ? teaser(statsUrl('edges'), 'Edges: Best closer: ' + badge(top.t, 22) + '<span class="st-abbr">' + esc(tcode(top.t)) + '</span>',
+        '<b class="mono">' + top.x.w + '-' + top.x.l + '-' + top.x.t + '</b> &middot; ' + Math.round(100 * top.p) + '% over ' + edgeRest(es.key) + ' after the ' + esc(segWord(es.key)), 'See all edges')
+      : teaser(statsUrl('edges'), 'Edges', 'What happens after the ' + esc(segWord((es || D.segments[0]).key)) + ', and who closes and fades.', 'See all edges');
+    return '<div class="st-grid st-grid-2 st-teasers">' + t1 + t2 + '</div>';
   }
 
+  // /stats/: Season Results, Scoring, Money Board, the two teasers
   function renderStats() {
-    if (!D.season || !allDates().length) { app.innerHTML = emptyNote('No ' + esc(D.label) + ' games loaded yet &mdash; stats appear once games are played.'); return; }
-    var through = throughDate();
+    if (!D.season || !allDates().length) { noStats(); return; }
     function draw(anchor) {
-      var keep = anchor ? { id: anchor.id, top: anchor.getBoundingClientRect().top } : null;
-      var k = getSeg(), range = tfRange();
+      var back = keepPlace(anchor);
+      var k = getSeg(), range = tfRange(), N = graded(range.games, k).length;
       var cards = seasonCards(range.games, k);
-      var controls = segToggle('statsSeg', k) + tfControls();
-      var edges = D.segments.filter(function(s) { return (LEAD_CUTS[D.sport] || {})[s.key]; }).map(function(s) { return edgeSection(finalGames(), s.key); }).join('');
-      app.innerHTML = (through ? '<p class="stats-through">Through ' + esc(through) + '</p>' : '') +
-        '<section id="statsSeason"><div class="season-card"><div class="season-card-head"><h3>Season Results</h3><div class="sc-right">' + controls + '</div></div>' + range.line +
-          (cards.some(function(c) { return c.gp; }) ? '<div class="sc-grid">' + cards.map(cardHtml).join('') + '</div>' : emptyNote('No graded games in this range yet.')) + '</div></section>' +
-        '<section id="statsScoring">' + (D.sport === 'nhl' ? goalStats(finalGames()) : '') + '</section>' +
-        '<section id="statsBoard">' + moneyBoard(finalGames(), k) + '</section>' +
-        '<section id="statsEdges">' + edges + '</section>' +
-        (splitReg() ? '<section id="statsSit"></section>' : '');
-      var segEl = document.getElementById('statsSeg');
-      if (segEl) segEl.onclick = function(e) { var b = e.target.closest('[data-seg]'); if (b) { setSeg(b.getAttribute('data-seg')); draw(segEl.closest('section')); } };
+      var season = stSection('statsSeason', 'Season Results &middot; ' + N + ' game' + (N === 1 ? '' : 's'), tfControls(), range.line +
+        (N ? '<div class="st-grid">' + cards.map(function(c) { return cardHtml(c, N); }).join('') + '</div>' +
+          (seasonMarked(cards, N) ? '<p class="st-foot"><sup>*</sup> Games without a saved line aren&rsquo;t counted.</p>' : '')
+          : emptyNote('No graded games in this range yet.')));
+      var scoring = stSection('statsScoring', 'Scoring', '', D.sport === 'nhl' ? goalStats(finalGames()) : '<div id="statsScoringBody"></div>');
+      app.innerHTML = statsSegBar(k) + season + scoring + moneyBoard(finalGames(), k) + statsTeasers(k);
+      wireStatsSeg(function() { draw(document.getElementById('statsSeason')); });
       wireTf(function() { draw(document.getElementById('statsSeason')); });
       app.querySelectorAll('[data-board-view]').forEach(function(b) { b.onclick = function() { boardState.view = b.getAttribute('data-board-view'); draw(document.getElementById('statsBoard')); }; });
       app.querySelectorAll('[data-board-mk]').forEach(function(b) { b.onclick = function() { boardState.market = b.getAttribute('data-board-mk'); draw(document.getElementById('statsBoard')); }; });
-      if (isFootball()) renderFbScoring(range.games);
-      var eng = sitEngine();
-      if (eng) { eng.state.k = k; renderSit('statsSit', { mode: 'league' }); }
-      if (keep) { var el = document.getElementById(keep.id); if (el) window.scrollBy(0, el.getBoundingClientRect().top - keep.top); }
+      if (D.sport !== 'nhl') renderScoring(range.games, k);
+      wireTips(app);
+      back();
+    }
+    draw();
+  }
+
+  // /stats/splits/: Situational Results, league-wide
+  function renderSplits() {
+    if (!D.season || !allDates().length) { noStats(); return; }
+    var eng = sitEngine();
+    if (!eng) { app.innerHTML = emptyNote('Situational Results aren&rsquo;t set up for ' + esc(D.label) + ' yet.'); return; }
+    // premium: one filter at a time (the time range here; View as and conference in situational.js)
+    function comboOk() { return !(premiumLocked('splitCombine') && tf.mode !== 'all' && (eng.state.persp !== 'home' || eng.state.conf)); }
+    function draw(anchor) {
+      var back = keepPlace(anchor);
+      var k = getSeg(), r = tfDates();
+      eng.state.k = k;
+      app.innerHTML = statsSegBar(k) + '<div id="statsSit"></div>';
+      wireStatsSeg(function() { draw(document.getElementById('statsSit')); });
+      renderSit('statsSit', { mode: 'league', range: r, noSeg: true, controls: tfControls(), line: r && r.label ? '<div class="sc-week">' + r.label + '</div>' : '',
+        after: function() { wireTf(function() { draw(document.getElementById('statsSit')); }, comboOk); } });
+      back();
     }
     SIT_ON_SEG = function(k, anchor) { setSeg(k); draw(anchor); };
     draw();
+  }
+
+  // /stats/edges/: the Intermission / Quarter / Halftime / F5 Edge per segment
+  function renderEdges() {
+    if (!D.season || !allDates().length) { noStats(); return; }
+    var es = edgeSegs();
+    if (!es.length) { app.innerHTML = emptyNote('Edges aren&rsquo;t set up for ' + esc(D.label) + ' yet.'); return; }
+    var html = es.map(function(s) { return edgeSection(s.key); }).join('');
+    if (premiumLocked('edgesPage')) html = '<div class="pm-blur" aria-hidden="true">' + html + '</div><a class="pm-unlock" href="' + ROOT + '#premium">Unlock with Premium</a>';
+    app.innerHTML = html;
+    wireTips(app);
   }
 
   // --------------------------------------------------------- Trends page
@@ -2529,7 +2646,7 @@
     if (tip) tip.classList.toggle('open');
   });
   // NHL's data.json is its own shape; its Matchups, Stats, Trends and Teams pages read the shared shape (nhl/sport.json)
-  var DATA_FILE = SPORT_SLUG === 'nhl' && ['hub', 'games', 'stats', 'trends', 'teams', 'team'].indexOf(SECTION) !== -1 ? 'sport.json' : 'data.json';
+  var DATA_FILE = SPORT_SLUG === 'nhl' && ['hub', 'games', 'stats', 'splits', 'edges', 'trends', 'teams', 'team'].indexOf(SECTION) !== -1 ? 'sport.json' : 'data.json';
   fetch(ROOT + SPORT_SLUG + '/' + DATA_FILE).then(function(r) { return r.json(); }).then(function(data) {
     D = data;
     if (SECTION === 'odds') { renderOdds(); return; }   // works from odds.json alone for NHL
@@ -2537,6 +2654,8 @@
     if (SECTION === 'hub') renderHub();
     else if (SECTION === 'games') renderGames();
     else if (SECTION === 'stats') renderStats();
+    else if (SECTION === 'splits') renderSplits();
+    else if (SECTION === 'edges') renderEdges();
     else if (SECTION === 'trends') renderTrends();
     else if (SECTION === 'team') renderTeam();
     else if (SECTION === 'teams') renderTeamsIndex();

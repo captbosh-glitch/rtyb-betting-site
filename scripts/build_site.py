@@ -35,7 +35,7 @@ root" compatible):
                               page's client JS, instead of being inlined
                               into each page individually.
   nhl/matchups/index.html  -- the Matchups page (nhl/games/ forwards to it)
-  nhl/stats/index.html, nhl/trends/index.html -- drawn by assets/sport.js from nhl/sport.json
+  nhl/stats/index.html (+ stats/splits/, stats/edges/), nhl/trends/index.html -- drawn by assets/sport.js from nhl/sport.json
                          (and nhl/trends.json, scripts/trends.py)
   nhl/1st-period-stats/, nhl/hit-rates/ -- redirect stubs to nhl/stats/ (old URLs)
   schedule_data.json       -- OVERWRITTEN with the merged result, so the next
@@ -663,7 +663,6 @@ def sport_team_meta(sport, team, season_label):
 
 SECTION_DESC = {
     'games': '{label} matchups by date with {segs} odds, scores and results.',
-    'stats': '{label} {segs} results league-wide: {markets} with units, the Money Board, Edges and situational splits.',
     'trends': '{label} League Trends, Matchup Trends and Streak Trends for every slate, graded as games finish.',
     'odds': '{label} {segs} odds from every sportsbook, exchange and prediction market we track, with the best price outlined.',
 }
@@ -699,6 +698,23 @@ def how_to_read_html(sp, section):
         lines = [row_order_line(sp, section),
                  f'Green: the side that won. Yellow: a tie or push. The big number next to each team is the '
                  f'{seg_words} score; the full game is underneath.']
+    elif section == 'stats':
+        lines = ['Each row is one side: its record (W-L-T on the moneyline, W-L-P on the spread and O/U), its win %, '
+                 'then its units at the closing price. Win % leaves ties and pushes out.',
+                 'Units: green is a profit, red a loss, yellow within half a unit either way.']
+        if sp['family'] == 'spread' or sp['key'] == 'mlb':
+            lines.append('A tied segment is a tie on the moneyline (0 units), counted in its own Tie row.')
+        if sp['key'] == 'nhl':
+            lines.append('3-way ML: the tie is its own bet, so a tie loses the Home and Away sides.')
+    elif section == 'splits':
+        lines = ['Each row is a situation: the record, win % (ties and pushes left out) and units of every team-game that fits it.',
+                 'Rows under 5 games stay hidden until they have enough. Green and red mark real edges: 60%+ (or 40% and under) '
+                 'over 10+ games, or more than 5 units either way.']
+    elif section == 'edges':
+        segs = ' or '.join(sports.SEGMENT_WORDS[s['key']] for s in sp['segments'] if s['key'] != '1i')
+        lines = [f'Each row: how often it came true after the {segs}, and the units from betting it at the closing pregame price '
+                 '(live prices at the break will differ).',
+                 'Best Closers win the rest of the game most often; Biggest Faders lose it most. Win % leaves ties out.']
     else:
         return ''
     seo = SEO_COPY.get((section, sp['key']))
@@ -737,6 +753,48 @@ def sport_app_body(sp, section):
     How to read box where the page type has one."""
     return (f'<div id="sportApp" data-section="{section}"><div class="no-games-note">Loading&hellip;</div>'
             f'<noscript>This page needs JavaScript.</noscript></div>' + how_to_read_html(sp, section))
+
+
+# The Stats pages: (data-section, folder under /{slug}/stats/, tab label)
+STATS_PAGES = [('stats', '', 'Overview'), ('splits', 'splits', 'Splits'), ('edges', 'edges', 'Edges')]
+
+
+def stats_tabs_html(sp, current):
+    """Overview · Splits · Edges, under the heading (market-pill style)."""
+    base = sports.section_path(sp, 'stats')
+    return ('<nav class="seg-toggle stats-tabs" aria-label="Stats pages">'
+            + ''.join(f'<a class="seg-btn" href="{base}{sub + "/" if sub else ""}"'
+                      + (' aria-current="page" aria-pressed="true"' if sec == current else ' aria-pressed="false"') + f'>{label}</a>'
+                      for sec, sub, label in STATS_PAGES)
+            + '</nav>')
+
+
+def stats_meta(sp, page, season_label):
+    words = segment_title_words(sp)
+    season = f' {season_label}' if season_label else ''
+    segs = sports.segment_summary(sp)
+    if page == 'stats':
+        markets = ('moneyline, O/U 1.5, BTTS and 3-way ML' if sp['key'] == 'nhl'
+                   else 'moneyline, spread and O/U' if any(sports.has_ml(s) for s in sp['segments']) else 'spread and O/U')
+        return {'title': f"{sp['label']} {words} Stats{season} | RTYB", 'h1': f"{sp['label']} Stats", 'section': 'stats',
+                'desc': f"{sp['label']} {segs} results league-wide: {markets} records with units, scoring and the Money Board."}
+    if page == 'splits':
+        return {'title': f"{sp['label']} {words} Splits{season} | RTYB", 'h1': f"{sp['label']} Splits", 'section': 'stats',
+                'desc': f"{sp['label']} {segs} records by situation: home and road, favorite and underdog, rest and schedule."}
+    return {'title': f"{sp['label']} {words} Edges: Best Closers & Faders | RTYB", 'h1': f"{sp['label']} Edges", 'section': 'stats',
+            'desc': f"What happens after the {segs} in the {sp['label']}: leads held and blown, plus the best closers and biggest faders."}
+
+
+def write_stats_pages(template, sp, teams_menu_html, season_label, has_data):
+    """/{slug}/stats/ (Overview), /stats/splits/ and /stats/edges/, every sport."""
+    for sec, sub, _ in STATS_PAGES:
+        meta = stats_meta(sp, sec, season_label)
+        if has_data:
+            html = render_page(template, 'sport', teams_menu_html, meta=meta, sport=sp,
+                               sport_body=stats_tabs_html(sp, sec) + sport_app_body(sp, sec))
+        else:
+            html = render_page(template, 'empty', teams_menu_html, meta=meta, sport=sp, empty_html=empty_state_html(sp, 'stats'))
+        write_light(html, f"{sp['slug']}/{sp['sections']['stats']}" + (f'/{sub}' if sub else ''))
 
 
 def hub_words(sp):
@@ -786,7 +844,8 @@ def build_other_sports(template):
         if sp['key'] == 'nhl':
             continue
         teams = load_teams(sp)
-        for section in ('games', 'stats', 'trends', 'odds', 'teams'):
+        write_stats_pages(template, sp, '', (SPORT_DATA.get(sp['key']) or {}).get('seasonLabel'), sport_has_data(sp['key']))
+        for section in ('games', 'trends', 'odds', 'teams'):
             label = sports.SECTION_LABELS[section]
             h1 = (f'{sp["label"]} Trends to Watch' if section == 'trends' else f'{sp["label"]} Matchups' if section == 'games'
                   else f'{sp["label"]} — {label}')
@@ -1102,11 +1161,7 @@ def main():
                                 sport=nhl, sport_body=team_detail_html(nhl, t))
         write_light(team_html, f"nhl/teams/{t['slug']}")
         team_bytes += len(team_html)
-    stats_meta = {'title': 'RTYB — NHL Stats', 'h1': 'NHL — Stats', 'section': 'stats',
-                  'desc': SECTION_DESC['stats'].format(label='NHL', segs='1st Period', markets='moneyline, Total 1.5, BTTS and 3-way')}
-    write_light(render_page(template, 'sport', teams_menu_html, meta=stats_meta, sport=nhl,
-                            sport_body='<div id="sportApp" data-section="stats"><div class="no-games-note">Loading&hellip;</div>'
-                                       '<noscript>This page needs JavaScript.</noscript></div>'), 'nhl/stats')
+    write_stats_pages(template, nhl, teams_menu_html, full_data['seasonLabel'], True)
 
     write_hub(template, nhl, teams_menu_html)
     other = build_other_sports(template)

@@ -18,6 +18,8 @@
     --panel-3: #212B37;
     --border: #263140;
     --border-soft: #1D2733;
+    /* the one card border (CLAUDE.md): visible, lighter than the page in dark */
+    --card-border: #2B3747;
     --text: #EAEEF3;
     --text-muted: #8B96A5;
     --text-faint: #5C6B7A;
@@ -82,6 +84,7 @@
     --panel-3: #EDF1F5;
     --border: #DCE2E9;
     --border-soft: #E7EBEF;
+    --card-border: #D2D9E1;
     --text: #12181F;
     --text-muted: #5B6674;
     --text-faint: #8891A0;
@@ -128,6 +131,8 @@
       --panel-3: #EDF1F5;
       --border: #DCE2E9;
       --border-soft: #E7EBEF;
+      --card-border: #D2D9E1;
+    --card-border: #D2D9E1;
       --text: #12181F;
       --text-muted: #5B6674;
       --text-faint: #8891A0;
@@ -967,11 +972,7 @@
     .sit-desc { max-width: 160px; }
     .sit .seg-btn, #sitLogSeg .seg-btn, .sit-mk .seg-btn { min-height: 44px; }
   }
-  /* Stats page (assets/sport.js renderStats): through date, one row of
-     Season Results cards, Edges rows, premium blur, Situational groups */
-  .stats-through { margin: -4px 0 12px; font: 600 0.78rem 'JetBrains Mono', monospace; color: var(--text-muted); }
-  #statsSeason .sc-grid { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: minmax(136px, 1fr); overflow-x: auto; padding-bottom: 4px; }
-  #statsSeason .season-card-head .sc-right { flex-wrap: wrap; }
+  /* Situational groups, premium blur */
   .sit .pct-bar > span { background: var(--text-faint); }
   .sit .edge-pos .pct-bar > span { background: var(--good); }
   .sit .edge-neg .pct-bar > span { background: var(--bad); }
@@ -1259,6 +1260,56 @@
     .season-card .lbl-full { display: none; }
     .season-card .lbl-short { display: inline; }
   }
+  /* ---------- Stats pages (Overview, Splits, Edges): the card style ---------- */
+  .stats-tabs { display: flex; margin: -4px 0 14px; }
+  .stats-tabs .seg-btn { text-decoration: none; }
+  .st-sec { margin: 0 0 26px; }
+  .st-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .st-sec-head h2 { font: 700 1.1rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px; }
+  .st-ctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .st-ctl .seg-toggle { margin-bottom: 0; }
+  .st-sec-sub { margin: -4px 0 10px; font-size: 0.8rem; color: var(--text-muted); }
+  .st-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
+  .st-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (max-width: 1000px) { .st-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .st-grid, .st-grid-2 { grid-template-columns: minmax(0, 1fr); } }
+  .st-card { background: var(--panel); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px 14px; min-width: 0; display: flex; flex-direction: column; }
+  .st-card.st-wide { margin-bottom: 12px; }
+  .st-head { margin-bottom: 8px; }
+  .st-head h4 { font: 700 0.78rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .st-sub { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; }
+  .st-chips { display: flex; gap: 4px; flex-wrap: nowrap; overflow-x: auto; margin-bottom: 8px; }
+  .st-row { display: grid; grid-template-columns: minmax(0, 1fr) 78px 46px 70px; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px solid var(--border-soft); font-size: 0.84rem; }
+  .st-colhead { border-top: 0; padding: 0 0 2px; font: 700 0.64rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+  .st-rec, .st-pct, .st-u, .st-num { text-align: right; white-space: nowrap; }
+  .st-colhead .st-rec, .st-colhead .st-pct, .st-colhead .st-u { font: inherit; color: inherit; }
+  .st-lbl { min-width: 0; }
+  .st-row.st-stat { grid-template-columns: minmax(0, 1fr) auto; }
+  .st-num small { color: var(--text-muted); font-weight: 400; }
+  .st-u { font: 600 0.8rem 'JetBrains Mono', monospace; }
+  .st-u.pos { color: var(--good); }
+  .st-u.neg { color: var(--bad); }
+  .st-u.mid { color: var(--push); }
+  .st-u.st-none { color: var(--text-muted); }
+  .st-mark { color: var(--text-muted); margin-left: 1px; }
+  .st-foot { margin-top: 8px; font-size: 0.76rem; color: var(--text-muted); }
+  .st-note { margin-top: auto; padding-top: 8px; font-size: 0.76rem; color: var(--text-muted); }
+  .st-line { margin-top: 8px; font-size: 0.84rem; }
+  .st-team .gm-team { display: inline-flex; align-items: center; gap: 7px; color: var(--text); text-decoration: none; }
+  .st-team .gm-team:hover { color: var(--accent); }
+  .st-abbr { font-weight: 700; margin-left: 4px; }
+  .st-teaser { text-decoration: none; color: var(--text); }
+  .st-teaser:hover { border-color: var(--accent); }
+  .st-teaser p { font-size: 0.86rem; color: var(--text-muted); }
+  .st-go { margin-top: auto; padding-top: 8px; font-weight: 700; font-size: 0.8rem; color: var(--accent); }
+  .st-sec .sc-week { margin: -4px 0 10px; }
+  .st-card .hdist { flex: 1; }
+  .st-card .fb-sorts { margin: -2px 0 8px; }
+  .tm-edge-rank { margin-top: 4px; font-size: 0.86rem; font-weight: 700; }
+  .tm-edge-rank a { color: var(--accent); text-decoration: none; }
+  .hub-rank { margin-top: 6px; font-size: 0.84rem; font-weight: 700; }
+  .hub-rank a { color: var(--accent); text-decoration: none; }
+  @media (max-width: 480px) { .st-row { grid-template-columns: minmax(0, 1fr) 70px 40px 62px; gap: 6px; font-size: 0.8rem; } }
   .sc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
   @media (max-width: 720px) { .sc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .sc-block { background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 9px; padding: 10px 11px; min-width: 0; }
@@ -1269,10 +1320,9 @@
   .sc-units { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-soft); font-size: 0.72rem; color: var(--text-muted); align-items: center; }
   .sc-units span.sc-u { display: inline-flex; align-items: center; gap: 4px; }
   .sc-flag { margin-top: 6px; font-size: 0.7rem; color: var(--warn); }
-  .sc-sub { font-size: 0.7rem; color: var(--text-faint); margin: -3px 0 6px; }
+  .sc-sub { font-size: 0.7rem; color: var(--text-muted); margin: -3px 0 6px; }
   .sc-note { margin-top: 6px; font-size: 0.68rem; color: var(--text-muted); }
   .tc-count { font: 600 0.72rem 'JetBrains Mono', monospace; color: var(--text-muted); }
-  #statsScoring { margin-top: 18px; }
 
   /* ---------- Advanced Stats sections (Stats page, premium) ---------- */
   .adv-section { position: relative; }
@@ -1681,26 +1731,15 @@
   .hd-val.out { color: var(--text); }
   .hd-sub { color: var(--text-muted); font-weight: 500; }
   .tf-week { min-height: 34px; }
-  #statsSeason .sc-right { flex-wrap: wrap; justify-content: flex-end; }
-  #statsScoring { margin-top: 14px; }
   @media (max-width: 480px) { .hd-row { grid-template-columns: 40px 1fr; } .hd-val { font-size: 0.68rem; } }
   /* Football scoring: Most Common Scores + Scoring Distribution (NFL / NCAAF) */
-  .fb-head { margin-bottom: 10px; }
-  .fb-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: stretch; }
-  .fb-card { margin: 0; display: flex; flex-direction: column; }
-  .fb-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
-  .fb-card-head h3 { font-size: 0.95rem; }
-  .fb-sub { font: 500 0.74rem 'JetBrains Mono', monospace; color: var(--text-muted); margin-top: 3px; }
-  .fb-missing { font-family: 'Source Sans 3', sans-serif; color: var(--text-faint); }
   .fb-sorts { font-size: 0.76rem; color: var(--text-muted); white-space: nowrap; }
   .fb-sort { background: none; border: 0; padding: 4px 2px; min-height: 32px; font: inherit; color: var(--text-muted); cursor: pointer; }
   .fb-sort:hover { text-decoration: underline; }
   .fb-sort.on { color: var(--text); font-weight: 700; text-decoration: none; cursor: default; }
   .fb-more { align-self: flex-start; background: none; border: 0; padding: 8px 0 0; min-height: 36px; font: 600 0.78rem 'Source Sans 3', sans-serif; color: var(--accent); cursor: pointer; }
   .fb-more:hover { text-decoration: underline; }
-  .fb-card .hdist { flex: 1; }
   #fbDist .hd-row { will-change: transform; }
-  @media (max-width: 767px) { .fb-cards { grid-template-columns: 1fr; } }
   .lt-top .gm-team { display: inline-flex; flex-shrink: 0; }
 
   /* ---------- Team detail page ---------- */
