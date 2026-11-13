@@ -6276,52 +6276,6 @@
     "streakTeamName": "Spurs"
    },
    {
-    "id": "ncaaf|401858293|1q|ats|home",
-    "game": "ncaaf|401858293",
-    "date": "2026-11-13",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-11-14T00:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Florida State @ Pittsburgh",
-    "href": "college-football/matchups/",
-    "market": "ats",
-    "side": "home",
-    "line": -0.5,
-    "price": 120,
-    "title": "Pittsburgh 1Q -0.5",
-    "est": 0.4959,
-    "edge": 0.0413,
-    "agree": 3,
-    "sample": 9,
-    "tier": "C",
-    "tags": [
-     "Chalk Eater"
-    ],
-    "streak": 1,
-    "streakTeam": "pittsburgh-panthers",
-    "angles": [
-     [
-      "Pittsburgh 1Q ATS at -0.5 at home",
-      "6-0"
-     ],
-     [
-      "Pittsburgh 1Q ATS at -0.5, season",
-      "7-2"
-     ],
-     [
-      "Pittsburgh 1Q ATS at -0.5, last 8",
-      "6-2"
-     ]
-    ],
-    "info": "Pittsburgh avg 1Q margin at home: +9.2",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Pittsburgh"
-   },
-   {
     "id": "nba|401909302|1h|ats|away",
     "game": "nba|401909302",
     "date": "2026-11-13",
@@ -6367,6 +6321,52 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Warriors"
+   },
+   {
+    "id": "ncaaf|401858293|1q|ats|home",
+    "game": "ncaaf|401858293",
+    "date": "2026-11-13",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-14T00:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Florida State @ Pittsburgh",
+    "href": "college-football/matchups/",
+    "market": "ats",
+    "side": "home",
+    "line": -0.5,
+    "price": 115,
+    "title": "Pittsburgh 1Q -0.5",
+    "est": 0.504,
+    "edge": 0.0389,
+    "agree": 3,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Chalk Eater"
+    ],
+    "streak": 1,
+    "streakTeam": "pittsburgh-panthers",
+    "angles": [
+     [
+      "Pittsburgh 1Q ATS at -0.5 at home",
+      "6-0"
+     ],
+     [
+      "Pittsburgh 1Q ATS at -0.5, season",
+      "7-2"
+     ],
+     [
+      "Pittsburgh 1Q ATS at -0.5, last 8",
+      "6-2"
+     ]
+    ],
+    "info": "Pittsburgh avg 1Q margin at home: +9.2",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Pittsburgh"
    },
    {
     "id": "nba|401909304|1h|ml|home",
