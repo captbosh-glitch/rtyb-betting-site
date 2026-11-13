@@ -6179,6 +6179,52 @@
  "2026-11-13": {
   "plays": [
    {
+    "id": "ncaab|401921026|1h|ml|away",
+    "game": "ncaab|401921026",
+    "date": "2026-11-13",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
+    "start": "2026-11-14T01:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Georgia Southern @ UCF",
+    "href": "college-basketball/matchups/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 850,
+    "title": "Georgia Southern 1H ML",
+    "est": 0.1573,
+    "edge": 0.052,
+    "agree": 3,
+    "sample": 3,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "georgia-southern-eagles",
+    "angles": [
+     [
+      "UCF\u2019s opponents 1H ML, UCF at home",
+      "3-0"
+     ],
+     [
+      "Georgia Southern 1H ML, season",
+      "2-1"
+     ],
+     [
+      "Georgia Southern 1H ML, last 8",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Georgia Southern"
+   },
+   {
     "id": "nhl|2026020311|1p|ml|away",
     "game": "nhl|2026020311",
     "date": "2026-11-13",
@@ -6239,10 +6285,10 @@
     "market": "ats",
     "side": "away",
     "line": 6.5,
-    "price": -110,
+    "price": -108,
     "title": "Warriors 1H +6.5",
-    "est": 0.5684,
-    "edge": 0.0446,
+    "est": 0.5651,
+    "edge": 0.0459,
     "agree": 3,
     "sample": 12,
     "tier": "B",
@@ -6577,57 +6623,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Northern Iowa"
-   },
-   {
-    "id": "nba|401909301|1h|ats|away",
-    "game": "nba|401909301",
-    "date": "2026-11-13",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-14T01:30Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Jazz @ Rockets",
-    "href": "nba/matchups/",
-    "market": "ats",
-    "side": "away",
-    "line": 10.5,
-    "price": -118,
-    "title": "Jazz 1H +10.5",
-    "est": 0.5715,
-    "edge": 0.0303,
-    "agree": 4,
-    "sample": 12,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter",
-     "Streak Rider"
-    ],
-    "streak": 6,
-    "streakTeam": "utah",
-    "angles": [
-     [
-      "Jazz 1H ATS at +10.5, last 8",
-      "7-1"
-     ],
-     [
-      "Jazz 1H ATS at +10.5, season",
-      "10-2"
-     ],
-     [
-      "Jazz 1H ATS at +10.5 on the road",
-      "4-1"
-     ],
-     [
-      "Rockets\u2019s opponents 1H ATS at +10.5, Rockets at home",
-      "4-3"
-     ]
-    ],
-    "info": "Jazz avg 1H margin on the road: -6.8",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Jazz"
    }
   ]
  }
