@@ -6541,6 +6541,57 @@
     "streakTeamName": "Central Arkansas"
    },
    {
+    "id": "nba|401909300|1h|total|under",
+    "game": "nba|401909300",
+    "date": "2026-11-13",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-14T01:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Grizzlies @ Pelicans",
+    "href": "nba/matchups/",
+    "market": "total",
+    "side": "under",
+    "line": 121.5,
+    "price": -102,
+    "title": "1H Under 121.5",
+    "est": 0.54,
+    "edge": 0.0351,
+    "agree": 6,
+    "sample": 12,
+    "tier": "C",
+    "tags": [
+     "Under Grinder",
+     "Streak Rider"
+    ],
+    "streak": 8,
+    "streakTeam": "mem",
+    "angles": [
+     [
+      "Grizzlies 1H unders, last 8 (121.5)",
+      "8-0"
+     ],
+     [
+      "Grizzlies 1H unders, season (121.5)",
+      "10-1"
+     ],
+     [
+      "Grizzlies 1H unders on the road (121.5)",
+      "4-1"
+     ],
+     [
+      "Pelicans 1H unders, last 8 (121.5)",
+      "5-3"
+     ]
+    ],
+    "info": "Avg 1H total in their games: Pelicans 116.8 \u00b7 Grizzlies 116.4",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Grizzlies"
+   },
+   {
     "id": "nba|401909304|1h|ml|home",
     "game": "nba|401909304",
     "date": "2026-11-13",
@@ -6581,57 +6632,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Clippers"
-   },
-   {
-    "id": "nba|401909300|1h|total|under",
-    "game": "nba|401909300",
-    "date": "2026-11-13",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-14T01:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Grizzlies @ Pelicans",
-    "href": "nba/matchups/",
-    "market": "total",
-    "side": "under",
-    "line": 121.5,
-    "price": -105,
-    "title": "1H Under 121.5",
-    "est": 0.5452,
-    "edge": 0.033,
-    "agree": 6,
-    "sample": 12,
-    "tier": "C",
-    "tags": [
-     "Under Grinder",
-     "Streak Rider"
-    ],
-    "streak": 8,
-    "streakTeam": "mem",
-    "angles": [
-     [
-      "Grizzlies 1H unders, last 8 (121.5)",
-      "8-0"
-     ],
-     [
-      "Grizzlies 1H unders, season (121.5)",
-      "10-1"
-     ],
-     [
-      "Grizzlies 1H unders on the road (121.5)",
-      "4-1"
-     ],
-     [
-      "Pelicans 1H unders, last 8 (121.5)",
-      "5-3"
-     ]
-    ],
-    "info": "Avg 1H total in their games: Pelicans 116.8 \u00b7 Grizzlies 116.4",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Grizzlies"
    },
    {
     "id": "ncaab|401906760|1h|ml|away",
@@ -6690,10 +6690,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 1350,
+    "price": 1400,
     "title": "Northern Iowa 1H ML",
-    "est": 0.0997,
-    "edge": 0.0307,
+    "est": 0.0976,
+    "edge": 0.0309,
     "agree": 2,
     "sample": 3,
     "tier": "C",
