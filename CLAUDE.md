@@ -36,3 +36,6 @@ refresh job (`.github/workflows/refresh.yml`) every 10 minutes. Tests:
   - Red = a loss or minus units (`--bad`). Yellow = a tie, a push, or units
     between -0.5u and +0.5u (`--push`).
   - Never blue for results or units.
+- Muted text is `--text-muted` everywhere (4.5:1+ on cards in both themes);
+  never `--text-faint` for words. Cards: one 1px `--card-border`, no card
+  inside a card (template.html `.st-card`, shared by Stats, Matchups and Odds).

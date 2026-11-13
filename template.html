@@ -636,7 +636,7 @@
   .ys-item .u-pill { font-size: 0.7rem; padding: 1px 6px; }
 
   .games-list { display: flex; flex-direction: column; gap: 12px; }
-  .game-card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px 16px; }
+  .game-card { background: var(--panel); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 16px; }
   .gm-time { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
   /* Matchups cards (assets/sport.js gameCard): a compact table, teams on
      the rows and markets across; two to a row on desktop, the same height */
@@ -657,7 +657,7 @@
   .mc-tie-lbl { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-muted); padding-left: 29px; }
   .mc-cell { border-radius: 6px; vertical-align: middle; }
   .mc-cell .ob-ln { font-size: 0.86rem; }
-  .mc-dash { color: var(--text-faint); }
+  .mc-dash { color: var(--text-muted); }
   /* finished games, highlight only: won = soft green, lost = dimmed,
      tie / push = soft yellow (CLAUDE.md color rule) */
   /* (the same on the Odds page past dates) */
@@ -909,9 +909,9 @@
   .sit-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; min-width: 860px; }
   .sit-table th { text-align: left; color: var(--text-muted); font: 700 0.62rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; padding: 7px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
   .sit-table th.num, .sit-table td.num { text-align: right; }
-  .sit-desc { display: block; font-size: 0.68rem; color: var(--text-faint); white-space: normal; max-width: 300px; margin-top: 1px; }
+  .sit-desc { display: block; font-size: 0.68rem; color: var(--text-muted); white-space: normal; max-width: 300px; margin-top: 1px; }
   .sit-name { font-weight: 600; }
-  .sit-small { font: 700 0.56rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint); border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
+  .sit-small { font: 700 0.56rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
   .sit-both { display: inline-flex; gap: 4px; }
   .sit-seglabel { margin-left: 8px; font: 600 0.72rem 'JetBrains Mono', monospace; color: var(--accent); text-transform: none; letter-spacing: 0; }
   .sit-loading { padding: 24px; color: var(--text-muted); }
@@ -929,10 +929,10 @@
   .sit-table .mono, .sit-log .mono { font-family: 'JetBrains Mono', monospace; }
   .sit-table .pct-cell { justify-content: flex-end; }
   .sit-label.ind { padding-left: 26px; color: var(--text-muted); }
-  .sit-who { display: block; font-size: 0.66rem; color: var(--text-faint); }
+  .sit-who { display: block; font-size: 0.66rem; color: var(--text-muted); }
   .sit-group td { background: var(--panel-2); font: 700 0.92rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; padding-top: 12px; white-space: normal; }
   .sit-note { font: 400 0.7rem 'Source Sans 3', sans-serif; text-transform: none; letter-spacing: 0; color: var(--text-muted); margin-top: 2px; }
-  .sit-notyet td, div.sit-notyet { color: var(--text-faint); font-size: 0.72rem; white-space: normal; }
+  .sit-notyet td, div.sit-notyet { color: var(--text-muted); font-size: 0.72rem; white-space: normal; }
   div.sit-notyet { padding: 6px 2px 2px; }
   .amber { color: var(--warn) !important; }
   .sit-foot { margin-top: 10px; font-size: 0.7rem; color: var(--text-muted); }
@@ -1611,7 +1611,7 @@
      their columns (no single header row). */
   .ob-stick { position: sticky; top: 0; z-index: 20; background: var(--bg); padding-top: 4px; }
   .ob-stick .odds-controls { margin-bottom: 8px; }
-  .ob-scroll { width: fit-content; max-width: 100%; overflow-x: auto; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--panel); -webkit-overflow-scrolling: touch; }
+  .ob-scroll { width: fit-content; max-width: 100%; overflow-x: auto; border: 1px solid var(--card-border); border-radius: 12px; background: var(--panel); -webkit-overflow-scrolling: touch; }
   .ob-grid { --ob-team: 150px; --ob-open: 66px; --ob-src: 66px; --ob-open-bg: color-mix(in srgb, var(--panel), #000 22%); table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 0.84rem; min-width: 0;
     width: calc(var(--ob-team) + var(--ob-open) + var(--n, 0) * var(--ob-src)); }
   .ob-w-team { width: var(--ob-team); }
@@ -1645,7 +1645,7 @@
   .ob-bname { font-size: 0.66rem; text-transform: none; letter-spacing: 0; color: var(--text); white-space: normal; display: inline-block; max-width: 70px; line-height: 1.15; }
   .rt-tip { position: absolute; z-index: 300; padding: 4px 8px; border-radius: 6px; background: var(--text); color: var(--bg); font-size: 0.74rem; font-weight: 600; pointer-events: none; white-space: nowrap; }
   /* "How to read this page" (build_site.how_to_read_html), under Odds and Matchups */
-  .how-to-read { margin: 22px 0 8px; padding: 14px 16px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--panel); font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; }
+  .how-to-read { margin: 22px 0 8px; padding: 14px 16px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--panel); font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; }
   .how-to-read h2 { margin: 0 0 6px; font-size: 0.95rem; color: var(--text); }
   .how-to-read p { margin: 4px 0 0; }
   .htr-seo:empty { display: none; }
