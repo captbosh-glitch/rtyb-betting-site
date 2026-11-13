@@ -6715,6 +6715,48 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Seton Hall"
+   },
+   {
+    "id": "ncaab|401911014|1h|ml|away",
+    "game": "ncaab|401911014",
+    "date": "2026-11-13",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
+    "start": "2026-11-14T02:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Ball State @ SMU",
+    "href": "college-basketball/matchups/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 1250,
+    "title": "Ball State 1H ML",
+    "est": 0.1043,
+    "edge": 0.0302,
+    "agree": 2,
+    "sample": 3,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 2,
+    "streakTeam": "ball-state-cardinals",
+    "angles": [
+     [
+      "Ball State 1H ML, season",
+      "2-1"
+     ],
+     [
+      "Ball State 1H ML, last 8",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Ball State"
    }
   ]
  }
