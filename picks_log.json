@@ -6175,5 +6175,250 @@
     "streakTeamName": "Colorado"
    }
   ]
+ },
+ "2026-11-13": {
+  "plays": [
+   {
+    "id": "nhl|2026020311|1p|ml|away",
+    "game": "nhl|2026020311",
+    "date": "2026-11-13",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-14T03:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Nashville @ Vegas",
+    "href": "nhl/matchups/?date=2026-11-13",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 130,
+    "title": "Nashville 1P ML",
+    "est": 0.4847,
+    "edge": 0.0499,
+    "agree": 3,
+    "sample": 14,
+    "tier": "B",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 0,
+    "streakTeam": "NSH",
+    "angles": [
+     [
+      "Nashville 1P ML on the road",
+      "5-1-2"
+     ],
+     [
+      "Nashville 1P ML, last 8",
+      "3-1-4"
+     ],
+     [
+      "Nashville 1P ML, season",
+      "9-5-5"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Nashville"
+   },
+   {
+    "id": "nba|401909302|1h|ats|away",
+    "game": "nba|401909302",
+    "date": "2026-11-13",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-14T02:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Warriors @ Spurs",
+    "href": "nba/matchups/",
+    "market": "ats",
+    "side": "away",
+    "line": 6.5,
+    "price": -104,
+    "title": "Warriors 1H +6.5",
+    "est": 0.5584,
+    "edge": 0.0486,
+    "agree": 3,
+    "sample": 12,
+    "tier": "B",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 11,
+    "streakTeam": "gs",
+    "angles": [
+     [
+      "Warriors 1H ATS at +6.5, last 8",
+      "8-0"
+     ],
+     [
+      "Warriors 1H ATS at +6.5, season",
+      "11-1"
+     ],
+     [
+      "Warriors 1H ATS at +6.5 on the road",
+      "4-1"
+     ]
+    ],
+    "info": "Warriors avg 1H margin on the road: -0.4",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Warriors"
+   },
+   {
+    "id": "nba|401909302|1h|total|over",
+    "game": "nba|401909302",
+    "date": "2026-11-13",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-14T02:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Warriors @ Spurs",
+    "href": "nba/matchups/",
+    "market": "total",
+    "side": "over",
+    "line": 106.5,
+    "price": -106,
+    "title": "1H Over 106.5",
+    "est": 0.5611,
+    "edge": 0.0465,
+    "agree": 6,
+    "sample": 12,
+    "tier": "B",
+    "tags": [
+     "Over Lover",
+     "Streak Rider"
+    ],
+    "streak": 7,
+    "streakTeam": "sa",
+    "angles": [
+     [
+      "Spurs 1H overs at home (106.5)",
+      "6-0"
+     ],
+     [
+      "Warriors 1H overs on the road (106.5)",
+      "5-0"
+     ],
+     [
+      "Spurs 1H overs, season (106.5)",
+      "11-1"
+     ],
+     [
+      "Spurs 1H overs, last 8 (106.5)",
+      "7-1"
+     ]
+    ],
+    "info": "Avg 1H total in their games: Spurs 118.5 \u00b7 Warriors 111.1",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Spurs"
+   },
+   {
+    "id": "ncaaf|401858293|1q|ats|home",
+    "game": "ncaaf|401858293",
+    "date": "2026-11-13",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-14T00:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Florida State @ Pittsburgh",
+    "href": "college-football/matchups/",
+    "market": "ats",
+    "side": "home",
+    "line": -0.5,
+    "price": 120,
+    "title": "Pittsburgh 1Q -0.5",
+    "est": 0.4959,
+    "edge": 0.0413,
+    "agree": 3,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Chalk Eater"
+    ],
+    "streak": 1,
+    "streakTeam": "pittsburgh-panthers",
+    "angles": [
+     [
+      "Pittsburgh 1Q ATS at -0.5 at home",
+      "6-0"
+     ],
+     [
+      "Pittsburgh 1Q ATS at -0.5, season",
+      "7-2"
+     ],
+     [
+      "Pittsburgh 1Q ATS at -0.5, last 8",
+      "6-2"
+     ]
+    ],
+    "info": "Pittsburgh avg 1Q margin at home: +9.2",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Pittsburgh"
+   },
+   {
+    "id": "nba|401909301|1h|ats|away",
+    "game": "nba|401909301",
+    "date": "2026-11-13",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-14T01:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Jazz @ Rockets",
+    "href": "nba/matchups/",
+    "market": "ats",
+    "side": "away",
+    "line": 10.5,
+    "price": -115,
+    "title": "Jazz 1H +10.5",
+    "est": 0.567,
+    "edge": 0.0321,
+    "agree": 4,
+    "sample": 12,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 6,
+    "streakTeam": "utah",
+    "angles": [
+     [
+      "Jazz 1H ATS at +10.5, last 8",
+      "7-1"
+     ],
+     [
+      "Jazz 1H ATS at +10.5, season",
+      "10-2"
+     ],
+     [
+      "Jazz 1H ATS at +10.5 on the road",
+      "4-1"
+     ],
+     [
+      "Rockets\u2019s opponents 1H ATS at +10.5, Rockets at home",
+      "4-3"
+     ]
+    ],
+    "info": "Jazz avg 1H margin on the road: -6.8",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Jazz"
+   }
+  ]
  }
 }
