@@ -543,7 +543,7 @@ def esc(s):
 def units_html(u, n):
     if not n:
         return '<span class="pk-u zero">0.0u</span>'
-    cls = 'pos' if u > 0 else 'neg' if u < 0 else 'zero'
+    cls = 'pos' if u > 0.5 else 'neg' if u < -0.5 else 'mid'
     return f'<span class="pk-u {cls}">{u:+.1f}u</span>'
 
 

@@ -29,5 +29,10 @@ refresh job (`.github/workflows/refresh.yml`) every 10 minutes. Tests:
 - Every team shows its logo (scripts/fetch_sport_logos.py also fetches the
   non-Division I opponents'). No logo: a small colored badge with the
   abbreviation.
-- Green means "best price" everywhere on the site and nothing else
-  (`--best` in template.html; wins and positive units use `--good`, blue).
+- Color rule (tokens in template.html):
+  - Green outlined box = best price (`--best`), on odds cells only.
+  - Green text, badge or soft green fill = a win or a profit (`--good`: +units,
+    the side that won).
+  - Red = a loss or minus units (`--bad`). Yellow = a tie, a push, or units
+    between -0.5u and +0.5u (`--push`).
+  - Never blue for results or units.

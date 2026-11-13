@@ -58,9 +58,11 @@
   function unitsPill(u, priced) {
     if (!priced) return '<span class="u-pill u-none">&mdash;</span>';
     var r = Math.round(u * 100) / 100;
-    var cls = r >= 3 ? 'u-pos2' : r > 0 ? 'u-pos1' : r === 0 ? 'u-zero' : r > -3 ? 'u-neg1' : 'u-neg2';
+    var cls = r >= 3 ? 'u-pos2' : r > 0.5 ? 'u-pos1' : r < -3 ? 'u-neg2' : r < -0.5 ? 'u-neg1' : 'u-mid';
     return '<span class="u-pill ' + cls + '">' + fmtUnits(r) + '</span>';
   }
+  // green above +0.5u, red below -0.5u, yellow between (CLAUDE.md color rule)
+  function unitCls(u) { var r = Math.round(u * 100) / 100; return r > 0.5 ? 'pos' : r < -0.5 ? 'neg' : 'mid'; }
   function pct(w, l) { return (w + l) ? Math.round(1000 * w / (w + l)) / 10 : null; }
   function pctTxt(w, l) { var p = pct(w, l); return p == null ? '&mdash;' : p.toFixed(1) + '%'; }
   // Moneyline (SU) Win % and Tie % count ties as games played: 5-0-12 is
@@ -525,7 +527,7 @@
   function tmUnits(a) {
     if (!a.priced) return '<span class="tm-u">&mdash;</span>';
     var r = Math.round(a.units * 100) / 100;
-    return '<span class="tm-u ' + (r > 0.5 ? 'pos' : r < -0.5 ? 'neg' : 'mid') + '">' + fmtUnits(r) + '</span>';
+    return '<span class="tm-u ' + unitCls(r) + '">' + fmtUnits(r) + '</span>';
   }
   function teamGames(slug) {
     var out = [];
@@ -1690,7 +1692,7 @@
     return '<div class="tr-card"' + (hidden ? ' hidden' : '') + '><div class="tr-top"><span class="lt-tag">' + esc(c.tag) + '</span>' + infoTip(tip, true) + '</div>' +
       '<h3 class="tr-title">' + esc(c.title) + '</h3>' +
       '<div class="tr-rec" title="' + esc((T.record_line || {}).tooltip || '') + '"><b class="mono">' + c.w + '–' + c.l + '</b> · ' + pct0(c.rate) +
-      ' · league ' + pct0(c.base) + ' · <span class="' + (c.units > 0 ? 'pos' : 'neg') + '">' + fmtUnits(c.units) + '</span></div>' +
+      ' · league ' + pct0(c.base) + ' · <span class="' + unitCls(c.units) + '">' + fmtUnits(c.units) + '</span></div>' +
       '<div class="tr-bar" aria-hidden="true"><span style="width:' + r.toFixed(1) + '%"></span><i style="left:' + b.toFixed(1) + '%"></i></div>' +
       '<div class="tr-rows">' + rows + '</div></div>';
   }

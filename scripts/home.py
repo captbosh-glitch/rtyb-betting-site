@@ -257,7 +257,9 @@ def sport_records(label, games):
 def units_html(u, cls='ln-u'):
     if u is None:
         return ''
-    return f'<span class="{cls}{" neg" if u < 0 else " pos" if u > 0 else ""}">{fmt_units(u) if u else "0.00u"}</span>'
+    # green above +0.5u, red below -0.5u, yellow between (CLAUDE.md color rule)
+    tone = ' pos' if u > 0.5 else ' neg' if u < -0.5 else ' mid'
+    return f'<span class="{cls}{tone}">{fmt_units(u) if u else "0.00u"}</span>'
 
 
 # ------------------------------------------------------------------- html
