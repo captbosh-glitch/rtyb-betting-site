@@ -8,6 +8,8 @@
     --panel-3: #212B37;
     --border: #263140;
     --border-soft: #1D2733;
+    /* the one card border (CLAUDE.md): visible, lighter than the page in dark */
+    --card-border: #2B3747;
     --text: #EAEEF3;
     --text-muted: #8B96A5;
     --text-faint: #5C6B7A;
@@ -72,6 +74,7 @@
     --panel-3: #EDF1F5;
     --border: #DCE2E9;
     --border-soft: #E7EBEF;
+    --card-border: #D2D9E1;
     --text: #12181F;
     --text-muted: #5B6674;
     --text-faint: #8891A0;
@@ -118,6 +121,8 @@
       --panel-3: #EDF1F5;
       --border: #DCE2E9;
       --border-soft: #E7EBEF;
+      --card-border: #D2D9E1;
+    --card-border: #D2D9E1;
       --text: #12181F;
       --text-muted: #5B6674;
       --text-faint: #8891A0;
@@ -621,7 +626,7 @@
   .ys-item .u-pill { font-size: 0.7rem; padding: 1px 6px; }
 
   .games-list { display: flex; flex-direction: column; gap: 12px; }
-  .game-card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px 16px; }
+  .game-card { background: var(--panel); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 16px; }
   .gm-time { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
   /* Matchups cards (assets/sport.js gameCard): a compact table, teams on
      the rows and markets across; two to a row on desktop, the same height */
@@ -642,7 +647,7 @@
   .mc-tie-lbl { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-muted); padding-left: 29px; }
   .mc-cell { border-radius: 6px; vertical-align: middle; }
   .mc-cell .ob-ln { font-size: 0.86rem; }
-  .mc-dash { color: var(--text-faint); }
+  .mc-dash { color: var(--text-muted); }
   /* finished games, highlight only: won = soft green, lost = dimmed,
      tie / push = soft yellow (CLAUDE.md color rule) */
   /* (the same on the Odds page past dates) */
@@ -894,9 +899,9 @@
   .sit-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; min-width: 860px; }
   .sit-table th { text-align: left; color: var(--text-muted); font: 700 0.62rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; padding: 7px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
   .sit-table th.num, .sit-table td.num { text-align: right; }
-  .sit-desc { display: block; font-size: 0.68rem; color: var(--text-faint); white-space: normal; max-width: 300px; margin-top: 1px; }
+  .sit-desc { display: block; font-size: 0.68rem; color: var(--text-muted); white-space: normal; max-width: 300px; margin-top: 1px; }
   .sit-name { font-weight: 600; }
-  .sit-small { font: 700 0.56rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint); border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
+  .sit-small { font: 700 0.56rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
   .sit-both { display: inline-flex; gap: 4px; }
   .sit-seglabel { margin-left: 8px; font: 600 0.72rem 'JetBrains Mono', monospace; color: var(--accent); text-transform: none; letter-spacing: 0; }
   .sit-loading { padding: 24px; color: var(--text-muted); }
@@ -914,10 +919,10 @@
   .sit-table .mono, .sit-log .mono { font-family: 'JetBrains Mono', monospace; }
   .sit-table .pct-cell { justify-content: flex-end; }
   .sit-label.ind { padding-left: 26px; color: var(--text-muted); }
-  .sit-who { display: block; font-size: 0.66rem; color: var(--text-faint); }
+  .sit-who { display: block; font-size: 0.66rem; color: var(--text-muted); }
   .sit-group td { background: var(--panel-2); font: 700 0.92rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; padding-top: 12px; white-space: normal; }
   .sit-note { font: 400 0.7rem 'Source Sans 3', sans-serif; text-transform: none; letter-spacing: 0; color: var(--text-muted); margin-top: 2px; }
-  .sit-notyet td, div.sit-notyet { color: var(--text-faint); font-size: 0.72rem; white-space: normal; }
+  .sit-notyet td, div.sit-notyet { color: var(--text-muted); font-size: 0.72rem; white-space: normal; }
   div.sit-notyet { padding: 6px 2px 2px; }
   .amber { color: var(--warn) !important; }
   .sit-foot { margin-top: 10px; font-size: 0.7rem; color: var(--text-muted); }
@@ -957,11 +962,7 @@
     .sit-desc { max-width: 160px; }
     .sit .seg-btn, #sitLogSeg .seg-btn, .sit-mk .seg-btn { min-height: 44px; }
   }
-  /* Stats page (assets/sport.js renderStats): through date, one row of
-     Season Results cards, Edges rows, premium blur, Situational groups */
-  .stats-through { margin: -4px 0 12px; font: 600 0.78rem 'JetBrains Mono', monospace; color: var(--text-muted); }
-  #statsSeason .sc-grid { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: minmax(136px, 1fr); overflow-x: auto; padding-bottom: 4px; }
-  #statsSeason .season-card-head .sc-right { flex-wrap: wrap; }
+  /* Situational groups, premium blur */
   .sit .pct-bar > span { background: var(--text-faint); }
   .sit .edge-pos .pct-bar > span { background: var(--good); }
   .sit .edge-neg .pct-bar > span { background: var(--bad); }
@@ -969,28 +970,15 @@
   .sit .edge-neg .pct-num { color: var(--bad); }
   .pm-blur { filter: blur(5px); user-select: none; pointer-events: none; }
   .pm-unlock { display: inline-block; margin-top: 6px; font: 700 0.72rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); }
-  .edge-list h4 { font-size: 0.85rem; margin-top: 2px; }
-  .edge-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px 52px 78px; gap: 8px; align-items: center; padding: 7px 0; border-top: 1px solid var(--border-soft); font-size: 0.82rem; }
-  .edge-row.edge-headrow { border-top: none; padding: 0 0 4px; font: 700 0.62rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
-  .edge-n, .edge-rate, .edge-u { text-align: right; }
-  .edge-none { color: var(--text-faint); }
-  .edge-team .edge-label { display: flex; align-items: center; gap: 6px; }
-  .edge-team .gm-team { display: inline-flex; align-items: center; gap: 6px; color: var(--text); text-decoration: none; }
-  .edge-boards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 16px; }
-  .sit-gsec { margin-top: 18px; }
-  .sit-gsec:first-of-type { margin-top: 6px; }
+  .sit-gsec { margin-top: 12px; background: var(--panel); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px 14px; }
+  .sit-combo { margin: 0 0 8px; font-size: 0.8rem; color: var(--text-muted); }
   .sit-gtitle { font: 700 1rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
   .sit-gset { font: 600 0.72rem 'JetBrains Mono', monospace; color: var(--accent); text-transform: none; letter-spacing: 0; }
   .sit-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
   .sit-full { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
   .sit-bar .seg-toggle { margin-bottom: 0; }
-  .sit-per { font: 700 0.54rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint); border: 1px solid var(--border); border-radius: 3px; padding: 0 3px; margin-left: 4px; vertical-align: 1px; white-space: nowrap; }
-  .sit-today { display: inline-block; margin-left: 6px; font: 700 0.68rem 'Source Sans 3', sans-serif; color: var(--accent); text-decoration: none; white-space: nowrap; }
-  .sit-today:hover { text-decoration: underline; }
-  .sit-mbody .sit-today { margin: 0 0 6px; }
+  .sit-per { font: 700 0.54rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 3px; margin-left: 4px; vertical-align: 1px; white-space: nowrap; }
   @media (max-width: 640px) {
-    .edge-row { grid-template-columns: minmax(0, 1fr) 44px 40px 70px; gap: 6px; font-size: 0.78rem; }
-    .edge-boards { grid-template-columns: 1fr; }
     .sit-bar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
     .sit-bar .seg-toggle { flex-shrink: 0; }
     .sit-bar .seg-btn { white-space: nowrap; }
@@ -1249,6 +1237,56 @@
     .season-card .lbl-full { display: none; }
     .season-card .lbl-short { display: inline; }
   }
+  /* ---------- Stats pages (Overview, Splits, Edges): the card style ---------- */
+  .stats-tabs { display: flex; margin: -4px 0 14px; }
+  .stats-tabs .seg-btn { text-decoration: none; }
+  .st-sec { margin: 0 0 26px; }
+  .st-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .st-sec-head h2 { font: 700 1.1rem 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px; }
+  .st-ctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .st-ctl .seg-toggle { margin-bottom: 0; }
+  .st-sec-sub { margin: -4px 0 10px; font-size: 0.8rem; color: var(--text-muted); }
+  .st-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
+  .st-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (max-width: 1000px) { .st-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .st-grid, .st-grid-2 { grid-template-columns: minmax(0, 1fr); } }
+  .st-card { background: var(--panel); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px 14px; min-width: 0; display: flex; flex-direction: column; }
+  .st-card.st-wide { margin-bottom: 12px; }
+  .st-head { margin-bottom: 8px; }
+  .st-head h4 { font: 700 0.78rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .st-sub { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; }
+  .st-chips { display: flex; gap: 4px; flex-wrap: nowrap; overflow-x: auto; margin-bottom: 8px; }
+  .st-row { display: grid; grid-template-columns: minmax(0, 1fr) 78px 46px 70px; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px solid var(--border-soft); font-size: 0.84rem; }
+  .st-colhead { border-top: 0; padding: 0 0 2px; font: 700 0.64rem 'Source Sans 3', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+  .st-rec, .st-pct, .st-u, .st-num { text-align: right; white-space: nowrap; }
+  .st-colhead .st-rec, .st-colhead .st-pct, .st-colhead .st-u { font: inherit; color: inherit; }
+  .st-lbl { min-width: 0; }
+  .st-row.st-stat { grid-template-columns: minmax(0, 1fr) auto; }
+  .st-num small { color: var(--text-muted); font-weight: 400; }
+  .st-u { font: 600 0.8rem 'JetBrains Mono', monospace; }
+  .st-u.pos { color: var(--good); }
+  .st-u.neg { color: var(--bad); }
+  .st-u.mid { color: var(--push); }
+  .st-u.st-none { color: var(--text-muted); }
+  .st-mark { color: var(--text-muted); margin-left: 1px; }
+  .st-foot { margin-top: 8px; font-size: 0.76rem; color: var(--text-muted); }
+  .st-note { margin-top: auto; padding-top: 8px; font-size: 0.76rem; color: var(--text-muted); }
+  .st-line { margin-top: 8px; font-size: 0.84rem; }
+  .st-team .gm-team { display: inline-flex; align-items: center; gap: 7px; color: var(--text); text-decoration: none; }
+  .st-team .gm-team:hover { color: var(--accent); }
+  .st-abbr { font-weight: 700; margin-left: 4px; }
+  .st-teaser { text-decoration: none; color: var(--text); }
+  .st-teaser:hover { border-color: var(--accent); }
+  .st-teaser p { font-size: 0.86rem; color: var(--text-muted); }
+  .st-go { margin-top: auto; padding-top: 8px; font-weight: 700; font-size: 0.8rem; color: var(--accent); }
+  .st-sec .sc-week { margin: -4px 0 10px; }
+  .st-card .hdist { flex: 1; }
+  .st-card .fb-sorts { margin: -2px 0 8px; }
+  .tm-edge-rank { margin-top: 4px; font-size: 0.86rem; font-weight: 700; }
+  .tm-edge-rank a { color: var(--accent); text-decoration: none; }
+  .hub-rank { margin-top: 6px; font-size: 0.84rem; font-weight: 700; }
+  .hub-rank a { color: var(--accent); text-decoration: none; }
+  @media (max-width: 480px) { .st-row { grid-template-columns: minmax(0, 1fr) 70px 40px 62px; gap: 6px; font-size: 0.8rem; } }
   .sc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
   @media (max-width: 720px) { .sc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .sc-block { background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 9px; padding: 10px 11px; min-width: 0; }
@@ -1259,10 +1297,9 @@
   .sc-units { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-soft); font-size: 0.72rem; color: var(--text-muted); align-items: center; }
   .sc-units span.sc-u { display: inline-flex; align-items: center; gap: 4px; }
   .sc-flag { margin-top: 6px; font-size: 0.7rem; color: var(--warn); }
-  .sc-sub { font-size: 0.7rem; color: var(--text-faint); margin: -3px 0 6px; }
+  .sc-sub { font-size: 0.7rem; color: var(--text-muted); margin: -3px 0 6px; }
   .sc-note { margin-top: 6px; font-size: 0.68rem; color: var(--text-muted); }
   .tc-count { font: 600 0.72rem 'JetBrains Mono', monospace; color: var(--text-muted); }
-  #statsScoring { margin-top: 18px; }
 
   /* ---------- Advanced Stats sections (Stats page, premium) ---------- */
   .adv-section { position: relative; }
@@ -1564,7 +1601,7 @@
      their columns (no single header row). */
   .ob-stick { position: sticky; top: 0; z-index: 20; background: var(--bg); padding-top: 4px; }
   .ob-stick .odds-controls { margin-bottom: 8px; }
-  .ob-scroll { width: fit-content; max-width: 100%; overflow-x: auto; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--panel); -webkit-overflow-scrolling: touch; }
+  .ob-scroll { width: fit-content; max-width: 100%; overflow-x: auto; border: 1px solid var(--card-border); border-radius: 12px; background: var(--panel); -webkit-overflow-scrolling: touch; }
   .ob-grid { --ob-team: 150px; --ob-open: 66px; --ob-src: 66px; --ob-open-bg: color-mix(in srgb, var(--panel), #000 22%); table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 0.84rem; min-width: 0;
     width: calc(var(--ob-team) + var(--ob-open) + var(--n, 0) * var(--ob-src)); }
   .ob-w-team { width: var(--ob-team); }
@@ -1598,7 +1635,7 @@
   .ob-bname { font-size: 0.66rem; text-transform: none; letter-spacing: 0; color: var(--text); white-space: normal; display: inline-block; max-width: 70px; line-height: 1.15; }
   .rt-tip { position: absolute; z-index: 300; padding: 4px 8px; border-radius: 6px; background: var(--text); color: var(--bg); font-size: 0.74rem; font-weight: 600; pointer-events: none; white-space: nowrap; }
   /* "How to read this page" (build_site.how_to_read_html), under Odds and Matchups */
-  .how-to-read { margin: 22px 0 8px; padding: 14px 16px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--panel); font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; }
+  .how-to-read { margin: 22px 0 8px; padding: 14px 16px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--panel); font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; }
   .how-to-read h2 { margin: 0 0 6px; font-size: 0.95rem; color: var(--text); }
   .how-to-read p { margin: 4px 0 0; }
   .htr-seo:empty { display: none; }
@@ -1671,26 +1708,15 @@
   .hd-val.out { color: var(--text); }
   .hd-sub { color: var(--text-muted); font-weight: 500; }
   .tf-week { min-height: 34px; }
-  #statsSeason .sc-right { flex-wrap: wrap; justify-content: flex-end; }
-  #statsScoring { margin-top: 14px; }
   @media (max-width: 480px) { .hd-row { grid-template-columns: 40px 1fr; } .hd-val { font-size: 0.68rem; } }
   /* Football scoring: Most Common Scores + Scoring Distribution (NFL / NCAAF) */
-  .fb-head { margin-bottom: 10px; }
-  .fb-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: stretch; }
-  .fb-card { margin: 0; display: flex; flex-direction: column; }
-  .fb-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
-  .fb-card-head h3 { font-size: 0.95rem; }
-  .fb-sub { font: 500 0.74rem 'JetBrains Mono', monospace; color: var(--text-muted); margin-top: 3px; }
-  .fb-missing { font-family: 'Source Sans 3', sans-serif; color: var(--text-faint); }
   .fb-sorts { font-size: 0.76rem; color: var(--text-muted); white-space: nowrap; }
   .fb-sort { background: none; border: 0; padding: 4px 2px; min-height: 32px; font: inherit; color: var(--text-muted); cursor: pointer; }
   .fb-sort:hover { text-decoration: underline; }
   .fb-sort.on { color: var(--text); font-weight: 700; text-decoration: none; cursor: default; }
   .fb-more { align-self: flex-start; background: none; border: 0; padding: 8px 0 0; min-height: 36px; font: 600 0.78rem 'Source Sans 3', sans-serif; color: var(--accent); cursor: pointer; }
   .fb-more:hover { text-decoration: underline; }
-  .fb-card .hdist { flex: 1; }
   #fbDist .hd-row { will-change: transform; }
-  @media (max-width: 767px) { .fb-cards { grid-template-columns: 1fr; } }
   .lt-top .gm-team { display: inline-flex; flex-shrink: 0; }
 
   /* ---------- Team detail page ---------- */
