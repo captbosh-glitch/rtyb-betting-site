@@ -47,6 +47,9 @@
  *                         -- odds for the other sports (not NHL), one file per sport at
  *                         data_admin/odds/{sport}.json, stored per game + segment + market
  *                         (MLB: segment "1i" carries nrfi_yrfi {yrfi, nrfi}; "f5" a 0.5 run line)
+ *   /settings/save      body: {bttsSourceBook} -- data_admin/settings.json: the sportsbook the
+ *                         NHL BTTS prices are copied from ("consensus" = no book), which
+ *                         labels the BTTS column on the NHL Odds page
  */
 
 const REPO_OWNER = "runtoyourbets"; // GitHub org that owns the repo (moved from captbosh-glitch 2026-11)
@@ -675,6 +678,14 @@ export default {
         const err = validateOdds(body);
         if (err) return json({ ok: false, error: err }, 400);
         result = await saveSportOdds(env, body);
+        break;
+      }
+      case "/settings/save": {
+        if (!body || typeof body.bttsSourceBook !== "string" || !/^[a-z0-9]{1,20}$/.test(body.bttsSourceBook)) {
+          return json({ ok: false, error: "bttsSourceBook must be a source id or \"consensus\"" }, 400);
+        }
+        result = await commitJsonFile(env, "data_admin/settings.json", `Admin: BTTS source book ${body.bttsSourceBook}`,
+          (current) => ({ ...current, bttsSourceBook: body.bttsSourceBook }));
         break;
       }
       case "/content/list": {

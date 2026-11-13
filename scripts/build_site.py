@@ -669,6 +669,45 @@ SECTION_DESC = {
 }
 
 
+# "How to read this page" box under the Odds table: one template per page
+# type, filled per sport. Static HTML (not drawn by assets/sport.js) so the
+# SEO paragraph is in the page source.
+# SEO_COPY: {(section, sport key): paragraph}. Empty for now; the SEO prompt
+# fills it in. A page without one keeps an empty, marked spot.
+SEO_COPY = {}
+
+
+def row_order_line(sp):
+    """Which row is which in the two-row markets this sport has."""
+    words = 'O/U: the top row is the Over, the bottom row is the Under.'
+    if sp['key'] == 'nhl':
+        words += ' BTTS: top is Yes, bottom is No.'
+    if sp['key'] == 'mlb':
+        words += ' YRFI/NRFI: top is YRFI, bottom is NRFI.'
+    return words
+
+
+def how_to_read_html(sp, section):
+    if section == 'odds':
+        lines = [row_order_line(sp),
+                 'Open is the first price we saved. The green box is the best price on that side right now.']
+    else:
+        return ''
+    seo = SEO_COPY.get((section, sp['key']))
+    return ('<aside class="how-to-read"><h2>How to read this page</h2>'
+            + ''.join(f'<p>{esc(x)}</p>' for x in lines)
+            + f'<!-- SEO paragraph ({section}, {sp["key"]}): scripts/build_site.py SEO_COPY -->'
+            + (f'<p class="htr-seo">{esc(seo)}</p>' if seo else '<div class="htr-seo" data-seo-slot></div>')
+            + '</aside>')
+
+
+def sport_app_body(sp, section):
+    """A section page's body: the app assets/sport.js draws into, then the
+    How to read box where the page type has one."""
+    return (f'<div id="sportApp" data-section="{section}"><div class="no-games-note">Loading&hellip;</div>'
+            f'<noscript>This page needs JavaScript.</noscript></div>' + how_to_read_html(sp, section))
+
+
 def hub_words(sp):
     """'First Quarter & First Half' -- the hub's title words."""
     return ' & '.join(s['label'].replace('1st ', 'First ') for s in sp['segments'])
@@ -736,9 +775,7 @@ def build_other_sports(template):
                     markets='moneyline, spread and totals' if any(sports.has_ml(s) for s in sp['segments']) else 'spread and totals')
                 if section == 'games' and sp.get('schedule') == 'week':
                     meta['desc'] = meta['desc'].replace('games by date', 'games by week')
-                body = (f'<div id="sportApp" data-section="{section}"><div class="no-games-note">Loading&hellip;</div>'
-                        f'<noscript>This page needs JavaScript.</noscript></div>')
-                html = render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=body)
+                html = render_page(template, 'sport', '', meta=meta, sport=sp, sport_body=sport_app_body(sp, section))
             else:
                 html = render_page(template, 'empty', '', meta=meta, sport=sp, empty_html=empty_state_html(sp, section))
             write_light(html, f"{sp['slug']}/{sp['sections'][section]}")
@@ -972,7 +1009,9 @@ def main():
     # /nhl/odds/: the book-by-book Odds page, rendered by assets/sport.js
     # like the other sports' (nhl/odds.json carries the team names and logos)
     # BTTS isn't on the feed: it's the price entered in the admin (or
-    # SportsGameOdds), shown as one "Consensus" row
+    # SportsGameOdds), shown as one price column, under the sportsbook the
+    # admin copies it from (data_admin/settings.json; default "Consensus")
+    btts_book = str((load('data_admin/settings.json', {}) or {}).get('bttsSourceBook') or 'consensus')
     btts = []
     for date_str, games in merged_games.items():
         for g in games:
@@ -982,12 +1021,13 @@ def main():
             row = {'yes': {'price': o['btts_yes']} if o.get('btts_yes') is not None else None,
                    'no': {'price': o['btts_no']} if o.get('btts_no') is not None else None}
             btts.append({'date': date_str, 'away': g['away'], 'home': g['home'], 'start': g.get('startTimeUTC'),
-                         'books': {'1p': {'btts': {'consensus': row}}},
+                         'books': {'1p': {'btts': {btts_book: row}}},
                          'best': {'1p': {'btts': {'yes': o.get('btts_yes'), 'no': o.get('btts_no')}}}})
     nhl_state = {'LIVE': 'live', 'CRIT': 'live', 'FINAL': 'final', 'OFF': 'final'}
     nhl_schedule = {d: [{'away': g['away'], 'home': g['home'], 'start': g.get('startTimeUTC'),
                          'state': nhl_state.get(g.get('state'), 'pre'),
-                         'score': {'1p': [g['awayP1'], g['homeP1']]} if g.get('awayP1') is not None and g.get('homeP1') is not None else None}
+                         'score': {'1p': [g['awayP1'], g['homeP1']]} if g.get('awayP1') is not None and g.get('homeP1') is not None else None,
+                         'detail': g.get('detail') or ''}
                         for g in games]
                     for d, games in merged_games.items() if d >= SEASON_START}
     two_word = ('Blue Jackets', 'Maple Leafs', 'Red Wings', 'Golden Knights')
@@ -1000,8 +1040,7 @@ def main():
     odds_meta = {'title': 'RTYB — NHL Odds', 'h1': 'NHL — Odds', 'section': 'odds',
                  'desc': SECTION_DESC['odds'].format(label='NHL', segs='1st Period')}
     write_light(render_page(template, 'sport', teams_menu_html, meta=odds_meta, sport=nhl,
-                            sport_body='<div id="sportApp" data-section="odds"><div class="no-games-note">Loading&hellip;</div>'
-                                       '<noscript>This page needs JavaScript.</noscript></div>'), 'nhl/odds')
+                            sport_body=sport_app_body(nhl, 'odds')), 'nhl/odds')
 
     # /nhl/stats/: the Stats page, drawn by assets/sport.js like every
     # sport's, from NHL's games in the shared shape (scripts/nhl_sport.py)

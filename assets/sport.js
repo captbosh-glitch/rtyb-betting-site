@@ -2071,6 +2071,60 @@
   // opening line. The best price per side gets a green outline (the key at
   // the bottom says so). The controls and the header row stay pinned.
   var MKT_CUR = null;
+  // the market pills: totals read "O/U" (NHL "O/U 1.5", MLB "F5 O/U")
+  function pillLabel(x) { return x[1] === 'total' ? x[2].replace('Total', 'O/U') : x[2]; }
+  // "· FINAL" or "· LIVE · 1ST" after a game's start time (Odds and Matchups)
+  function livePeriod(g) {
+    var d = String(g.detail || '').trim(), p = d.split(' - ');
+    if (/\b(AM|PM)\b|\bE[SD]?T\b/.test(d)) return '';   // still the scheduled start, not a clock
+    return (p.length > 1 ? p[p.length - 1] : d).toUpperCase();
+  }
+  function oddsStatus(g) {
+    if (g.state === 'final') return ' &middot; FINAL';
+    // a game whose status never came back (off-season, postponed) isn't live
+    var stale = g.start && Date.now() - Date.parse(g.start) > 8 * 3600e3;
+    if ((g.state === 'live' || g.state === 'in') && !stale) { var p = livePeriod(g); return ' &middot; <span class="st-live">LIVE' + (p ? ' &middot; ' + esc(p) : '') + '</span>'; }
+    return '';
+  }
+  // One cell style for Odds and Matchups: the line on top (large, bold), the
+  // price under it (small, muted); a moneyline cell shows the price in the
+  // line style.
+  function oddsCell(line, price) {
+    if (line == null) return price == null ? '' : '<span class="ob-ln">' + esc(signed(price)) + '</span>';
+    return '<span class="ob-ln">' + esc(line) + '</span>' + (price != null ? '<span class="ob-pr">' + esc(signed(price)) + '</span>' : '');
+  }
+  // the name behind a logo or cell (data-tip): hover shows the title; a long
+  // press (logos) or a tap (cells without a link) shows it on phones
+  function wireTips(root) {
+    if (root.__tips) return;
+    root.__tips = true;
+    var tip = null, timer = null;
+    function hide() { if (tip) { tip.remove(); tip = null; } }
+    function show(el) {
+      hide();
+      tip = document.createElement('div');
+      tip.className = 'rt-tip';
+      tip.textContent = el.getAttribute('data-tip');
+      document.body.appendChild(tip);
+      var r = el.getBoundingClientRect();
+      tip.style.left = Math.max(8, Math.min(window.innerWidth - tip.offsetWidth - 8, r.left + r.width / 2 - tip.offsetWidth / 2)) + 'px';
+      tip.style.top = (window.scrollY + r.top - tip.offsetHeight - 6) + 'px';
+      setTimeout(hide, 1800);
+    }
+    root.addEventListener('touchstart', function(e) {
+      var el = e.target.closest('[data-tip]');
+      clearTimeout(timer);
+      if (el) timer = setTimeout(function() { show(el); }, 450);
+    }, { passive: true });
+    root.addEventListener('touchend', function() { clearTimeout(timer); }, { passive: true });
+    root.addEventListener('touchmove', function() { clearTimeout(timer); }, { passive: true });
+    root.addEventListener('click', function(e) {
+      var el = e.target.closest('[data-tip]');
+      if (el && el.hasAttribute('data-tap') && !e.target.closest('a')) show(el);
+    });
+    root.addEventListener('contextmenu', function(e) { if (e.target.closest('img[data-tip]')) e.preventDefault(); });
+    window.addEventListener('scroll', hide, { passive: true });
+  }
   var MKT_WORD = { ml: 'moneyline', ml3: '3-way moneyline', ats: 'spread', total: 'total', btts: 'BTTS', rfi: 'NRFI / YRFI' };
   var YN_SIDES = { total: ['over', 'under'], btts: ['yes', 'no'], rfi: ['yrfi', 'nrfi'] };
   function renderOdds() {
@@ -2135,12 +2189,12 @@
       }
       function same(a, b) { return !!a && !!b && a.price === b.price && String(a.line) === String(b.line); }
       function counts(b, m) { return m === 'ml3' || m === 'btts' || !(sources[b] || {}).x; }
-      // a line market's cell: the line on top, its price under it, smaller
-      function cellTxt(v) { return v.line != null ? '<span class="ob-ln">' + esc(v.line) + '</span><span class="ob-pr ob-pr-sm">' + esc(signed(v.price)) + '</span>' : '<span class="ob-pr">' + esc(signed(v.price)) + '</span>'; }
+      function cellTxt(v) { return oddsCell(v.line, v.price); }
       function name(b) { return (sources[b] || {}).name || 'Source ' + b; }
+      // a book's logo (its name on hover, or on a long press on phones)
       function head(b) {
         var s = sources[b] || {};
-        return s.logo ? '<img class="ob-logo" src="' + ROOT + s.logo + '" alt="' + esc(name(b)) + '" title="' + esc(name(b)) + '" loading="lazy">' : '<span class="ob-bname">' + esc(name(b)) + '</span>';
+        return s.logo ? '<img class="ob-logo" src="' + ROOT + s.logo + '" alt="' + esc(name(b)) + '" title="' + esc(name(b)) + '" data-tip="' + esc(name(b)) + '" loading="lazy">' : '<span class="ob-bname">' + esc(name(b)) + '</span>';
       }
       // the team (and, once the game starts, its score in the segment)
       function teamCell(g, sd, k) {
@@ -2149,21 +2203,14 @@
         return '<span class="ob-team">' + badge(slug, 20) + '<span class="tn-full">' + esc(shortName(slug)) + '</span><span class="tn-short mono">' + esc(code(slug)) + '</span>' +
           (sc ? '<span class="ob-sc mono">' + esc(sc[side === 'away' ? 0 : 1]) + '</span>' : '') + '</span>';
       }
-      // Team, Open and one column per source; the header is its own table so
-      // it can stay pinned with the controls while the games scroll under it
+      // Team, Open and one column per source
       function colgroup(cols) { return '<colgroup><col class="ob-w-team"><col class="ob-w-open">' + cols.map(function() { return '<col class="ob-w-src">'; }).join('') + '</colgroup>'; }
-      function headTable(cols) {
-        return '<div class="ob-head"><table class="ob-grid" style="--n:' + cols.length + '">' + colgroup(cols) + '<thead><tr><th class="ob-c-team" scope="col">Team</th><th class="ob-c-open" scope="col">Open</th>' +
-          cols.map(function(b) { return '<th scope="col" class="ob-src">' + head(b) + '</th>'; }).join('') + '</tr></thead></table></div>';
-      }
-      var ROW_NOTE = { total: 'Top: Over &middot; Bottom: Under', btts: 'Top: Yes &middot; Bottom: No', rfi: 'Top: Yes &middot; Bottom: No' };
       function columns(games, k, m) {
         var ids = {};
         games.forEach(function(g) { Object.keys((((g.books || {})[k] || {})[m]) || {}).forEach(function(b) { ids[b] = 1; }); });
         return order.filter(function(b) { return ids[b]; });
       }
       function table(games, k, m, kind, cols, lined) {
-        var span = 2 + cols.length;
         var body = games.map(function(g) {
           var books = ((g.books || {})[k] || {})[m] || {};
           var best = ((g.best || {})[k] || {})[m], open = ((g.open || {})[k] || {})[m];
@@ -2171,7 +2218,7 @@
           var rows = sides(m, kind).map(function(sd) {
             var s = sd[0], b = top(best, m, s), o = top(open, m, s);
             return '<tr><th scope="row" class="ob-c-team">' + teamCell(g, sd, k) + '</th>' +
-              '<td class="ob-c-open mono">' + (o ? cellTxt(o) : '') + '</td>' +
+              '<td class="ob-c-open">' + (o ? cellTxt(o) : '') + '</td>' +
               cols.map(function(id) {
                 var v = val(books[id], m, s);
                 if (!v) return '<td class="ob-na"></td>';
@@ -2181,11 +2228,11 @@
           }).join('');
           // timeET already names the day in week view
           var day = weeks && g.start && !(D && D.schedule === 'week') ? new Date(g.start).toLocaleDateString('en-US', { weekday: 'short', timeZone: 'America/New_York' }) + ' ' : '';
-          return '<tbody class="ob-game"><tr class="ob-ghead"><td colspan="' + span + '"><span class="ob-time">' + esc(day) + (g.start ? esc(timeET(g.start)) : 'TBD') + '</span></td></tr>' + rows + '</tbody>';
+          // every game's time row carries Open and the book logos, over their columns
+          return '<tbody class="ob-game"><tr class="ob-ghead"><th scope="col" class="ob-c-team"><span class="ob-time">' + esc(day) + (g.start ? esc(timeET(g.start)) : 'TBD') + oddsStatus(g) + '</span></th>' +
+            '<th scope="col" class="ob-c-open">Open</th>' + cols.map(function(b) { return '<th scope="col" class="ob-src">' + head(b) + '</th>'; }).join('') + '</tr>' + rows + '</tbody>';
         }).join('');
-        var note = ROW_NOTE[m] && games.length ? '<tbody><tr class="ob-note"><td colspan="' + span + '"><span>' + ROW_NOTE[m] + '</span></td></tr></tbody>' : '';
-        var key = lined ? '<tbody><tr class="ob-key"><td colspan="' + span + '"><span><i class="ob-key-cell ob-best"></i>Best odds</span></td></tr></tbody>' : '';
-        return '<div class="ob-scroll" id="obBody"><table class="ob-grid" style="--n:' + cols.length + '">' + colgroup(cols) + note + body + key + '</table></div>';
+        return '<div class="ob-scroll" id="obBody"><table class="ob-grid" style="--n:' + cols.length + '">' + colgroup(cols) + body + '</table></div>';
       }
       function draw(docs) {
         var k = getSeg(), ms = markets(k);
@@ -2205,17 +2252,18 @@
         var html = weeks ? weekBar(weeks, cur, thisWeek) : dateBar(cur, dates, true);
         html += '<div class="ob-stick" id="obStick"><div class="sport-seg-row odds-controls">' + (D.segments.length > 1 ? segToggle('pageSeg', k) : '') +
           '<div class="seg-toggle" id="oddsMkt">' + ms.map(function(x) {
-            return '<button class="seg-btn" data-mkt="' + x[1] + '" aria-pressed="' + (x[1] === MKT_CUR) + '">' + esc(x[2]) + '</button>';
-          }).join('') + '</div></div>' + (games.length ? headTable(cols) : '') + '</div>';
+            return '<button class="seg-btn" data-mkt="' + x[1] + '" aria-pressed="' + (x[1] === MKT_CUR) + '">' + esc(pillLabel(x)) + '</button>';
+          }).join('') + '</div></div></div>';
         var first = slate()[0];
         if (!games.length) html += '<div class="no-games-note">No ' + esc(D.label) + ' games ' + (weeks ? 'this week' : 'on ' + esc(dateLabel(cur))) + '.</div>';
         else {
           if (!lined) html += '<div class="no-games-note">' + (first && first < todayET() ? 'Lines not available.' : 'No ' + esc(seg(k).label) + ' ' + (mk ? MKT_WORD[m] || esc(mk[2]) : 'lines') + ' posted yet.') + '</div>';
           html += table(games, k, m, mk ? mk[3] : 'side', cols, lined);
         }
-        if (m === 'btts') html += '<p class="odds-note">Both teams to score in the 1st period. BTTS isn&rsquo;t on our odds feed, so this is a consensus price across the books, entered by our team.</p>';
+        if (m === 'btts') html += '<p class="odds-note">Both teams to score in the 1st period. BTTS isn&rsquo;t on our odds feed, so our team enters ' + (cols[0] && cols[0] !== 'consensus' ? esc(name(cols[0])) + '&rsquo;s price' : 'a consensus price across the books') + '.</p>';
         app.innerHTML = html;
-        pinHead();
+        stickBelowNav(document.getElementById('obStick'));
+        wireTips(app);
         if (weeks) {
           var keys = weeks.map(function(w) { return w.key; }), i = keys.indexOf(cur);
           var p = document.getElementById('weekPrev'), n = document.getElementById('weekNext'), now = document.getElementById('weekNowBtn');
@@ -2227,16 +2275,6 @@
         var ps = document.getElementById('pageSeg');
         if (ps) ps.onclick = function(e) { var b = e.target.closest('[data-seg]'); if (b) { setSeg(b.getAttribute('data-seg')); show(); } };
         document.getElementById('oddsMkt').onclick = function(e) { var b = e.target.closest('[data-mkt]'); if (b) { MKT_CUR = b.getAttribute('data-mkt'); show(); } };
-      }
-      // the pinned header scrolls sideways with the games
-      function pinHead() {
-        stickBelowNav(document.getElementById('obStick'));
-        var body = document.getElementById('obBody'), headEl = document.querySelector('#obStick .ob-head');
-        if (!body || !headEl) return;
-        var busy = false;
-        function sync(from, to) { return function() { if (busy) { busy = false; return; } busy = true; to.scrollLeft = from.scrollLeft; }; }
-        body.addEventListener('scroll', sync(body, headEl), { passive: true });
-        headEl.addEventListener('scroll', sync(headEl, body), { passive: true });
       }
       function show() { load(slate()).then(draw); }
       show();

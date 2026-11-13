@@ -231,6 +231,20 @@
         <button class="save" id="matchupsEdit" hidden>Edit</button>
       </div>
       <p class="status" id="matchupsStatus"></p>
+      <div class="row" style="margin-top:14px;align-items:center;gap:10px">
+        <label for="bttsBook" style="font-weight:600">BTTS source book</label>
+        <select id="bttsBook" style="width:auto">
+          <option value="consensus">Consensus (no logo)</option>
+          <option value="1">DraftKings</option>
+          <option value="2">FanDuel</option>
+          <option value="4">BetMGM</option>
+          <option value="20">Caesars</option>
+          <option value="36">theScore</option>
+        </select>
+        <button class="save" id="bttsBookSave">Save</button>
+      </div>
+      <p class="sub" style="margin:6px 0 0">The sportsbook you copy the BTTS prices from. It labels the single BTTS price column on the NHL Odds page.</p>
+      <p class="status" id="bttsBookStatus"></p>
     </div>
 
     <div class="card">
@@ -321,7 +335,9 @@
       fetchJson('../data_admin/results_draft.json', {}),
       fetchJson('../data_admin/odds_overrides.json', {}),
       fetchJson('../data_admin/results_overrides.json', {}),
+      fetchJson('../data_admin/settings.json', {}),
     ]).then(function(results) {
+      document.getElementById('bttsBook').value = (results[5] || {}).bttsSourceBook || 'consensus';
       DATA = results[0];
       matchupsDraft = results[1] || {};
       resultsDraft = results[2] || {};
@@ -547,6 +563,11 @@
   var SAVED_MSG = 'Saved. It\'ll be live within a minute or two.';
 
   function wireButtons() {
+    var bSave = document.getElementById('bttsBookSave');
+    bSave.onclick = function() {
+      callWorker('/settings/save', { bttsSourceBook: document.getElementById('bttsBook').value },
+        document.getElementById('bttsBookStatus'), bSave, 'Saving', 'Saved. The Odds page shows it after the next refresh.').catch(function() {});
+    };
     var mSave = document.getElementById('matchupsSave');
     var mEdit = document.getElementById('matchupsEdit');
     var mStatus = document.getElementById('matchupsStatus');
