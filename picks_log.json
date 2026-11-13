@@ -6667,51 +6667,55 @@
     "streakTeamName": "Northern Iowa"
    },
    {
-    "id": "ncaaf|401858526|1h|ats|away",
-    "game": "ncaaf|401858526",
+    "id": "nba|401909300|1h|total|under",
+    "game": "nba|401909300",
     "date": "2026-11-13",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-11-14T02:00Z",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-14T01:00Z",
     "seg": "1h",
     "segTag": "1H",
-    "matchup": "Illinois @ UCLA",
-    "href": "college-football/matchups/",
-    "market": "ats",
-    "side": "away",
-    "line": 6.5,
-    "price": 100,
-    "title": "Illinois 1H +6.5",
-    "est": 0.5304,
-    "edge": 0.0304,
-    "agree": 3,
-    "sample": 9,
+    "matchup": "Grizzlies @ Pelicans",
+    "href": "nba/matchups/",
+    "market": "total",
+    "side": "under",
+    "line": 121.5,
+    "price": -108,
+    "title": "1H Under 121.5",
+    "est": 0.5502,
+    "edge": 0.031,
+    "agree": 6,
+    "sample": 12,
     "tier": "C",
     "tags": [
-     "Dog Hunter",
+     "Under Grinder",
      "Streak Rider"
     ],
-    "streak": 5,
-    "streakTeam": "illinois-fighting-illini",
+    "streak": 8,
+    "streakTeam": "mem",
     "angles": [
      [
-      "Illinois 1H ATS at +6.5, season",
-      "8-1"
+      "Grizzlies 1H unders, last 8 (121.5)",
+      "8-0"
      ],
      [
-      "Illinois 1H ATS at +6.5, last 8",
-      "7-1"
+      "Grizzlies 1H unders, season (121.5)",
+      "10-1"
      ],
      [
-      "Illinois 1H ATS at +6.5 on the road",
-      "2-1"
+      "Grizzlies 1H unders on the road (121.5)",
+      "4-1"
+     ],
+     [
+      "Pelicans 1H unders, last 8 (121.5)",
+      "5-3"
      ]
     ],
-    "info": "Illinois avg 1H margin on the road: -1.7",
+    "info": "Avg 1H total in their games: Pelicans 116.8 \u00b7 Grizzlies 116.4",
     "status": "pending",
     "units": null,
-    "streakTeamName": "Illinois"
+    "streakTeamName": "Grizzlies"
    }
   ]
  }
