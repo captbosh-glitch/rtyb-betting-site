@@ -6411,48 +6411,6 @@
     "streakTeamName": "Warriors"
    },
    {
-    "id": "ncaab|401909696|1h|ml|away",
-    "game": "ncaab|401909696",
-    "date": "2026-11-13",
-    "sport": "ncaab",
-    "label": "NCAAB",
-    "slug": "college-basketball",
-    "start": "2026-11-13T22:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Texas A&M-Corpus Christi @ Florida State",
-    "href": "college-basketball/matchups/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 1250,
-    "title": "Texas A&M-Corpus Christi 1H ML",
-    "est": 0.1128,
-    "edge": 0.0387,
-    "agree": 2,
-    "sample": 3,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 2,
-    "streakTeam": "texas-aandm-corpus-christi-islanders",
-    "angles": [
-     [
-      "Texas A&M-Corpus Christi 1H ML, season",
-      "2-1"
-     ],
-     [
-      "Texas A&M-Corpus Christi 1H ML, last 8",
-      "2-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Texas A&M-Corpus Christi"
-   },
-   {
     "id": "ncaaf|401858293|1q|ats|home",
     "game": "ncaaf|401858293",
     "date": "2026-11-13",
@@ -6499,6 +6457,48 @@
     "streakTeamName": "Pittsburgh"
    },
    {
+    "id": "ncaab|401909696|1h|ml|away",
+    "game": "ncaab|401909696",
+    "date": "2026-11-13",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
+    "start": "2026-11-13T22:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Texas A&M-Corpus Christi @ Florida State",
+    "href": "college-basketball/matchups/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 1100,
+    "title": "Texas A&M-Corpus Christi 1H ML",
+    "est": 0.1212,
+    "edge": 0.0379,
+    "agree": 2,
+    "sample": 3,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 2,
+    "streakTeam": "texas-aandm-corpus-christi-islanders",
+    "angles": [
+     [
+      "Texas A&M-Corpus Christi 1H ML, season",
+      "2-1"
+     ],
+     [
+      "Texas A&M-Corpus Christi 1H ML, last 8",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Texas A&M-Corpus Christi"
+   },
+   {
     "id": "ncaab|401917916|1h|ml|away",
     "game": "ncaab|401917916",
     "date": "2026-11-13",
@@ -6513,10 +6513,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 1150,
+    "price": 980,
     "title": "Central Arkansas 1H ML",
-    "est": 0.1182,
-    "edge": 0.0382,
+    "est": 0.1296,
+    "edge": 0.037,
     "agree": 2,
     "sample": 3,
     "tier": "C",
@@ -6583,6 +6583,48 @@
     "streakTeamName": "Clippers"
    },
    {
+    "id": "ncaab|401925755|1h|ml|away",
+    "game": "ncaab|401925755",
+    "date": "2026-11-13",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
+    "start": "2026-11-14T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Northern Iowa @ Michigan State",
+    "href": "college-basketball/matchups/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 1550,
+    "title": "Northern Iowa 1H ML",
+    "est": 0.0921,
+    "edge": 0.0315,
+    "agree": 2,
+    "sample": 3,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "northern-iowa-panthers",
+    "angles": [
+     [
+      "Northern Iowa 1H ML, season",
+      "2-1"
+     ],
+     [
+      "Northern Iowa 1H ML, last 8",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Northern Iowa"
+   },
+   {
     "id": "ncaab|401906760|1h|ml|away",
     "game": "ncaab|401906760",
     "date": "2026-11-13",
@@ -6623,48 +6665,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Seton Hall"
-   },
-   {
-    "id": "ncaab|401925755|1h|ml|away",
-    "game": "ncaab|401925755",
-    "date": "2026-11-13",
-    "sport": "ncaab",
-    "label": "NCAAB",
-    "slug": "college-basketball",
-    "start": "2026-11-14T00:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Northern Iowa @ Michigan State",
-    "href": "college-basketball/matchups/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 1500,
-    "title": "Northern Iowa 1H ML",
-    "est": 0.0938,
-    "edge": 0.0313,
-    "agree": 2,
-    "sample": 3,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 1,
-    "streakTeam": "northern-iowa-panthers",
-    "angles": [
-     [
-      "Northern Iowa 1H ML, season",
-      "2-1"
-     ],
-     [
-      "Northern Iowa 1H ML, last 8",
-      "2-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Northern Iowa"
    },
    {
     "id": "ncaab|401911014|1h|ml|away",
