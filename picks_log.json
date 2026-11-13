@@ -6289,11 +6289,11 @@
     "href": "nba/matchups/",
     "market": "ats",
     "side": "away",
-    "line": 7.5,
-    "price": -115,
-    "title": "Warriors 1H +7.5",
-    "est": 0.5763,
-    "edge": 0.0414,
+    "line": 6.5,
+    "price": -112,
+    "title": "Warriors 1H +6.5",
+    "est": 0.5716,
+    "edge": 0.0433,
     "agree": 3,
     "sample": 12,
     "tier": "B",
@@ -6305,15 +6305,15 @@
     "streakTeam": "gs",
     "angles": [
      [
-      "Warriors 1H ATS at +7.5, last 8",
+      "Warriors 1H ATS at +6.5, last 8",
       "8-0"
      ],
      [
-      "Warriors 1H ATS at +7.5, season",
+      "Warriors 1H ATS at +6.5, season",
       "11-1"
      ],
      [
-      "Warriors 1H ATS at +7.5 on the road",
+      "Warriors 1H ATS at +6.5 on the road",
       "4-1"
      ]
     ],
@@ -6321,6 +6321,48 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Warriors"
+   },
+   {
+    "id": "ncaab|401913528|1h|ml|away",
+    "game": "ncaab|401913528",
+    "date": "2026-11-13",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
+    "start": "2026-11-14T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Sam Houston @ Illinois",
+    "href": "college-basketball/matchups/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 3000,
+    "title": "Sam Houston 1H ML",
+    "est": 0.0748,
+    "edge": 0.0425,
+    "agree": 2,
+    "sample": 3,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 2,
+    "streakTeam": "sam-houston-bearkats",
+    "angles": [
+     [
+      "Sam Houston 1H ML, season",
+      "2-1"
+     ],
+     [
+      "Sam Houston 1H ML, last 8",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Sam Houston"
    },
    {
     "id": "ncaab|401917916|1h|ml|away",
@@ -6467,10 +6509,10 @@
     "market": "ml",
     "side": "home",
     "line": null,
-    "price": 164,
+    "price": 168,
     "title": "Clippers 1H ML",
-    "est": 0.4117,
-    "edge": 0.0329,
+    "est": 0.4073,
+    "edge": 0.0342,
     "agree": 2,
     "sample": 9,
     "tier": "C",
