@@ -6667,51 +6667,46 @@
     "streakTeamName": "Northern Iowa"
    },
    {
-    "id": "ncaaf|401858526|1h|ats|away",
-    "game": "ncaaf|401858526",
+    "id": "ncaab|401911014|1h|ml|away",
+    "game": "ncaab|401911014",
     "date": "2026-11-13",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
     "start": "2026-11-14T02:00Z",
     "seg": "1h",
     "segTag": "1H",
-    "matchup": "Illinois @ UCLA",
-    "href": "college-football/matchups/",
-    "market": "ats",
+    "matchup": "Ball State @ SMU",
+    "href": "college-basketball/matchups/",
+    "market": "ml",
     "side": "away",
-    "line": 6.5,
-    "price": 100,
-    "title": "Illinois 1H +6.5",
-    "est": 0.5304,
-    "edge": 0.0304,
-    "agree": 3,
-    "sample": 9,
+    "line": null,
+    "price": 1250,
+    "title": "Ball State 1H ML",
+    "est": 0.1043,
+    "edge": 0.0302,
+    "agree": 2,
+    "sample": 3,
     "tier": "C",
     "tags": [
-     "Dog Hunter",
-     "Streak Rider"
+     "Dog Hunter"
     ],
-    "streak": 5,
-    "streakTeam": "illinois-fighting-illini",
+    "streak": 2,
+    "streakTeam": "ball-state-cardinals",
     "angles": [
      [
-      "Illinois 1H ATS at +6.5, season",
-      "8-1"
+      "Ball State 1H ML, season",
+      "2-1"
      ],
      [
-      "Illinois 1H ATS at +6.5, last 8",
-      "7-1"
-     ],
-     [
-      "Illinois 1H ATS at +6.5 on the road",
+      "Ball State 1H ML, last 8",
       "2-1"
      ]
     ],
-    "info": "Illinois avg 1H margin on the road: -1.7",
+    "info": null,
     "status": "pending",
     "units": null,
-    "streakTeamName": "Illinois"
+    "streakTeamName": "Ball State"
    }
   ]
  }
