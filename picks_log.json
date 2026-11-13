@@ -6239,10 +6239,10 @@
     "market": "total",
     "side": "over",
     "line": 106.5,
-    "price": -105,
+    "price": -102,
     "title": "1H Over 106.5",
-    "est": 0.5594,
-    "edge": 0.0472,
+    "est": 0.5542,
+    "edge": 0.0493,
     "agree": 6,
     "sample": 12,
     "tier": "B",
@@ -6625,48 +6625,6 @@
     "streakTeamName": "Seton Hall"
    },
    {
-    "id": "ncaab|401925755|1h|ml|away",
-    "game": "ncaab|401925755",
-    "date": "2026-11-13",
-    "sport": "ncaab",
-    "label": "NCAAB",
-    "slug": "college-basketball",
-    "start": "2026-11-14T00:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Northern Iowa @ Michigan State",
-    "href": "college-basketball/matchups/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 1450,
-    "title": "Northern Iowa 1H ML",
-    "est": 0.0956,
-    "edge": 0.0311,
-    "agree": 2,
-    "sample": 3,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 1,
-    "streakTeam": "northern-iowa-panthers",
-    "angles": [
-     [
-      "Northern Iowa 1H ML, season",
-      "2-1"
-     ],
-     [
-      "Northern Iowa 1H ML, last 8",
-      "2-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Northern Iowa"
-   },
-   {
     "id": "nba|401909300|1h|total|under",
     "game": "nba|401909300",
     "date": "2026-11-13",
@@ -6716,6 +6674,48 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Grizzlies"
+   },
+   {
+    "id": "ncaab|401925755|1h|ml|away",
+    "game": "ncaab|401925755",
+    "date": "2026-11-13",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
+    "start": "2026-11-14T00:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Northern Iowa @ Michigan State",
+    "href": "college-basketball/matchups/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 1350,
+    "title": "Northern Iowa 1H ML",
+    "est": 0.0997,
+    "edge": 0.0307,
+    "agree": 2,
+    "sample": 3,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "northern-iowa-panthers",
+    "angles": [
+     [
+      "Northern Iowa 1H ML, season",
+      "2-1"
+     ],
+     [
+      "Northern Iowa 1H ML, last 8",
+      "2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Northern Iowa"
    }
   ]
  }
