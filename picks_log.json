@@ -6369,6 +6369,48 @@
     "streakTeamName": "Warriors"
    },
    {
+    "id": "nba|401909304|1h|ml|home",
+    "game": "nba|401909304",
+    "date": "2026-11-13",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-14T03:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Thunder @ Clippers",
+    "href": "nba/matchups/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 172,
+    "title": "Clippers 1H ML",
+    "est": 0.4031,
+    "edge": 0.0355,
+    "agree": 2,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "lac",
+    "angles": [
+     [
+      "Clippers 1H ML at home",
+      "4-1"
+     ],
+     [
+      "Clippers 1H ML, season",
+      "5-4-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Clippers"
+   },
+   {
     "id": "nba|401909301|1h|ats|away",
     "game": "nba|401909301",
     "date": "2026-11-13",
