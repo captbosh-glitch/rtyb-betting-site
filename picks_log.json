@@ -7042,48 +7042,6 @@
     "streakTeamName": "Edmonton"
    },
    {
-    "id": "ncaaf|401856862|1h|ml|away",
-    "game": "ncaaf|401856862",
-    "date": "2026-11-14",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-11-14T19:00Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Kansas State @ TCU",
-    "href": "college-football/matchups/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 300,
-    "title": "Kansas State 1H ML",
-    "est": 0.3085,
-    "edge": 0.0585,
-    "agree": 2,
-    "sample": 8,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": -1,
-    "streakTeam": "kansas-state-wildcats",
-    "angles": [
-     [
-      "Kansas State 1H ML, season",
-      "5-3-1"
-     ],
-     [
-      "Kansas State 1H ML, last 8",
-      "4-3-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Kansas State"
-   },
-   {
     "id": "nhl|2026020315|1p|btts|yes",
     "game": "nhl|2026020315",
     "date": "2026-11-14",
@@ -7128,6 +7086,48 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Montreal"
+   },
+   {
+    "id": "ncaaf|401856862|1h|ml|away",
+    "game": "ncaaf|401856862",
+    "date": "2026-11-14",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-14T19:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Kansas State @ TCU",
+    "href": "college-football/matchups/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 290,
+    "title": "Kansas State 1H ML",
+    "est": 0.3135,
+    "edge": 0.0571,
+    "agree": 2,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "kansas-state-wildcats",
+    "angles": [
+     [
+      "Kansas State 1H ML, season",
+      "5-3-1"
+     ],
+     [
+      "Kansas State 1H ML, last 8",
+      "4-3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Kansas State"
    },
    {
     "id": "ncaaf|401864539|1h|ml|away",
