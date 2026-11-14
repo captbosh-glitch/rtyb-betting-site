@@ -7278,6 +7278,48 @@
     "streakTeamName": "NC State"
    },
    {
+    "id": "ncaab|401909728|1h|ml|away",
+    "game": "ncaab|401909728",
+    "date": "2026-11-14",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
+    "start": "2026-11-14T21:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Southern Utah @ Wake Forest",
+    "href": "college-basketball/matchups/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 650,
+    "title": "Southern Utah 1H ML",
+    "est": 0.181,
+    "edge": 0.0477,
+    "agree": 2,
+    "sample": 4,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "southern-utah-thunderbirds",
+    "angles": [
+     [
+      "Southern Utah 1H ML, season",
+      "3-1"
+     ],
+     [
+      "Southern Utah 1H ML, last 8",
+      "3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Southern Utah"
+   },
+   {
     "id": "ncaaf|401871061|1q|ats|away",
     "game": "ncaaf|401871061",
     "date": "2026-11-14",
@@ -7323,56 +7365,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Middle Tennessee"
-   },
-   {
-    "id": "ncaaf|401864538|1q|total|under",
-    "game": "ncaaf|401864538",
-    "date": "2026-11-14",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-11-15T00:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "San Jos\u00e9 State @ Air Force",
-    "href": "college-football/matchups/",
-    "market": "total",
-    "side": "under",
-    "line": 9.5,
-    "price": 108,
-    "title": "1Q Under 9.5",
-    "est": 0.5277,
-    "edge": 0.0469,
-    "agree": 6,
-    "sample": 10,
-    "tier": "B",
-    "tags": [
-     "Under Grinder"
-    ],
-    "streak": -1,
-    "streakTeam": "san-jos-state-spartans",
-    "angles": [
-     [
-      "San Jos\u00e9 State 1Q unders on the road (9.5)",
-      "5-0"
-     ],
-     [
-      "San Jos\u00e9 State 1Q unders, season (9.5)",
-      "9-1"
-     ],
-     [
-      "San Jos\u00e9 State 1Q unders, last 8 (9.5)",
-      "7-1"
-     ],
-     [
-      "Air Force 1Q unders at home (9.5)",
-      "4-1"
-     ]
-    ],
-    "info": "Avg 1Q total in their games: Air Force 6.4 \u00b7 San Jos\u00e9 State 4.0",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "San Jos\u00e9 State"
    }
   ]
  }
