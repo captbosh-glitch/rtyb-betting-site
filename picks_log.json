@@ -6179,6 +6179,57 @@
  "2026-11-13": {
   "plays": [
    {
+    "id": "nba|401909302|1h|total|over",
+    "game": "nba|401909302",
+    "date": "2026-11-13",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-14T02:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Warriors @ Spurs",
+    "href": "nba/matchups/",
+    "market": "total",
+    "side": "over",
+    "line": 105.5,
+    "price": -110,
+    "title": "1H Over 105.5",
+    "est": 0.5862,
+    "edge": 0.0624,
+    "agree": 6,
+    "sample": 12,
+    "tier": "B",
+    "tags": [
+     "Over Lover",
+     "Streak Rider"
+    ],
+    "streak": 12,
+    "streakTeam": "sa",
+    "angles": [
+     [
+      "Spurs 1H overs, season (105.5)",
+      "12-0"
+     ],
+     [
+      "Spurs 1H overs, last 8 (105.5)",
+      "8-0"
+     ],
+     [
+      "Spurs 1H overs at home (105.5)",
+      "6-0"
+     ],
+     [
+      "Warriors 1H overs on the road (105.5)",
+      "5-0"
+     ]
+    ],
+    "info": "Avg 1H total in their games: Spurs 118.5 \u00b7 Warriors 111.1",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Spurs"
+   },
+   {
     "id": "ncaab|401921026|1h|ml|away",
     "game": "ncaab|401921026",
     "date": "2026-11-13",
@@ -6223,57 +6274,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Georgia Southern"
-   },
-   {
-    "id": "nba|401909302|1h|total|over",
-    "game": "nba|401909302",
-    "date": "2026-11-13",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-14T02:30Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Warriors @ Spurs",
-    "href": "nba/matchups/",
-    "market": "total",
-    "side": "over",
-    "line": 106.5,
-    "price": -102,
-    "title": "1H Over 106.5",
-    "est": 0.5542,
-    "edge": 0.0493,
-    "agree": 6,
-    "sample": 12,
-    "tier": "B",
-    "tags": [
-     "Over Lover",
-     "Streak Rider"
-    ],
-    "streak": 7,
-    "streakTeam": "sa",
-    "angles": [
-     [
-      "Spurs 1H overs at home (106.5)",
-      "6-0"
-     ],
-     [
-      "Warriors 1H overs on the road (106.5)",
-      "5-0"
-     ],
-     [
-      "Spurs 1H overs, season (106.5)",
-      "11-1"
-     ],
-     [
-      "Spurs 1H overs, last 8 (106.5)",
-      "7-1"
-     ]
-    ],
-    "info": "Avg 1H total in their games: Spurs 118.5 \u00b7 Warriors 111.1",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Spurs"
    },
    {
     "id": "nhl|2026020311|1p|ml|away",
