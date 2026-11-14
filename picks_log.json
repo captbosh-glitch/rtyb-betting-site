@@ -6992,56 +6992,6 @@
     "streakTeamName": "Georgia Tech"
    },
    {
-    "id": "nba|401909983|1q|ml|away",
-    "game": "nba|401909983",
-    "date": "2026-11-14",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-15T01:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Nets @ Grizzlies",
-    "href": "nba/matchups/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 124,
-    "title": "Nets 1Q ML",
-    "est": 0.5067,
-    "edge": 0.0603,
-    "agree": 4,
-    "sample": 11,
-    "tier": "B",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": 1,
-    "streakTeam": "bkn",
-    "angles": [
-     [
-      "Grizzlies\u2019s opponents 1Q ML, Grizzlies at home",
-      "5-1"
-     ],
-     [
-      "Nets 1Q ML, last 8",
-      "5-3"
-     ],
-     [
-      "Nets 1Q ML on the road",
-      "4-3"
-     ],
-     [
-      "Nets 1Q ML, season",
-      "6-5"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Nets"
-   },
-   {
     "id": "nhl|2026020314|1p|ml|away",
     "game": "nhl|2026020314",
     "date": "2026-11-14",
@@ -7134,6 +7084,52 @@
     "streakTeamName": "Kansas State"
    },
    {
+    "id": "nhl|2026020315|1p|btts|yes",
+    "game": "nhl|2026020315",
+    "date": "2026-11-14",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-15T00:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Colorado @ Montreal",
+    "href": "nhl/matchups/?date=2026-11-14",
+    "market": "btts",
+    "side": "yes",
+    "line": null,
+    "price": 165,
+    "title": "1P BTTS Yes",
+    "est": 0.4353,
+    "edge": 0.0579,
+    "agree": 3,
+    "sample": 20,
+    "tier": "B",
+    "tags": [
+     "Over Lover"
+    ],
+    "streak": -3,
+    "streakTeam": "MON",
+    "angles": [
+     [
+      "Montreal 1P BTTS at home",
+      "6-4"
+     ],
+     [
+      "Colorado 1P BTTS on the road",
+      "6-4"
+     ],
+     [
+      "Montreal 1P BTTS, season",
+      "11-8"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Montreal"
+   },
+   {
     "id": "ncaaf|401864539|1h|ml|away",
     "game": "ncaaf|401864539",
     "date": "2026-11-14",
@@ -7178,6 +7174,56 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "UNLV"
+   },
+   {
+    "id": "nba|401909983|1q|ml|away",
+    "game": "nba|401909983",
+    "date": "2026-11-14",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-15T01:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Nets @ Grizzlies",
+    "href": "nba/matchups/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 116,
+    "title": "Nets 1Q ML",
+    "est": 0.5188,
+    "edge": 0.0559,
+    "agree": 4,
+    "sample": 11,
+    "tier": "B",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": 1,
+    "streakTeam": "bkn",
+    "angles": [
+     [
+      "Grizzlies\u2019s opponents 1Q ML, Grizzlies at home",
+      "5-1"
+     ],
+     [
+      "Nets 1Q ML, last 8",
+      "5-3"
+     ],
+     [
+      "Nets 1Q ML on the road",
+      "4-3"
+     ],
+     [
+      "Nets 1Q ML, season",
+      "6-5"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Nets"
    },
    {
     "id": "ncaaf|401858523|1h|ats|away",
@@ -7276,57 +7322,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "NC State"
-   },
-   {
-    "id": "nba|401909981|1q|total|under",
-    "game": "nba|401909981",
-    "date": "2026-11-14",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-15T00:30Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Mavericks @ Cavaliers",
-    "href": "nba/matchups/",
-    "market": "total",
-    "side": "under",
-    "line": 60.5,
-    "price": -105,
-    "title": "1Q Under 60.5",
-    "est": 0.5614,
-    "edge": 0.0492,
-    "agree": 6,
-    "sample": 13,
-    "tier": "B",
-    "tags": [
-     "Under Grinder",
-     "Streak Rider"
-    ],
-    "streak": 9,
-    "streakTeam": "cle",
-    "angles": [
-     [
-      "Cavaliers 1Q unders, last 8 (60.5)",
-      "8-0"
-     ],
-     [
-      "Mavericks 1Q unders, last 8 (60.5)",
-      "7-1"
-     ],
-     [
-      "Cavaliers 1Q unders, season (60.5)",
-      "11-2"
-     ],
-     [
-      "Mavericks 1Q unders on the road (60.5)",
-      "4-1"
-     ]
-    ],
-    "info": "Avg 1Q total in their games: Cavaliers 56.3 \u00b7 Mavericks 56.4",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Cavaliers"
    },
    {
     "id": "ncaab|401909728|1h|ml|away",
