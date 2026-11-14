@@ -6824,10 +6824,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 260,
+    "price": 250,
     "title": "Michigan 1H ML",
-    "est": 0.3599,
-    "edge": 0.0822,
+    "est": 0.366,
+    "edge": 0.0803,
     "agree": 3,
     "sample": 9,
     "tier": "C",
@@ -6870,10 +6870,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 330,
+    "price": 340,
     "title": "San Jos\u00e9 State 1H ML",
-    "est": 0.2997,
-    "edge": 0.0671,
+    "est": 0.2957,
+    "edge": 0.0684,
     "agree": 3,
     "sample": 10,
     "tier": "B",
@@ -6916,10 +6916,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 350,
+    "price": 360,
     "title": "Georgia Tech 1H ML",
-    "est": 0.2866,
-    "edge": 0.0644,
+    "est": 0.2829,
+    "edge": 0.0655,
     "agree": 2,
     "sample": 9,
     "tier": "C",
@@ -6943,6 +6943,52 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Georgia Tech"
+   },
+   {
+    "id": "ncaaf|401864539|1h|ml|away",
+    "game": "ncaaf|401864539",
+    "date": "2026-11-14",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-15T00:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "UNLV @ New Mexico",
+    "href": "college-football/matchups/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 520,
+    "title": "UNLV 1H ML",
+    "est": 0.2222,
+    "edge": 0.0609,
+    "agree": 3,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "unlv-rebels",
+    "angles": [
+     [
+      "UNLV 1H ML, season",
+      "6-2-1"
+     ],
+     [
+      "UNLV 1H ML on the road",
+      "3-1"
+     ],
+     [
+      "UNLV 1H ML, last 8",
+      "5-2-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "UNLV"
    },
    {
     "id": "ncaaf|401858297|1q|ml|away",
@@ -7130,52 +7176,6 @@
     "streakTeamName": "Kansas State"
    },
    {
-    "id": "ncaaf|401864539|1h|ml|away",
-    "game": "ncaaf|401864539",
-    "date": "2026-11-14",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-11-15T00:30Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "UNLV @ New Mexico",
-    "href": "college-football/matchups/",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": 450,
-    "title": "UNLV 1H ML",
-    "est": 0.2384,
-    "edge": 0.0566,
-    "agree": 3,
-    "sample": 8,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter"
-    ],
-    "streak": -1,
-    "streakTeam": "unlv-rebels",
-    "angles": [
-     [
-      "UNLV 1H ML, season",
-      "6-2-1"
-     ],
-     [
-      "UNLV 1H ML on the road",
-      "3-1"
-     ],
-     [
-      "UNLV 1H ML, last 8",
-      "5-2-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "UNLV"
-   },
-   {
     "id": "nba|401909983|1q|ml|away",
     "game": "nba|401909983",
     "date": "2026-11-14",
@@ -7190,10 +7190,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 116,
+    "price": 115,
     "title": "Nets 1Q ML",
-    "est": 0.5188,
-    "edge": 0.0559,
+    "est": 0.5204,
+    "edge": 0.0553,
     "agree": 4,
     "sample": 11,
     "tier": "B",
@@ -7224,104 +7224,6 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Nets"
-   },
-   {
-    "id": "ncaaf|401858300|1q|ml|home",
-    "game": "ncaaf|401858300",
-    "date": "2026-11-14",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-11-14T17:00Z",
-    "seg": "1q",
-    "segTag": "1Q",
-    "matchup": "Syracuse @ NC State",
-    "href": "college-football/matchups/",
-    "market": "ml",
-    "side": "home",
-    "line": null,
-    "price": 114,
-    "title": "NC State 1Q ML",
-    "est": 0.5179,
-    "edge": 0.0506,
-    "agree": 4,
-    "sample": 8,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter",
-     "Early Bird"
-    ],
-    "streak": -1,
-    "streakTeam": "nc-state-wolfpack",
-    "angles": [
-     [
-      "Syracuse\u2019s opponents 1Q ML, Syracuse on the road",
-      "3-0-1"
-     ],
-     [
-      "NC State 1Q ML at home",
-      "4-1-1"
-     ],
-     [
-      "NC State 1Q ML, last 8",
-      "5-2-1"
-     ],
-     [
-      "NC State 1Q ML, season",
-      "5-3-1"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "NC State"
-   },
-   {
-    "id": "ncaaf|401858523|1h|ats|away",
-    "game": "ncaaf|401858523",
-    "date": "2026-11-14",
-    "sport": "ncaaf",
-    "label": "NCAAF",
-    "slug": "college-football",
-    "start": "2026-11-14T20:30Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Michigan @ Oregon",
-    "href": "college-football/matchups/",
-    "market": "ats",
-    "side": "away",
-    "line": 6.5,
-    "price": -105,
-    "title": "Michigan 1H +6.5",
-    "est": 0.5614,
-    "edge": 0.0492,
-    "agree": 3,
-    "sample": 9,
-    "tier": "C",
-    "tags": [
-     "Dog Hunter",
-     "Streak Rider"
-    ],
-    "streak": 9,
-    "streakTeam": "michigan-wolverines",
-    "angles": [
-     [
-      "Michigan 1H ATS at +6.5, season",
-      "9-0"
-     ],
-     [
-      "Michigan 1H ATS at +6.5, last 8",
-      "8-0"
-     ],
-     [
-      "Oregon\u2019s opponents 1H ATS at +6.5, Oregon at home",
-      "4-1"
-     ]
-    ],
-    "info": "Michigan avg 1H margin on the road: +4.0",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Michigan"
    },
    {
     "id": "ncaab|401909728|1h|ml|away",
@@ -7364,6 +7266,104 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Southern Utah"
+   },
+   {
+    "id": "ncaaf|401871061|1q|ats|away",
+    "game": "ncaaf|401871061",
+    "date": "2026-11-14",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-14T20:30Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Middle Tennessee @ Liberty",
+    "href": "college-football/matchups/",
+    "market": "ats",
+    "side": "away",
+    "line": 6.5,
+    "price": 106,
+    "title": "Middle Tennessee 1Q +6.5",
+    "est": 0.5323,
+    "edge": 0.0469,
+    "agree": 3,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 9,
+    "streakTeam": "middle-tennessee-blue-raiders",
+    "angles": [
+     [
+      "Middle Tennessee 1Q ATS at +6.5, season",
+      "9-0"
+     ],
+     [
+      "Middle Tennessee 1Q ATS at +6.5, last 8",
+      "8-0"
+     ],
+     [
+      "Middle Tennessee 1Q ATS at +6.5 on the road",
+      "4-0"
+     ]
+    ],
+    "info": "Middle Tennessee avg 1Q margin on the road: -1.8",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Middle Tennessee"
+   },
+   {
+    "id": "ncaaf|401858300|1q|ml|home",
+    "game": "ncaaf|401858300",
+    "date": "2026-11-14",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-14T17:00Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Syracuse @ NC State",
+    "href": "college-football/matchups/",
+    "market": "ml",
+    "side": "home",
+    "line": null,
+    "price": 106,
+    "title": "NC State 1Q ML",
+    "est": 0.5322,
+    "edge": 0.0467,
+    "agree": 4,
+    "sample": 8,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Early Bird"
+    ],
+    "streak": -1,
+    "streakTeam": "nc-state-wolfpack",
+    "angles": [
+     [
+      "Syracuse\u2019s opponents 1Q ML, Syracuse on the road",
+      "3-0-1"
+     ],
+     [
+      "NC State 1Q ML at home",
+      "4-1-1"
+     ],
+     [
+      "NC State 1Q ML, last 8",
+      "5-2-1"
+     ],
+     [
+      "NC State 1Q ML, season",
+      "5-3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "NC State"
    }
   ]
  }
