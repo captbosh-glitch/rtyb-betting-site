@@ -7190,10 +7190,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 110,
+    "price": 112,
     "title": "Nets 1Q ML",
-    "est": 0.5285,
-    "edge": 0.0523,
+    "est": 0.5252,
+    "edge": 0.0535,
     "agree": 4,
     "sample": 11,
     "tier": "B",
@@ -7369,9 +7369,55 @@
      ]
     ],
     "info": null,
+    "status": "L",
+    "units": -1.0,
+    "streakTeamName": "NC State"
+   },
+   {
+    "id": "ncaaf|401856864|1q|ats|away",
+    "game": "ncaaf|401856864",
+    "date": "2026-11-14",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-15T03:30Z",
+    "seg": "1q",
+    "segTag": "1Q",
+    "matchup": "Utah @ Arizona",
+    "href": "college-football/matchups/",
+    "market": "ats",
+    "side": "away",
+    "line": -0.5,
+    "price": 135,
+    "title": "Utah 1Q -0.5",
+    "est": 0.4721,
+    "edge": 0.0466,
+    "agree": 3,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Chalk Eater"
+    ],
+    "streak": 2,
+    "streakTeam": "utah-utes",
+    "angles": [
+     [
+      "Utah 1Q ATS at -0.5 on the road",
+      "3-0"
+     ],
+     [
+      "Utah 1Q ATS at -0.5, season",
+      "8-1"
+     ],
+     [
+      "Utah 1Q ATS at -0.5, last 8",
+      "7-1"
+     ]
+    ],
+    "info": "Utah avg 1Q margin on the road: +10.7",
     "status": "pending",
     "units": null,
-    "streakTeamName": "NC State"
+    "streakTeamName": "Utah"
    },
    {
     "id": "ncaaf|401858523|1h|ats|away",
@@ -7419,6 +7465,48 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Michigan"
+   },
+   {
+    "id": "ncaab|401909728|1h|ml|away",
+    "game": "ncaab|401909728",
+    "date": "2026-11-14",
+    "sport": "ncaab",
+    "label": "NCAAB",
+    "slug": "college-basketball",
+    "start": "2026-11-14T21:00Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Southern Utah @ Wake Forest",
+    "href": "college-basketball/matchups/",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": 600,
+    "title": "Southern Utah 1H ML",
+    "est": 0.1894,
+    "edge": 0.0465,
+    "agree": 2,
+    "sample": 4,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter"
+    ],
+    "streak": -1,
+    "streakTeam": "southern-utah-thunderbirds",
+    "angles": [
+     [
+      "Southern Utah 1H ML, season",
+      "3-1"
+     ],
+     [
+      "Southern Utah 1H ML, last 8",
+      "3-1"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Southern Utah"
    }
   ]
  }
