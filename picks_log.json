@@ -6193,10 +6193,10 @@
     "market": "total",
     "side": "over",
     "line": 105.5,
-    "price": -110,
+    "price": -112,
     "title": "1H Over 105.5",
-    "est": 0.5862,
-    "edge": 0.0624,
+    "est": 0.5894,
+    "edge": 0.0611,
     "agree": 6,
     "sample": 12,
     "tier": "B",
@@ -6271,8 +6271,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Georgia Southern"
    },
    {
