@@ -6336,10 +6336,10 @@
     "market": "ats",
     "side": "away",
     "line": 7.5,
-    "price": -110,
+    "price": -108,
     "title": "Warriors 1H +7.5",
-    "est": 0.5684,
-    "edge": 0.0446,
+    "est": 0.5651,
+    "edge": 0.0459,
     "agree": 3,
     "sample": 12,
     "tier": "B",
@@ -6536,8 +6536,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Central Arkansas"
    },
    {
