@@ -6995,56 +6995,6 @@
     "streakTeamName": "Georgia Tech"
    },
    {
-    "id": "nhl|2026020314|1p|ml|away",
-    "game": "nhl|2026020314",
-    "date": "2026-11-14",
-    "sport": "nhl",
-    "label": "NHL",
-    "slug": "nhl",
-    "start": "2026-11-15T00:00:00Z",
-    "seg": "1p",
-    "segTag": "1P",
-    "matchup": "Edmonton @ Toronto",
-    "href": "nhl/matchups/?date=2026-11-14",
-    "market": "ml",
-    "side": "away",
-    "line": null,
-    "price": -130,
-    "title": "Edmonton 1P ML",
-    "est": 0.6275,
-    "edge": 0.0623,
-    "agree": 4,
-    "sample": 13,
-    "tier": "B",
-    "tags": [
-     "Chalk Eater"
-    ],
-    "streak": 0,
-    "streakTeam": "EDM",
-    "angles": [
-     [
-      "Edmonton 1P ML, last 8",
-      "4-0-4"
-     ],
-     [
-      "Edmonton 1P ML on the road",
-      "6-1-1"
-     ],
-     [
-      "Edmonton 1P ML, season",
-      "10-3-7"
-     ],
-     [
-      "Toronto\u2019s opponents 1P ML, Toronto at home",
-      "8-3-2"
-     ]
-    ],
-    "info": null,
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Edmonton"
-   },
-   {
     "id": "ncaaf|401858297|1q|ml|away",
     "game": "ncaaf|401858297",
     "date": "2026-11-14",
@@ -7090,6 +7040,56 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Georgia Tech"
+   },
+   {
+    "id": "nhl|2026020314|1p|ml|away",
+    "game": "nhl|2026020314",
+    "date": "2026-11-14",
+    "sport": "nhl",
+    "label": "NHL",
+    "slug": "nhl",
+    "start": "2026-11-15T00:00:00Z",
+    "seg": "1p",
+    "segTag": "1P",
+    "matchup": "Edmonton @ Toronto",
+    "href": "nhl/matchups/?date=2026-11-14",
+    "market": "ml",
+    "side": "away",
+    "line": null,
+    "price": -134,
+    "title": "Edmonton 1P ML",
+    "est": 0.6327,
+    "edge": 0.06,
+    "agree": 4,
+    "sample": 13,
+    "tier": "B",
+    "tags": [
+     "Chalk Eater"
+    ],
+    "streak": 0,
+    "streakTeam": "EDM",
+    "angles": [
+     [
+      "Edmonton 1P ML, last 8",
+      "4-0-4"
+     ],
+     [
+      "Edmonton 1P ML on the road",
+      "6-1-1"
+     ],
+     [
+      "Edmonton 1P ML, season",
+      "10-3-7"
+     ],
+     [
+      "Toronto\u2019s opponents 1P ML, Toronto at home",
+      "8-3-2"
+     ]
+    ],
+    "info": null,
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Edmonton"
    },
    {
     "id": "ncaaf|401856862|1h|ml|away",
