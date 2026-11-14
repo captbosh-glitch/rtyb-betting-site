@@ -6225,8 +6225,8 @@
      ]
     ],
     "info": "Avg 1H total in their games: Spurs 118.5 \u00b7 Warriors 111.1",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Spurs"
    },
    {
@@ -6364,8 +6364,8 @@
      ]
     ],
     "info": "Warriors avg 1H margin on the road: -0.4",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Warriors"
    },
    {
