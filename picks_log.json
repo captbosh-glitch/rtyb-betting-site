@@ -6322,53 +6322,6 @@
     "streakTeamName": "Nashville"
    },
    {
-    "id": "nba|401909302|1h|ats|away",
-    "game": "nba|401909302",
-    "date": "2026-11-13",
-    "sport": "nba",
-    "label": "NBA",
-    "slug": "nba",
-    "start": "2026-11-14T02:30Z",
-    "seg": "1h",
-    "segTag": "1H",
-    "matchup": "Warriors @ Spurs",
-    "href": "nba/matchups/",
-    "market": "ats",
-    "side": "away",
-    "line": 7.5,
-    "price": -110,
-    "title": "Warriors 1H +7.5",
-    "est": 0.5684,
-    "edge": 0.0446,
-    "agree": 3,
-    "sample": 12,
-    "tier": "B",
-    "tags": [
-     "Dog Hunter",
-     "Streak Rider"
-    ],
-    "streak": 11,
-    "streakTeam": "gs",
-    "angles": [
-     [
-      "Warriors 1H ATS at +7.5, last 8",
-      "8-0"
-     ],
-     [
-      "Warriors 1H ATS at +7.5, season",
-      "11-1"
-     ],
-     [
-      "Warriors 1H ATS at +7.5 on the road",
-      "4-1"
-     ]
-    ],
-    "info": "Warriors avg 1H margin on the road: -0.4",
-    "status": "pending",
-    "units": null,
-    "streakTeamName": "Warriors"
-   },
-   {
     "id": "ncaab|401913528|1h|ml|away",
     "game": "ncaab|401913528",
     "date": "2026-11-13",
@@ -6409,6 +6362,53 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "Sam Houston"
+   },
+   {
+    "id": "nba|401909302|1h|ats|away",
+    "game": "nba|401909302",
+    "date": "2026-11-13",
+    "sport": "nba",
+    "label": "NBA",
+    "slug": "nba",
+    "start": "2026-11-14T02:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Warriors @ Spurs",
+    "href": "nba/matchups/",
+    "market": "ats",
+    "side": "away",
+    "line": 7.5,
+    "price": -115,
+    "title": "Warriors 1H +7.5",
+    "est": 0.5763,
+    "edge": 0.0414,
+    "agree": 3,
+    "sample": 12,
+    "tier": "B",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 11,
+    "streakTeam": "gs",
+    "angles": [
+     [
+      "Warriors 1H ATS at +7.5, last 8",
+      "8-0"
+     ],
+     [
+      "Warriors 1H ATS at +7.5, season",
+      "11-1"
+     ],
+     [
+      "Warriors 1H ATS at +7.5 on the road",
+      "4-1"
+     ]
+    ],
+    "info": "Warriors avg 1H margin on the road: -0.4",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Warriors"
    },
    {
     "id": "ncaab|401909696|1h|ml|away",
@@ -6513,10 +6513,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 900,
+    "price": 980,
     "title": "Central Arkansas 1H ML",
-    "est": 0.1364,
-    "edge": 0.0364,
+    "est": 0.1296,
+    "edge": 0.037,
     "agree": 2,
     "sample": 3,
     "tier": "C",
@@ -6597,10 +6597,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 590,
+    "price": 600,
     "title": "Seton Hall 1H ML",
-    "est": 0.1772,
-    "edge": 0.0323,
+    "est": 0.1753,
+    "edge": 0.0325,
     "agree": 2,
     "sample": 3,
     "tier": "C",
@@ -6731,10 +6731,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 1250,
+    "price": 1300,
     "title": "Ball State 1H ML",
-    "est": 0.1043,
-    "edge": 0.0302,
+    "est": 0.1019,
+    "edge": 0.0305,
     "agree": 2,
     "sample": 3,
     "tier": "C",
