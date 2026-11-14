@@ -6359,8 +6359,8 @@
      ]
     ],
     "info": null,
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Sam Houston"
    },
    {
@@ -6494,8 +6494,8 @@
      ]
     ],
     "info": "Pittsburgh avg 1Q margin at home: +9.2",
-    "status": "pending",
-    "units": null,
+    "status": "L",
+    "units": -1.0,
     "streakTeamName": "Pittsburgh"
    },
    {
