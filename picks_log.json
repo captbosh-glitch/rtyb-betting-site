@@ -6870,10 +6870,10 @@
     "market": "ml",
     "side": "away",
     "line": null,
-    "price": 330,
+    "price": 350,
     "title": "San Jos\u00e9 State 1H ML",
-    "est": 0.2997,
-    "edge": 0.0671,
+    "est": 0.2919,
+    "edge": 0.0697,
     "agree": 3,
     "sample": 10,
     "tier": "B",
@@ -7372,6 +7372,53 @@
     "status": "pending",
     "units": null,
     "streakTeamName": "NC State"
+   },
+   {
+    "id": "ncaaf|401858523|1h|ats|away",
+    "game": "ncaaf|401858523",
+    "date": "2026-11-14",
+    "sport": "ncaaf",
+    "label": "NCAAF",
+    "slug": "college-football",
+    "start": "2026-11-14T20:30Z",
+    "seg": "1h",
+    "segTag": "1H",
+    "matchup": "Michigan @ Oregon",
+    "href": "college-football/matchups/",
+    "market": "ats",
+    "side": "away",
+    "line": 6.5,
+    "price": -110,
+    "title": "Michigan 1H +6.5",
+    "est": 0.5703,
+    "edge": 0.0465,
+    "agree": 3,
+    "sample": 9,
+    "tier": "C",
+    "tags": [
+     "Dog Hunter",
+     "Streak Rider"
+    ],
+    "streak": 9,
+    "streakTeam": "michigan-wolverines",
+    "angles": [
+     [
+      "Michigan 1H ATS at +6.5, season",
+      "9-0"
+     ],
+     [
+      "Michigan 1H ATS at +6.5, last 8",
+      "8-0"
+     ],
+     [
+      "Oregon\u2019s opponents 1H ATS at +6.5, Oregon at home",
+      "4-1"
+     ]
+    ],
+    "info": "Michigan avg 1H margin on the road: +4.0",
+    "status": "pending",
+    "units": null,
+    "streakTeamName": "Michigan"
    }
   ]
  }
